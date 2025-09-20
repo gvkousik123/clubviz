@@ -1,324 +1,232 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Edit3, Camera, Mail, Phone, MapPin, Calendar, Settings, LogOut, Heart, Ticket, Star } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { MobileLayout, PageHeader, GlassCard } from '@/components/layout/Layout';
-import { cn } from '@/lib/utils';
+import { Edit3, Camera, Mail, Phone, MapPin, Calendar, Settings, LogOut, Heart, Ticket, Star, ArrowLeft, ChevronRight, User, Bell, Shield, HelpCircle, Share2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function ProfileScreen() {
-  const [isEditing, setIsEditing] = useState(false);
-  const [profileData, setProfileData] = useState({
-    name: 'Alex Johnson',
-    email: 'alex.johnson@example.com',
-    phone: '+91 98765 43210',
-    location: 'Mumbai, Maharashtra',
-    dateOfBirth: '1995-08-15',
-    bio: 'Party enthusiast and music lover. Always looking for the next great event!',
-    avatar: '/placeholder-user.jpg'
-  });
+    const router = useRouter();
+    const [profileData, setProfileData] = useState({
+        name: 'Alex Johnson',
+        email: 'alex.johnson@example.com',
+        phone: '+91 98765 43210',
+        location: 'Mumbai, Maharashtra',
+        joinDate: 'Member since March 2024',
+        avatar: '/placeholder-user.jpg'
+    });
 
-  const stats = {
-    eventsAttended: 24,
-    favoriteClubs: 8,
-    totalBookings: 32,
-    reviewsGiven: 15
-  };
+    const stats = [
+        { label: 'Events Attended', value: '24', icon: Calendar },
+        { label: 'Favorite Clubs', value: '8', icon: Heart },
+        { label: 'Total Bookings', value: '32', icon: Ticket },
+        { label: 'Reviews Given', value: '15', icon: Star }
+    ];
 
-  const recentActivity = [
-    {
-      id: 1,
-      type: 'booking',
-      title: 'Freaky Friday',
-      venue: 'DABO Club',
-      date: 'Apr 4, 2024',
-      status: 'confirmed'
-    },
-    {
-      id: 2,
-      type: 'review',
-      title: 'Underground Beats',
-      venue: 'Skybar Lounge',
-      date: 'Mar 28, 2024',
-      rating: 5
-    },
-    {
-      id: 3,
-      type: 'favorite',
-      title: 'Purple Haze Club',
-      date: 'Mar 25, 2024'
-    }
-  ];
-
-  const handleSave = () => {
-    setIsEditing(false);
-    // Save profile data logic
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    // Reset to original data
-  };
-
-  const handleLogout = () => {
-    // Logout logic
-    window.location.href = '/auth/login';
-  };
-
-  return (
-    <MobileLayout>
-      <PageHeader
-        title="Profile"
-        rightElement={
-          !isEditing ? (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="p-2 text-text-secondary hover:text-purple-400 transition-colors"
-            >
-              <Edit3 className="w-5 h-5" />
-            </button>
-          ) : null
+    const menuItems = [
+        { 
+            id: 'edit-profile',
+            label: 'Edit Profile',
+            icon: Edit3,
+            action: () => router.push('/profile/edit')
+        },
+        { 
+            id: 'my-bookings',
+            label: 'My Bookings',
+            icon: Ticket,
+            action: () => router.push('/tickets'),
+            badge: '3'
+        },
+        { 
+            id: 'favorites',
+            label: 'Favorites',
+            icon: Heart,
+            action: () => router.push('/favorites'),
+            badge: '8'
+        },
+        { 
+            id: 'notifications',
+            label: 'Notifications',
+            icon: Bell,
+            action: () => console.log('Notifications')
+        },
+        { 
+            id: 'privacy',
+            label: 'Privacy & Security',
+            icon: Shield,
+            action: () => console.log('Privacy')
+        },
+        { 
+            id: 'help',
+            label: 'Help & Support',
+            icon: HelpCircle,
+            action: () => router.push('/contact')
+        },
+        { 
+            id: 'share',
+            label: 'Share App',
+            icon: Share2,
+            action: () => handleShare()
+        },
+        { 
+            id: 'settings',
+            label: 'Settings',
+            icon: Settings,
+            action: () => console.log('Settings')
         }
-      />
+    ];
 
-      <div className="px-6 pb-6">
-        {/* Profile Header */}
-        <GlassCard className="mb-6">
-          <div className="text-center">
-            {/* Profile Picture */}
-            <div className="relative inline-block mb-4">
-              <img
-                src={profileData.avatar}
-                alt="Profile"
-                className="w-24 h-24 rounded-full object-cover border-4 border-purple-500/30"
-              />
-              {isEditing && (
-                <button className="absolute bottom-0 right-0 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                  <Camera className="w-4 h-4 text-white" />
+    const handleBack = () => {
+        router.back();
+    };
+
+    const handleShare = () => {
+        if (navigator.share) {
+            navigator.share({
+                title: 'ClubViz - Ultimate Party Scene',
+                text: 'Discover the hottest clubs and events in your city!',
+                url: 'https://clubviz.app',
+            });
+        }
+    };
+
+    const handleLogout = () => {
+        // Handle logout logic
+        router.push('/auth/intro');
+    };
+
+    const handleEditProfile = () => {
+        router.push('/profile/edit');
+    };
+
+    return (
+        <div className="min-h-screen bg-black text-white">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 pt-12 bg-black/95 backdrop-blur-sm sticky top-0 z-50">
+                <button
+                    onClick={handleBack}
+                    className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center hover:bg-white/20 transition-colors"
+                >
+                    <ArrowLeft className="w-6 h-6 text-white" />
                 </button>
-              )}
+
+                <h1 className="text-2xl font-bold text-white">Profile</h1>
+
+                <button
+                    onClick={handleEditProfile}
+                    className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center hover:bg-white/20 transition-colors"
+                >
+                    <Edit3 className="w-5 h-5 text-white" />
+                </button>
             </div>
 
-            {/* Profile Info */}
-            {isEditing ? (
-              <div className="space-y-4">
-                <Input
-                  value={profileData.name}
-                  onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                  className="bg-dark-600 border-dark-500 text-white text-center text-xl font-bold"
-                />
-                <Input
-                  value={profileData.bio}
-                  onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
-                  className="bg-dark-600 border-dark-500 text-white text-center"
-                  placeholder="Tell us about yourself..."
-                />
-              </div>
-            ) : (
-              <div>
-                <h1 className="text-2xl font-bold text-white mb-2">{profileData.name}</h1>
-                <p className="text-text-secondary text-sm max-w-xs mx-auto">{profileData.bio}</p>
-              </div>
-            )}
-
-            {/* Stats */}
-            <div className="grid grid-cols-4 gap-4 mt-6 pt-6 border-t border-white/10">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-purple-400">{stats.eventsAttended}</p>
-                <p className="text-text-tertiary text-xs">Events</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-pink-400">{stats.favoriteClubs}</p>
-                <p className="text-text-tertiary text-xs">Clubs</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-blue-400">{stats.totalBookings}</p>
-                <p className="text-text-tertiary text-xs">Bookings</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-yellow-400">{stats.reviewsGiven}</p>
-                <p className="text-text-tertiary text-xs">Reviews</p>
-              </div>
-            </div>
-          </div>
-        </GlassCard>
-
-        {/* Contact Information */}
-        <GlassCard className="mb-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Contact Information</h3>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Mail className="w-5 h-5 text-purple-400" />
-              {isEditing ? (
-                <Input
-                  type="email"
-                  value={profileData.email}
-                  onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                  className="bg-dark-600 border-dark-500 text-white flex-1"
-                />
-              ) : (
-                <div>
-                  <p className="text-text-tertiary text-sm">Email</p>
-                  <p className="text-white">{profileData.email}</p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Phone className="w-5 h-5 text-purple-400" />
-              {isEditing ? (
-                <Input
-                  type="tel"
-                  value={profileData.phone}
-                  onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                  className="bg-dark-600 border-dark-500 text-white flex-1"
-                />
-              ) : (
-                <div>
-                  <p className="text-text-tertiary text-sm">Phone</p>
-                  <p className="text-white">{profileData.phone}</p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-purple-400" />
-              {isEditing ? (
-                <Input
-                  value={profileData.location}
-                  onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
-                  className="bg-dark-600 border-dark-500 text-white flex-1"
-                />
-              ) : (
-                <div>
-                  <p className="text-text-tertiary text-sm">Location</p>
-                  <p className="text-white">{profileData.location}</p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Calendar className="w-5 h-5 text-purple-400" />
-              {isEditing ? (
-                <Input
-                  type="date"
-                  value={profileData.dateOfBirth}
-                  onChange={(e) => setProfileData({ ...profileData, dateOfBirth: e.target.value })}
-                  className="bg-dark-600 border-dark-500 text-white flex-1"
-                />
-              ) : (
-                <div>
-                  <p className="text-text-tertiary text-sm">Date of Birth</p>
-                  <p className="text-white">{new Date(profileData.dateOfBirth).toLocaleDateString()}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </GlassCard>
-
-        {/* Edit Actions */}
-        {isEditing && (
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <Button
-              onClick={handleCancel}
-              variant="outline"
-              className="border-dark-500 text-text-secondary hover:bg-dark-600"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              className="bg-gradient-primary hover:opacity-90"
-            >
-              Save Changes
-            </Button>
-          </div>
-        )}
-
-        {/* Recent Activity */}
-        {!isEditing && (
-          <GlassCard className="mb-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Recent Activity</h3>
-            <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-center gap-3 p-3 bg-dark-600/50 rounded-lg">
-                  <div className={cn(
-                    "w-10 h-10 rounded-lg flex items-center justify-center",
-                    activity.type === 'booking' && "bg-purple-500/20",
-                    activity.type === 'review' && "bg-yellow-500/20",
-                    activity.type === 'favorite' && "bg-red-500/20"
-                  )}>
-                    {activity.type === 'booking' && <Ticket className="w-5 h-5 text-purple-400" />}
-                    {activity.type === 'review' && <Star className="w-5 h-5 text-yellow-400" />}
-                    {activity.type === 'favorite' && <Heart className="w-5 h-5 text-red-400" />}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-white font-medium">{activity.title}</p>
-                    <div className="flex items-center gap-2 text-sm text-text-secondary">
-                      {activity.venue && <span>{activity.venue}</span>}
-                      {activity.rating && (
-                        <div className="flex items-center gap-1">
-                          <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                          <span>{activity.rating}</span>
+            {/* Profile Section */}
+            <div className="px-6 py-8">
+                <div className="text-center mb-8">
+                    <div className="relative inline-block mb-6">
+                        <div className="w-32 h-32 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-4xl font-bold text-white">
+                            {profileData.name.split(' ').map(n => n[0]).join('')}
                         </div>
-                      )}
+                        <button className="absolute bottom-2 right-2 w-10 h-10 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
+                            <Camera className="w-5 h-5 text-white" />
+                        </button>
                     </div>
-                  </div>
-                  <span className="text-text-tertiary text-xs">{activity.date}</span>
+
+                    <h2 className="text-3xl font-bold text-white mb-2">{profileData.name}</h2>
+                    <p className="text-white/70 text-lg mb-1">{profileData.email}</p>
+                    <p className="text-white/60">{profileData.joinDate}</p>
                 </div>
-              ))}
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                    {stats.map((stat) => (
+                        <div key={stat.label} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center">
+                            <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <stat.icon className="w-6 h-6 text-purple-400" />
+                            </div>
+                            <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
+                            <div className="text-white/60 text-sm">{stat.label}</div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Profile Info */}
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-8">
+                    <h3 className="text-white font-semibold text-lg mb-4">Contact Information</h3>
+                    
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                                <Mail className="w-5 h-5 text-purple-400" />
+                            </div>
+                            <div>
+                                <p className="text-white/70 text-sm">Email</p>
+                                <p className="text-white font-medium">{profileData.email}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                                <Phone className="w-5 h-5 text-purple-400" />
+                            </div>
+                            <div>
+                                <p className="text-white/70 text-sm">Phone</p>
+                                <p className="text-white font-medium">{profileData.phone}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                                <MapPin className="w-5 h-5 text-purple-400" />
+                            </div>
+                            <div>
+                                <p className="text-white/70 text-sm">Location</p>
+                                <p className="text-white font-medium">{profileData.location}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Menu Items */}
+                <div className="space-y-2 mb-8">
+                    {menuItems.map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={item.action}
+                            className="w-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4 flex items-center justify-between hover:bg-white/10 transition-all duration-300"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                                    <item.icon className="w-5 h-5 text-purple-400" />
+                                </div>
+                                <span className="text-white font-medium">{item.label}</span>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                                {item.badge && (
+                                    <div className="bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                        {item.badge}
+                                    </div>
+                                )}
+                                <ChevronRight className="w-5 h-5 text-white/60" />
+                            </div>
+                        </button>
+                    ))}
+                </div>
+
+                {/* Logout Button */}
+                <button
+                    onClick={handleLogout}
+                    className="w-full bg-red-500/10 backdrop-blur-sm border border-red-500/20 rounded-2xl p-4 flex items-center justify-center gap-3 hover:bg-red-500/20 transition-all duration-300"
+                >
+                    <LogOut className="w-5 h-5 text-red-400" />
+                    <span className="text-red-400 font-medium">Sign Out</span>
+                </button>
             </div>
-          </GlassCard>
-        )}
 
-        {/* Quick Actions */}
-        {!isEditing && (
-          <div className="space-y-3">
-            <GlassCard>
-              <button
-                onClick={() => window.location.href = '/favorites'}
-                className="w-full flex items-center gap-3 p-4 hover:bg-white/5 transition-colors rounded-lg"
-              >
-                <Heart className="w-5 h-5 text-red-400" />
-                <span className="text-white font-medium flex-1 text-left">My Favorites</span>
-                <span className="text-text-tertiary text-sm">{stats.favoriteClubs + 12} items</span>
-              </button>
-            </GlassCard>
-
-            <GlassCard>
-              <button
-                onClick={() => window.location.href = '/bookings'}
-                className="w-full flex items-center gap-3 p-4 hover:bg-white/5 transition-colors rounded-lg"
-              >
-                <Ticket className="w-5 h-5 text-purple-400" />
-                <span className="text-white font-medium flex-1 text-left">My Bookings</span>
-                <span className="text-text-tertiary text-sm">{stats.totalBookings} bookings</span>
-              </button>
-            </GlassCard>
-
-            <GlassCard>
-              <button
-                onClick={() => window.location.href = '/settings'}
-                className="w-full flex items-center gap-3 p-4 hover:bg-white/5 transition-colors rounded-lg"
-              >
-                <Settings className="w-5 h-5 text-blue-400" />
-                <span className="text-white font-medium flex-1 text-left">Settings</span>
-              </button>
-            </GlassCard>
-
-            <GlassCard>
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-3 p-4 hover:bg-white/5 transition-colors rounded-lg"
-              >
-                <LogOut className="w-5 h-5 text-red-400" />
-                <span className="text-red-400 font-medium flex-1 text-left">Logout</span>
-              </button>
-            </GlassCard>
-          </div>
-        )}
-      </div>
-    </MobileLayout>
-  );
+            {/* App Version */}
+            <div className="text-center pb-8">
+                <p className="text-white/40 text-sm">ClubViz v1.0.0</p>
+            </div>
+        </div>
+    );
 }
