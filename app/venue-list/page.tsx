@@ -124,7 +124,7 @@ export default function VenueListPage() {
                             key={location}
                             onClick={() => setSelectedLocation(location)}
                             className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap ${selectedLocation === location
-                                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
                                     : 'bg-white/10 text-white/70 hover:text-white hover:bg-white/20'
                                 }`}
                         >

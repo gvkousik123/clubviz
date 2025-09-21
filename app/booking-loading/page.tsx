@@ -47,16 +47,16 @@ export default function BookingLoadingPage() {
                 {/* Loading Animation */}
                 <div className="text-center mb-12">
                     <div className="relative">
-                        <div className="w-32 h-32 bg-gradient-to-r from-blue-500/20 to-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-8">
-                            <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center relative">
+                        <div className="w-32 h-32 bg-gradient-to-r from-teal-500/20 to-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-8">
+                            <div className="w-24 h-24 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full flex items-center justify-center relative">
                                 <Loader2 className="w-12 h-12 text-white animate-spin" />
 
                                 {/* Orbit dots */}
                                 <div className="absolute inset-0 rounded-full border-2 border-transparent">
-                                    <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-400 rounded-full animate-ping" />
-                                    <div className="absolute top-1/2 -right-1 transform -translate-y-1/2 w-2 h-2 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
-                                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-400 rounded-full animate-ping" style={{ animationDelay: '1s' }} />
-                                    <div className="absolute top-1/2 -left-1 transform -translate-y-1/2 w-2 h-2 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '1.5s' }} />
+                                    <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-teal-400 rounded-full animate-ping" />
+                                    <div className="absolute top-1/2 -right-1 transform -translate-y-1/2 w-2 h-2 bg-cyan-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
+                                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-teal-400 rounded-full animate-ping" style={{ animationDelay: '1s' }} />
+                                    <div className="absolute top-1/2 -left-1 transform -translate-y-1/2 w-2 h-2 bg-cyan-400 rounded-full animate-ping" style={{ animationDelay: '1.5s' }} />
                                 </div>
                             </div>
                         </div>
@@ -70,7 +70,7 @@ export default function BookingLoadingPage() {
                 <div className="mb-8">
                     <div className="bg-white/10 rounded-full h-2 mb-4">
                         <div
-                            className="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full transition-all duration-300 ease-out"
+                            className="bg-gradient-to-r from-teal-500 to-cyan-500 h-full rounded-full transition-all duration-300 ease-out"
                             style={{ width: `${progress}%` }}
                         />
                     </div>
@@ -90,15 +90,15 @@ export default function BookingLoadingPage() {
                             <div
                                 key={index}
                                 className={`flex items-center space-x-4 p-4 rounded-2xl transition-all duration-500 ${isActive
-                                        ? 'bg-white/10 border border-white/20'
-                                        : 'bg-white/5 border border-white/10'
+                                    ? 'bg-white/10 border border-white/20'
+                                    : 'bg-white/5 border border-white/10'
                                     }`}
                             >
                                 <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ${isCompleted
-                                        ? 'bg-green-500'
-                                        : isActive
-                                            ? 'bg-gradient-to-r from-blue-500 to-purple-600'
-                                            : 'bg-white/10'
+                                    ? 'bg-green-500'
+                                    : isActive
+                                        ? 'bg-gradient-to-r from-teal-500 to-cyan-500'
+                                        : 'bg-white/10'
                                     }`}>
                                     {isCompleted ? (
                                         <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

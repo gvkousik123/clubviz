@@ -106,12 +106,12 @@ export default function PaymentOverlay({ isOpen, onClose, amount, eventTitle }: 
                                             key={method.id}
                                             onClick={() => setSelectedMethod(method.id)}
                                             className={`w-full p-4 rounded-xl border transition-all ${selectedMethod === method.id
-                                                    ? 'border-blue-500 bg-blue-500/10'
-                                                    : 'border-white/20 bg-white/5 hover:bg-white/10'
+                                                ? 'border-teal-500 bg-teal-500/10'
+                                                : 'border-white/20 bg-white/5 hover:bg-white/10'
                                                 }`}
                                         >
                                             <div className="flex items-center space-x-4">
-                                                <Icon className={`w-6 h-6 ${selectedMethod === method.id ? 'text-blue-400' : 'text-white/60'
+                                                <Icon className={`w-6 h-6 ${selectedMethod === method.id ? 'text-teal-400' : 'text-white/60'
                                                     }`} />
                                                 <div className="text-left">
                                                     <div className={`font-medium ${selectedMethod === method.id ? 'text-white' : 'text-white/80'
@@ -136,7 +136,7 @@ export default function PaymentOverlay({ isOpen, onClose, amount, eventTitle }: 
                                         <input
                                             type="text"
                                             placeholder="1234 5678 9012 3456"
-                                            className="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white placeholder-white/60 focus:outline-none focus:border-blue-400"
+                                            className="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white placeholder-white/60 focus:outline-none focus:border-teal-400"
                                         />
                                     </div>
 
@@ -146,7 +146,7 @@ export default function PaymentOverlay({ isOpen, onClose, amount, eventTitle }: 
                                             <input
                                                 type="text"
                                                 placeholder="MM/YY"
-                                                className="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white placeholder-white/60 focus:outline-none focus:border-blue-400"
+                                                className="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white placeholder-white/60 focus:outline-none focus:border-teal-400"
                                             />
                                         </div>
                                         <div>
@@ -154,7 +154,7 @@ export default function PaymentOverlay({ isOpen, onClose, amount, eventTitle }: 
                                             <input
                                                 type="text"
                                                 placeholder="123"
-                                                className="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white placeholder-white/60 focus:outline-none focus:border-blue-400"
+                                                className="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white placeholder-white/60 focus:outline-none focus:border-teal-400"
                                             />
                                         </div>
                                     </div>
@@ -167,7 +167,7 @@ export default function PaymentOverlay({ isOpen, onClose, amount, eventTitle }: 
                             <button
                                 onClick={handlePayment}
                                 disabled={isProcessing}
-                                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 rounded-2xl font-semibold text-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-4 rounded-2xl font-semibold text-lg hover:from-teal-600 hover:to-cyan-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isProcessing ? (
                                     <div className="flex items-center justify-center space-x-2">

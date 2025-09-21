@@ -36,18 +36,18 @@ export const designSystem = {
     }
   },
 
-  // Color Palette - Based on design screens analysis
+  // Color Palette - Blue Theme
   colors: {
-    // Primary Brand Colors
+    // Primary Brand Colors - Blue
     primary: {
-      50: '#f0f4ff',
-      100: '#e0e9ff',
-      200: '#c7d7fe',
-      300: '#a5b8fc',
-      400: '#8b93f8',
-      500: '#6366f1', // Main primary
-      600: '#5855eb',
-      700: '#4f46e5',
+      50: '#eff6ff',
+      100: '#dbeafe',
+      200: '#bfdbfe',
+      300: '#93c5fd',
+      400: '#60a5fa',
+      500: '#3b82f6', // Main primary
+      600: '#2563eb',
+      700: '#1d4ed8',
       800: '#4338ca',
       900: '#3730a3',
       950: '#2d1b69',

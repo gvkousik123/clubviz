@@ -7,95 +7,107 @@
   "colors": {
     "brand": {
       "primary": {
-        "50": "#f0f9ff",
-        "100": "#e0f2fe", 
-        "200": "#bae6fd",
-        "300": "#7dd3fc",
-        "400": "#38bdf8",
-        "500": "#0ea5e9",
-        "600": "#0284c7",
-        "700": "#0369a1",
-        "800": "#075985",
-        "900": "#0c4a6e",
-        "950": "#082f49"
+        "50": "#ECFEFF",
+        "100": "#CFFAFE", 
+        "200": "#A5F3FC",
+        "300": "#67E8F9",
+        "400": "#22D3EE",
+        "500": "#06B6D4",
+        "600": "#0891B2",
+        "700      "input": {
+      "primary": {
+        "backgroundColor": "rgba(30, 30, 46, 0.85)",
+        "color": "#FFFFFF",
+        "borderRadius": "0.75rem",
+        "padding": "0.75rem 1rem",
+        "border": "1px solid rgba(255, 255, 255, 0.08)",
+        "fontSize": "1rem",
+        "placeholder": "#64748B",
+        "backdropFilter": "blur(16px)"
+      },
+      "search": {
+        "backgroundColor": "rgba(30, 30, 46, 0.85)",
+        "color": "#FFFFFF",
+        "borderRadius": "9999px",        "800": "#155E75",
+        "900": "#164E63",
+        "950": "#083344"
       },
       "secondary": {
-        "50": "#faf5ff",
-        "100": "#f3e8ff",
-        "200": "#e9d5ff", 
-        "300": "#d8b4fe",
-        "400": "#c084fc",
-        "500": "#a855f7",
-        "600": "#9333ea",
-        "700": "#7c3aed",
-        "800": "#6b21a8",
-        "900": "#581c87",
-        "950": "#3b0764"
+        "50": "#EFF6FF",
+        "100": "#DBEAFE",
+        "200": "#BFDBFE", 
+        "300": "#93C5FD",
+        "400": "#60A5FA",
+        "500": "#3B82F6",
+        "600": "#2563EB",
+        "700": "#1D4ED8",
+        "800": "#1E40AF",
+        "900": "#1E3A8A",
+        "950": "#172554"
       },
       "accent": {
-        "50": "#fdf2f8",
-        "100": "#fce7f3",
-        "200": "#fbcfe8",
-        "300": "#f9a8d4", 
-        "400": "#f472b6",
-        "500": "#ec4899",
-        "600": "#db2777",
-        "700": "#be185d",
-        "800": "#9d174d",
-        "900": "#831843",
-        "950": "#500724"
+        "teal": "#06B6D4",
+        "blue": "#3B82F6",
+        "green": "#10B981",
+        "yellow": "#F59E0B",
+        "red": "#EF4444",
+        "purple": "#8B5CF6"
       }
     },
     
     "background": {
-      "primary": "#0a0a0f",
+      "primary": "#0A0A0F",
       "secondary": "#141420",
-      "tertiary": "#1a1a2e",
-      "card": "#1e1e2e",
+      "tertiary": "#1A1A2E",
+      "card": "#1E1E2E",
       "glass": "rgba(30, 30, 46, 0.85)",
       "overlay": "rgba(10, 10, 15, 0.9)",
       "gradient": {
-        "primary": "linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #6366f1 100%)",
-        "secondary": "linear-gradient(135deg, #0ea5e9 0%, #a855f7 100%)",
-        "card": "linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%)",
-        "hero": "linear-gradient(180deg, rgba(168, 85, 247, 0.2) 0%, rgba(10, 10, 15, 0.95) 60%)",
-        "mesh": "radial-gradient(circle at 20% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.15) 0%, transparent 50%)"
+        "hero": "linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%)",
+        "card": "linear-gradient(180deg, rgba(10, 10, 15, 0) 0%, rgba(10, 10, 15, 0.9) 100%)",
+        "teal": "linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)",
+        "glass": "linear-gradient(135deg, rgba(30, 30, 46, 0.7) 0%, rgba(30, 30, 46, 0.85) 100%)",
+        "ticket": "linear-gradient(180deg, #1E1E2E 0%, #141420 100%)"
       }
     },
     
     "text": {
-      "primary": "#ffffff",
-      "secondary": "#e2e8f0",
-      "tertiary": "#94a3b8",
-      "muted": "#64748b",
+      "primary": "#FFFFFF",
+      "secondary": "#E2E8F0",
+      "tertiary": "#94A3B8",
+      "muted": "#64748B",
       "disabled": "#475569",
-      "inverse": "#0f172a"
+      "inverse": "#0F172A"
     },
     
     "semantic": {
       "success": {
-        "50": "#f0fdf4",
-        "500": "#22c55e",
-        "600": "#16a34a",
-        "700": "#15803d"
+        "50": "#ECFDF5",
+        "100": "#D1FAE5",
+        "500": "#10B981",
+        "600": "#059669",
+        "700": "#047857"
       },
       "warning": {
-        "50": "#fffbeb", 
-        "500": "#f59e0b",
-        "600": "#d97706",
-        "700": "#b45309"
+        "50": "#FFFBEB", 
+        "100": "#FEF3C7",
+        "500": "#F59E0B",
+        "600": "#D97706",
+        "700": "#B45309"
       },
       "error": {
-        "50": "#fef2f2",
-        "500": "#ef4444", 
-        "600": "#dc2626",
-        "700": "#b91c1c"
+        "50": "#FEF2F2",
+        "100": "#FEE2E2",
+        "500": "#EF4444", 
+        "600": "#DC2626",
+        "700": "#B91C1C"
       },
       "info": {
-        "50": "#eff6ff",
-        "500": "#3b82f6",
-        "600": "#2563eb", 
-        "700": "#1d4ed8"
+        "50": "#EFF6FF",
+        "100": "#DBEAFE",
+        "500": "#3B82F6",
+        "600": "#2563EB", 
+        "700": "#1D4ED8"
       }
     },
     
@@ -103,12 +115,17 @@
       "border": {
         "primary": "rgba(255, 255, 255, 0.1)",
         "secondary": "rgba(255, 255, 255, 0.05)", 
-        "focus": "rgba(168, 85, 247, 0.5)",
+        "focus": "rgba(6, 182, 212, 0.5)",
         "error": "rgba(239, 68, 68, 0.5)"
       },
       "divider": "rgba(255, 255, 255, 0.08)",
       "skeleton": "rgba(255, 255, 255, 0.1)",
-      "placeholder": "#94a3b8"
+      "placeholder": "#94A3B8",
+      "rating": {
+        "good": "#10B981",
+        "average": "#F59E0B",
+        "poor": "#EF4444"
+      }
     }
   },
   
@@ -278,8 +295,8 @@
     "2xl": "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
     "inner": "inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)",
     "glass": "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
-    "glow": "0 0 20px rgba(168, 85, 247, 0.3)",
-    "glowPink": "0 0 20px rgba(236, 72, 153, 0.3)"
+    "glow": "0 0 20px rgba(6, 182, 212, 0.3)",
+    "glowBlue": "0 0 20px rgba(59, 130, 246, 0.3)"
   },
   
   "effects": {
@@ -345,60 +362,69 @@
   "components": {
     "button": {
       "primary": {
-        "backgroundColor": "linear-gradient(135deg, #a855f7 0%, #ec4899 100%)",
+        "backgroundColor": "linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)",
         "color": "#ffffff",
-        "borderRadius": "0.75rem",
-        "padding": "0.875rem 1.5rem",
+        "borderRadius": "9999px",
+        "padding": "0.75rem 1.5rem",
         "fontSize": "1rem",
-        "fontWeight": 600,
+        "fontWeight": 500,
         "border": "none",
-        "boxShadow": "0 4px 14px 0 rgba(168, 85, 247, 0.4)",
+        "boxShadow": "0 4px 14px 0 rgba(6, 182, 212, 0.4)",
         "transition": "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
       },
       "secondary": {
-        "backgroundColor": "rgba(255, 255, 255, 0.1)",
+        "backgroundColor": "rgba(30, 30, 46, 0.85)",
         "color": "#ffffff", 
-        "borderRadius": "0.75rem",
-        "padding": "0.875rem 1.5rem",
+        "borderRadius": "9999px",
+        "padding": "0.75rem 1.5rem",
         "fontSize": "1rem",
         "fontWeight": 500,
-        "border": "1px solid rgba(255, 255, 255, 0.2)",
-        "backdropFilter": "blur(10px)",
+        "border": "1px solid rgba(255, 255, 255, 0.1)",
+        "backdropFilter": "blur(16px)",
+        "transition": "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+      },
+      "danger": {
+        "backgroundColor": "#EF4444",
+        "color": "#ffffff",
+        "borderRadius": "9999px", 
+        "padding": "0.75rem 1.5rem",
+        "fontSize": "1rem",
+        "fontWeight": 500,
+        "border": "none",
         "transition": "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
       },
       "ghost": {
         "backgroundColor": "transparent",
-        "color": "#e2e8f0",
-        "borderRadius": "0.75rem", 
-        "padding": "0.875rem 1.5rem",
+        "color": "#E2E8F0",
+        "borderRadius": "9999px", 
+        "padding": "0.75rem 1.5rem",
         "fontSize": "1rem",
         "fontWeight": 500,
         "border": "1px solid transparent",
         "transition": "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
       },
       "icon": {
-        "backgroundColor": "rgba(255, 255, 255, 0.1)",
+        "backgroundColor": "rgba(30, 30, 46, 0.85)",
         "color": "#ffffff",
         "borderRadius": "50%",
         "padding": "0.75rem",
         "border": "1px solid rgba(255, 255, 255, 0.1)",
-        "backdropFilter": "blur(10px)",
+        "backdropFilter": "blur(16px)",
         "transition": "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
       }
     },
     
     "card": {
       "primary": {
-        "backgroundColor": "rgba(30, 30, 46, 0.85)",
-        "borderRadius": "1rem",
+        "backgroundColor": "#1E1E2E",
+        "borderRadius": "1.5rem",
         "padding": "1.5rem",
-        "border": "1px solid rgba(255, 255, 255, 0.1)",
-        "backdropFilter": "blur(20px)",
-        "boxShadow": "0 8px 32px 0 rgba(31, 38, 135, 0.37)"
+        "border": "1px solid rgba(255, 255, 255, 0.08)",
+        "boxShadow": "0 10px 15px -3px rgba(0, 0, 0, 0.1)"
       },
       "glass": {
-        "backgroundColor": "rgba(255, 255, 255, 0.05)", 
-        "borderRadius": "1rem",
+        "backgroundColor": "rgba(30, 30, 46, 0.85)", 
+        "borderRadius": "1.5rem",
         "padding": "1.5rem",
         "border": "1px solid rgba(255, 255, 255, 0.1)",
         "backdropFilter": "blur(20px)"
@@ -422,23 +448,23 @@
     
     "input": {
       "primary": {
-        "backgroundColor": "rgba(51, 65, 85, 0.6)",
-        "color": "#ffffff",
+        "backgroundColor": "rgba(30, 30, 46, 0.85)",
+        "color": "#FFFFFF",
         "borderRadius": "0.75rem",
-        "padding": "1rem 1.25rem",
-        "border": "1px solid rgba(255, 255, 255, 0.1)",
+        "padding": "0.75rem 1rem",
+        "border": "1px solid rgba(255, 255, 255, 0.08)",
         "fontSize": "1rem",
-        "placeholder": "#94a3b8",
-        "backdropFilter": "blur(10px)"
+        "placeholder": "#64748B",
+        "backdropFilter": "blur(16px)"
       },
       "search": {
-        "backgroundColor": "rgba(255, 255, 255, 0.1)",
-        "color": "#ffffff",
-        "borderRadius": "2rem", 
-        "padding": "0.875rem 1.25rem",
-        "border": "1px solid rgba(255, 255, 255, 0.2)",
+        "backgroundColor": "rgba(30, 30, 46, 0.85)",
+        "color": "#FFFFFF",
+        "borderRadius": "9999px",
+        "padding": "0.75rem 1.25rem",
+        "border": "1px solid rgba(255, 255, 255, 0.08)",
         "fontSize": "1rem",
-        "backdropFilter": "blur(10px)"
+        "backdropFilter": "blur(16px)"
       }
     },
     
@@ -447,25 +473,25 @@
         "backgroundColor": "rgba(10, 10, 15, 0.95)",
         "height": "4rem",
         "padding": "0 1.5rem",
-        "backdropFilter": "blur(20px)",
-        "borderBottom": "1px solid rgba(255, 255, 255, 0.1)"
+        "backdropFilter": "blur(16px)",
+        "borderBottom": "1px solid rgba(255, 255, 255, 0.08)"
       },
       "tabBar": {
         "backgroundColor": "rgba(30, 30, 46, 0.95)",
-        "borderRadius": "1.5rem 1.5rem 0 0",
-        "padding": "1rem", 
-        "backdropFilter": "blur(20px)",
-        "border": "1px solid rgba(255, 255, 255, 0.1)",
+        "borderRadius": "0",
+        "padding": "0.5rem 1rem", 
+        "backdropFilter": "blur(16px)",
+        "borderTop": "1px solid rgba(255, 255, 255, 0.08)",
         "height": "5rem"
       },
       "tab": {
         "active": {
-          "color": "#a855f7",
+          "color": "#FFFFFF",
           "fontSize": "0.75rem",
-          "fontWeight": 600
+          "fontWeight": 500
         },
         "inactive": {
-          "color": "#94a3b8",
+          "color": "#64748B",
           "fontSize": "0.75rem", 
           "fontWeight": 500
         }
@@ -474,7 +500,7 @@
     
     "badge": {
       "primary": {
-        "backgroundColor": "linear-gradient(135deg, #a855f7 0%, #ec4899 100%)",
+        "backgroundColor": "linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%)",
         "color": "#ffffff",
         "borderRadius": "9999px",
         "padding": "0.25rem 0.75rem",
@@ -532,7 +558,7 @@
     }
   },
   
-  "patterns": {
+    "patterns": {
     "glassmorphism": {
       "backgroundColor": "rgba(255, 255, 255, 0.1)",
       "backdropFilter": "blur(20px) saturate(180%)",
@@ -544,9 +570,9 @@
       "boxShadow": "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3)"
     },
     "gradient": {
-      "primary": "linear-gradient(135deg, #a855f7 0%, #ec4899 100%)",
-      "secondary": "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-      "mesh": "radial-gradient(circle at 20% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.15) 0%, transparent 50%)"
+      "primary": "linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%)",
+      "secondary": "linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)",
+      "mesh": "radial-gradient(circle at 20% 80%, rgba(20, 184, 166, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.15) 0%, transparent 50%)"
     }
   }
 }

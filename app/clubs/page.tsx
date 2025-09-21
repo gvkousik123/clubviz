@@ -117,7 +117,7 @@ export default function VenueListPage() {
             placeholder="Search clubs, bars, restaurants..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-14 pr-4 py-4 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 text-white placeholder-white/60 focus:outline-none focus:border-purple-400 focus:bg-white/20 transition-all duration-300"
+            className="w-full pl-14 pr-4 py-4 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 text-white placeholder-white/60 focus:outline-none focus:border-teal-400 focus:bg-white/20 transition-all duration-300"
           />
         </div>
       </div>
@@ -130,7 +130,7 @@ export default function VenueListPage() {
               key={filter}
               onClick={() => setSelectedFilter(filter)}
               className={`px-6 py-3 rounded-2xl whitespace-nowrap font-medium transition-all duration-300 ${selectedFilter === filter
-                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white'
                 : 'bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 hover:bg-white/20'
                 }`}
             >
@@ -188,14 +188,14 @@ export default function VenueListPage() {
               <div className="flex justify-between items-start mb-3">
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-white mb-1">{venue.name}</h3>
-                  <p className="text-purple-300 text-sm font-medium mb-2">{venue.description}</p>
+                  <p className="text-teal-300 text-sm font-medium mb-2">{venue.description}</p>
                   <div className="flex items-center gap-1 text-white/70 text-sm">
                     <MapPin className="w-4 h-4" />
                     <span>{venue.location}</span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-purple-300 text-sm">Entry</p>
+                  <p className="text-teal-300 text-sm">Entry</p>
                   <p className="text-white font-bold text-lg">{venue.price}</p>
                 </div>
               </div>
@@ -215,7 +215,7 @@ export default function VenueListPage() {
                   )}
                 </div>
 
-                <button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 px-6 py-2 rounded-xl text-white font-medium transition-all duration-300 transform hover:scale-105">
+                <button className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 px-6 py-2 rounded-xl text-white font-medium transition-all duration-300 transform hover:scale-105">
                   View Details
                 </button>
               </div>
@@ -238,10 +238,10 @@ export default function VenueListPage() {
           </button>
 
           <button className="flex flex-col items-center gap-1">
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full flex items-center justify-center">
               <MapPin className="w-4 h-4 text-white" />
             </div>
-            <span className="text-purple-400 text-xs font-medium">Clubs</span>
+            <span className="text-teal-400 text-xs font-medium">Clubs</span>
           </button>
 
           <button

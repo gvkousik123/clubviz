@@ -4,8 +4,8 @@ import { useEffect } from 'react';
 
 export default function RootPage() {
   useEffect(() => {
-    // Redirect to intro screen for first-time users or clubs for authenticated users
-    window.location.href = '/clubs';
+    // Redirect to intro screen for first-time users or home for authenticated users
+    window.location.href = '/home';
   }, []);
 
   return (

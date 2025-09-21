@@ -26,7 +26,7 @@ export default function ErrorPage() {
                 <div className="space-y-4">
                     <button
                         onClick={handleRetry}
-                        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 px-6 rounded-2xl font-semibold text-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 flex items-center justify-center space-x-2"
+                        className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-4 px-6 rounded-2xl font-semibold text-lg hover:from-teal-600 hover:to-cyan-600 transition-all duration-300 flex items-center justify-center space-x-2"
                     >
                         <RefreshCw className="w-5 h-5" />
                         <span>Try Again</span>
