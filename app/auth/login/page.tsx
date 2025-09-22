@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Mail, Smartphone, Chrome } from 'lucide-react';
 import { AuthLayout } from '@/components/auth/auth-layout';
 import { ClubVizLogo } from '@/components/auth/logo';
@@ -13,9 +14,21 @@ interface LoginOption {
     href: string;
     gradient: string;
     textColor: string;
+    isGoogleLogin?: boolean;
 }
 
 export default function LoginPage(): JSX.Element {
+    const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleGoogleLogin = () => {
+        setIsLoading(true);
+        // Simulate login delay
+        setTimeout(() => {
+            router.push('/home');
+        }, 1000);
+    };
+
     const loginOptions: LoginOption[] = [
         {
             icon: Smartphone,
@@ -34,9 +47,10 @@ export default function LoginPage(): JSX.Element {
         {
             icon: Chrome,
             label: 'Login with Google',
-            href: '/auth/google',
+            href: '/home', // Direct navigation to home
             gradient: 'from-[#ff5757] to-[#993434]',
-            textColor: 'text-white'
+            textColor: 'text-white',
+            isGoogleLogin: true
         }
     ];
 
@@ -84,21 +98,58 @@ export default function LoginPage(): JSX.Element {
                             const Icon = option.icon;
                             const isFirst = index === 0;
                             const isLast = index === loginOptions.length - 1;
+                            const isGoogle = option.isGoogleLogin;
+
+                            // For Google login, handle with JS instead of Link
+                            if (isGoogle) {
+                                return (
+                                    <button
+                                        key={option.label}
+                                        onClick={handleGoogleLogin}
+                                        disabled={isLoading}
+                                        className={`
+                                          block w-full py-6  
+                                          bg-gradient-to-b ${option.gradient}
+                                          ${isFirst ? 'rounded-t-[30px]' : ''}
+                                          ${isLast ? 'pb-8 min-h-[40px]' : ''}
+                                          border-t border-white/20
+                                          hover:brightness-110 transition-all duration-300
+                                          transform hover:scale-[1.02] hover:shadow-lg
+                                          min-w-0 flex-shrink-0
+                                          ${isLoading ? 'opacity-80 cursor-not-allowed' : ''}
+                                        `}
+                                    >
+                                        <div className="flex items-center justify-center gap-3">
+                                            {isLoading ? (
+                                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                            ) : (
+                                                <Icon className={`w-5 h-5 ${option.textColor}`} />
+                                            )}
+                                            <span className={`text-lg font-semibold ${option.textColor}`}>
+                                                {isLoading ? 'Logging in...' : option.label}
+                                            </span>
+                                        </div>
+                                    </button>
+                                );
+                            }
 
                             return (
                                 <Link
                                     key={option.label}
                                     href={option.href}
                                     className={`
-                      block w-full py-6  
-                      bg-gradient-to-b ${option.gradient}
-                      ${isFirst ? 'rounded-t-[30px]' : ''}
-                      ${isLast ? 'pb-8 min-h-[40px]' : ''}
-                      border-t border-white/20
-                      hover:brightness-110 transition-all duration-300
-                      transform hover:scale-[1.02] hover:shadow-lg
-                      min-w-0 flex-shrink-0
-                    `}
+                                      block w-full py-6  
+                                      bg-gradient-to-b ${option.gradient}
+                                      ${isFirst ? 'rounded-t-[30px]' : ''}
+                                      ${isLast ? 'pb-8 min-h-[40px]' : ''}
+                                      border-t border-white/20
+                                      hover:brightness-110 transition-all duration-300
+                                      transform hover:scale-[1.02] hover:shadow-lg
+                                      min-w-0 flex-shrink-0
+                                    `}
 
                                 >
                                     <div className="flex items-center justify-center gap-3">
