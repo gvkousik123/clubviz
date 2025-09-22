@@ -21,7 +21,7 @@ export function AuthButton({
     className = '',
     icon: Icon,
 }: AuthButtonProps) {
-    const baseClasses = "flex items-center justify-center gap-2 rounded-full py-4 px-6 font-medium transition-all duration-300";
+    const baseClasses = "flex items-center justify-center gap-2 rounded-full py-4 font-medium transition-all duration-300";
 
     const variantClasses = {
         primary: "bg-gradient-button text-text-primary shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40",

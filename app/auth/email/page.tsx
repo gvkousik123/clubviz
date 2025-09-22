@@ -41,7 +41,7 @@ export default function EmailLoginScreen() {
 
                     <Link
                         href="/auth/login"
-                        className="px-4 py-2 rounded-full border border-teal-400/30 text-sm text-teal-300 hover:bg-teal-500/10 transition"
+                        className=" py-2 rounded-full border border-teal-400/30 text-sm text-teal-300 hover:bg-teal-500/10 transition"
                     >
                         Skip
                     </Link>

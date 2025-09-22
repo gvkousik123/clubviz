@@ -4,8 +4,8 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
-  title: "ClubViz - Premium Nightlife App",
-  description: "Find the best clubs, book events, and explore nightlife",
+  title: "ClubViz - Ultimate Platform for Booking Clubs",
+  description: "ClubViz is the ultimate platform for booking clubs, events, and discovering the best nightlife experiences. Book your next club adventure with ease.",
 }
 
 export const viewport: Viewport = {
