@@ -7,7 +7,6 @@ export default function RootPage() {
     // Redirect to intro screen for first-time users or home for authenticated users
     window.location.href = '/auth/intro';
   }, []);
-
   return (
     <div className="bg-dark-900 min-h-screen flex items-center justify-center">
       <div className="text-center">
