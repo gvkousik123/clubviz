@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, Menu, MapPin, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import SidebarMenu from '@/components/ui/sidebar-menu';
 
 // Mock data for vibe meter
 const vibeMeterData = [
@@ -60,15 +61,24 @@ const eventData = [
 
 const HomePage: React.FC = () => {
     const router = useRouter();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const handleVibeMeterClick = (clubId: number) => {
         router.push('/story');
     };
 
+    const handleMenuClick = () => {
+        setIsSidebarOpen(true);
+    };
+
+    const handleSidebarClose = () => {
+        setIsSidebarOpen(false);
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#0d7377] to-[#222831] font-['Poppins']">
             {/* Header */}
-            <div className="w-full bg-gradient-to-t from-[#0d7377] to-[#222831] rounded-bl-[30px] rounded-br-[30px] pb-4">
+            <div className="w-full bg-gradient-to-r from-teal-600 to-teal-500 rounded-bl-[30px] rounded-br-[30px] pb-4">
                 {/* Status Bar */}
                 <div className="flex justify-between items-center px-6 pt-4 pb-2">
                     <div className="text-white text-sm font-semibold">9:41</div>
@@ -83,7 +93,7 @@ const HomePage: React.FC = () => {
                 <div className="px-4 pb-4">
                     <div className="flex justify-between items-center mb-4">
                         <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-cyan-400" />
+                            <MapPin className="w-4 h-4 text-white" />
                             <span className="text-white font-medium">Dharampeth</span>
                             <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -102,6 +112,7 @@ const HomePage: React.FC = () => {
                             />
                         </div>
                         <Button
+                            onClick={handleMenuClick}
                             size="icon"
                             className="w-9 h-9 bg-[#222831] hover:bg-[#2a2a38] rounded-[23px] border-none"
                         >
@@ -111,12 +122,14 @@ const HomePage: React.FC = () => {
 
                     {/* Location Dropdown */}
                     <div className="mt-4">
-                        <div className="inline-flex items-center gap-2 bg-[#222831] rounded-[25px] px-4 py-2">
-                            <span className="text-white font-bold text-sm">Nagpur</span>
-                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                        </div>
+                        <Link href="/location/select">
+                            <div className="inline-flex items-center gap-2 bg-[#222831] rounded-[25px] px-4 py-2 hover:bg-[#2a2a38] transition-all duration-300">
+                                <span className="text-white font-bold text-sm">Nagpur</span>
+                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                            </div>
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -244,33 +257,35 @@ const HomePage: React.FC = () => {
                             View All
                         </Link>
                     </div>
-                    <div className="flex gap-4 pb-2">
-                        {venueData.map((venue) => (
-                            <div key={venue.id} className="flex-shrink-0 w-[336px] relative">
-                                <div className="relative h-[197px] rounded-t-[30px] rounded-b-[30px] border border-[#0c898b] overflow-hidden">
-                                    <img
-                                        src={venue.image}
-                                        alt={venue.name}
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-                                    <div className="absolute bottom-4 left-4">
-                                        <h3 className="text-white font-bold text-2xl">{venue.name}</h3>
-                                        <p className="text-white/80 text-sm">{venue.openTime}</p>
-                                    </div>
-                                    <div className="absolute bottom-4 right-4">
-                                        <div className="bg-cyan-600 text-white text-sm font-bold px-2 py-1 rounded">
-                                            {venue.rating}
+                    <div className="overflow-x-auto scrollbar-hide">
+                        <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
+                            {venueData.map((venue) => (
+                                <div key={venue.id} className="flex-shrink-0 w-[336px] relative">
+                                    <div className="relative h-[197px] rounded-t-[30px] rounded-b-[30px] border border-[#0c898b] overflow-hidden">
+                                        <img
+                                            src={venue.image}
+                                            alt={venue.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                                        <div className="absolute bottom-4 left-4">
+                                            <h3 className="text-white font-bold text-2xl">{venue.name}</h3>
+                                            <p className="text-white/80 text-sm">{venue.openTime}</p>
                                         </div>
+                                        <div className="absolute bottom-4 right-4">
+                                            <div className="bg-cyan-600 text-white text-sm font-bold px-2 py-1 rounded">
+                                                {venue.rating}
+                                            </div>
+                                        </div>
+                                        <button className="absolute top-4 right-4 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center">
+                                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                            </svg>
+                                        </button>
                                     </div>
-                                    <button className="absolute top-4 right-4 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center">
-                                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                        </svg>
-                                    </button>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </div>
 
@@ -283,37 +298,39 @@ const HomePage: React.FC = () => {
                             View All
                         </Link>
                     </div>
-                    <div className="flex gap-4 pb-2">
-                        {eventData.map((event) => (
-                            <div key={event.id} className="flex-shrink-0 w-[222px]">
-                                <div className="bg-[#003c3d] rounded-t-[20px] rounded-b-[20px] overflow-hidden border border-[#0ed7e2]/30">
-                                    <div className="relative">
-                                        <img
-                                            src={event.image}
-                                            alt={event.title}
-                                            className="w-full h-[180px] object-cover"
-                                        />
-                                        <div className="absolute top-0 right-0 bg-gradient-to-b from-black to-[#00c0ca] text-white text-xs font-bold px-2 py-3 rounded-bl-[28px] min-h-[45px] flex items-center">
-                                            {event.date}
+                    <div className="overflow-x-auto scrollbar-hide">
+                        <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
+                            {eventData.map((event) => (
+                                <div key={event.id} className="flex-shrink-0 w-[222px]">
+                                    <div className="bg-[#003c3d] rounded-t-[20px] rounded-b-[20px] overflow-hidden border border-[#0ed7e2]/30">
+                                        <div className="relative">
+                                            <img
+                                                src={event.image}
+                                                alt={event.title}
+                                                className="w-full h-[180px] object-cover"
+                                            />
+                                            <div className="absolute top-0 right-0 bg-gradient-to-b from-black to-[#00c0ca] text-white text-xs font-bold px-2 py-3 rounded-bl-[28px] min-h-[45px] flex items-center">
+                                                {event.date}
+                                            </div>
+                                            <button className="absolute top-4 right-4 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center">
+                                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                            </button>
                                         </div>
-                                        <button className="absolute top-4 right-4 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center">
-                                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                    <div className="p-4 space-y-2">
-                                        <h3 className="text-white font-bold text-sm leading-tight">{event.title}</h3>
-                                        <p className="text-white/70 text-xs">{event.venue}</p>
-                                    </div>
-                                    <div className="px-4 pb-4">
-                                        <div className="bg-[#0d7377] text-white text-xs font-medium px-3 py-2 rounded-full text-center">
-                                            {event.category}
+                                        <div className="p-4 space-y-2">
+                                            <h3 className="text-white font-bold text-sm leading-tight">{event.title}</h3>
+                                            <p className="text-white/70 text-xs">{event.venue}</p>
+                                        </div>
+                                        <div className="px-4 pb-4">
+                                            <div className="bg-[#0d7377] text-white text-xs font-medium px-3 py-2 rounded-full text-center">
+                                                {event.category}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </div>
 
@@ -369,6 +386,9 @@ const HomePage: React.FC = () => {
                     </p>
                 </div>
             </div>
+
+            {/* Sidebar Menu */}
+            <SidebarMenu isOpen={isSidebarOpen} onClose={handleSidebarClose} />
         </div>
     );
 };
