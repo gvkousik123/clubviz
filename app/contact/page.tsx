@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Phone, Mail, Instagram, MessageCircle } from 'lucide-react';
+import { ClubVizLogo } from '@/components/auth/logo';
 
 export default function ContactUsPage() {
     const router = useRouter();

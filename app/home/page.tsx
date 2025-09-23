@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SidebarMenu from '@/components/ui/sidebar-menu';
 import { useDragScroll } from '@/hooks/use-drag-scroll';
+import { ClubVizLogo } from '@/components/auth/logo';
 
 // Mock data for vibe meter
 const vibeMeterData = [
@@ -348,9 +349,8 @@ const HomePage: React.FC = () => {
                 {/* Footer */}
                 <div className="bg-[#003c3d] rounded-t-[20px] rounded-b-[20px] p-6 space-y-6 shadow-lg">
                     <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-4">
-                            <div className="w-8 h-8 bg-cyan-400 rounded-full"></div>
-                            <h1 className="text-[#0b000f] text-2xl font-normal tracking-[0.28em]">CLUBWIZ</h1>
+                        <div className="flex justify-center mb-4">
+                            <ClubVizLogo size="sm" variant="full" />
                         </div>
                         <p className="text-white text-sm leading-relaxed max-w-[300px] mx-auto">
                             Dive into the ultimate party scene discover lit club nights, epic events, and non-stop vibes all in one place!

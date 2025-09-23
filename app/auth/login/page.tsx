@@ -56,7 +56,7 @@ export default function LoginPage(): JSX.Element {
 
     return (
         <AuthLayout>
-            <div className="relative w-full min-h-screen flex flex-col overflow-y-auto">
+            <div className="relative w-full min-h-screen flex flex-col overflow-y-auto overflow-x-hidden">
 
                 {/* Guest Login Button */}
                 <div className="absolute top-16 right-6 p-4 z-10">
@@ -69,15 +69,15 @@ export default function LoginPage(): JSX.Element {
                 </div>
 
                 {/* Main Content */}
-                <div className="flex-1 flex flex-col justify-center items-center ">
+                <div className="flex-1 flex flex-col justify-center items-center px-6">
                     {/* Logo Section with Dark Shadows */}
-                    <div className="flex flex-col items-center space-y-6">
+                    <div className="flex flex-col items-center space-y-6 mb-8">
                         <ClubVizLogo size="lg" variant="full" />
                     </div>
                 </div>
 
-                {/* Login Options - Full Width */}
-                <div className="w-screen relative left-1/2 -ml-[50vw]">
+                {/* Login Options */}
+                <div className="w-full px-6">
                     {/* Terms and Privacy */}
                     <div className="text-center space-y-1 text-white pb-5">
                         <p className="text-base">
@@ -93,7 +93,7 @@ export default function LoginPage(): JSX.Element {
                             </Link>
                         </p>
                     </div>
-                    <div className="w-full rounded-t-[30px] overflow-hidden">
+                    <div className="w-full rounded-2xl overflow-hidden shadow-lg">
                         {loginOptions.map((option, index) => {
                             const Icon = option.icon;
                             const isFirst = index === 0;
@@ -108,14 +108,15 @@ export default function LoginPage(): JSX.Element {
                                         onClick={handleGoogleLogin}
                                         disabled={isLoading}
                                         className={`
-                                          block w-full py-6  
-                                          bg-gradient-to-b ${option.gradient}
-                                          ${isLast ? 'pb-8 min-h-[40px]' : ''}
-                                          border-t border-white/20
+                                          block w-full py-4 mb-3
+                                          bg-gradient-to-r ${option.gradient}
+                                          ${isLast ? 'mb-0' : ''}
+                                          rounded-xl
                                           hover:brightness-110 transition-all duration-300
                                           transform hover:scale-[1.02] hover:shadow-lg
                                           min-w-0 flex-shrink-0
                                           ${isLoading ? 'opacity-80 cursor-not-allowed' : ''}
+                                          shadow-md
                                         `}
                                     >
                                         <div className="flex items-center justify-center gap-3">
@@ -140,13 +141,14 @@ export default function LoginPage(): JSX.Element {
                                     key={option.label}
                                     href={option.href}
                                     className={`
-                                      block w-full py-6  
-                                      bg-gradient-to-b ${option.gradient}
-                                      ${isLast ? 'pb-8 min-h-[40px]' : ''}
-                                      border-t border-white/20
+                                      block w-full py-4 mb-3
+                                      bg-gradient-to-r ${option.gradient}
+                                      ${isLast ? 'mb-0' : ''}
+                                      rounded-xl
                                       hover:brightness-110 transition-all duration-300
                                       transform hover:scale-[1.02] hover:shadow-lg
                                       min-w-0 flex-shrink-0
+                                      shadow-md
                                     `}
 
                                 >
