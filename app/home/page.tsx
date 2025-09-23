@@ -17,7 +17,6 @@ const vibeMeterData = [
     { id: 5, name: 'KITCHEN', logo: '/logo/kitchen-logo.svg', color: 'border-red-400' },
 ];
 
-// Mock data for venues
 const venueData = [
     {
         id: 1,
