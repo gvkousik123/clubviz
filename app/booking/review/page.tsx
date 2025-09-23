@@ -1,31 +1,65 @@
 'use client';
 
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Hash, Building, MessageSquare, Gift } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Users, MapPin, Edit } from 'lucide-react';
 
-export default function ReviewEventBookingPage() {
+export default function BookingReviewPage() {
     const router = useRouter();
+    const [isConfirming, setIsConfirming] = useState(false);
 
     const handleGoBack = () => {
         router.back();
     };
 
-    const handleGetDirection = () => {
-        // Open maps with venue location
-        const venue = "6, New Manish Nagar, Somalwada, Nagpur";
-        const encodedVenue = encodeURIComponent(venue);
-        window.open(`https://maps.google.com/?q=${encodedVenue}`, '_blank');
+    const handleEdit = (section: string) => {
+        switch (section) {
+            case 'table':
+                router.push('/booking/table-selection');
+                break;
+            case 'date':
+                router.push('/booking');
+                break;
+            default:
+                router.push('/booking');
+        }
     };
 
-    const handleConfirmBooking = () => {
-        router.push('/booking/form');
+    const handleConfirmBooking = async () => {
+        setIsConfirming(true);
+        // Simulate booking process
+        setTimeout(() => {
+            setIsConfirming(false);
+            router.push('/booking/success');
+        }, 2000);
+    };
+
+    const bookingDetails = {
+        venue: 'DABO CLUB & KITCHEN',
+        date: 'Thursday, December 04, 2025',
+        time: '6:30 PM',
+        guests: 4,
+        table: 'T3',
+        tableLocation: 'Center stage view',
+        minimumOrder: 2500,
+        offers: ['20% off on total bill', 'Complimentary appetizer']
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-dark-800 via-dark-900 to-black text-white">
+        <div className="min-h-screen bg-gradient-to-b from-[#0d7377] to-[#222831] text-white">
             {/* Header with Gradient Background */}
             <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-b-[30px] pb-8">
-                <div className="flex items-center justify-between p-6 pt-12">
+                {/* Status Bar */}
+                <div className="flex justify-between items-center px-6 pt-4 pb-2">
+                    <div className="text-white text-sm font-semibold">9:41</div>
+                    <div className="flex items-center gap-1">
+                        <div className="w-4 h-3 bg-white/60 rounded-sm"></div>
+                        <div className="w-4 h-3 bg-white/60 rounded-sm"></div>
+                        <div className="w-6 h-3 bg-white border border-white/60 rounded-sm"></div>
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-between px-6 pt-4 mb-6">
                     <button
                         onClick={handleGoBack}
                         className="p-2 hover:bg-white/10 rounded-full transition-all duration-300"
@@ -33,108 +67,134 @@ export default function ReviewEventBookingPage() {
                         <ArrowLeft size={24} className="text-white" />
                     </button>
                     <h1 className="text-lg font-bold tracking-wide text-center flex-1 mr-10">
-                        REVIEW EVENT BOOKING
+                        REVIEW BOOKING
                     </h1>
-                </div>
-
-                {/* Instructions */}
-                <div className="px-6 mt-4">
-                    <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-                        <p className="text-white text-sm text-center leading-relaxed">
-                            Please arrive at the venue at least 10 minutes prior to your scheduled booking to ensure a smooth and hassle free experience
-                        </p>
-                    </div>
                 </div>
             </div>
 
             {/* Main Content */}
             <div className="px-6 py-6 space-y-6">
-                {/* Club Details Card */}
+                {/* Venue Info */}
+                <div className="bg-[#222831] rounded-2xl p-4">
+                    <h2 className="text-white font-bold text-xl mb-2">{bookingDetails.venue}</h2>
+                    <div className="flex items-center gap-2">
+                        <MapPin size={16} className="text-teal-400" />
+                        <p className="text-white/70 text-sm">6, New Manish Nagar, Somalwada, Nagpur</p>
+                    </div>
+                </div>
+
+                {/* Booking Summary */}
                 <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        {/* Club Logo */}
-                        <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center border-2 border-teal-400/30">
-                            <span className="text-white font-bold text-lg">D+</span>
-                        </div>
+                    <h3 className="text-white font-medium text-lg">Booking Summary</h3>
 
-                        <div className="flex-1">
-                            <h2 className="text-white font-bold text-lg mb-1">Dabo club & Kitchen</h2>
-
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="w-3 h-3 bg-teal-400 rounded-full"></div>
-                                <span className="text-white font-medium">24 Dec | 7:00 pm</span>
+                    {/* Date & Time */}
+                    <div className="bg-[#222831] rounded-2xl p-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Calendar size={20} className="text-teal-400" />
+                                <div>
+                                    <p className="text-white font-medium">Date & Time</p>
+                                    <p className="text-white/70 text-sm">{bookingDetails.date}</p>
+                                    <p className="text-white/70 text-sm">{bookingDetails.time}</p>
+                                </div>
                             </div>
-
-                            <div className="flex items-center gap-2">
-                                <MapPin size={16} className="text-teal-400" />
-                                <span className="text-gray-300 text-sm">6, New Manish Nagar, Somalwada, Nagpur</span>
-                            </div>
+                            <button
+                                onClick={() => handleEdit('date')}
+                                className="p-2 hover:bg-white/10 rounded-full transition-all duration-300"
+                            >
+                                <Edit size={16} className="text-teal-400" />
+                            </button>
                         </div>
                     </div>
 
-                    {/* Get Direction Button */}
+                    {/* Guests */}
+                    <div className="bg-[#222831] rounded-2xl p-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Users size={20} className="text-teal-400" />
+                                <div>
+                                    <p className="text-white font-medium">Guests</p>
+                                    <p className="text-white/70 text-sm">{bookingDetails.guests} people</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => handleEdit('date')}
+                                className="p-2 hover:bg-white/10 rounded-full transition-all duration-300"
+                            >
+                                <Edit size={16} className="text-teal-400" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Table Selection */}
+                    <div className="bg-[#222831] rounded-2xl p-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-5 h-5 bg-teal-600 rounded border-2 border-teal-400 flex items-center justify-center">
+                                    <span className="text-white text-xs font-bold">T</span>
+                                </div>
+                                <div>
+                                    <p className="text-white font-medium">Table {bookingDetails.table}</p>
+                                    <p className="text-white/70 text-sm">{bookingDetails.tableLocation}</p>
+                                    <p className="text-teal-400 text-sm">₹{bookingDetails.minimumOrder.toLocaleString()} minimum order</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => handleEdit('table')}
+                                className="p-2 hover:bg-white/10 rounded-full transition-all duration-300"
+                            >
+                                <Edit size={16} className="text-teal-400" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Offers Applied */}
+                <div className="space-y-3">
+                    <h3 className="text-white font-medium text-lg">Offers Applied</h3>
+                    {bookingDetails.offers.map((offer, index) => (
+                        <div key={index} className="bg-gradient-to-r from-green-600/20 to-teal-600/20 border border-green-400/30 rounded-2xl p-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                    <span className="text-white text-xs">✓</span>
+                                </div>
+                                <p className="text-white font-medium">{offer}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Cancellation Policy */}
+                <div className="bg-orange-500/10 border border-orange-400/30 rounded-2xl p-4">
+                    <h4 className="text-orange-400 font-medium mb-2">Cancellation Policy</h4>
+                    <ul className="text-white/70 text-sm space-y-1">
+                        <li>• Free cancellation up to 2 hours before booking time</li>
+                        <li>• 50% refund if cancelled within 2 hours</li>
+                        <li>• No refund for no-shows</li>
+                    </ul>
+                </div>
+
+                {/* Terms */}
+                <div className="bg-[#1a1a24] rounded-2xl p-4">
+                    <h4 className="text-white font-medium mb-2">Terms & Conditions</h4>
+                    <ul className="text-white/70 text-sm space-y-1">
+                        <li>• Minimum order amount must be met during your visit</li>
+                        <li>• Table reservation is valid for 3 hours</li>
+                        <li>• ID verification required at entry</li>
+                        <li>• Management reserves the right to admission</li>
+                    </ul>
+                </div>
+
+                {/* Confirm Button */}
+                <div className="pt-4">
                     <button
-                        onClick={handleGetDirection}
-                        className="flex items-center gap-2 bg-teal-600/20 border border-teal-400/40 text-teal-400 font-medium py-2 px-4 rounded-full text-sm hover:bg-teal-600/30 transition-all duration-300"
+                        onClick={handleConfirmBooking}
+                        disabled={isConfirming}
+                        className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl transition-all duration-300"
                     >
-                        <MapPin size={16} />
-                        Get direction
+                        {isConfirming ? 'Confirming Booking...' : 'Confirm Booking'}
                     </button>
                 </div>
-
-                {/* Booking Details */}
-                <div className="space-y-4">
-                    {/* Booking Date */}
-                    <div className="flex justify-between items-center py-3 border-b border-gray-700/50">
-                        <span className="text-gray-400 text-sm">Booking date</span>
-                        <span className="text-white font-medium">04 Apr | 4:00 pm</span>
-                    </div>
-
-                    {/* Number of Guests */}
-                    <div className="flex justify-between items-center py-3 border-b border-gray-700/50">
-                        <span className="text-gray-400 text-sm">Number of Guest(s)</span>
-                        <span className="text-white font-medium">2 Guests</span>
-                    </div>
-
-                    {/* Table Number */}
-                    <div className="flex justify-between items-center py-3 border-b border-gray-700/50">
-                        <span className="text-gray-400 text-sm">Table Number</span>
-                        <span className="text-white font-medium">TG-03</span>
-                    </div>
-
-                    {/* Floor Number */}
-                    <div className="flex justify-between items-center py-3 border-b border-gray-700/50">
-                        <span className="text-gray-400 text-sm">Floor Number</span>
-                        <span className="text-white font-medium">Ground Floor</span>
-                    </div>
-
-                    {/* Notes */}
-                    <div className="flex justify-between items-center py-3 border-b border-gray-700/50">
-                        <span className="text-gray-400 text-sm">Notes</span>
-                        <span className="text-white font-medium">Birthday</span>
-                    </div>
-
-                    {/* Benefits */}
-                    <div className="py-3">
-                        <div className="flex justify-between items-start mb-2">
-                            <span className="text-teal-400 text-sm font-medium">Benefits</span>
-                            <span className="text-teal-400 font-bold">Flat 30% OFF</span>
-                        </div>
-                        <p className="text-gray-400 text-xs">Pay your bill between 7:00 PM to 11 PM</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Bottom Confirm Button */}
-            <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/90 to-transparent">
-                <button
-                    onClick={handleConfirmBooking}
-                    className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold py-4 px-6 rounded-2xl 
-                   shadow-lg shadow-teal-500/25 hover:shadow-xl hover:shadow-teal-500/30 
-                   transform hover:scale-[1.02] transition-all duration-300"
-                >
-                    Confirm Booking
-                </button>
             </div>
         </div>
     );

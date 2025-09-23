@@ -1,10 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ChevronRight, CreditCard, Building, DollarSign } from 'lucide-react';
+import { ChevronRight, CreditCard, Building, DollarSign, ArrowLeft } from 'lucide-react';
 
 export default function PaymentOptionsPage() {
     const router = useRouter();
+
+    const handleGoBack = () => {
+        router.back();
+    };
 
     const handleOptionSelect = (option: string) => {
         console.log('Selected payment option:', option);
@@ -31,32 +35,50 @@ export default function PaymentOptionsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-dark-800 via-dark-900 to-black text-white p-6">
-            {/* Header */}
-            <div className="pt-8 pb-8">
-                <h1 className="text-xl font-bold text-white text-center">
-                    Choose your Payment Option
-                </h1>
+        <div className="min-h-screen bg-gradient-to-b from-[#0d7377] to-[#222831] text-white">
+            {/* Header with Gradient Background */}
+            <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-b-[30px] pb-8">
+                {/* Status Bar */}
+                <div className="flex justify-between items-center px-6 pt-4 pb-2">
+                    <div className="text-white text-sm font-semibold">9:41</div>
+                    <div className="flex items-center gap-1">
+                        <div className="w-4 h-3 bg-white/60 rounded-sm"></div>
+                        <div className="w-4 h-3 bg-white/60 rounded-sm"></div>
+                        <div className="w-6 h-3 bg-white border border-white/60 rounded-sm"></div>
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-between px-6 pt-4 mb-6">
+                    <button
+                        onClick={handleGoBack}
+                        className="p-2 hover:bg-white/10 rounded-full transition-all duration-300"
+                    >
+                        <ArrowLeft size={24} className="text-white" />
+                    </button>
+                    <h1 className="text-lg font-bold tracking-wide text-center flex-1 mr-10">
+                        Choose your Payment Option
+                    </h1>
+                </div>
             </div>
 
             {/* Payment Options */}
-            <div className="space-y-8">
+            <div className="p-6 space-y-8">
                 {/* Cards Section */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-4">
                         <h2 className="text-white font-semibold text-lg">Cards</h2>
-                        <div className="flex-1 h-px bg-gradient-to-r from-teal-400 to-transparent"></div>
+                        <div className="flex-1 h-px bg-gradient-to-r from-white/30 to-transparent"></div>
                     </div>
 
                     <button
                         onClick={handleAddCard}
-                        className="w-full flex items-center justify-between bg-black/40 backdrop-blur-md border border-teal-400/40 rounded-2xl p-4 hover:bg-black/60 transition-all"
+                        className="w-full flex items-center justify-between bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all"
                     >
                         <div className="flex items-center gap-4">
-                            <CreditCard size={20} className="text-teal-400" />
+                            <CreditCard size={20} className="text-white" />
                             <span className="text-white">Add credit or debit cards</span>
                         </div>
-                        <span className="text-teal-400 font-bold text-sm">ADD</span>
+                        <span className="text-white font-bold text-sm">ADD</span>
                     </button>
                 </div>
 
@@ -64,14 +86,14 @@ export default function PaymentOptionsPage() {
                 <div className="space-y-4">
                     <div className="flex items-center gap-4">
                         <h2 className="text-white font-semibold text-lg">Pay by UPI apps</h2>
-                        <div className="flex-1 h-px bg-gradient-to-r from-teal-400 to-transparent"></div>
+                        <div className="flex-1 h-px bg-gradient-to-r from-white/30 to-transparent"></div>
                     </div>
 
                     <div className="space-y-3">
                         {/* Google Pay Option */}
                         <button
                             onClick={() => handleOptionSelect('gpay')}
-                            className="w-full flex items-center justify-between bg-black/40 backdrop-blur-md border border-teal-400/40 rounded-2xl p-4 hover:bg-black/60 transition-all"
+                            className="w-full flex items-center justify-between bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all"
                         >
                             <div className="flex items-center gap-4">
                                 {/* Google Pay Icon */}
@@ -80,13 +102,13 @@ export default function PaymentOptionsPage() {
                                 </div>
                                 <span className="text-white">Choose payment options</span>
                             </div>
-                            <ChevronRight size={20} className="text-gray-400" />
+                            <ChevronRight size={20} className="text-white" />
                         </button>
 
                         {/* PhonePe Option */}
                         <button
                             onClick={() => handleOptionSelect('phonepe')}
-                            className="w-full flex items-center justify-between bg-black/40 backdrop-blur-md border border-teal-400/40 rounded-2xl p-4 hover:bg-black/60 transition-all"
+                            className="w-full flex items-center justify-between bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all"
                         >
                             <div className="flex items-center gap-4">
                                 {/* PhonePe Icon */}
@@ -95,21 +117,21 @@ export default function PaymentOptionsPage() {
                                 </div>
                                 <span className="text-white">Choose payment options</span>
                             </div>
-                            <ChevronRight size={20} className="text-gray-400" />
+                            <ChevronRight size={20} className="text-white" />
                         </button>
 
                         {/* Add UPI ID Option */}
                         <button
                             onClick={handleAddUPI}
-                            className="w-full flex items-center justify-between bg-black/40 backdrop-blur-md border border-teal-400/40 rounded-2xl p-4 hover:bg-black/60 transition-all"
+                            className="w-full flex items-center justify-between bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all"
                         >
                             <div className="flex items-center gap-4">
-                                <div className="w-6 h-6 border-2 border-teal-400 rounded-md flex items-center justify-center">
-                                    <span className="text-teal-400 text-xs">₹</span>
+                                <div className="w-6 h-6 border-2 border-white rounded-md flex items-center justify-center">
+                                    <span className="text-white text-xs">₹</span>
                                 </div>
                                 <span className="text-white">Add new UPI ID</span>
                             </div>
-                            <span className="text-teal-400 font-bold text-sm">ADD</span>
+                            <span className="text-white font-bold text-sm">ADD</span>
                         </button>
                     </div>
                 </div>
@@ -118,18 +140,18 @@ export default function PaymentOptionsPage() {
                 <div className="space-y-4">
                     <div className="flex items-center gap-4">
                         <h2 className="text-white font-semibold text-lg">Internet Banking</h2>
-                        <div className="flex-1 h-px bg-gradient-to-r from-teal-400 to-transparent"></div>
+                        <div className="flex-1 h-px bg-gradient-to-r from-white/30 to-transparent"></div>
                     </div>
 
                     <button
                         onClick={handleNetbanking}
-                        className="w-full flex items-center justify-between bg-black/40 backdrop-blur-md border border-teal-400/40 rounded-2xl p-4 hover:bg-black/60 transition-all"
+                        className="w-full flex items-center justify-between bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all"
                     >
                         <div className="flex items-center gap-4">
-                            <Building size={20} className="text-teal-400" />
+                            <Building size={20} className="text-white" />
                             <span className="text-white">Netbanking</span>
                         </div>
-                        <span className="text-teal-400 font-bold text-sm">ADD</span>
+                        <span className="text-white font-bold text-sm">ADD</span>
                     </button>
                 </div>
 
@@ -137,18 +159,18 @@ export default function PaymentOptionsPage() {
                 <div className="space-y-4">
                     <div className="flex items-center gap-4">
                         <h2 className="text-white font-semibold text-lg">pay at the venue</h2>
-                        <div className="flex-1 h-px bg-gradient-to-r from-teal-400 to-transparent"></div>
+                        <div className="flex-1 h-px bg-gradient-to-r from-white/30 to-transparent"></div>
                     </div>
 
                     <button
                         onClick={() => handleOptionSelect('venue')}
-                        className="w-full flex items-center justify-between bg-black/40 backdrop-blur-md border border-teal-400/40 rounded-2xl p-4 hover:bg-black/60 transition-all"
+                        className="w-full flex items-center justify-between bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-all"
                     >
                         <div className="flex items-center gap-4">
-                            <DollarSign size={20} className="text-teal-400" />
+                            <DollarSign size={20} className="text-white" />
                             <span className="text-white">pay at the club Entry</span>
                         </div>
-                        <ChevronRight size={20} className="text-gray-400" />
+                        <ChevronRight size={20} className="text-white" />
                     </button>
                 </div>
             </div>

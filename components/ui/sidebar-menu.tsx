@@ -78,15 +78,13 @@ export default function SidebarMenu({ isOpen, onClose }: SidebarMenuProps) {
                     {/* Menu Items */}
                     <div className="space-y-2">
                         <Link
-                            href="/profile"
+                            href="/account"
                             className="flex items-center justify-center py-4 text-white font-medium text-base border-b border-white/20 hover:bg-white/5 transition-all duration-300"
                             onClick={onClose}
                         >
                             MY ACCOUNT
-                        </Link>
-
-                        <Link
-                            href="/favorites/events"
+                        </Link>                        <Link
+                            href="/events"
                             className="flex items-center justify-center py-4 text-white font-medium text-base border-b border-white/20 hover:bg-white/5 transition-all duration-300"
                             onClick={onClose}
                         >
@@ -94,7 +92,7 @@ export default function SidebarMenu({ isOpen, onClose }: SidebarMenuProps) {
                         </Link>
 
                         <Link
-                            href="/favorites/clubs"
+                            href="/clubs"
                             className="flex items-center justify-center py-4 text-white font-medium text-base border-b border-white/20 hover:bg-white/5 transition-all duration-300"
                             onClick={onClose}
                         >
