@@ -56,7 +56,7 @@ export default function LoginPage(): JSX.Element {
 
     return (
         <AuthLayout>
-            <div className="relative w-full h-screen max-h-screen flex flex-col ">
+            <div className="relative w-full min-h-screen flex flex-col overflow-y-auto">
 
                 {/* Guest Login Button */}
                 <div className="absolute top-16 right-6 p-4 z-10">
@@ -93,7 +93,7 @@ export default function LoginPage(): JSX.Element {
                             </Link>
                         </p>
                     </div>
-                    <div className="w-full">
+                    <div className="w-full rounded-t-[30px] overflow-hidden">
                         {loginOptions.map((option, index) => {
                             const Icon = option.icon;
                             const isFirst = index === 0;
@@ -110,7 +110,6 @@ export default function LoginPage(): JSX.Element {
                                         className={`
                                           block w-full py-6  
                                           bg-gradient-to-b ${option.gradient}
-                                          ${isFirst ? 'rounded-t-[30px]' : ''}
                                           ${isLast ? 'pb-8 min-h-[40px]' : ''}
                                           border-t border-white/20
                                           hover:brightness-110 transition-all duration-300
@@ -143,7 +142,6 @@ export default function LoginPage(): JSX.Element {
                                     className={`
                                       block w-full py-6  
                                       bg-gradient-to-b ${option.gradient}
-                                      ${isFirst ? 'rounded-t-[30px]' : ''}
                                       ${isLast ? 'pb-8 min-h-[40px]' : ''}
                                       border-t border-white/20
                                       hover:brightness-110 transition-all duration-300

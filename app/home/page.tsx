@@ -1,496 +1,376 @@
-import React from 'react';
+'use client';
 
-/**
- * HomePageStatic
- * NOTE: Converted from a static JSX fragment. Currently has no props or interactivity.
- * If dynamic data is needed later, introduce props & proper data models.
- */
-const Home: React.FC = () => {
+import React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Search, Menu, MapPin, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
+// Mock data for vibe meter
+const vibeMeterData = [
+    { id: 1, name: 'CLUB', logo: '/logo/club-logo.svg', color: 'border-cyan-400' },
+    { id: 2, name: 'Elite', logo: '/logo/elite-logo.svg', color: 'border-green-400' },
+    { id: 3, name: 'Escape', logo: '/logo/escape-logo.svg', color: 'border-yellow-400' },
+    { id: 4, name: 'Nitro', logo: '/logo/nitro-logo.svg', color: 'border-orange-400' },
+    { id: 5, name: 'KITCHEN', logo: '/logo/kitchen-logo.svg', color: 'border-red-400' },
+];
+
+// Mock data for venues
+const venueData = [
+    {
+        id: 1,
+        name: 'DABO',
+        openTime: 'Open until 1:30 am',
+        rating: 4.2,
+        image: '/crowded-nightclub-with-red-lighting-and-people-dan.jpg',
+        isFavorite: false,
+    },
+    {
+        id: 2,
+        name: 'GARAGE',
+        openTime: 'Open until 2:00 am',
+        rating: 4.5,
+        image: '/purple-neon-club-interior.jpg',
+        isFavorite: false,
+    },
+];
+
+// Mock data for events
+const eventData = [
+    {
+        id: 1,
+        title: 'Freaky Friday with DJ Alexxx',
+        venue: 'DABO, Airport Road',
+        date: 'APR 04',
+        category: 'Techno & Bollytech',
+        image: '/dj-event-poster-with-woman-dj-and-neon-lighting.jpg',
+        isFavorite: false,
+    },
+    {
+        id: 2,
+        title: 'Wow Wednesday with DJ Shade',
+        venue: 'DABO, Airport Road',
+        date: 'APR 06',
+        category: 'Bollywood & Bollytech',
+        image: '/night-party-event-poster-with-purple-and-pink-neon.jpg',
+        isFavorite: false,
+    },
+];
+
+const HomePage: React.FC = () => {
+    const router = useRouter();
+
+    const handleVibeMeterClick = (clubId: number) => {
+        router.push('/story');
+    };
+
     return (
-        <>
-            <meta charSet="UTF-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-            <style
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{
-                    __html:
-                        '\n        ::-webkit-scrollbar { display: none; }\n        html, body { -ms-overflow-style: none; scrollbar-width: none; }\n    ',
-                }}
-            />
-            <link rel="preconnect" href="https://fonts.googleapis.com" />
-            <link
-                rel="stylesheet"
-                href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
-            />
-            <style
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{
-                    __html:
-                        "\n      body {\n        font-family: 'Inter', sans-serif !important;\n      }\n      \n    ",
-                }}
-            />
-            <style
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{
-                    __html:
-                        '\n  .highlighted-section {\n    outline: 2px solid #3F20FB;\n    background-color: rgba(63, 32, 251, 0.1);\n  }\n\n  .edit-button {\n    position: absolute;\n    z-index: 1000;\n  }\n\n  ::-webkit-scrollbar {\n    display: none;\n  }\n\n  html, body {\n    -ms-overflow-style: none;\n    scrollbar-width: none;\n  }\n  ',
-                }}
-            />
-            <div
-                className="w-[430px] h-[1533px] pt-2 pb-3.5 left-0 top-[132px] absolute flex-col justify-start items-start gap-4 inline-flex overflow-hidden"
-                id="el_2_N_2002_C_1990"
-            >
-                <div
-                    className="self-stretch h-[478px] flex-col justify-start items-center gap-4 flex"
-                    id="el_3_N_2002_C_1991"
-                >
-                    <div className="w-[430px] h-[262px] relative rounded-bl-[30px] rounded-br-[30px] shadow-[0px_4px_5.599999904632568px_0px_rgba(20,255,236,0.11)] overflow-hidden">
-                        <div className="w-[2182px] h-[262px] left-0 top-0 absolute">
-                            <div className="w-[430px] h-[262px] left-0 top-0 absolute flex-col justify-start items-start inline-flex rounded-[15px]">
-                                <img
-                                    src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2%2Fde86bb41-432e-45db-98aa-78f6b143fcfb.png"
-                                    alt="Rectangle 1"
-                                    className="object-cover absolute inset-0 w-full h-full"
-                                />
-                                <img
-                                    src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Frame4057-b6e6c1c0-fde6-43cb-8772-56be8655d64b.svg"
-                                    alt="Frame 4057"
-                                    className="left-0 top-0 absolute flex-col justify-start items-start flex"
-                                />
-                                <div className="w-[74px] h-[30px] left-[31px] top-[38px] absolute flex-col justify-start items-start flex">
-                                    {' '}
+        <div className="min-h-screen bg-gradient-to-b from-[#0d7377] to-[#222831] font-['Poppins']">
+            {/* Header */}
+            <div className="w-full bg-gradient-to-t from-[#0d7377] to-[#222831] rounded-bl-[30px] rounded-br-[30px] pb-4">
+                {/* Status Bar */}
+                <div className="flex justify-between items-center px-6 pt-4 pb-2">
+                    <div className="text-white text-sm font-semibold">9:41</div>
+                    <div className="flex items-center gap-1">
+                        <div className="w-4 h-3 bg-white/60 rounded-sm"></div>
+                        <div className="w-4 h-3 bg-white/60 rounded-sm"></div>
+                        <div className="w-6 h-3 bg-white border border-white/60 rounded-sm"></div>
+                    </div>
+                </div>
+
+                {/* Main Header */}
+                <div className="px-4 pb-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-cyan-400" />
+                            <span className="text-white font-medium">Dharampeth</span>
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                        <User className="w-6 h-6 text-white" />
+                    </div>
+
+                    {/* Search Bar and Menu */}
+                    <div className="flex gap-3">
+                        <div className="flex-1 relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Input
+                                placeholder="Search"
+                                className="w-full pl-10 pr-4 py-2 bg-neutral-800 border-none rounded-[23px] text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
+                            />
+                        </div>
+                        <Button
+                            size="icon"
+                            className="w-9 h-9 bg-[#222831] hover:bg-[#2a2a38] rounded-[23px] border-none"
+                        >
+                            <Menu className="w-4 h-4 text-white" />
+                        </Button>
+                    </div>
+
+                    {/* Location Dropdown */}
+                    <div className="mt-4">
+                        <div className="inline-flex items-center gap-2 bg-[#222831] rounded-[25px] px-4 py-2">
+                            <span className="text-white font-bold text-sm">Nagpur</span>
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="px-4 py-6 space-y-8">
+                {/* Hero Banner */}
+                <div className="relative h-[262px] rounded-t-[30px] rounded-b-[30px] overflow-hidden shadow-lg">
+                    <img
+                        src="/dj-woman-with-headphones-and-sunglasses-in-neon-li.jpg"
+                        alt="DJ Event"
+                        className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute top-4 left-4">
+                        <span className="bg-black/40 text-white text-xs px-2 py-1 rounded">SPONSORED</span>
+                    </div>
+                    <div className="absolute bottom-4 left-4">
+                        <div className="text-white">
+                            <p className="text-xs opacity-80">MUSIC BY</p>
+                            <p className="font-bold">DJ MARTIN</p>
+                        </div>
+                    </div>
+                    <div className="absolute bottom-4 right-4">
+                        <div className="text-white text-right">
+                            <p className="text-xs opacity-80">HOSTED BY</p>
+                            <p className="font-bold">DJ AMIL</p>
+                        </div>
+                    </div>
+                    <div className="absolute top-4 right-4">
+                        <Link href="/booking/review">
+                            <Button className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs px-3 py-1 rounded-full">
+                                BOOK NOW
+                            </Button>
+                        </Link>
+                    </div>
+                    {/* Pagination dots */}
+                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+                        <div className="flex gap-1">
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                            <div className="w-2 h-2 bg-white/50 rounded-full"></div>
+                            <div className="w-2 h-2 bg-white/50 rounded-full"></div>
+                            <div className="w-2 h-2 bg-white/50 rounded-full"></div>
+                            <div className="w-2 h-2 bg-white/50 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Quick Access (Development Testing) */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <h2 className="text-white font-semibold text-base whitespace-nowrap">Quick Access</h2>
+                        <div className="flex-1 h-px bg-gradient-to-r from-cyan-400 to-transparent"></div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                        <Link href="/booking/review">
+                            <Button className="w-full bg-purple-600/20 border border-purple-400/40 text-purple-400 text-xs py-3 rounded-2xl hover:bg-purple-600/30 transition-all">
+                                Start Booking
+                            </Button>
+                        </Link>
+                        <Link href="/ticket/view">
+                            <Button className="w-full bg-primary-600/20 border border-primary-400/40 text-primary-400 text-xs py-3 rounded-2xl hover:bg-primary-600/30 transition-all">
+                                View Ticket
+                            </Button>
+                        </Link>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                        <Link href="/ticket/complete">
+                            <Button className="w-full bg-green-600/20 border border-green-400/40 text-green-400 text-xs py-3 rounded-2xl hover:bg-green-600/30 transition-all">
+                                Book Complete
+                            </Button>
+                        </Link>
+                        <Link href="/ticket/cancel">
+                            <Button className="w-full bg-red-600/20 border border-red-400/40 text-red-400 text-xs py-3 rounded-2xl hover:bg-red-600/30 transition-all">
+                                Cancel Test
+                            </Button>
+                        </Link>
+                        <Link href="/booking/form">
+                            <Button className="w-full bg-orange-600/20 border border-orange-400/40 text-orange-400 text-xs py-3 rounded-2xl hover:bg-orange-600/30 transition-all">
+                                Booking Form
+                            </Button>
+                        </Link>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 mt-3">
+                        <Link href="/profile/edit">
+                            <Button className="w-full bg-teal-600/20 border border-teal-400/40 text-teal-400 text-xs py-3 rounded-2xl hover:bg-teal-600/30 transition-all">
+                                Edit Profile
+                            </Button>
+                        </Link>
+                        <Link href="/payment/options">
+                            <Button className="w-full bg-blue-600/20 border border-blue-400/40 text-blue-400 text-xs py-3 rounded-2xl hover:bg-blue-600/30 transition-all">
+                                Payment Options
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Vibe Meter Section */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <h2 className="text-white font-semibold text-base whitespace-nowrap">Vibe Meter</h2>
+                        <div className="flex-1 h-px bg-gradient-to-r from-cyan-400 to-transparent"></div>
+                    </div>
+                    <div className="flex gap-4 pb-2">
+                        {vibeMeterData.map((club) => (
+                            <button
+                                key={club.id}
+                                onClick={() => handleVibeMeterClick(club.id)}
+                                className={`flex-shrink-0 w-16 h-16 rounded-full border-2 ${club.color} bg-black/80 flex items-center justify-center hover:scale-105 transition-transform`}
+                            >
+                                <span className="text-white text-xs font-bold text-center leading-tight">
+                                    {club.name}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Venue List Section */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <h2 className="text-white font-semibold text-base whitespace-nowrap">Venue List</h2>
+                        <div className="flex-1 h-px bg-gradient-to-r from-cyan-400 to-transparent"></div>
+                        <Link href="/venues" className="text-cyan-400 text-sm font-medium whitespace-nowrap">
+                            View All
+                        </Link>
+                    </div>
+                    <div className="flex gap-4 pb-2">
+                        {venueData.map((venue) => (
+                            <div key={venue.id} className="flex-shrink-0 w-[336px] relative">
+                                <div className="relative h-[197px] rounded-t-[30px] rounded-b-[30px] border border-[#0c898b] overflow-hidden">
                                     <img
-                                        src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Rectangle-e933135a-bf08-4502-8a60-f61c47d28dd3.svg"
-                                        alt="Rectangle"
-                                        className="left-0 top-0 absolute"
+                                        src={venue.image}
+                                        alt={venue.name}
+                                        className="w-full h-full object-cover"
                                     />
-                                    <div className="whitespace-nowrap left-[3px] top-[7px] absolute text-center text-white text-xs font-bold font-primary leading-[15px]">
-                                        SPONSERED
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                                    <div className="absolute bottom-4 left-4">
+                                        <h3 className="text-white font-bold text-2xl">{venue.name}</h3>
+                                        <p className="text-white/80 text-sm">{venue.openTime}</p>
                                     </div>
-                                </div>
-                                <div className="w-10 h-[54px] px-px pb-2 left-[430px] top-[193px] absolute flex-col justify-center items-center gap-2.5 inline-flex rotate-90 bg-[#1e6266]/50 rounded-bl-[25px] rounded-br-[25px] shadow-[0px_0px_10px_0px_rgba(234,234,234,0.25)] border-l border-r border-b border-white backdrop-blur-[50px]">
-                                    <div className="whitespace-nowrap -rotate-90 text-center text-white text-xs font-bold font-primary leading-[15px]">
-                                        BOOK
-                                        <br />
-                                        NOW
+                                    <div className="absolute bottom-4 right-4">
+                                        <div className="bg-cyan-600 text-white text-sm font-bold px-2 py-1 rounded">
+                                            {venue.rating}
+                                        </div>
                                     </div>
+                                    <button className="absolute top-4 right-4 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center">
+                                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
-                        </div>
-                        <div className="w-[90px] h-[19px] p-2 left-[170px] top-[225px] absolute justify-center items-center gap-[5px] inline-flex bg-white/10 rounded-[28px] border border-white backdrop-blur-[10px]">
-                            {' '}
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Dot-756270fa-04d8-44a8-a692-37483a3f4f3e.svg"
-                                alt="Dot"
-                            />
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Dot-f47fbd45-6ebe-481e-b819-19453b3f6a64.svg"
-                                alt="Dot"
-                            />
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Dot-df4949f5-b3c1-43e5-9a93-fee28ced35cf.svg"
-                                alt="Dot"
-                            />
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Dot-28668425-1237-4e7e-a2c3-5835f6191ad9.svg"
-                                alt="Dot"
-                            />
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Dot-de209e35-be7b-48fb-affa-65f767040982.svg"
-                                alt="Dot"
-                            />
-                        </div>
-                    </div>
-                    <div className="w-[362px] justify-center items-center gap-[15px] inline-flex">
-                        <div className="w-[87px] h-3 text-[#fefdff] text-base font-semibold font-primary leading-4 tracking-[0.03em]">
-                            Vibe Meter
-                        </div>
-                        <img
-                            src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Line14-fc0a9d39-6db9-45b4-9cf5-81dfbc729760.svg"
-                            alt="Line 14"
-                        />
-                    </div>
-                    <div className="self-stretch px-4 justify-start items-center gap-4 inline-flex overflow-hidden">
-                        {' '}
-                        <img
-                            src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Frame1000001273-9759101c-6c20-4f68-8fe6-92b4b1943b53.svg"
-                            alt="Frame 1000001273"
-                        />
-                        <img
-                            src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Frame1000001267-0fc1e3be-c0b4-4513-8eb3-b6e8e91dca86.svg"
-                            alt="Frame 1000001267"
-                        />
-                        <img
-                            src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Frame1000001268-6f913ae5-eea5-42b0-812c-7b80b4494ae0.svg"
-                            alt="Frame 1000001268"
-                        />
+                        ))}
                     </div>
                 </div>
-                <img
-                    src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Frame1000001149-570f87b2-b252-4d1a-978d-551538e572af.svg"
-                    alt="Frame 1000001149"
-                    className="left-[406px] top-[450px] absolute flex-col justify-start items-start inline-flex"
-                />
-                <div
-                    className="self-stretch h-[241px] flex-col justify-start items-start gap-2 flex"
-                    id="el_3_N_2002_C_2025"
-                >
-                    <div className="self-stretch h-5 flex-col justify-start items-center gap-2 flex">
-                        <div className="w-[362px] justify-center items-center gap-[15px] inline-flex">
-                            <div className="w-[84px] h-3 text-[#fefdff] text-base font-semibold font-primary leading-4 tracking-[0.03em]">
-                                Venue List
-                            </div>
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Line14-1dccf405-5ce9-4b5d-89fd-e14bb5b45820.svg"
-                                alt="Line 14"
-                            />
-                            <div className="w-[59px] h-5 py-1 justify-center items-center flex">
-                                <div className="w-[61px] h-3 text-[#14ffec] text-base font-medium font-primary leading-4 tracking-[0.03em]">
-                                    View All
-                                </div>
-                            </div>
-                        </div>
+
+                {/* Event List Section */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <h2 className="text-white font-semibold text-base whitespace-nowrap">Event List</h2>
+                        <div className="flex-1 h-px bg-gradient-to-r from-cyan-400 to-transparent"></div>
+                        <Link href="/events" className="text-cyan-400 text-sm font-medium whitespace-nowrap">
+                            View All
+                        </Link>
                     </div>
-                    <div className="self-stretch px-4 py-2 justify-start items-center gap-2 inline-flex overflow-hidden">
-                        <div className="w-[336px] h-[197px] relative rounded-[30px] border border-[#0c898b] overflow-hidden">
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2%2F4abadd51-2feb-4eac-847c-059983f3e7f3.png"
-                                alt="Rectangle 1"
-                                className="object-cover absolute inset-0 w-full h-full"
-                            />
-                            <div className="w-[336px] h-[197px] left-0 top-0 absolute flex-col justify-start items-start flex bg-gradient-to-b from-black via-black/50 to-black/0 rounded-[10px] overflow-hidden">
-                                {' '}
-                                <img
-                                    src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Subtract-d273706b-3202-4bce-82cf-fafc8c320290.svg"
-                                    alt="Subtract"
-                                    className="left-[8px] top-[124px] absolute"
-                                />
-                                <div className="w-[31px] h-[30px] p-[5px] left-[250px] top-[103px] absolute justify-center items-center inline-flex bg-[#0c898b] rounded-[17px] overflow-hidden">
-                                    <div className="whitespace-nowrap text-white text-[13px] font-extrabold font-primary leading-5 tracking-[0.01em]">
-                                        4.2
+                    <div className="flex gap-4 pb-2">
+                        {eventData.map((event) => (
+                            <div key={event.id} className="flex-shrink-0 w-[222px]">
+                                <div className="bg-[#003c3d] rounded-t-[20px] rounded-b-[20px] overflow-hidden border border-[#0ed7e2]/30">
+                                    <div className="relative">
+                                        <img
+                                            src={event.image}
+                                            alt={event.title}
+                                            className="w-full h-[180px] object-cover"
+                                        />
+                                        <div className="absolute top-0 right-0 bg-gradient-to-b from-black to-[#00c0ca] text-white text-xs font-bold px-2 py-3 rounded-bl-[28px] min-h-[45px] flex items-center">
+                                            {event.date}
+                                        </div>
+                                        <button className="absolute top-4 right-4 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center">
+                                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                            </svg>
+                                        </button>
                                     </div>
-                                </div>
-                                <div className="w-32 h-[43px] left-[40px] top-[133px] absolute justify-start items-center gap-[29px] inline-flex">
-                                    <div className="w-52 flex-col justify-center items-start gap-2 inline-flex">
-                                        <div className="self-stretch h-5 text-[#14ffec] text-2xl font-normal font-secondary leading-5 tracking-[0.05em]">
-                                            Dabo
-                                        </div>
-                                        <div className="self-stretch h-3 text-white text-[13px] font-semibold font-primary leading-5 tracking-[0.01em]">
-                                            Open until 1:30 am
-                                        </div>
+                                    <div className="p-4 space-y-2">
+                                        <h3 className="text-white font-bold text-sm leading-tight">{event.title}</h3>
+                                        <p className="text-white/70 text-xs">{event.venue}</p>
                                     </div>
-                                </div>
-                                <div className="w-[39px] h-[39px] left-[281px] top-[17px] absolute justify-center items-center inline-flex bg-[#253438] rounded-[30px] backdrop-blur-[20.20px] overflow-hidden">
-                                    {' '}
-                                    <img
-                                        src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/BookmarkSimple-be76c3eb-3d87-48d2-9ce0-f4063ee5fddf.svg"
-                                        alt="BookmarkSimple"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="w-[336px] h-[197px] relative rounded-[30px] border border-[#0c898b] overflow-hidden">
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2%2Fc9708e66-2c04-4204-96bd-c14ad15e7ac8.png"
-                                alt="Rectangle 1"
-                                className="object-cover absolute inset-0 w-full h-full"
-                            />
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2%2F25a832a3-3862-4f99-9693-7d25947c3ff7.png"
-                                alt="Rectangle 2"
-                                className="object-cover absolute inset-0 w-full h-full"
-                            />
-                            <div className="w-[336px] h-[197px] left-0 top-0 absolute flex-col justify-start items-start flex bg-gradient-to-b from-black via-black/50 to-black/0 rounded-[10px] overflow-hidden">
-                                {' '}
-                                <img
-                                    src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Subtract-2ad606b0-cd6b-4973-9af8-6f0b1c28a890.svg"
-                                    alt="Subtract"
-                                    className="left-[8px] top-[124px] absolute"
-                                />
-                                <div className="w-32 h-[43px] left-[40px] top-[133px] absolute justify-start items-center gap-[29px] inline-flex">
-                                    <div className="w-52 flex-col justify-center items-start gap-2 inline-flex">
-                                        <div className="self-stretch h-5 text-[#14ffec] text-2xl font-normal font-secondary leading-5 tracking-[0.05em]">
-                                            Cafe Barrel
-                                        </div>
-                                        <div className="self-stretch h-3 text-white text-[13px] font-semibold font-primary leading-5 tracking-[0.01em]">
-                                            Open until 1:30 am
+                                    <div className="px-4 pb-4">
+                                        <div className="bg-[#0d7377] text-white text-xs font-medium px-3 py-2 rounded-full text-center">
+                                            {event.category}
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
-                <div
-                    className="flex-col justify-start items-center gap-2 flex"
-                    id="el_3_N_2002_C_2122"
-                >
-                    <div className="w-[362px] justify-center items-center gap-[15px] inline-flex">
-                        <div className="w-[81px] h-3 text-[#fefdff] text-base font-semibold font-primary leading-4 tracking-[0.03em]">
-                            Event List
+
+                {/* Footer */}
+                <div className="bg-[#003c3d] rounded-t-[20px] rounded-b-[20px] p-6 space-y-6 shadow-lg">
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-4">
+                            <div className="w-8 h-8 bg-cyan-400 rounded-full"></div>
+                            <h1 className="text-[#0b000f] text-2xl font-normal tracking-[0.28em]">CLUBWIZ</h1>
                         </div>
-                        <img
-                            src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Line14-fae74e07-01e7-4c56-9aa0-62c690d1ebe6.svg"
-                            alt="Line 14"
-                        />
-                        <div className="w-[61px] h-5 pt-[5px] pb-[3px] justify-center items-center flex">
-                            <div className="w-[61px] h-3 text-[#14ffec] text-base font-medium font-primary leading-4 tracking-[0.03em]">
-                                View All
-                            </div>
-                        </div>
+                        <p className="text-white text-sm leading-relaxed max-w-[300px] mx-auto">
+                            Dive into the ultimate party scene discover lit club nights, epic events, and non-stop vibes all in one place!
+                        </p>
                     </div>
-                    <div className="w-[430px] h-[352px] px-4 py-2.5 justify-start items-center gap-4 inline-flex overflow-hidden">
-                        <div className="w-[222px] h-[332px] relative">
-                            {' '}
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Rectangle12258-1e2ada6c-7a35-48fb-a45a-4ff06c959186.svg"
-                                alt="Rectangle 12258"
-                                className="left-0 top-0 absolute"
-                            />
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Union-13c77b80-dccb-4e29-a1d9-f55b721646f1.svg"
-                                alt="Union"
-                                className="left-0 top-0 absolute"
-                            />
-                            <div className="w-9 h-[45px] px-0.5 pt-2.5 pb-[11px] left-[147px] top-0 absolute flex-col justify-center items-center gap-2.5 inline-flex bg-gradient-to-b from-black to-[#00c0ca] rounded-bl-[28px] rounded-br-[28px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] border-l border-r border-b border-[#cccccc]">
-                                <div className="w-[31px] text-center text-white text-sm font-semibold font-primary leading-4">
-                                    APR 04
-                                </div>
-                            </div>
-                            <div className="w-36 h-[68px] left-[18px] top-[217px] absolute flex-col justify-start items-start gap-[3px] inline-flex">
-                                <div className="self-stretch h-[42px] text-[#e6e6e6] text-base font-bold font-primary leading-[22px] tracking-[0.01em]">
-                                    Freaky Friday <br />
-                                    with DJ Alexxx
-                                </div>
-                                <div className="w-36 h-[23px] text-[#c3c3c3] text-xs font-bold font-primary leading-[17px] tracking-[0.01em]">
-                                    DABO , Airport Road
-                                </div>
-                            </div>
-                            <div className="w-[222px] h-[34px] px-[47px] pt-2 pb-[9px] left-0 top-[297px] absolute justify-center items-center inline-flex bg-[#004342] rounded-bl-[20px] rounded-br-[20px] border-t border-[#0ed7e2] overflow-hidden">
-                                <div className="w-32 text-[#14ffec] text-sm font-bold font-primary leading-[17px]">
-                                    Techno &amp; Bollytech
-                                </div>
-                            </div>
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Union-6298f3c9-d994-485f-8129-8e04e10ebbd4.svg"
-                                alt="Union"
-                                className="left-[175px] top-[241px] absolute justify-center items-center inline-flex"
-                            />
+
+                    <div className="flex justify-center gap-6">
+                        <div className="w-6 h-6 bg-white/20 rounded"></div>
+                        <div className="w-6 h-6 bg-white/20 rounded"></div>
+                        <div className="w-6 h-6 bg-white/20 rounded"></div>
+                        <div className="w-6 h-6 bg-white/20 rounded"></div>
+                    </div>
+
+                    <div className="bg-[#0d7377] rounded-lg p-4 space-y-3">
+                        <div className="flex items-center gap-3 text-white text-sm">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                            <span>contact@clubwiz.com</span>
                         </div>
-                        <div className="w-[222px] h-[330px] relative">
-                            {' '}
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Rectangle12258-44a342c6-1bb5-4a4b-9afc-b0fe3431eede.svg"
-                                alt="Rectangle 12258"
-                                className="left-0 top-0 absolute"
-                            />
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Union-63c45076-c988-4521-a1ef-462dbb9ff2c8.svg"
-                                alt="Union"
-                                className="left-0 top-0 absolute"
-                            />
-                            <div className="w-9 h-[45px] px-0.5 pt-2.5 pb-[11px] left-[147px] top-0 absolute flex-col justify-center items-center gap-2.5 inline-flex bg-gradient-to-b from-black to-[#00c0ca] rounded-bl-[28px] rounded-br-[28px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] border-l border-r border-b border-[#cccccc]">
-                                <div className="w-[31px] text-center text-white text-sm font-semibold font-primary leading-4">
-                                    APR 04
-                                </div>
-                            </div>
-                            <div className="w-36 h-[68px] left-[18px] top-[217px] absolute flex-col justify-start items-start gap-[3px] inline-flex">
-                                <div className="self-stretch h-[42px] text-[#e1e1e1] text-base font-bold font-primary leading-[22px]">
-                                    Wow Wednesday with DJ Shade
-                                </div>
-                                <div className="w-36 h-[23px] text-[#c3c3c3] text-xs font-bold font-primary leading-[17px] tracking-[0.01em]">
-                                    DABO , Airport Road
-                                </div>
-                            </div>
-                            <div className="w-[222px] h-[34px] pl-[37px] pr-[38px] pt-2 pb-[9px] left-0 top-[297px] absolute justify-center items-center inline-flex bg-[#004342] rounded-bl-[20px] rounded-br-[20px] border-t border-[#0ed7e2] overflow-hidden">
-                                <div className="whitespace-nowrap text-[#14ffec] text-sm font-bold font-primary leading-[17px]">
-                                    Bollywood &amp; Bollytech
-                                </div>
-                            </div>
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Union-9cee8a1a-3411-4a79-855b-f1f0b81de9ba.svg"
-                                alt="Union"
-                                className="left-[175px] top-[241px] absolute justify-center items-center inline-flex"
-                            />
+                        <div className="flex items-center gap-3 text-white text-sm">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                            </svg>
+                            <span>Location Details</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-white text-sm">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z" clipRule="evenodd" />
+                            </svg>
+                            <span>Terms & Condition</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-white text-sm">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z" clipRule="evenodd" />
+                            </svg>
+                            <span>Privacy Policy</span>
                         </div>
                     </div>
-                </div>
-                <div
-                    className="w-[430px] h-[378px] pt-[22px] pb-3.5 bg-[#003c3d] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] flex-col justify-start items-center gap-4 flex overflow-hidden"
-                    id="el_3_N_2002_C_2225"
-                >
-                    <div className="w-[270px] h-[39px] justify-center items-center gap-[9px] inline-flex">
-                        {' '}
-                        <img
-                            src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/cww1-78e1c413-0de2-4d41-911a-2db0fd19d364.svg"
-                            alt="cww 1"
-                        />
-                        <div className="w-[205px] h-[31px] text-center text-[#0b000f] text-[32px] font-normal font-tertiary leading-[21px] tracking-[0.28em]">
-                            CLUBWIZ
-                        </div>
-                    </div>
-                    <div className="w-[368px] h-[59px] text-center text-white text-base font-normal font-primary leading-5 tracking-[0.03em]">
-                        Dive into the ultimate party scene discover lit club nights, epic events, and non-stop vibes all in one place!
-                    </div>
-                    <div className="w-[175px] h-[21px] justify-between items-center inline-flex">
-                        {' '}
-                        <img
-                            src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Phone-781a8614-fc3b-4c96-862f-67fe184e5042.svg"
-                            alt="Phone"
-                        />
-                        <img
-                            src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/whatsapp-logo-fill-8320a2b4-7279-42b5-8bb8-dadde7cc9d5c.svg"
-                            alt="whatsapp-logo-fill"
-                        />
-                        <img
-                            src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Frame-89d77b2b-8b06-4c3a-b1ef-6623a7a5445d.svg"
-                            alt="Frame"
-                        />
-                        <img
-                            src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/x-logo-fill-bd482607-50ec-4903-83ca-0c705c3a8bc5.svg"
-                            alt="x-logo-fill"
-                        />
-                    </div>
-                    <div className="px-[57px] py-[22px] bg-[#0d7377] flex-col justify-center items-start gap-2.5 flex overflow-hidden">
-                        <div className="w-[316px] h-[95px] flex-col justify-center items-start gap-3.5 flex">
-                            <div className="self-stretch h-[13px] justify-start items-center gap-[11px] inline-flex">
-                                {' '}
-                                <img
-                                    src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Envelope-41a6ffcf-5438-4d53-befb-8e8068fb8837.svg"
-                                    alt="Envelope"
-                                />
-                                <div className="w-[231px] h-3.5 text-white text-base font-medium font-primary leading-4 tracking-[0.03em]">
-                                    contact@clubwiz.com
-                                </div>
-                            </div>
-                            <div className="w-[210px] h-[13px] justify-start items-center gap-2.5 inline-flex">
-                                {' '}
-                                <img
-                                    src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/MapPin-8d9df771-bf3b-4986-a505-1439a0110c7c.svg"
-                                    alt="MapPin"
-                                />
-                                <div className="w-[190px] h-4 text-white text-base font-medium font-primary leading-4 tracking-[0.03em]">
-                                    Location Details
-                                </div>
-                            </div>
-                            <div className="self-stretch h-[13px] justify-start items-center gap-3 inline-flex">
-                                {' '}
-                                <img
-                                    src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/File-351211cc-24dd-40d7-92c3-4ff7de4e4dc5.svg"
-                                    alt="File"
-                                />
-                                <div className="w-[231px] h-[18px] text-white text-base font-medium font-primary leading-4 tracking-[0.03em]">
-                                    Terms &amp; Condition
-                                </div>
-                            </div>
-                            <div className="h-3.5 justify-center items-center gap-[11px] inline-flex">
-                                {' '}
-                                <img
-                                    src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/File-421994c4-450f-4d13-b621-fff64d1fae68.svg"
-                                    alt="File"
-                                />
-                                <div className="w-[118px] h-[17px] text-white text-base font-medium font-primary leading-4 tracking-[0.03em]">
-                                    Privacy Policy
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="w-[248px] h-[18px] text-white text-[13px] font-normal font-primary leading-4 tracking-[0.04em]">
+
+                    <p className="text-white text-xs text-center opacity-80">
                         Copy rights reserved with clubwiz.com
-                    </div>
+                    </p>
                 </div>
             </div>
-            <div
-                className="w-[430px] h-[163px] left-0 top-0 absolute flex-col justify-center items-center gap-[5px] flex bg-gradient-to-t from-[#0d7377] to-[#222831] rounded-bl-[30px] rounded-br-[30px]"
-                id="el_2_N_2002_C_2259"
-            >
-                <div
-                    className="w-[355px] left-[38px] top-[18px] absolute w-[355px] justify-between items-center inline-flex"
-                    id="el_3_N_2002_C_2260"
-                >
-                    <div className="whitespace-nowrap text-[#fffbfb] text-[15px] font-semibold font-primary leading-[21px]">9:41</div>
-                    <div className="justify-start items-start gap-0.5 flex">
-                        <div className="w-5 h-4 pl-px pr-0.5 pt-[3px] pb-[2.33px] justify-center items-center flex">
-                            {' '}
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/icon-2035ba29-256d-4e52-b3f1-00d982d5f175.svg"
-                                alt="icon"
-                            />
-                        </div>
-                        <div className="w-4 h-4 pl-[0.35px] pr-[0.38px] pt-[3px] pb-0.5 justify-center items-center flex">
-                            {' '}
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/icon-058d496a-4fdb-4a51-af37-65b425b280ec.svg"
-                                alt="icon"
-                            />
-                        </div>
-                        <img
-                            src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/iOSiconsmallbattery-fb359ad1-e3a3-45a6-8055-e1c614ee12b3.svg"
-                            alt="iOS / icon / small / battery"
-                            className="relative"
-                        />
-                    </div>
-                </div>
-                <div
-                    className="w-[35px] h-[35px] px-3.5 py-2 left-[379px] top-[61px] absolute justify-center items-center gap-2 inline-flex bg-[#222831] rounded-[23px] overflow-hidden"
-                    id="el_3_N_2002_C_2263"
-                >
-                    {' '}
-                    <img
-                        src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/hamburgermenu-0cb70438-1cd6-4f10-b533-ec3ac83aecd7.svg"
-                        alt="hamburger menu"
-                    />
-                </div>
-                <div
-                    className="w-[273px] h-[35px] py-1.5 left-[108px] top-[108px] absolute flex-col justify-center items-start gap-2.5 inline-flex"
-                    id="el_3_N_2002_C_2265"
-                >
-                    <div className="self-stretch h-[35px] pl-2 pr-3.5 py-2 bg-neutral-800 rounded-[23px] justify-start items-center gap-2 inline-flex overflow-hidden">
-                        <div className="justify-start items-center gap-2 flex">
-                            {' '}
-                            <img
-                                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Magnifier24Outline-0e64d813-33d5-4bf0-bce1-d97da20d2676.svg"
-                                alt="Magnifier / 24 / Outline"
-                            />
-                            <div className="w-[63px] h-4 text-white text-base font-bold font-primary leading-4 tracking-[0.03em]">
-                                Search
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div
-                    className="w-[252px] left-[16px] top-[61px] absolute justify-start items-center gap-3.5 inline-flex"
-                    id="el_3_N_2002_C_2270"
-                >
-                    {' '}
-                    <img
-                        src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/ArrowCircleLeft-f358e8c4-3277-41a9-9662-a6de8c3e710d.svg"
-                        alt="ArrowCircleLeft"
-                    />
-                </div>
-            </div>
-            <div
-                className="w-28 h-[182px] pb-[147px] left-[302px] top-[108px] absolute flex-col justify-start items-start gap-[5px] inline-flex overflow-hidden"
-                id="el_2_N_2002_C_2275"
-            >
-                <div
-                    className="w-28 h-[35px] p-2.5 bg-[#222831] rounded-[25px] flex-col justify-center items-center gap-2.5 inline-flex"
-                    id="el_3_N_I2002_C_2275_S_1526_C_505"
-                >
-                    <div className="w-28 h-[22px] px-px justify-center items-center gap-3.5 inline-flex">
-                        <div className="w-[60px] h-4 text-[#fefdff] text-base font-bold font-primary leading-4 tracking-[0.03em]">
-                            Nagpur
-                        </div>
-                        <img
-                            src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/Vector620-45697dee-1500-44e1-98fd-1373694f65b6.svg"
-                            alt="Vector 620"
-                        />
-                    </div>
-                </div>
-            </div>
-        </>
+        </div>
     );
 };
 
-export default Home;
+export default HomePage;
