@@ -32,10 +32,10 @@ export default function MobileVerificationScreen() {
     };
 
     const handleSubmit = () => {
-        // Handle OTP verification logic
+        // Handle mobile number submission and navigate to OTP page
         console.log("Submitting phone number:", phoneNumber);
-        // Navigate to home page
-        window.location.href = '/';
+        // Navigate to OTP verification page
+        window.location.href = '/auth/otp';
     };
 
     const canSubmit = !phoneNumber.includes('X');

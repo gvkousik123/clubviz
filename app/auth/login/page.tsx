@@ -61,7 +61,7 @@ export default function LoginPage(): JSX.Element {
                 {/* Guest Login Button */}
                 <div className="absolute top-16 right-6 p-4 z-10">
                     <Link
-                        href="/auth/intro"
+                        href="/home"
                         className="bg-gray-600/40 border border-cyan-400 text-white text-sm font-medium px-6 py-2 rounded-full backdrop-blur-sm hover:bg-gray-600/60 transition-all duration-300"
                     >
                         Guest Login
@@ -167,6 +167,19 @@ export default function LoginPage(): JSX.Element {
                                 </Link>
                             );
                         })}
+                    </div>
+
+                    {/* Register Option */}
+                    <div className="mt-6 text-center">
+                        <p className="text-white text-sm">
+                            Don't have an account?{' '}
+                            <Link
+                                href="/auth/register"
+                                className="text-cyan-400 underline hover:text-cyan-300 transition-colors font-medium"
+                            >
+                                Register here
+                            </Link>
+                        </p>
                     </div>
                 </div>
             </div>

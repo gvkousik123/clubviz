@@ -30,7 +30,7 @@ export default function RegisterScreen() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-teal-900 to-cyan-900 relative overflow-hidden">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-teal-900 to-cyan-900 relative">
             {/* Background blur effects */}
             <div className="absolute inset-0">
                 <div className="absolute top-20 left-1/2 -translate-x-1/2 w-80 h-80 bg-teal-500/30 rounded-full blur-3xl"></div>
@@ -66,8 +66,8 @@ export default function RegisterScreen() {
                 </div>
 
                 {/* White Card Container - Bottom half with proper height */}
-                <div className="px-0 pb-0">
-                    <div className="bg-white rounded-t-3xl px-6 py-6 min-h-[60vh] overflow-y-auto">
+                <div className="px-0 pb-0 flex-shrink-0">
+                    <div className="bg-white rounded-t-3xl px-6 py-6 max-h-[65vh] overflow-y-auto">
                         {/* Header */}
                         <div className="mb-6">
                             <h1 className="text-2xl font-semibold text-gray-900 mb-2">Create Account</h1>

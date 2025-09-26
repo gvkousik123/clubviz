@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, Menu, MapPin, User } from 'lucide-react';
+import { Search, Menu, MapPin, User, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SidebarMenu from '@/components/ui/sidebar-menu';
@@ -38,6 +38,50 @@ const venueData = [
     },
 ];
 
+// Mock data for banner slides
+const bannerSlides = [
+    {
+        id: 1,
+        image: '/dj-woman-with-headphones-and-sunglasses-in-neon-li.jpg',
+        musicBy: 'DJ MARTIN',
+        hostedBy: 'DJ AMIL',
+        sponsor: 'SPONSORED',
+        bookingLink: '/booking'
+    },
+    {
+        id: 2,
+        image: '/dj-event-poster-with-woman-dj-and-neon-lighting.jpg',
+        musicBy: 'DJ ALEXXX',
+        hostedBy: 'CLUB ELITE',
+        sponsor: 'FEATURED',
+        bookingLink: '/booking'
+    },
+    {
+        id: 3,
+        image: '/night-party-event-poster-with-purple-and-pink-neon.jpg',
+        musicBy: 'DJ SHADE',
+        hostedBy: 'GARAGE CLUB',
+        sponsor: 'TRENDING',
+        bookingLink: '/booking'
+    },
+    {
+        id: 4,
+        image: '/purple-neon-club-interior.jpg',
+        musicBy: 'DJ STORM',
+        hostedBy: 'NITRO CLUB',
+        sponsor: 'POPULAR',
+        bookingLink: '/booking'
+    },
+    {
+        id: 5,
+        image: '/crowded-nightclub-with-red-lighting-and-people-dan.jpg',
+        musicBy: 'DJ VIBE',
+        hostedBy: 'ESCAPE',
+        sponsor: 'EXCLUSIVE',
+        bookingLink: '/booking'
+    }
+];
+
 // Mock data for events
 const eventData = [
     {
@@ -63,8 +107,39 @@ const eventData = [
 const HomePage: React.FC = () => {
     const router = useRouter();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [currentSlide, setCurrentSlide] = useState(0);
+    const [isAutoScrollPaused, setIsAutoScrollPaused] = useState(false);
     const venueScrollRef = useDragScroll();
     const eventScrollRef = useDragScroll();
+    const autoScrollTimer = useRef<NodeJS.Timeout | null>(null);
+
+    // Auto-scroll functionality
+    useEffect(() => {
+        if (!isAutoScrollPaused) {
+            autoScrollTimer.current = setInterval(() => {
+                setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
+            }, 4000); // Auto-scroll every 4 seconds
+        }
+
+        return () => {
+            if (autoScrollTimer.current) {
+                clearInterval(autoScrollTimer.current);
+            }
+        };
+    }, [isAutoScrollPaused]);
+
+    const handlePrevSlide = () => {
+        setCurrentSlide((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length);
+    };
+
+    const handleNextSlide = () => {
+        setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
+    };
+
+    const handleBannerTouch = () => {
+        setIsAutoScrollPaused(true);
+        setTimeout(() => setIsAutoScrollPaused(false), 5000); // Resume after 5 seconds
+    };
 
     const handleVibeMeterClick = (clubId: number) => {
         router.push('/story');
@@ -95,13 +170,15 @@ const HomePage: React.FC = () => {
                 {/* Main Header */}
                 <div className="px-4 pb-4">
                     <div className="flex justify-between items-center mb-4">
-                        <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-white" />
-                            <span className="text-white font-medium">Dharampeth</span>
-                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                        </div>
+                        <Link href="/location/select">
+                            <div className="flex items-center gap-2 hover:bg-white/10 rounded-lg px-2 py-1 transition-all duration-300">
+                                <MapPin className="w-4 h-4 text-white" />
+                                <span className="text-white font-medium">Dharampeth</span>
+                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                            </div>
+                        </Link>
                         <User className="w-6 h-6 text-white" />
                     </div>
 
@@ -122,61 +199,84 @@ const HomePage: React.FC = () => {
                             <Menu className="w-4 h-4 text-white" />
                         </Button>
                     </div>
-
-                    {/* Location Dropdown */}
-                    <div className="mt-4">
-                        <Link href="/location/select">
-                            <div className="inline-flex items-center gap-2 bg-[#222831] rounded-[25px] px-4 py-2 hover:bg-[#2a2a38] transition-all duration-300">
-                                <span className="text-white font-bold text-sm">Nagpur</span>
-                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                            </div>
-                        </Link>
-                    </div>
                 </div>
             </div>
 
             {/* Main Content */}
             <div className="px-4 py-6 space-y-8">
-                {/* Hero Banner */}
-                <div className="relative h-[262px] rounded-t-[30px] rounded-b-[30px] overflow-hidden shadow-lg">
-                    <img
-                        src="/dj-woman-with-headphones-and-sunglasses-in-neon-li.jpg"
-                        alt="DJ Event"
-                        className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    <div className="absolute top-4 left-4">
-                        <span className="bg-black/40 text-white text-xs px-2 py-1 rounded">SPONSORED</span>
+                {/* Hero Banner with Auto-scroll */}
+                <div
+                    className="relative h-[262px] rounded-t-[30px] rounded-b-[30px] overflow-hidden shadow-lg"
+                    onTouchStart={handleBannerTouch}
+                    onMouseEnter={() => setIsAutoScrollPaused(true)}
+                    onMouseLeave={() => setIsAutoScrollPaused(false)}
+                >
+                    {/* Banner Slides Container */}
+                    <div
+                        className="flex transition-transform duration-500 ease-in-out w-full h-full"
+                        style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                    >
+                        {bannerSlides.map((slide) => (
+                            <div key={slide.id} className="relative w-full h-full flex-shrink-0">
+                                <img
+                                    src={slide.image}
+                                    alt="DJ Event"
+                                    className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                                {/* Content Overlay */}
+                                <div className="absolute top-4 left-4">
+                                    <span className="bg-black/40 text-white text-xs px-2 py-1 rounded">{slide.sponsor}</span>
+                                </div>
+                                <div className="absolute bottom-4 left-4">
+                                    <div className="text-white">
+                                        <p className="text-xs opacity-80">MUSIC BY</p>
+                                        <p className="font-bold">{slide.musicBy}</p>
+                                    </div>
+                                </div>
+                                <div className="absolute bottom-4 right-4">
+                                    <div className="text-white text-right">
+                                        <p className="text-xs opacity-80">HOSTED BY</p>
+                                        <p className="font-bold">{slide.hostedBy}</p>
+                                    </div>
+                                </div>
+                                <div className="absolute top-4 right-4">
+                                    <Link href={slide.bookingLink}>
+                                        <Button className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs px-3 py-1 rounded-full">
+                                            BOOK NOW
+                                        </Button>
+                                    </Link>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                    <div className="absolute bottom-4 left-4">
-                        <div className="text-white">
-                            <p className="text-xs opacity-80">MUSIC BY</p>
-                            <p className="font-bold">DJ MARTIN</p>
-                        </div>
-                    </div>
-                    <div className="absolute bottom-4 right-4">
-                        <div className="text-white text-right">
-                            <p className="text-xs opacity-80">HOSTED BY</p>
-                            <p className="font-bold">DJ AMIL</p>
-                        </div>
-                    </div>
-                    <div className="absolute top-4 right-4">
-                        <Link href="/booking">
-                            <Button className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs px-3 py-1 rounded-full">
-                                BOOK NOW
-                            </Button>
-                        </Link>
-                    </div>
+
+                    {/* Navigation Buttons */}
+                    <button
+                        onClick={handlePrevSlide}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center transition-all duration-200"
+                    >
+                        <ChevronLeft className="w-4 h-4 text-white" />
+                    </button>
+                    <button
+                        onClick={handleNextSlide}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center transition-all duration-200"
+                    >
+                        <ChevronRight className="w-4 h-4 text-white" />
+                    </button>
+
                     {/* Pagination dots */}
                     <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
                         <div className="flex gap-1">
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                            <div className="w-2 h-2 bg-white/50 rounded-full"></div>
-                            <div className="w-2 h-2 bg-white/50 rounded-full"></div>
-                            <div className="w-2 h-2 bg-white/50 rounded-full"></div>
-                            <div className="w-2 h-2 bg-white/50 rounded-full"></div>
+                            {bannerSlides.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => setCurrentSlide(index)}
+                                    className={`w-2 h-2 rounded-full transition-all duration-200 ${index === currentSlide ? 'bg-white' : 'bg-white/50 hover:bg-white/70'
+                                        }`}
+                                />
+                            ))}
                         </div>
                     </div>
                 </div>
