@@ -17,19 +17,20 @@ export default function MyAccountPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#0d7377] to-[#222831] text-white">
-            {/* Header with Gradient Background */}
-            <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-b-[30px] pb-8">
-                {/* Status Bar */}
-                <div className="flex justify-between items-center px-6 pt-4 pb-2">
-                    <div className="text-white text-sm font-semibold">9:41</div>
-                    <div className="flex items-center gap-1">
-                        <div className="w-4 h-3 bg-white/60 rounded-sm"></div>
-                        <div className="w-4 h-3 bg-white/60 rounded-sm"></div>
-                        <div className="w-6 h-3 bg-white border border-white/60 rounded-sm"></div>
-                    </div>
+        <div className="min-h-screen bg-[#1a1a1a] text-white">
+            {/* Status Bar */}
+            <div className="flex justify-between items-center px-6 pt-4 pb-2 bg-gradient-to-r from-teal-500 to-cyan-500">
+                <div className="text-white text-sm font-semibold">9:41</div>
+                <div className="flex items-center gap-1">
+                    <div className="w-4 h-2 bg-white rounded-sm"></div>
+                    <div className="w-4 h-2 bg-white rounded-sm"></div>
+                    <div className="w-4 h-2 bg-white rounded-sm"></div>
+                    <div className="w-6 h-3 bg-white border border-white rounded-sm"></div>
                 </div>
+            </div>
 
+            {/* Header with Gradient Background */}
+            <div className="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-b-[30px] pb-8">
                 <div className="flex items-center justify-between px-6 pt-4 mb-8">
                     <button
                         onClick={handleGoBack}
@@ -46,15 +47,15 @@ export default function MyAccountPage() {
                 <div className="px-6 flex items-center justify-between">
                     <div>
                         <h2 className="text-white font-bold text-lg mb-1">Hi, DAVID SIMON</h2>
-                        <p className="text-white/80 text-sm">davidsimon12@test.com</p>
+                        <p className="text-white/90 text-sm">davidsimon12@test.com</p>
                     </div>
                     <div className="flex items-center gap-4">
                         <Link href="/profile/edit">
-                            <button className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-[20px] transition-all duration-300">
+                            <button className="glassmorphism-light text-white font-medium py-2 px-4 rounded-[20px] transition-all duration-300 hover:bg-white/10">
                                 Edit Profile
                             </button>
                         </Link>
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 border-4 border-teal-400/30 flex items-center justify-center">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 border-4 border-cyan-400 flex items-center justify-center">
                             <span className="text-2xl">🐻</span>
                         </div>
                     </div>
@@ -139,8 +140,8 @@ export default function MyAccountPage() {
                         </Link>
 
                         {/* Live Now Banner */}
-                        <div className="bg-gradient-to-r from-teal-600 to-cyan-500 rounded-lg p-3 my-2">
-                            <p className="text-white font-bold text-center tracking-wide">L i v e   N o w  🔴</p>
+                        <div className="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-xl p-3 my-3">
+                            <p className="text-white font-bold text-center tracking-[0.2em] text-sm">L i v e   N o w  🔴</p>
                         </div>
 
                         {/* Boiler Room Event */}
@@ -176,7 +177,7 @@ export default function MyAccountPage() {
                     </div>
 
                     {/* Music Genre */}
-                    <div className="bg-[#222831] rounded-lg p-4">
+                    <div className="glassmorphism rounded-lg p-4">
                         <div className="flex items-center justify-between">
                             <span className="text-white font-medium">Music Genre</span>
                             <div className="flex items-center gap-2">
@@ -192,7 +193,7 @@ export default function MyAccountPage() {
                     </div>
 
                     {/* Club Type */}
-                    <div className="bg-[#222831] rounded-lg p-4">
+                    <div className="glassmorphism rounded-lg p-4">
                         <div className="flex items-center justify-between">
                             <span className="text-white font-medium">Club Type</span>
                             <div className="flex items-center gap-2">

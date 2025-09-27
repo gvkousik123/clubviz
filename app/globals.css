@@ -15,73 +15,73 @@
 }
 
 :root {
-  /* ClubViz Brand Colors - Dark Teal/Cyan Theme */
-  --clubviz-dark-900: #0a1f1c;
-  --clubviz-dark-800: #0f2d29;
-  --clubviz-dark-700: #1a3f3a;
-  --clubviz-dark-600: #205047;
-  --clubviz-teal: #4fd1c7;
+  /* ClubViz Brand Colors - Dark Theme matching designs */
+  --clubviz-dark-bg: #1a1a1a;
+  --clubviz-dark-card: #2d2d30;
+  --clubviz-teal-gradient-start: #14b8a6;
+  --clubviz-teal-gradient-end: #0891b2;
   --clubviz-cyan: #00bcd4;
   --clubviz-blue: #1976d2;
+  --clubviz-neon-cyan: #00ffff;
 
-  --background: #0a1f1c;
+  --background: #1a1a1a;
   --foreground: #ffffff;
-  --card: #0f2d29;
+  --card: #2d2d30;
   --card-foreground: #ffffff;
-  --popover: #0f2d29;
+  --popover: #2d2d30;
   --popover-foreground: #ffffff;
-  --primary: #4fd1c7;
-  --primary-foreground: #0a1f1c;
-  --secondary: #1a3f3a;
+  --primary: #14b8a6;
+  --primary-foreground: #ffffff;
+  --secondary: #2d2d30;
   --secondary-foreground: #ffffff;
-  --muted: #205047;
+  --muted: #3d3d40;
   --muted-foreground: #a3a3a3;
-  --accent: #4fd1c7;
-  --accent-foreground: #0a1f1c;
+  --accent: #14b8a6;
+  --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #205047;
-  --input: #1a3f3a;
-  --ring: #4fd1c7;
+  --border: #3d3d40;
+  --input: #2d2d30;
+  --ring: #14b8a6;
   --radius: 0.75rem;
-  --sidebar: #0f2d29;
+  --sidebar: #2d2d30;
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: #4fd1c7;
-  --sidebar-primary-foreground: #0a1f1c;
-  --sidebar-accent: #1a3f3a;
+  --sidebar-primary: #14b8a6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #3d3d40;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #205047;
-  --sidebar-ring: #4fd1c7;
+  --sidebar-border: #3d3d40;
+  --sidebar-ring: #14b8a6;
 }
 
 .dark {
-  --background: #0a1f1c;
+  --background: #1a1a1a;
   --foreground: #ffffff;
-  --card: #0f2d29;
+  --card: #2d2d30;
   --card-foreground: #ffffff;
-  --popover: #0f2d29;
+  --popover: #2d2d30;
   --popover-foreground: #ffffff;
-  --primary: #4fd1c7;
-  --primary-foreground: #0a1f1c;
-  --secondary: #1a3f3a;
+  --primary: #14b8a6;
+  --primary-foreground: #ffffff;
+  --secondary: #2d2d30;
   --secondary-foreground: #ffffff;
-  --muted: #205047;
+  --muted: #3d3d40;
   --muted-foreground: #a3a3a3;
-  --accent: #4fd1c7;
-  --accent-foreground: #0a1f1c;
+  --accent: #14b8a6;
+  --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #205047;
-  --input: #1a3f3a;
-  --ring: #4fd1c7;
-  --sidebar: #0f2d29;
+  --border: #3d3d40;
+  --input: #2d2d30;
+  --ring: #14b8a6;
+  --sidebar: #2d2d30;
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: #4fd1c7;
-  --sidebar-primary-foreground: #0a1f1c;
-  --sidebar-accent: #1a3f3a;
+  --sidebar-primary: #14b8a6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #3d3d40;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #205047;
-  --sidebar-ring: #4fd1c7;
+  --sidebar-border: #3d3d40;
+  --sidebar-ring: #14b8a6;
 }
 
 @layer base {
@@ -179,18 +179,47 @@
   }
 
   .bg-gradient-clubviz {
-    background: linear-gradient(135deg, var(--clubviz-teal), var(--clubviz-cyan));
+    background: linear-gradient(135deg, #14b8a6, #0891b2);
   }
 
   .bg-gradient-clubviz-dark {
-    background: linear-gradient(135deg, var(--clubviz-dark-900), var(--clubviz-dark-700));
+    background: linear-gradient(135deg, #1a1a1a, #2d2d30);
   }
 
   .shadow-clubviz {
-    box-shadow: 0 4px 20px rgba(79, 209, 199, 0.2);
+    box-shadow: 0 4px 20px rgba(20, 184, 166, 0.2);
   }
 
   .glow-clubviz {
-    box-shadow: 0 0 20px rgba(79, 209, 199, 0.3);
+    box-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
+  }
+
+  /* Glassmorphism effects for ClubViz */
+  .glassmorphism {
+    background: rgba(45, 45, 48, 0.25);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glassmorphism-strong {
+    background: rgba(45, 45, 48, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .glassmorphism-light {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .text-gradient-cyan {
+    background: linear-gradient(135deg, #14b8a6, #00ffff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
