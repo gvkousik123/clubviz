@@ -12,11 +12,11 @@ import { ClubVizLogo } from '@/components/auth/logo';
 
 // Mock data for vibe meter
 const vibeMeterData = [
-    { id: 1, name: 'CLUB', logo: '/placeholder-logo.png', color: 'border-cyan-400' },
-    { id: 2, name: 'Elite', logo: '/placeholder-logo.png', color: 'border-green-400' },
-    { id: 3, name: 'Escape', logo: '/placeholder-logo.png', color: 'border-yellow-400' },
-    { id: 4, name: 'Nitro', logo: '/placeholder-logo.png', color: 'border-orange-400' },
-    { id: 5, name: 'KITCHEN', logo: '/placeholder-logo.png', color: 'border-red-400' },
+    { id: 1, name: 'DABO', logo: '/crowded-nightclub-with-red-lighting-and-people-dan.jpg', color: 'border-cyan-400' },
+    { id: 2, name: 'Elite', logo: '/upscale-club-interior-with-blue-lighting.jpg', color: 'border-cyan-400' },
+    { id: 3, name: 'Escape', logo: '/purple-neon-club-interior.jpg', color: 'border-cyan-400' },
+    { id: 4, name: 'Nitro', logo: '/red-neon-lounge-interior.jpg', color: 'border-cyan-400' },
+    { id: 5, name: 'GARAGE', logo: '/upscale-bar-interior-with-bottles.jpg', color: 'border-cyan-400' },
 ];
 
 const venueData = [
@@ -376,7 +376,7 @@ const HomePage: React.FC = () => {
                         </Link>
                     </div>
                     <div ref={venueScrollRef} className="overflow-x-auto scrollbar-hide">
-                        <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
+                        <div className="flex gap-4 pb-16" style={{ width: 'max-content' }}>
                             {venueData.map((venue) => (
                                 <Link key={venue.id} href={`/club/${venue.name.toLowerCase()}`}>
                                     <div className="flex-shrink-0 w-[336px] relative cursor-pointer transform transition-all duration-300 hover:scale-105">
@@ -386,13 +386,16 @@ const HomePage: React.FC = () => {
                                                 alt={venue.name}
                                                 className="w-full h-full object-cover"
                                             />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-                                            <div className="absolute bottom-4 left-4">
-                                                <h3 className="text-white font-bold text-2xl">{venue.name}</h3>
-                                                <p className="text-white/80 text-sm">{venue.openTime}</p>
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                                            
+                                            {/* Glass effect card that extends beyond main card */}
+                                            <div className="absolute -bottom-8 left-4 right-4 glassmorphism-strong border border-white/20 p-4 rounded-2xl h-16">
+                                                <h3 className="text-white font-bold text-lg mb-1">{venue.name}</h3>
+                                                <p className="text-white/90 text-sm">{venue.openTime}</p>
                                             </div>
+                                            
                                             <div className="absolute bottom-4 right-4">
-                                                <div className="bg-cyan-600 text-white text-sm font-bold px-3 py-1.5 rounded-lg">
+                                                <div className="glassmorphism text-white text-sm font-bold px-3 py-1.5 rounded-lg">
                                                     {venue.rating}
                                                 </div>
                                             </div>
@@ -429,12 +432,12 @@ const HomePage: React.FC = () => {
                         <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
                             {eventData.map((event) => (
                                 <div key={event.id} className="flex-shrink-0 w-[222px]">
-                                    <div className="bg-[#003c3d] rounded-[20px] overflow-hidden border border-[#0ed7e2]/30">
-                                        <div className="relative">
+                                    <div className="bg-[#003c3d] rounded-[20px] overflow-hidden border border-[#0ed7e2]/30 h-[320px] flex flex-col">
+                                        <div className="relative flex-1">
                                             <img
                                                 src={event.image}
                                                 alt={event.title}
-                                                className="w-full h-[180px] object-cover"
+                                                className="w-full h-[200px] object-cover"
                                             />
                                             <div className="absolute top-0 right-0 bg-gradient-to-b from-black to-[#00c0ca] text-white text-xs font-bold px-2 py-3 rounded-bl-[28px] min-h-[45px] flex items-center">
                                                 {event.date}
@@ -445,13 +448,15 @@ const HomePage: React.FC = () => {
                                                 </svg>
                                             </button>
                                         </div>
-                                        <div className="p-4 space-y-2">
-                                            <h3 className="text-white font-bold text-sm leading-tight">{event.title}</h3>
-                                            <p className="text-white/70 text-xs">{event.venue}</p>
-                                        </div>
-                                        <div className="px-4 pb-4">
-                                            <div className="bg-[#0d7377] text-white text-xs font-medium px-3 py-2 rounded-[16px] text-center">
-                                                {event.category}
+                                        <div className="flex-none">
+                                            <div className="p-4 space-y-3">
+                                                <h3 className="text-white font-bold text-base leading-tight">{event.title}</h3>
+                                                <p className="text-white/70 text-sm">{event.venue}</p>
+                                            </div>
+                                            <div className="px-4 pb-4">
+                                                <div className="bg-[#0d7377] text-white text-sm font-medium px-3 py-2.5 rounded-[16px] text-center">
+                                                    {event.category}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -460,57 +465,57 @@ const HomePage: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Footer */}
-                <div className="bg-[#003c3d] rounded-[20px] p-6 space-y-6 shadow-lg">
-                    <div className="text-center">
-                        <div className="flex justify-center mb-4">
-                            <ClubVizLogo size="sm" variant="full" />
-                        </div>
-                        <p className="text-white text-sm leading-relaxed max-w-[300px] mx-auto">
-                            Dive into the ultimate party scene discover lit club nights, epic events, and non-stop vibes all in one place!
-                        </p>
+            {/* Footer */}
+            <div className="p-6 space-y-6 ">
+                <div className="text-center">
+                    <div className="flex justify-center mb-4">
+                        <ClubVizLogo size="sm" variant="full" />
                     </div>
-
-                    <div className="flex justify-center gap-6">
-                        <div className="w-6 h-6 bg-white/20 rounded-lg"></div>
-                        <div className="w-6 h-6 bg-white/20 rounded-lg"></div>
-                        <div className="w-6 h-6 bg-white/20 rounded-lg"></div>
-                        <div className="w-6 h-6 bg-white/20 rounded-lg"></div>
-                    </div>
-
-                    <div className="bg-[#0d7377] rounded-[16px] p-4 space-y-3">
-                        <div className="flex items-center gap-3 text-white text-sm">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                            </svg>
-                            <span>contact@clubwiz.com</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-white text-sm">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                            </svg>
-                            <span>Location Details</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-white text-sm">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z" clipRule="evenodd" />
-                            </svg>
-                            <span>Terms & Condition</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-white text-sm">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z" clipRule="evenodd" />
-                            </svg>
-                            <span>Privacy Policy</span>
-                        </div>
-                    </div>
-
-                    <p className="text-white text-xs text-center opacity-80">
-                        Copy rights reserved with clubwiz.com
+                    <p className="text-white text-sm leading-relaxed max-w-[300px] mx-auto">
+                        Dive into the ultimate party scene discover lit club nights, epic events, and non-stop vibes all in one place!
                     </p>
                 </div>
+
+                <div className="flex justify-center gap-6">
+                    <div className="w-6 h-6 bg-white/20 rounded-lg"></div>
+                    <div className="w-6 h-6 bg-white/20 rounded-lg"></div>
+                    <div className="w-6 h-6 bg-white/20 rounded-lg"></div>
+                    <div className="w-6 h-6 bg-white/20 rounded-lg"></div>
+                </div>
+
+                <div className="bg-[#0d7377] rounded-[16px] p-4 space-y-3 mx-6">
+                    <div className="flex items-center gap-3 text-white text-sm">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                        </svg>
+                        <span>contact@clubwiz.com</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-white text-sm">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                        </svg>
+                        <span>Location Details</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-white text-sm">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z" clipRule="evenodd" />
+                        </svg>
+                        <span>Terms & Condition</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-white text-sm">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z" clipRule="evenodd" />
+                        </svg>
+                        <span>Privacy Policy</span>
+                    </div>
+                </div>
+
+                <p className="text-white text-xs text-center opacity-80">
+                    Copy rights reserved with clubwiz.com
+                </p>
             </div>
 
             {/* Sidebar Menu */}
