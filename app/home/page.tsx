@@ -435,13 +435,16 @@ const HomePage: React.FC = () => {
                             {eventData.map((event) => (
                                 <div key={event.id} className="flex-shrink-0 w-[222px]">
                                     <Link href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                                        <div className="bg-[#2d343a] rounded-[20px] overflow-hidden">
+                                        <div className="bg-teal-900/20 rounded-[20px] overflow-hidden relative"
+                                            style={{
+                                                clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%)'
+                                            }}>
                                             {/* Image Section */}
                                             <div className="relative">
                                                 <img
                                                     src={event.image}
                                                     alt={event.title}
-                                                    className="w-full h-[200px] object-cover"
+                                                    className="w-full h-[200px] object-cover border-2 border-teal-400/30 rounded-t-[20px]"
                                                 />
                                                 {/* Date Badge */}
                                                 <div className="absolute top-3 right-3 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg min-w-[45px]">
@@ -450,18 +453,6 @@ const HomePage: React.FC = () => {
                                                         <div className="text-sm font-bold">{event.date.split(' ')[1] || event.date}</div>
                                                     </div>
                                                 </div>
-                                                {/* Heart Icon */}
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                    }}
-                                                    className="absolute bottom-3 right-3 w-8 h-8 flex items-center justify-center"
-                                                >
-                                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                                    </svg>
-                                                </button>
                                             </div>
 
                                             {/* Content Section */}
@@ -471,21 +462,12 @@ const HomePage: React.FC = () => {
                                                         <h3 className="text-white font-bold text-base leading-tight mb-1">{event.title}</h3>
                                                         <p className="text-white/70 text-sm">{event.venue}</p>
                                                     </div>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            e.stopPropagation();
-                                                        }}
-                                                        className="ml-2 p-1"
-                                                    >
-                                                        <svg className="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                                        </svg>
-                                                    </button>
                                                 </div>
+                                            </div>
 
-                                                {/* Category Section */}
-                                                <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white text-sm font-medium px-3 py-2 rounded-lg text-center">
+                                            {/* Full-width Teal Highlight Section */}
+                                            <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white text-sm font-medium px-3 py-2 w-full">
+                                                <div className="text-center">
                                                     {event.category}
                                                 </div>
                                             </div>

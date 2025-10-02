@@ -19,7 +19,7 @@ export default function MyAccountPage() {
     return (
         <div className="min-h-screen bg-[#1e2328] text-white">
             {/* Status Bar */}
-            <div className="flex justify-between items-center px-6 pt-4 pb-2 bg-gradient-to-r from-teal-500 to-cyan-500">
+            <div className="flex justify-between items-center px-6 pt-4 pb-2 bg-gradient-to-r from-teal-600 to-teal-500">
                 <div className="text-white text-sm font-semibold">9:41</div>
                 <div className="flex items-center gap-1">
                     <div className="w-4 h-2 bg-white rounded-sm"></div>
@@ -30,7 +30,7 @@ export default function MyAccountPage() {
             </div>
 
             {/* Header with Gradient Background */}
-            <div className="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-b-[30px] pb-8">
+            <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-b-[30px] pb-8">
                 <div className="flex items-center justify-between px-6 pt-4 mb-8">
                     <button
                         onClick={handleGoBack}
@@ -44,28 +44,26 @@ export default function MyAccountPage() {
                 </div>
 
                 {/* Profile Section */}
-                <div className="px-6 flex items-center justify-between">
-                    <div>
-                        <h2 className="text-white font-bold text-lg mb-1">Hi, DAVID SIMON</h2>
+                <div className="px-6 flex flex-col items-center text-center">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 border-4 border-cyan-400 flex items-center justify-center mb-4">
+                        <span className="text-3xl">🐻</span>
+                    </div>
+                    <div className="mb-4">
+                        <h2 className="text-white font-bold text-xl mb-1">Hi, DAVID SIMON</h2>
                         <p className="text-white/90 text-sm">davidsimon12@test.com</p>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <Link href="/profile/edit">
-                            <button className="glassmorphism-light text-white font-medium py-2 px-4 rounded-[20px] transition-all duration-300 hover:bg-white/10">
-                                Edit Profile
-                            </button>
-                        </Link>
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 border-4 border-cyan-400 flex items-center justify-center">
-                            <span className="text-2xl">🐻</span>
-                        </div>
-                    </div>
+                    <Link href="/profile/edit">
+                        <button className="glassmorphism-light text-white font-medium py-3 px-6 rounded-[20px] transition-all duration-300 hover:bg-white/10">
+                            Edit Profile
+                        </button>
+                    </Link>
                 </div>
             </div>
 
             {/* Main Content */}
             <div className="px-6 py-6 space-y-6">
                 {/* My Bookings */}
-                <div className="glassmorphism rounded-xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
+                <div className="bg-[#222831] rounded-xl p-4 flex items-center justify-between hover:bg-[#2a3037] transition-colors">
                     <span className="text-white font-medium text-base">My Bookings</span>
                     <ChevronRight className="w-5 h-5 text-cyan-400" />
                 </div>
@@ -79,7 +77,7 @@ export default function MyAccountPage() {
 
                     <div className="space-y-3">
                         {/* Dabo Club */}
-                        <Link href="/event/dabo" className="glassmorphism rounded-xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
+                        <Link href="/event/dabo" className="bg-[#222831] rounded-xl p-4 flex items-center justify-between hover:bg-[#2a3037] transition-colors">
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
                                     <span className="text-white font-bold text-sm">D</span>
@@ -96,7 +94,7 @@ export default function MyAccountPage() {
                         </Link>
 
                         {/* Raasta Club */}
-                        <Link href="/event/raasta" className="glassmorphism rounded-xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
+                        <Link href="/event/raasta" className="bg-[#222831] rounded-xl p-4 flex items-center justify-between hover:bg-[#2a3037] transition-colors">
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center border-2 border-yellow-400">
                                     <span className="text-white font-bold text-sm">R</span>
@@ -123,7 +121,7 @@ export default function MyAccountPage() {
 
                     <div className="space-y-3">
                         {/* Tipsy Tuesday Event */}
-                        <Link href="/event/tipsy-tuesday" className="glassmorphism rounded-xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
+                        <Link href="/event/tipsy-tuesday" className="bg-[#222831] rounded-xl p-4 flex items-center justify-between hover:bg-[#2a3037] transition-colors">
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                                     <span className="text-white font-bold text-xs">TT</span>
@@ -140,7 +138,7 @@ export default function MyAccountPage() {
                         </Link>
 
                         {/* Boiler Room Event */}
-                        <Link href="/event/boiler-room" className="glassmorphism rounded-xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
+                        <Link href="/event/boiler-room" className="bg-[#222831] rounded-xl p-4 flex items-center justify-between hover:bg-[#2a3037] transition-colors">
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
                                     <span className="text-white font-bold text-xs">BR</span>
@@ -172,7 +170,7 @@ export default function MyAccountPage() {
                     </div>
 
                     {/* Music Genre */}
-                    <div className="glassmorphism rounded-lg p-4">
+                    <div className="bg-[#222831] rounded-lg p-4">
                         <div className="flex items-center justify-between">
                             <span className="text-white font-medium">Music Genre</span>
                             <div className="flex items-center gap-2">
@@ -188,7 +186,7 @@ export default function MyAccountPage() {
                     </div>
 
                     {/* Club Type */}
-                    <div className="glassmorphism rounded-lg p-4">
+                    <div className="bg-[#222831] rounded-lg p-4">
                         <div className="flex items-center justify-between">
                             <span className="text-white font-medium">Club Type</span>
                             <div className="flex items-center gap-2">

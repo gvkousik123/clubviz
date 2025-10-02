@@ -242,30 +242,47 @@ export default function DaboEventPage() {
                 <h3 className="text-white font-semibold text-base mb-4">Events in Dabo</h3>
                 <div className="flex gap-4 overflow-x-auto scrollbar-hide">
                     {events.map((event) => (
-                        <Link key={event.id} href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                            <div className="min-w-[140px] glassmorphism rounded-xl overflow-hidden">
-                                <div className="relative h-20">
-                                    <img
-                                        src={event.image}
-                                        alt={event.title}
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute top-2 left-2 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg">
+                        <div key={event.id} className="flex-shrink-0 w-[222px]">
+                            <Link href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                                <div className="bg-teal-900/20 rounded-[20px] overflow-hidden relative"
+                                    style={{
+                                        clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%)'
+                                    }}>
+                                    {/* Image Section */}
+                                    <div className="relative">
+                                        <img
+                                            src={event.image}
+                                            alt={event.title}
+                                            className="w-full h-[200px] object-cover border-2 border-teal-400/30 rounded-t-[20px]"
+                                        />
+                                        {/* Date Badge */}
+                                        <div className="absolute top-3 right-3 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg min-w-[45px]">
+                                            <div className="text-center">
+                                                <div className="text-[10px] opacity-70">APR</div>
+                                                <div className="text-sm font-bold">{event.date.split(' ')[1] || event.date}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Content Section */}
+                                    <div className="p-4">
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className="flex-1">
+                                                <h3 className="text-white font-bold text-base leading-tight mb-1">{event.title}</h3>
+                                                <p className="text-white/70 text-sm">{event.venue}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Full-width Teal Highlight Section */}
+                                    <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white text-sm font-medium px-3 py-2 w-full">
                                         <div className="text-center">
-                                            <div className="text-xs opacity-70">APR</div>
-                                            <div className="text-xs">{event.date.split(' ')[1]}</div>
+                                            {event.category}
                                         </div>
                                     </div>
                                 </div>
-                                <div className="p-3">
-                                    <h4 className="text-white font-medium text-xs mb-1">{event.title}</h4>
-                                    <p className="text-white/70 text-xs mb-2">{event.venue}</p>
-                                    <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white text-xs px-2 py-1 rounded-full">
-                                        {event.category}
-                                    </div>
-                                </div>
-                            </div>
-                        </Link>
+                            </Link>
+                        </div>
                     ))}
                 </div>
             </div>

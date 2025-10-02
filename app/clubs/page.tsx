@@ -92,67 +92,51 @@ export default function ClubsListPage() {
             </div>
 
             {/* Main Content */}
-            <div className="px-6 py-6 space-y-6">
-                {clubs.map((club) => (
-                    <Link key={club.id} href={`/club/${club.name.toLowerCase().replace(/\s+/g, '-')}`}>
-                        <div className="relative rounded-[20px] overflow-hidden bg-[#1a2f32] border border-teal-600/30">
-                            {/* Club Image */}
-                            <div className="relative h-48">
-                                <img
-                                    src={club.image}
-                                    alt={club.name}
-                                    className="w-full h-full object-cover"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+            <div className="px-4 py-6 space-y-8">
+                <div className="overflow-x-auto scrollbar-hide">
+                    <div className="flex gap-4 pb-16" style={{ width: 'max-content' }}>
+                        {clubs.map((club) => (
+                            <Link key={club.id} href={`/club/${club.name.toLowerCase().replace(/\s+/g, '-')}`}>
+                                <div className="flex-shrink-0 w-[336px] relative cursor-pointer transform transition-all duration-300 hover:scale-105">
+                                    <div className="relative h-[197px] rounded-[20px] border border-[#0c898b] bg-[#1a2f32]">
+                                        <div className="rounded-[20px] overflow-hidden h-full">
+                                            <img
+                                                src={club.image}
+                                                alt={club.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                                        </div>
 
-                                {/* Bookmark Icon */}
-                                <button
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        toggleFavorite(club.id);
-                                    }}
-                                    className="absolute top-4 right-4 p-2 bg-black/40 rounded-full hover:bg-black/60 transition-all duration-300"
-                                >
-                                    <Bookmark
-                                        size={20}
-                                        className={`${favorites.includes(club.id)
-                                            ? 'text-teal-400 fill-teal-400'
-                                            : 'text-white'
-                                            }`}
-                                    />
-                                </button>
+                                        {/* Glass effect card that extends beyond main card */}
+                                        <div className="absolute -bottom-8 left-2 right-2 glassmorphism-strong border border-white/20 p-5 rounded-2xl h-20 z-10">
+                                            <h3 className="text-white font-bold text-xl mb-2">{club.name}</h3>
+                                            <p className="text-white/90 text-sm">{club.hours}</p>
+                                        </div>
 
-                                {/* Rating Badge */}
-                                <div className="absolute bottom-4 right-4 bg-teal-600 text-white text-sm font-bold px-3 py-1.5 rounded-lg flex items-center gap-1">
-                                    {club.rating}
-                                </div>
-
-                                {/* Club Info Overlay */}
-                                <div className="absolute bottom-4 left-4">
-                                    <h3 className="text-white font-bold text-xl mb-1">{club.name}</h3>
-                                    <p className="text-white/80 text-sm mb-1">{club.address}</p>
-                                    <p className="text-white/70 text-xs">{club.hours}</p>
-                                </div>
-                            </div>
-
-                            {/* Current Event Section */}
-                            <div className={`bg-gradient-to-r ${club.eventColor} px-4 py-3 rounded-b-[20px]`}>
-                                <p className="text-white font-medium text-sm">{club.currentEvent}</p>
-                            </div>
-
-                            {/* Offer Section (if exists) */}
-                            {club.offer && (
-                                <div className="bg-gradient-to-r from-green-600/80 to-teal-600/80 px-4 py-2 flex items-center gap-2 rounded-b-[20px]">
-                                    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                                        <span className="text-white text-xs font-bold">%</span>
+                                        <div className="absolute bottom-4 right-4 z-20">
+                                            <div className="glassmorphism text-white text-sm font-bold px-3 py-1.5 rounded-lg">
+                                                {club.rating}
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                toggleFavorite(club.id);
+                                            }}
+                                            className="absolute top-4 right-4 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center hover:bg-black/60 transition-all duration-300 z-20"
+                                        >
+                                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                                            </svg>
+                                        </button>
                                     </div>
-                                    <p className="text-white font-medium text-sm">{club.offer}</p>
                                 </div>
-                            )}
-                        </div>
-                    </Link>
-                ))}
+                            </Link>
+                        ))}
+                    </div>
+                </div>
             </div>
         </div>
     );

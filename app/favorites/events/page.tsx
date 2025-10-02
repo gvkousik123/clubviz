@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Bookmark, Share2 } from 'lucide-react';
 import { useDragScroll } from '@/hooks/use-drag-scroll';
@@ -79,56 +80,66 @@ export default function FavoriteEventsPage() {
             </div>
 
             {/* Main Content */}
-            <div className="px-6 py-8 space-y-6">
+            <div className="px-4 py-6 space-y-8">
                 {favoriteEvents.length > 0 ? (
-                    <div className="space-y-4">
-                        {favoriteEvents.map((event) => (
-                            <div key={event.id} className="flex bg-[#222831] rounded-[25px] overflow-hidden border border-teal-400/30">
-                                {/* Event Date Badge */}
-                                <div className="relative flex-shrink-0">
-                                    <img
-                                        src={event.image}
-                                        alt={event.title}
-                                        className="w-24 h-24 object-cover"
-                                    />
-                                    <div className="absolute top-2 left-2 bg-gray-800/80 text-white text-xs font-bold px-2 py-1 rounded">
-                                        <div className="text-center">
-                                            <div className="text-xs opacity-70">APR</div>
-                                            <div className="text-sm">04</div>
+                    <div className="overflow-x-auto scrollbar-hide">
+                        <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
+                            {favoriteEvents.map((event) => (
+                                <div key={event.id} className="flex-shrink-0 w-[222px]">
+                                    <Link href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                                        <div className="bg-teal-900/20 rounded-[20px] overflow-hidden relative"
+                                            style={{
+                                                clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%)'
+                                            }}>
+                                            {/* Image Section */}
+                                            <div className="relative">
+                                                <img
+                                                    src={event.image}
+                                                    alt={event.title}
+                                                    className="w-full h-[200px] object-cover border-2 border-teal-400/30 rounded-t-[20px]"
+                                                />
+                                                {/* Date Badge */}
+                                                <div className="absolute top-3 right-3 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg min-w-[45px]">
+                                                    <div className="text-center">
+                                                        <div className="text-[10px] opacity-70">APR</div>
+                                                        <div className="text-sm font-bold">04</div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Favorite Button */}
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        handleBookmark(event.id);
+                                                    }}
+                                                    className="absolute top-3 left-3 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center hover:bg-black/60 transition-all duration-300"
+                                                >
+                                                    <Bookmark size={16} className="text-teal-400 fill-teal-400" />
+                                                </button>
+                                            </div>
+
+                                            {/* Content Section */}
+                                            <div className="p-4">
+                                                <div className="flex items-start justify-between mb-3">
+                                                    <div className="flex-1">
+                                                        <h3 className="text-white font-bold text-base leading-tight mb-1">{event.title}</h3>
+                                                        <p className="text-white/70 text-sm">{event.venue}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Full-width Teal Highlight Section */}
+                                            <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white text-sm font-medium px-3 py-2 w-full">
+                                                <div className="text-center">
+                                                    {event.category}
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </Link>
                                 </div>
-
-                                {/* Event Details */}
-                                <div className="flex-1 p-4 flex flex-col justify-between">
-                                    <div>
-                                        <h3 className="text-white font-bold text-sm leading-tight mb-1">
-                                            {event.title}
-                                        </h3>
-                                        <p className="text-white/70 text-xs mb-2">{event.venue}</p>
-                                    </div>
-                                    <div className="bg-[#0d7377] text-white text-xs font-medium px-3 py-1 rounded-full text-center w-fit">
-                                        {event.category}
-                                    </div>
-                                </div>
-
-                                {/* Action Buttons */}
-                                <div className="flex flex-col justify-center items-center px-4 space-y-3">
-                                    <button
-                                        onClick={() => handleBookmark(event.id)}
-                                        className="w-8 h-8 bg-teal-600/20 border border-teal-400/40 rounded-full flex items-center justify-center hover:bg-teal-600/30 transition-all duration-300"
-                                    >
-                                        <Bookmark size={16} className="text-teal-400 fill-teal-400" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleShare(event.id)}
-                                        className="w-8 h-8 bg-teal-600/20 border border-teal-400/40 rounded-full flex items-center justify-center hover:bg-teal-600/30 transition-all duration-300"
-                                    >
-                                        <Share2 size={16} className="text-teal-400" />
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 ) : (
                     <div className="text-center py-12">

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Bookmark } from 'lucide-react';
 
@@ -79,68 +80,51 @@ export default function FavoriteClubsPage() {
             </div>
 
             {/* Main Content */}
-            <div className="px-6 py-8 space-y-6">
+            <div className="px-4 py-6 space-y-8">
                 {favoriteClubs.length > 0 ? (
-                    <div className="space-y-6">
-                        {favoriteClubs.map((club) => (
-                            <div key={club.id} className="relative rounded-[25px] overflow-hidden border border-teal-400/30">
-                                {/* Club Image */}
-                                <div className="relative h-48">
-                                    <img
-                                        src={club.image}
-                                        alt={club.name}
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+                    <div className="overflow-x-auto scrollbar-hide">
+                        <div className="flex gap-4 pb-16" style={{ width: 'max-content' }}>
+                            {favoriteClubs.map((club) => (
+                                <Link key={club.id} href={`/club/${club.name.toLowerCase().replace(/\s+/g, '-')}`}>
+                                    <div className="flex-shrink-0 w-[336px] relative cursor-pointer transform transition-all duration-300 hover:scale-105">
+                                        <div className="relative h-[197px] rounded-[20px] border border-[#0c898b] bg-[#1a2f32]">
+                                            <div className="rounded-[20px] overflow-hidden h-full">
+                                                <img
+                                                    src={club.image}
+                                                    alt={club.name}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                                            </div>
 
-                                    {/* Bookmark Button */}
-                                    <button
-                                        onClick={() => handleBookmark(club.id)}
-                                        className="absolute top-4 right-4 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center hover:bg-black/60 transition-all duration-300"
-                                    >
-                                        <Bookmark size={16} className="text-teal-400 fill-teal-400" />
-                                    </button>
+                                            {/* Glass effect card that extends beyond main card */}
+                                            <div className="absolute -bottom-8 left-2 right-2 glassmorphism-strong border border-white/20 p-5 rounded-2xl h-20 z-10">
+                                                <h3 className="text-white font-bold text-xl mb-2">{club.name}</h3>
+                                                <p className="text-white/90 text-sm">{club.openTime}</p>
+                                            </div>
 
-                                    {/* Rating Badge */}
-                                    <div className="absolute bottom-4 right-4 bg-cyan-600 text-white text-sm font-bold px-2 py-1 rounded">
-                                        {club.rating}
-                                    </div>
-                                </div>
-
-                                {/* Club Details */}
-                                <div className="bg-[#222831] p-4 space-y-3">
-                                    {/* Club Name and Address */}
-                                    <div>
-                                        <h3 className="text-white font-bold text-xl mb-1">{club.name}</h3>
-                                        <p className="text-white/70 text-sm">{club.address}</p>
-                                        <p className="text-white/70 text-sm">{club.openTime}</p>
-                                    </div>
-
-                                    {/* Current Event */}
-                                    <div className="bg-[#0d7377] rounded-lg p-3">
-                                        <p className="text-white font-medium text-sm">{club.currentEvent}</p>
-                                    </div>
-
-                                    {/* Special Offer (if available) */}
-                                    {club.offer && (
-                                        <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-lg p-3">
-                                            <p className="text-white font-medium text-sm">{club.offer}</p>
+                                            <div className="absolute bottom-4 right-4 z-20">
+                                                <div className="glassmorphism text-white text-sm font-bold px-3 py-1.5 rounded-lg">
+                                                    {club.rating}
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    handleBookmark(club.id);
+                                                }}
+                                                className="absolute top-4 right-4 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center hover:bg-black/60 transition-all duration-300 z-20"
+                                            >
+                                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                                                </svg>
+                                            </button>
                                         </div>
-                                    )}
-
-                                    {/* Open Now Button */}
-                                    <button
-                                        onClick={() => handleOpenNow(club.id)}
-                                        className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 rounded-lg transition-all duration-300 flex items-center justify-between px-4"
-                                    >
-                                        <span>Open Now</span>
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
                     </div>
                 ) : (
                     <div className="text-center py-12">
