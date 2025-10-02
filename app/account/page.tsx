@@ -44,19 +44,19 @@ export default function MyAccountPage() {
                 </div>
 
                 {/* Profile Section */}
-                <div className="px-6 flex flex-col items-center text-center">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 border-4 border-cyan-400 flex items-center justify-center mb-4">
+                <div className="px-6 flex items-center justify-between">
+                    <div className="text-center">
+                        <h2 className="text-white font-bold text-xl mb-1">Hi, DAVID SIMON</h2>
+                        <p className="text-white/90 text-sm mb-4">davidsimon12@test.com</p>
+                        <Link href="/profile/edit">
+                            <button className="glassmorphism-light text-white font-medium py-3 px-6 rounded-[20px] transition-all duration-300 hover:bg-white/10">
+                                Edit Profile
+                            </button>
+                        </Link>
+                    </div>
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-600 to-teal-500 border-4 border-cyan-400 flex items-center justify-center">
                         <span className="text-3xl">🐻</span>
                     </div>
-                    <div className="mb-4">
-                        <h2 className="text-white font-bold text-xl mb-1">Hi, DAVID SIMON</h2>
-                        <p className="text-white/90 text-sm">davidsimon12@test.com</p>
-                    </div>
-                    <Link href="/profile/edit">
-                        <button className="glassmorphism-light text-white font-medium py-3 px-6 rounded-[20px] transition-all duration-300 hover:bg-white/10">
-                            Edit Profile
-                        </button>
-                    </Link>
                 </div>
             </div>
 
@@ -79,7 +79,7 @@ export default function MyAccountPage() {
                         {/* Dabo Club */}
                         <Link href="/event/dabo" className="bg-[#222831] rounded-xl p-4 flex items-center justify-between hover:bg-[#2a3037] transition-colors">
                             <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-600 to-teal-500 flex items-center justify-center">
                                     <span className="text-white font-bold text-sm">D</span>
                                 </div>
                                 <div>
@@ -96,7 +96,7 @@ export default function MyAccountPage() {
                         {/* Raasta Club */}
                         <Link href="/event/raasta" className="bg-[#222831] rounded-xl p-4 flex items-center justify-between hover:bg-[#2a3037] transition-colors">
                             <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center border-2 border-yellow-400">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-600 to-teal-500 flex items-center justify-center border-2 border-cyan-400">
                                     <span className="text-white font-bold text-sm">R</span>
                                 </div>
                                 <div>
@@ -123,7 +123,7 @@ export default function MyAccountPage() {
                         {/* Tipsy Tuesday Event */}
                         <Link href="/event/tipsy-tuesday" className="bg-[#222831] rounded-xl p-4 flex items-center justify-between hover:bg-[#2a3037] transition-colors">
                             <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-600 to-teal-500 flex items-center justify-center">
                                     <span className="text-white font-bold text-xs">TT</span>
                                 </div>
                                 <div>
@@ -140,7 +140,7 @@ export default function MyAccountPage() {
                         {/* Boiler Room Event */}
                         <Link href="/event/boiler-room" className="bg-[#222831] rounded-xl p-4 flex items-center justify-between hover:bg-[#2a3037] transition-colors">
                             <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-600 to-teal-500 flex items-center justify-center">
                                     <span className="text-white font-bold text-xs">BR</span>
                                 </div>
                                 <div>
