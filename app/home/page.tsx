@@ -109,6 +109,7 @@ const HomePage: React.FC = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isAutoScrollPaused, setIsAutoScrollPaused] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
     const venueScrollRef = useDragScroll();
     const eventScrollRef = useDragScroll();
     const autoScrollTimer = useRef<NodeJS.Timeout | null>(null);
@@ -127,6 +128,17 @@ const HomePage: React.FC = () => {
             }
         };
     }, [isAutoScrollPaused]);
+
+    // Scroll detection for header behavior
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollPosition = window.scrollY;
+            setIsScrolled(scrollPosition > 50);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const handlePrevSlide = () => {
         setCurrentSlide((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length);
@@ -156,28 +168,32 @@ const HomePage: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#0a2e30] font-['Poppins']">
             {/* Fixed Header */}
-            <div className="fixed top-0 left-0 right-0 z-40 w-full bg-gradient-to-r from-teal-600 to-teal-500 rounded-bl-[30px] rounded-br-[30px] pb-4">
-                {/* Status Bar */}
-                <div className="flex justify-between items-center px-6 pt-4 pb-2">
-                    <div className="text-white text-sm font-semibold">9:41</div>
-                    <div className="flex items-center gap-1">
-                        <div className="w-4 h-3 bg-white/60 rounded-sm"></div>
-                        <div className="w-4 h-3 bg-white/60 rounded-sm"></div>
-                        <div className="w-6 h-3 bg-white border border-white/60 rounded-sm"></div>
-                    </div>
-                </div>
-
+            <div className={`fixed top-0 left-0 right-0 z-40 w-full bg-gradient-to-r from-teal-600 to-teal-500 transition-all duration-300 ${isScrolled
+                    ? 'rounded-bl-[15px] rounded-br-[15px] pb-2 pt-2'
+                    : 'rounded-bl-[30px] rounded-br-[30px] pb-4 pt-4'
+                }`}>
                 {/* Main Header */}
-                <div className="px-4 pb-4">
-                    <div className="flex justify-between items-center mb-4">
-                        <ClubVizLogo size="sm" variant="text" />
-                        <Link href="/account">
-                            <User className="w-6 h-6 text-white hover:text-cyan-300 transition-colors cursor-pointer" />
-                        </Link>
-                    </div>
+                <div className="px-4">
+                    {/* Location and User Profile Row - Always Visible */}
+                    {!isScrolled && (
+                        <div className="flex justify-between items-center mb-4">
+                            <Link href="/location/select">
+                                <div className="flex items-center gap-2 hover:bg-white/10 rounded-lg px-2 py-1 transition-all duration-300">
+                                    <MapPin className="w-4 h-4 text-white" />
+                                    <span className="text-white font-medium">Dharampeth, Nagpur</span>
+                                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                            </Link>
+                            <Link href="/account">
+                                <User className="w-6 h-6 text-white hover:text-cyan-300 transition-colors cursor-pointer" />
+                            </Link>
+                        </div>
+                    )}
 
-                    {/* Search Bar and Menu */}
-                    <div className="flex gap-3">
+                    {/* Search Bar and Menu - Always Visible */}
+                    <div className="flex gap-3 pb-2">
                         <div className="flex-1 relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <Input
@@ -197,7 +213,8 @@ const HomePage: React.FC = () => {
             </div>
 
             {/* Main Content */}
-            <div className="pt-32 px-4 py-6 space-y-8">
+            <div className={`px-4 py-6 space-y-8 transition-all duration-300 ${isScrolled ? 'pt-20' : 'pt-32'
+                }`}>
                 {/* Hero Banner with Auto-scroll */}
                 <div
                     className="relative h-[262px] rounded-[20px] overflow-hidden shadow-lg"

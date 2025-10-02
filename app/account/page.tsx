@@ -18,19 +18,8 @@ export default function MyAccountPage() {
 
     return (
         <div className="min-h-screen bg-[#1e2328] text-white">
-            {/* Status Bar */}
-            <div className="flex justify-between items-center px-6 pt-4 pb-2 bg-gradient-to-r from-teal-600 to-teal-500">
-                <div className="text-white text-sm font-semibold">9:41</div>
-                <div className="flex items-center gap-1">
-                    <div className="w-4 h-2 bg-white rounded-sm"></div>
-                    <div className="w-4 h-2 bg-white rounded-sm"></div>
-                    <div className="w-4 h-2 bg-white rounded-sm"></div>
-                    <div className="w-6 h-3 bg-white border border-white rounded-sm"></div>
-                </div>
-            </div>
-
             {/* Header with Gradient Background */}
-            <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-b-[30px] pb-8">
+            <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-b-[30px] pb-8 pt-4">
                 <div className="flex items-center justify-between px-6 pt-4 mb-8">
                     <button
                         onClick={handleGoBack}

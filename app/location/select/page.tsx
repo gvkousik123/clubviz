@@ -26,7 +26,7 @@ export default function LocationSelectPage() {
         }
     };
 
-    const handleLocationSelect = (location) => {
+    const handleLocationSelect = (location: { name: string; city: string }) => {
         router.back();
     };
 
@@ -42,17 +42,8 @@ export default function LocationSelectPage() {
 
     return (
         <div className="min-h-screen bg-[#1e2328] text-white">
-            <div className="flex justify-between items-center px-6 pt-4 pb-2 bg-gradient-to-r from-teal-500 to-cyan-500">
-                <div className="text-white text-sm font-semibold">9:41</div>
-                <div className="flex items-center gap-1">
-                    <div className="w-4 h-2 bg-white rounded-sm"></div>
-                    <div className="w-4 h-2 bg-white rounded-sm"></div>
-                    <div className="w-4 h-2 bg-white rounded-sm"></div>
-                    <div className="w-6 h-3 bg-white border border-white rounded-sm"></div>
-                </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-b-[30px] pb-8">
+            {/* Header with Gradient Background */}
+            <div className="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-b-[30px] pb-8 pt-4">
                 <div className="flex items-center justify-center px-6 pt-4 mb-8 relative">
                     <button
                         onClick={handleGoBack}
@@ -105,7 +96,7 @@ export default function LocationSelectPage() {
                         {searchResults.map((location, index) => (
                             <button
                                 key={index}
-                                onClick={() => handleLocationSelect(location.name)}
+                                onClick={() => handleLocationSelect(location)}
                                 className="w-full flex items-center gap-3 p-3 hover:bg-white/5 transition-colors rounded-lg"
                             >
                                 <MapPin size={18} className="text-cyan-400" />

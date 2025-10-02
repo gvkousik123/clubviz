@@ -395,35 +395,6 @@
         id="el_2_N_2002_C_2259"
     >
         <div
-            className="w-[355px] left-[38px] top-[18px] absolute w-[355px] justify-between items-center inline-flex"
-            id="el_3_N_2002_C_2260"
-        >
-            <div className="whitespace-nowrap text-[#fffbfb] text-[15px] font-semibold font-primary leading-[21px]">
-                9:41
-            </div>
-            <div className="justify-start items-start gap-0.5 flex">
-                <div className="w-5 h-4 pl-px pr-0.5 pt-[3px] pb-[2.33px] justify-center items-center flex">
-                    {" "}
-                    <img
-                        src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/icon-2035ba29-256d-4e52-b3f1-00d982d5f175.svg"
-                        alt="icon"
-                    />
-                </div>
-                <div className="w-4 h-4 pl-[0.35px] pr-[0.38px] pt-[3px] pb-0.5 justify-center items-center flex">
-                    {" "}
-                    <img
-                        src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/icon-058d496a-4fdb-4a51-af37-65b425b280ec.svg"
-                        alt="icon"
-                    />
-                </div>
-                <img
-                    src="https://storage.googleapis.com/uxpilot-auth.appspot.com/GYU6muwEhPR09IGvyT1rwYo18lm2/iOSiconsmallbattery-fb359ad1-e3a3-45a6-8055-e1c614ee12b3.svg"
-                    alt="iOS / icon / small / battery"
-                    className="relative"
-                />
-            </div>
-        </div>
-        <div
             className="w-[35px] h-[35px] px-3.5 py-2 left-[379px] top-[61px] absolute justify-center items-center gap-2 inline-flex bg-[#222831] rounded-[23px] overflow-hidden"
             id="el_3_N_2002_C_2263"
         >

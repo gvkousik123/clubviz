@@ -84,17 +84,6 @@ export default function DaboEventPage() {
 
     return (
         <div className="min-h-screen bg-[#1e2328] text-white">
-            {/* Status Bar */}
-            <div className="flex justify-between items-center px-6 pt-4 pb-2 bg-black">
-                <div className="text-white text-sm font-semibold">9:41</div>
-                <div className="flex items-center gap-1">
-                    <div className="w-4 h-2 bg-white rounded-sm"></div>
-                    <div className="w-4 h-2 bg-white rounded-sm"></div>
-                    <div className="w-4 h-2 bg-white rounded-sm"></div>
-                    <div className="w-6 h-3 bg-white border border-white rounded-sm"></div>
-                </div>
-            </div>
-
             {/* Hero Section */}
             <div className="relative h-80 bg-black">
                 <img

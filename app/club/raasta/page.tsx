@@ -16,15 +16,6 @@ export default function RaastaClubPage() {
         <div className="min-h-screen bg-gradient-to-b from-[#0d7377] to-[#222831] text-white">
             {/* Header with Gradient Background */}
             <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-b-[30px] pb-8">
-                {/* Status Bar */}
-                <div className="flex justify-between items-center px-6 pt-4 pb-2">
-                    <div className="text-white text-sm font-semibold">9:41</div>
-                    <div className="flex items-center gap-1">
-                        <div className="w-4 h-3 bg-white/60 rounded-sm"></div>
-                        <div className="w-4 h-3 bg-white/60 rounded-sm"></div>
-                        <div className="w-6 h-3 bg-white border border-white/60 rounded-sm"></div>
-                    </div>
-                </div>
 
                 <div className="flex items-center justify-between px-6 pt-4">
                     <button
