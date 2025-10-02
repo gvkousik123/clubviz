@@ -41,7 +41,7 @@ export default function LocationSelectPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-[#1a1a1a] text-white">
+        <div className="min-h-screen bg-[#1e2328] text-white">
             <div className="flex justify-between items-center px-6 pt-4 pb-2 bg-gradient-to-r from-teal-500 to-cyan-500">
                 <div className="text-white text-sm font-semibold">9:41</div>
                 <div className="flex items-center gap-1">

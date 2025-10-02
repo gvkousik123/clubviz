@@ -12,11 +12,11 @@ import { ClubVizLogo } from '@/components/auth/logo';
 
 // Mock data for vibe meter
 const vibeMeterData = [
-    { id: 1, name: 'CLUB', logo: '/logo/club-logo.svg', color: 'border-cyan-400' },
-    { id: 2, name: 'Elite', logo: '/logo/elite-logo.svg', color: 'border-green-400' },
-    { id: 3, name: 'Escape', logo: '/logo/escape-logo.svg', color: 'border-yellow-400' },
-    { id: 4, name: 'Nitro', logo: '/logo/nitro-logo.svg', color: 'border-orange-400' },
-    { id: 5, name: 'KITCHEN', logo: '/logo/kitchen-logo.svg', color: 'border-red-400' },
+    { id: 1, name: 'CLUB', logo: '/placeholder-logo.png', color: 'border-cyan-400' },
+    { id: 2, name: 'Elite', logo: '/placeholder-logo.png', color: 'border-green-400' },
+    { id: 3, name: 'Escape', logo: '/placeholder-logo.png', color: 'border-yellow-400' },
+    { id: 4, name: 'Nitro', logo: '/placeholder-logo.png', color: 'border-orange-400' },
+    { id: 5, name: 'KITCHEN', logo: '/placeholder-logo.png', color: 'border-red-400' },
 ];
 
 const venueData = [
@@ -154,7 +154,7 @@ const HomePage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#0d7377] to-[#222831] font-['Poppins']">
+        <div className="min-h-screen bg-[#0a2e30] font-['Poppins']">
             {/* Header */}
             <div className="w-full bg-gradient-to-r from-teal-600 to-teal-500 rounded-bl-[30px] rounded-br-[30px] pb-4">
                 {/* Status Bar */}
@@ -179,7 +179,9 @@ const HomePage: React.FC = () => {
                                 </svg>
                             </div>
                         </Link>
-                        <User className="w-6 h-6 text-white" />
+                        <Link href="/account">
+                            <User className="w-6 h-6 text-white hover:text-cyan-300 transition-colors cursor-pointer" />
+                        </Link>
                     </div>
 
                     {/* Search Bar and Menu */}
@@ -206,7 +208,7 @@ const HomePage: React.FC = () => {
             <div className="px-4 py-6 space-y-8">
                 {/* Hero Banner with Auto-scroll */}
                 <div
-                    className="relative h-[262px] rounded-t-[30px] rounded-b-[30px] overflow-hidden shadow-lg"
+                    className="relative h-[262px] rounded-[20px] overflow-hidden shadow-lg"
                     onTouchStart={handleBannerTouch}
                     onMouseEnter={() => setIsAutoScrollPaused(true)}
                     onMouseLeave={() => setIsAutoScrollPaused(false)}
@@ -289,41 +291,41 @@ const HomePage: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-3 mb-3">
                         <Link href="/booking/review">
-                            <Button className="w-full bg-purple-600/20 border border-purple-400/40 text-purple-400 text-xs py-3 rounded-2xl hover:bg-purple-600/30 transition-all">
+                            <Button className="w-full bg-purple-600/20 border border-purple-400/40 text-purple-400 text-xs py-3 rounded-[16px] hover:bg-purple-600/30 transition-all">
                                 Start Booking
                             </Button>
                         </Link>
                         <Link href="/ticket/view">
-                            <Button className="w-full bg-primary-600/20 border border-primary-400/40 text-primary-400 text-xs py-3 rounded-2xl hover:bg-primary-600/30 transition-all">
+                            <Button className="w-full bg-primary-600/20 border border-primary-400/40 text-primary-400 text-xs py-3 rounded-[16px] hover:bg-primary-600/30 transition-all">
                                 View Ticket
                             </Button>
                         </Link>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                         <Link href="/ticket/complete">
-                            <Button className="w-full bg-green-600/20 border border-green-400/40 text-green-400 text-xs py-3 rounded-2xl hover:bg-green-600/30 transition-all">
+                            <Button className="w-full bg-green-600/20 border border-green-400/40 text-green-400 text-xs py-3 rounded-[16px] hover:bg-green-600/30 transition-all">
                                 Book Complete
                             </Button>
                         </Link>
                         <Link href="/ticket/cancel">
-                            <Button className="w-full bg-red-600/20 border border-red-400/40 text-red-400 text-xs py-3 rounded-2xl hover:bg-red-600/30 transition-all">
+                            <Button className="w-full bg-red-600/20 border border-red-400/40 text-red-400 text-xs py-3 rounded-[16px] hover:bg-red-600/30 transition-all">
                                 Cancel Test
                             </Button>
                         </Link>
                         <Link href="/booking/form">
-                            <Button className="w-full bg-orange-600/20 border border-orange-400/40 text-orange-400 text-xs py-3 rounded-2xl hover:bg-orange-600/30 transition-all">
+                            <Button className="w-full bg-orange-600/20 border border-orange-400/40 text-orange-400 text-xs py-3 rounded-[16px] hover:bg-orange-600/30 transition-all">
                                 Booking Form
                             </Button>
                         </Link>
                     </div>
                     <div className="grid grid-cols-2 gap-3 mt-3">
                         <Link href="/profile/edit">
-                            <Button className="w-full bg-teal-600/20 border border-teal-400/40 text-teal-400 text-xs py-3 rounded-2xl hover:bg-teal-600/30 transition-all">
+                            <Button className="w-full bg-teal-600/20 border border-teal-400/40 text-teal-400 text-xs py-3 rounded-[16px] hover:bg-teal-600/30 transition-all">
                                 Edit Profile
                             </Button>
                         </Link>
                         <Link href="/payment/options">
-                            <Button className="w-full bg-blue-600/20 border border-blue-400/40 text-blue-400 text-xs py-3 rounded-2xl hover:bg-blue-600/30 transition-all">
+                            <Button className="w-full bg-blue-600/20 border border-blue-400/40 text-blue-400 text-xs py-3 rounded-[16px] hover:bg-blue-600/30 transition-all">
                                 Payment Options
                             </Button>
                         </Link>
@@ -341,11 +343,24 @@ const HomePage: React.FC = () => {
                             <button
                                 key={club.id}
                                 onClick={() => handleVibeMeterClick(club.id)}
-                                className={`flex-shrink-0 w-16 h-16 rounded-full border-2 ${club.color} bg-black/80 flex items-center justify-center hover:scale-105 transition-transform`}
+                                className={`flex-shrink-0 w-16 h-16 rounded-full border-2 ${club.color} bg-black/80 flex items-center justify-center hover:scale-105 transition-transform p-2`}
                             >
-                                <span className="text-white text-xs font-bold text-center leading-tight">
-                                    {club.name}
-                                </span>
+                                <div className="w-full h-full rounded-full overflow-hidden bg-gray-800 flex items-center justify-center">
+                                    <img
+                                        src={club.logo}
+                                        alt={club.name}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            // Fallback to text if image fails to load
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = 'none';
+                                            const parent = target.parentElement;
+                                            if (parent) {
+                                                parent.innerHTML = `<span class="text-white text-xs font-bold text-center leading-tight">${club.name}</span>`;
+                                            }
+                                        }}
+                                    />
+                                </div>
                             </button>
                         ))}
                     </div>
@@ -365,19 +380,19 @@ const HomePage: React.FC = () => {
                             {venueData.map((venue) => (
                                 <Link key={venue.id} href={`/club/${venue.name.toLowerCase()}`}>
                                     <div className="flex-shrink-0 w-[336px] relative cursor-pointer transform transition-all duration-300 hover:scale-105">
-                                        <div className="relative h-[197px] rounded-t-[30px] rounded-b-[30px] border border-[#0c898b] overflow-hidden">
+                                        <div className="relative h-[197px] rounded-[20px] border border-[#0c898b] overflow-hidden bg-[#1a2f32]">
                                             <img
                                                 src={venue.image}
                                                 alt={venue.name}
                                                 className="w-full h-full object-cover"
                                             />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
                                             <div className="absolute bottom-4 left-4">
                                                 <h3 className="text-white font-bold text-2xl">{venue.name}</h3>
                                                 <p className="text-white/80 text-sm">{venue.openTime}</p>
                                             </div>
                                             <div className="absolute bottom-4 right-4">
-                                                <div className="bg-cyan-600 text-white text-sm font-bold px-2 py-1 rounded">
+                                                <div className="bg-cyan-600 text-white text-sm font-bold px-3 py-1.5 rounded-lg">
                                                     {venue.rating}
                                                 </div>
                                             </div>
@@ -414,7 +429,7 @@ const HomePage: React.FC = () => {
                         <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
                             {eventData.map((event) => (
                                 <div key={event.id} className="flex-shrink-0 w-[222px]">
-                                    <div className="bg-[#003c3d] rounded-t-[20px] rounded-b-[20px] overflow-hidden border border-[#0ed7e2]/30">
+                                    <div className="bg-[#003c3d] rounded-[20px] overflow-hidden border border-[#0ed7e2]/30">
                                         <div className="relative">
                                             <img
                                                 src={event.image}
@@ -435,7 +450,7 @@ const HomePage: React.FC = () => {
                                             <p className="text-white/70 text-xs">{event.venue}</p>
                                         </div>
                                         <div className="px-4 pb-4">
-                                            <div className="bg-[#0d7377] text-white text-xs font-medium px-3 py-2 rounded-full text-center">
+                                            <div className="bg-[#0d7377] text-white text-xs font-medium px-3 py-2 rounded-[16px] text-center">
                                                 {event.category}
                                             </div>
                                         </div>
@@ -447,7 +462,7 @@ const HomePage: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="bg-[#003c3d] rounded-t-[20px] rounded-b-[20px] p-6 space-y-6 shadow-lg">
+                <div className="bg-[#003c3d] rounded-[20px] p-6 space-y-6 shadow-lg">
                     <div className="text-center">
                         <div className="flex justify-center mb-4">
                             <ClubVizLogo size="sm" variant="full" />
@@ -458,13 +473,13 @@ const HomePage: React.FC = () => {
                     </div>
 
                     <div className="flex justify-center gap-6">
-                        <div className="w-6 h-6 bg-white/20 rounded"></div>
-                        <div className="w-6 h-6 bg-white/20 rounded"></div>
-                        <div className="w-6 h-6 bg-white/20 rounded"></div>
-                        <div className="w-6 h-6 bg-white/20 rounded"></div>
+                        <div className="w-6 h-6 bg-white/20 rounded-lg"></div>
+                        <div className="w-6 h-6 bg-white/20 rounded-lg"></div>
+                        <div className="w-6 h-6 bg-white/20 rounded-lg"></div>
+                        <div className="w-6 h-6 bg-white/20 rounded-lg"></div>
                     </div>
 
-                    <div className="bg-[#0d7377] rounded-lg p-4 space-y-3">
+                    <div className="bg-[#0d7377] rounded-[16px] p-4 space-y-3">
                         <div className="flex items-center gap-3 text-white text-sm">
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />

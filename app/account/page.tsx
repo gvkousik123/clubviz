@@ -17,7 +17,7 @@ export default function MyAccountPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#1a1a1a] text-white">
+        <div className="min-h-screen bg-[#1e2328] text-white">
             {/* Status Bar */}
             <div className="flex justify-between items-center px-6 pt-4 pb-2 bg-gradient-to-r from-teal-500 to-cyan-500">
                 <div className="text-white text-sm font-semibold">9:41</div>
@@ -65,9 +65,9 @@ export default function MyAccountPage() {
             {/* Main Content */}
             <div className="px-6 py-6 space-y-6">
                 {/* My Bookings */}
-                <div className="flex items-center justify-between py-4 border-b border-white/10">
+                <div className="glassmorphism rounded-xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
                     <span className="text-white font-medium text-base">My Bookings</span>
-                    <ChevronRight className="w-5 h-5 text-white/70" />
+                    <ChevronRight className="w-5 h-5 text-cyan-400" />
                 </div>
 
                 {/* Favourite Clubs Section */}
@@ -79,7 +79,7 @@ export default function MyAccountPage() {
 
                     <div className="space-y-3">
                         {/* Dabo Club */}
-                        <Link href="/club/dabo" className="flex items-center justify-between py-3">
+                        <Link href="/event/dabo" className="glassmorphism rounded-xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
                                     <span className="text-white font-bold text-sm">D</span>
@@ -91,12 +91,12 @@ export default function MyAccountPage() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-white font-medium">Open Now</span>
-                                <ChevronRight className="w-5 h-5 text-white/70" />
+                                <ChevronRight className="w-5 h-5 text-cyan-400" />
                             </div>
                         </Link>
 
                         {/* Raasta Club */}
-                        <Link href="/club/raasta" className="flex items-center justify-between py-3">
+                        <Link href="/event/raasta" className="glassmorphism rounded-xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center border-2 border-yellow-400">
                                     <span className="text-white font-bold text-sm">R</span>
@@ -108,7 +108,7 @@ export default function MyAccountPage() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-white font-medium">Open Now</span>
-                                <ChevronRight className="w-5 h-5 text-white/70" />
+                                <ChevronRight className="w-5 h-5 text-cyan-400" />
                             </div>
                         </Link>
                     </div>
@@ -123,7 +123,7 @@ export default function MyAccountPage() {
 
                     <div className="space-y-3">
                         {/* Tipsy Tuesday Event */}
-                        <Link href="/event/tipsy-tuesday" className="flex items-center justify-between py-3">
+                        <Link href="/event/tipsy-tuesday" className="glassmorphism rounded-xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                                     <span className="text-white font-bold text-xs">TT</span>
@@ -135,17 +135,12 @@ export default function MyAccountPage() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-cyan-400 font-medium">24 Dec 2025</span>
-                                <ChevronRight className="w-5 h-5 text-white/70" />
+                                <ChevronRight className="w-5 h-5 text-cyan-400" />
                             </div>
                         </Link>
 
-                        {/* Live Now Banner */}
-                        <div className="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-xl p-3 my-3">
-                            <p className="text-white font-bold text-center tracking-[0.2em] text-sm">L i v e   N o w  🔴</p>
-                        </div>
-
                         {/* Boiler Room Event */}
-                        <Link href="/event/boiler-room" className="flex items-center justify-between py-3">
+                        <Link href="/event/boiler-room" className="glassmorphism rounded-xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
                                     <span className="text-white font-bold text-xs">BR</span>
@@ -157,7 +152,7 @@ export default function MyAccountPage() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-cyan-400 font-medium">30 Dec 2025</span>
-                                <ChevronRight className="w-5 h-5 text-white/70" />
+                                <ChevronRight className="w-5 h-5 text-cyan-400" />
                             </div>
                         </Link>
                     </div>

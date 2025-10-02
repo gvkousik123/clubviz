@@ -7,7 +7,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 export default function MobileVerificationScreen() {
-    const [phoneNumber, setPhoneNumber] = useState("+91 84567XXXXX");
+    const [phoneNumber, setPhoneNumber] = useState("+91 XXXXXXXXXX");
 
     const handleNumberPress = (num: string) => {
         if (phoneNumber.includes('X')) {

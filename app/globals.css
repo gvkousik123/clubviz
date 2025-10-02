@@ -16,35 +16,35 @@
 
 :root {
   /* ClubViz Brand Colors - Dark Theme matching designs */
-  --clubviz-dark-bg: #1a1a1a;
-  --clubviz-dark-card: #2d2d30;
+  --clubviz-dark-bg: #1e2328;
+  --clubviz-dark-card: #2d343a;
   --clubviz-teal-gradient-start: #14b8a6;
   --clubviz-teal-gradient-end: #0891b2;
   --clubviz-cyan: #00bcd4;
   --clubviz-blue: #1976d2;
   --clubviz-neon-cyan: #00ffff;
 
-  --background: #1a1a1a;
+  --background: #1e2328;
   --foreground: #ffffff;
-  --card: #2d2d30;
+  --card: #2d343a;
   --card-foreground: #ffffff;
-  --popover: #2d2d30;
+  --popover: #2d343a;
   --popover-foreground: #ffffff;
   --primary: #14b8a6;
   --primary-foreground: #ffffff;
-  --secondary: #2d2d30;
+  --secondary: #2d343a;
   --secondary-foreground: #ffffff;
-  --muted: #3d3d40;
+  --muted: #3a434a;
   --muted-foreground: #a3a3a3;
   --accent: #14b8a6;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #3d3d40;
-  --input: #2d2d30;
+  --border: #3a434a;
+  --input: #2d343a;
   --ring: #14b8a6;
   --radius: 0.75rem;
-  --sidebar: #2d2d30;
+  --sidebar: #2d343a;
   --sidebar-foreground: #ffffff;
   --sidebar-primary: #14b8a6;
   --sidebar-primary-foreground: #ffffff;
@@ -55,32 +55,32 @@
 }
 
 .dark {
-  --background: #1a1a1a;
+  --background: #1e2328;
   --foreground: #ffffff;
-  --card: #2d2d30;
+  --card: #2d343a;
   --card-foreground: #ffffff;
-  --popover: #2d2d30;
+  --popover: #2d343a;
   --popover-foreground: #ffffff;
   --primary: #14b8a6;
   --primary-foreground: #ffffff;
-  --secondary: #2d2d30;
+  --secondary: #2d343a;
   --secondary-foreground: #ffffff;
-  --muted: #3d3d40;
+  --muted: #3a434a;
   --muted-foreground: #a3a3a3;
   --accent: #14b8a6;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #3d3d40;
-  --input: #2d2d30;
+  --border: #3a434a;
+  --input: #2d343a;
   --ring: #14b8a6;
-  --sidebar: #2d2d30;
+  --sidebar: #2d343a;
   --sidebar-foreground: #ffffff;
   --sidebar-primary: #14b8a6;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #3d3d40;
+  --sidebar-accent: #3a434a;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #3d3d40;
+  --sidebar-border: #3a434a;
   --sidebar-ring: #14b8a6;
 }
 
@@ -196,14 +196,14 @@
 
   /* Glassmorphism effects for ClubViz */
   .glassmorphism {
-    background: rgba(45, 45, 48, 0.25);
+    background: rgba(45, 52, 58, 0.25);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .glassmorphism-strong {
-    background: rgba(45, 45, 48, 0.4);
+    background: rgba(45, 52, 58, 0.4);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.15);

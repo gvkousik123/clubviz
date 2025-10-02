@@ -57,7 +57,7 @@ export default function ClubsListPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#1a2f32] to-[#0a1518] text-white">
+        <div className="min-h-screen bg-[#0a2e30] text-white">
             {/* Header with Gradient Background */}
             <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-b-[30px] pb-8">
                 {/* Status Bar */}
@@ -95,7 +95,7 @@ export default function ClubsListPage() {
             <div className="px-6 py-6 space-y-6">
                 {clubs.map((club) => (
                     <Link key={club.id} href={`/club/${club.name.toLowerCase().replace(/\s+/g, '-')}`}>
-                        <div className="relative rounded-2xl overflow-hidden bg-[#1a2f32] border border-teal-600/30">
+                        <div className="relative rounded-[20px] overflow-hidden bg-[#1a2f32] border border-teal-600/30">
                             {/* Club Image */}
                             <div className="relative h-48">
                                 <img
@@ -117,14 +117,14 @@ export default function ClubsListPage() {
                                     <Bookmark
                                         size={20}
                                         className={`${favorites.includes(club.id)
-                                                ? 'text-teal-400 fill-teal-400'
-                                                : 'text-white'
+                                            ? 'text-teal-400 fill-teal-400'
+                                            : 'text-white'
                                             }`}
                                     />
                                 </button>
 
                                 {/* Rating Badge */}
-                                <div className="absolute bottom-4 right-4 bg-teal-600 text-white text-sm font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                                <div className="absolute bottom-4 right-4 bg-teal-600 text-white text-sm font-bold px-3 py-1.5 rounded-lg flex items-center gap-1">
                                     {club.rating}
                                 </div>
 
@@ -137,13 +137,13 @@ export default function ClubsListPage() {
                             </div>
 
                             {/* Current Event Section */}
-                            <div className={`bg-gradient-to-r ${club.eventColor} px-4 py-3`}>
+                            <div className={`bg-gradient-to-r ${club.eventColor} px-4 py-3 rounded-b-[20px]`}>
                                 <p className="text-white font-medium text-sm">{club.currentEvent}</p>
                             </div>
 
                             {/* Offer Section (if exists) */}
                             {club.offer && (
-                                <div className="bg-gradient-to-r from-green-600/80 to-teal-600/80 px-4 py-2 flex items-center gap-2">
+                                <div className="bg-gradient-to-r from-green-600/80 to-teal-600/80 px-4 py-2 flex items-center gap-2 rounded-b-[20px]">
                                     <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
                                         <span className="text-white text-xs font-bold">%</span>
                                     </div>

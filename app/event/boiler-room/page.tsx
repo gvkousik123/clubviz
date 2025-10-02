@@ -50,10 +50,10 @@ export default function BoilerRoomPage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
                     <div className="absolute top-4 right-4 flex gap-2">
-                        <button className="w-10 h-10 bg-black/40 rounded-full flex items-center justify-center">
+                        <button className="glassmorphism-light w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 transition-all">
                             <Heart size={20} className="text-red-500 fill-red-500" />
                         </button>
-                        <button className="w-10 h-10 bg-black/40 rounded-full flex items-center justify-center">
+                        <button className="glassmorphism-light w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 transition-all">
                             <Share2 size={20} className="text-white" />
                         </button>
                     </div>
@@ -90,12 +90,12 @@ export default function BoilerRoomPage() {
                     </div>
 
                     {/* Event Category */}
-                    <div className="bg-[#0d7377] text-white text-sm font-medium px-4 py-2 rounded-full text-center w-fit">
-                        Electronic & Progressive House
+                    <div className="glassmorphism px-4 py-2 rounded-full text-center w-fit">
+                        <span className="text-cyan-400 text-sm font-medium">Electronic & Progressive House</span>
                     </div>
 
                     {/* Description */}
-                    <div className="bg-[#222831] rounded-lg p-4">
+                    <div className="glassmorphism rounded-xl p-4">
                         <h3 className="text-white font-bold text-lg mb-2">About Event</h3>
                         <p className="text-white/80 text-sm leading-relaxed">
                             Experience the underground vibe with Kratex spinning exclusive electronic and progressive house tracks.
@@ -113,10 +113,10 @@ export default function BoilerRoomPage() {
                         </Link>
 
                         <div className="grid grid-cols-2 gap-3">
-                            <button className="bg-[#222831] border border-teal-400/30 text-white font-medium py-3 rounded-lg transition-all duration-300">
+                            <button className="glassmorphism text-white font-medium py-3 rounded-xl hover:bg-white/5 transition-all duration-300">
                                 View Gallery
                             </button>
-                            <button className="bg-[#222831] border border-teal-400/30 text-white font-medium py-3 rounded-lg transition-all duration-300">
+                            <button className="glassmorphism text-white font-medium py-3 rounded-xl hover:bg-white/5 transition-all duration-300">
                                 Get Directions
                             </button>
                         </div>
