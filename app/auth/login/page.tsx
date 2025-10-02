@@ -171,15 +171,15 @@ export default function LoginPage(): JSX.Element {
 
                     {/* Register Option */}
                     <div className="mt-6 text-center">
-                        <p className="text-white text-sm">
-                            Don't have an account?{' '}
-                            <Link
-                                href="/auth/register"
-                                className="text-cyan-400 underline hover:text-cyan-300 transition-colors font-medium"
-                            >
-                                Register here
-                            </Link>
+                        <p className="text-white text-base mb-3">
+                            Don't have an account?
                         </p>
+                        <Link
+                            href="/auth/register"
+                            className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold px-8 py-3 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
+                        >
+                            Register Here
+                        </Link>
                     </div>
                 </div>
             </div>

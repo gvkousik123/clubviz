@@ -67,7 +67,7 @@ export default function RegisterScreen() {
 
                 {/* White Card Container - Bottom half with proper height */}
                 <div className="px-0 pb-0 flex-shrink-0">
-                    <div className="bg-white rounded-t-3xl px-6 py-6 max-h-[65vh] overflow-y-auto">
+                    <div className="bg-white rounded-t-3xl px-6 py-6 min-h-[65vh] max-h-[75vh] overflow-y-auto">
                         {/* Header */}
                         <div className="mb-6">
                             <h1 className="text-2xl font-semibold text-gray-900 mb-2">Create Account</h1>

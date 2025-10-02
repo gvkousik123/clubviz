@@ -4,9 +4,11 @@ import { useState } from "react";
 import { ClubVizLogo } from "@/components/auth/logo";
 import { AuthLink } from "@/components/auth/auth-link";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 export default function MobileVerificationScreen() {
+    const router = useRouter();
     const [phoneNumber, setPhoneNumber] = useState("+91 XXXXXXXXXX");
 
     const handleNumberPress = (num: string) => {
@@ -34,8 +36,8 @@ export default function MobileVerificationScreen() {
     const handleSubmit = () => {
         // Handle mobile number submission and navigate to OTP page
         console.log("Submitting phone number:", phoneNumber);
-        // Navigate to OTP verification page
-        window.location.href = '/auth/otp';
+        // Navigate to OTP verification page using Next.js router
+        router.push('/auth/otp');
     };
 
     const canSubmit = !phoneNumber.includes('X');
