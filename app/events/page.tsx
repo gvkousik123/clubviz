@@ -122,68 +122,70 @@ export default function EventsListPage() {
                 <div className="grid grid-cols-2 gap-4">
                     {events.slice(0, 2).map((event) => (
                         <Link key={event.id} href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                            <div className="relative rounded-2xl overflow-hidden bg-[#1a2f32] border border-teal-600/30">
-                                {/* Event Image */}
+                            <div className="bg-[#2d343a] rounded-2xl overflow-hidden">
+                                {/* Image Section */}
                                 <div className="relative h-48">
                                     <img
                                         src={event.image}
                                         alt={event.title}
                                         className="w-full h-full object-cover"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-
                                     {/* Date Badge */}
-                                    <div className="absolute top-4 left-4 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-3 py-2 rounded-lg">
+                                    <div className="absolute top-3 right-3 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg min-w-[45px]">
                                         <div className="text-center">
-                                            <div className="text-xs opacity-70">APR</div>
-                                            <div className="text-lg">{event.date.split(' ')[1]}</div>
+                                            <div className="text-[10px] opacity-70">APR</div>
+                                            <div className="text-sm font-bold">{event.date.split(' ')[1]}</div>
                                         </div>
                                     </div>
-
-                                    {/* Bookmark Icon */}
+                                    {/* Heart Icon */}
                                     <button
                                         onClick={(e) => {
                                             e.preventDefault();
                                             e.stopPropagation();
                                             toggleFavorite(event.id);
                                         }}
-                                        className="absolute top-4 right-4 p-2 bg-black/40 rounded-full hover:bg-black/60 transition-all duration-300"
+                                        className="absolute bottom-3 right-3 w-8 h-8 flex items-center justify-center"
                                     >
-                                        <Bookmark
-                                            size={20}
-                                            className={`${favorites.includes(event.id)
-                                                ? 'text-teal-400 fill-teal-400'
-                                                : 'text-white'
-                                                }`}
-                                        />
+                                        <svg className="w-6 h-6 text-white" fill={favorites.includes(event.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                        </svg>
                                     </button>
-
-                                    {/* Event Info Overlay */}
-                                    <div className="absolute bottom-4 left-4 right-4">
-                                        <h3 className="text-white font-bold text-lg mb-2">{event.title}</h3>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <MapPin size={14} className="text-teal-400" />
-                                            <p className="text-white/80 text-sm">{event.venue}</p>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className="flex items-center gap-1">
-                                                    <Calendar size={14} className="text-teal-400" />
-                                                    <span className="text-white/70 text-xs">{event.time}</span>
-                                                </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Users size={14} className="text-teal-400" />
-                                                    <span className="text-white/70 text-xs">{event.attendees}</span>
-                                                </div>
-                                            </div>
-                                            <div className="text-teal-400 font-bold text-sm">{event.price}</div>
-                                        </div>
-                                    </div>
                                 </div>
 
-                                {/* Category Section */}
-                                <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-4 py-3">
-                                    <p className="text-white font-medium text-sm">{event.category}</p>
+                                {/* Content Section */}
+                                <div className="p-4">
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="flex-1">
+                                            <h3 className="text-white font-bold text-lg mb-2">{event.title}</h3>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <MapPin size={14} className="text-teal-400" />
+                                                <p className="text-white/80 text-sm">{event.venue}</p>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="flex items-center gap-1">
+                                                        <Calendar size={14} className="text-teal-400" />
+                                                        <span className="text-white/70 text-xs">{event.time}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <Users size={14} className="text-teal-400" />
+                                                        <span className="text-white/70 text-xs">{event.attendees}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="text-teal-400 font-bold text-sm">{event.price}</div>
+                                            </div>
+                                        </div>
+                                        <button className="ml-2 p-1">
+                                            <svg className="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    {/* Category Section */}
+                                    <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white font-medium text-sm px-3 py-2 rounded-lg text-center">
+                                        {event.category}
+                                    </div>
                                 </div>
                             </div>
                         </Link>
@@ -196,34 +198,54 @@ export default function EventsListPage() {
                     <div className="grid grid-cols-2 gap-4">
                         {events.slice(0, 2).map((event) => (
                             <Link key={`week-${event.id}`} href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                                <div className="relative rounded-2xl overflow-hidden bg-[#2d343a] border border-white/10">
-                                    {/* Event Image */}
+                                <div className="bg-[#2d343a] rounded-2xl overflow-hidden">
+                                    {/* Image Section */}
                                     <div className="relative h-32">
                                         <img
                                             src={event.image}
                                             alt={event.title}
                                             className="w-full h-full object-cover"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-
                                         {/* Date Badge */}
-                                        <div className="absolute top-2 left-2 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg">
+                                        <div className="absolute top-2 right-2 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg">
                                             <div className="text-center">
-                                                <div className="text-xs opacity-70">APR</div>
-                                                <div className="text-sm">{event.date.split(' ')[1]}</div>
+                                                <div className="text-[10px] opacity-70">APR</div>
+                                                <div className="text-xs font-bold">{event.date.split(' ')[1]}</div>
                                             </div>
                                         </div>
-
-                                        {/* Event Title */}
-                                        <div className="absolute bottom-2 left-2 right-2">
-                                            <h3 className="text-white font-bold text-sm">{event.title}</h3>
-                                            <p className="text-white/80 text-xs">{event.venue}</p>
-                                        </div>
+                                        {/* Heart Icon */}
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                toggleFavorite(event.id);
+                                            }}
+                                            className="absolute bottom-2 right-2 w-6 h-6 flex items-center justify-center"
+                                        >
+                                            <svg className="w-4 h-4 text-white" fill={favorites.includes(event.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                            </svg>
+                                        </button>
                                     </div>
 
-                                    {/* Category Section */}
-                                    <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-3 py-2">
-                                        <p className="text-white font-medium text-xs">{event.category}</p>
+                                    {/* Content Section */}
+                                    <div className="p-3">
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div className="flex-1">
+                                                <h3 className="text-white font-bold text-sm mb-1">{event.title}</h3>
+                                                <p className="text-white/80 text-xs">{event.venue}</p>
+                                            </div>
+                                            <button className="ml-2 p-1">
+                                                <svg className="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        {/* Category Section */}
+                                        <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white font-medium text-xs px-2 py-1.5 rounded text-center">
+                                            {event.category}
+                                        </div>
                                     </div>
                                 </div>
                             </Link>
@@ -237,52 +259,54 @@ export default function EventsListPage() {
                     <div className="grid grid-cols-2 gap-4">
                         {events.map((event) => (
                             <Link key={`all-${event.id}`} href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                                <div className="relative rounded-2xl overflow-hidden bg-[#2d343a] border border-white/10">
-                                    {/* Event Image */}
+                                <div className="bg-[#2d343a] rounded-2xl overflow-hidden">
+                                    {/* Image Section */}
                                     <div className="relative h-32">
                                         <img
                                             src={event.image}
                                             alt={event.title}
                                             className="w-full h-full object-cover"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-
                                         {/* Date Badge */}
-                                        <div className="absolute top-2 left-2 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg">
+                                        <div className="absolute top-2 right-2 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg">
                                             <div className="text-center">
-                                                <div className="text-xs opacity-70">APR</div>
-                                                <div className="text-sm">{event.date.split(' ')[1]}</div>
+                                                <div className="text-[10px] opacity-70">APR</div>
+                                                <div className="text-xs font-bold">{event.date.split(' ')[1]}</div>
                                             </div>
                                         </div>
-
-                                        {/* Bookmark Icon */}
+                                        {/* Heart Icon */}
                                         <button
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
                                                 toggleFavorite(event.id);
                                             }}
-                                            className="absolute top-2 right-2 p-1 bg-black/40 rounded-full hover:bg-black/60 transition-all duration-300"
+                                            className="absolute bottom-2 right-2 w-6 h-6 flex items-center justify-center"
                                         >
-                                            <Bookmark
-                                                size={16}
-                                                className={`${favorites.includes(event.id)
-                                                    ? 'text-teal-400 fill-teal-400'
-                                                    : 'text-white'
-                                                    }`}
-                                            />
+                                            <svg className="w-4 h-4 text-white" fill={favorites.includes(event.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                            </svg>
                                         </button>
-
-                                        {/* Event Title */}
-                                        <div className="absolute bottom-2 left-2 right-2">
-                                            <h3 className="text-white font-bold text-sm">{event.title}</h3>
-                                            <p className="text-white/80 text-xs">{event.venue}</p>
-                                        </div>
                                     </div>
 
-                                    {/* Category Section */}
-                                    <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-3 py-2">
-                                        <p className="text-white font-medium text-xs">{event.category}</p>
+                                    {/* Content Section */}
+                                    <div className="p-3">
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div className="flex-1">
+                                                <h3 className="text-white font-bold text-sm mb-1">{event.title}</h3>
+                                                <p className="text-white/80 text-xs">{event.venue}</p>
+                                            </div>
+                                            <button className="ml-2 p-1">
+                                                <svg className="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        {/* Category Section */}
+                                        <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white font-medium text-xs px-2 py-1.5 rounded text-center">
+                                            {event.category}
+                                        </div>
                                     </div>
                                 </div>
                             </Link>

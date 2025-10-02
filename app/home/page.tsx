@@ -380,21 +380,23 @@ const HomePage: React.FC = () => {
                             {venueData.map((venue) => (
                                 <Link key={venue.id} href={`/club/${venue.name.toLowerCase()}`}>
                                     <div className="flex-shrink-0 w-[336px] relative cursor-pointer transform transition-all duration-300 hover:scale-105">
-                                        <div className="relative h-[197px] rounded-[20px] border border-[#0c898b] overflow-hidden bg-[#1a2f32]">
-                                            <img
-                                                src={venue.image}
-                                                alt={venue.name}
-                                                className="w-full h-full object-cover"
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                                            
+                                        <div className="relative h-[197px] rounded-[20px] border border-[#0c898b] bg-[#1a2f32]">
+                                            <div className="rounded-[20px] overflow-hidden h-full">
+                                                <img
+                                                    src={venue.image}
+                                                    alt={venue.name}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                                            </div>
+
                                             {/* Glass effect card that extends beyond main card */}
-                                            <div className="absolute -bottom-8 left-4 right-4 glassmorphism-strong border border-white/20 p-4 rounded-2xl h-16">
-                                                <h3 className="text-white font-bold text-lg mb-1">{venue.name}</h3>
+                                            <div className="absolute -bottom-8 left-2 right-2 glassmorphism-strong border border-white/20 p-5 rounded-2xl h-20 z-10">
+                                                <h3 className="text-white font-bold text-xl mb-2">{venue.name}</h3>
                                                 <p className="text-white/90 text-sm">{venue.openTime}</p>
                                             </div>
-                                            
-                                            <div className="absolute bottom-4 right-4">
+
+                                            <div className="absolute bottom-4 right-4 z-20">
                                                 <div className="glassmorphism text-white text-sm font-bold px-3 py-1.5 rounded-lg">
                                                     {venue.rating}
                                                 </div>
@@ -405,10 +407,10 @@ const HomePage: React.FC = () => {
                                                     e.stopPropagation();
                                                     // Handle favorite toggle
                                                 }}
-                                                className="absolute top-4 right-4 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center hover:bg-black/60 transition-all duration-300"
+                                                className="absolute top-4 right-4 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center hover:bg-black/60 transition-all duration-300 z-20"
                                             >
                                                 <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                    <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
                                                 </svg>
                                             </button>
                                         </div>
@@ -432,34 +434,63 @@ const HomePage: React.FC = () => {
                         <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
                             {eventData.map((event) => (
                                 <div key={event.id} className="flex-shrink-0 w-[222px]">
-                                    <div className="bg-[#003c3d] rounded-[20px] overflow-hidden border border-[#0ed7e2]/30 h-[320px] flex flex-col">
-                                        <div className="relative flex-1">
-                                            <img
-                                                src={event.image}
-                                                alt={event.title}
-                                                className="w-full h-[200px] object-cover"
-                                            />
-                                            <div className="absolute top-0 right-0 bg-gradient-to-b from-black to-[#00c0ca] text-white text-xs font-bold px-2 py-3 rounded-bl-[28px] min-h-[45px] flex items-center">
-                                                {event.date}
+                                    <Link href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                                        <div className="bg-[#2d343a] rounded-[20px] overflow-hidden">
+                                            {/* Image Section */}
+                                            <div className="relative">
+                                                <img
+                                                    src={event.image}
+                                                    alt={event.title}
+                                                    className="w-full h-[200px] object-cover"
+                                                />
+                                                {/* Date Badge */}
+                                                <div className="absolute top-3 right-3 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg min-w-[45px]">
+                                                    <div className="text-center">
+                                                        <div className="text-[10px] opacity-70">APR</div>
+                                                        <div className="text-sm font-bold">{event.date.split(' ')[1] || event.date}</div>
+                                                    </div>
+                                                </div>
+                                                {/* Heart Icon */}
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                    }}
+                                                    className="absolute bottom-3 right-3 w-8 h-8 flex items-center justify-center"
+                                                >
+                                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                    </svg>
+                                                </button>
                                             </div>
-                                            <button className="absolute top-4 right-4 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center">
-                                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                        <div className="flex-none">
-                                            <div className="p-4 space-y-3">
-                                                <h3 className="text-white font-bold text-base leading-tight">{event.title}</h3>
-                                                <p className="text-white/70 text-sm">{event.venue}</p>
-                                            </div>
-                                            <div className="px-4 pb-4">
-                                                <div className="bg-[#0d7377] text-white text-sm font-medium px-3 py-2.5 rounded-[16px] text-center">
+
+                                            {/* Content Section */}
+                                            <div className="p-4">
+                                                <div className="flex items-start justify-between mb-3">
+                                                    <div className="flex-1">
+                                                        <h3 className="text-white font-bold text-base leading-tight mb-1">{event.title}</h3>
+                                                        <p className="text-white/70 text-sm">{event.venue}</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                        }}
+                                                        className="ml-2 p-1"
+                                                    >
+                                                        <svg className="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+
+                                                {/* Category Section */}
+                                                <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white text-sm font-medium px-3 py-2 rounded-lg text-center">
                                                     {event.category}
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </Link>
                                 </div>
                             ))}
                         </div>
