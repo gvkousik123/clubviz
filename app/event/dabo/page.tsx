@@ -83,17 +83,17 @@ export default function DaboEventPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-[#1e2328] text-white">
-            {/* Hero Section */}
-            <div className="relative h-80 bg-black">
+        <div className="min-h-screen bg-[#031313] text-white">
+            {/* Hero Section - Clean Image Only */}
+            <div className="relative h-80 bg-black rounded-b-[30px] overflow-hidden">
                 <img
                     src="/crowded-nightclub-with-red-lighting-and-people-dan.jpg"
                     alt="Dabo Club"
                     className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
 
-                {/* Header Icons */}
+                {/* Header Icons Only */}
                 <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
                     <button
                         onClick={handleGoBack}
@@ -115,9 +115,11 @@ export default function DaboEventPage() {
                         </button>
                     </div>
                 </div>
+            </div>
 
-                {/* Club Info Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 p-6">
+            {/* Club Info Section - Below Image */}
+            <div className="relative bg-[#031313] rounded-t-[30px] -mt-[30px] pt-8">
+                <div className="relative p-6">
                     <div className="flex items-center justify-center mb-4">
                         <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center border-4 border-white/20">
                             <span className="text-white font-bold text-2xl">D</span>
@@ -150,10 +152,10 @@ export default function DaboEventPage() {
                     </div>
 
                     <div className="flex gap-3">
-                        <button className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold py-3 px-6 rounded-xl hover:brightness-110 transition-all">
+                        <button className="flex-1 bg-gradient-to-r from-[#1DB584] to-[#0891B2] text-white font-bold py-4 px-8 rounded-2xl hover:brightness-110 transition-all text-lg">
                             Reserve your spot
                         </button>
-                        <button className="flex-1 glassmorphism text-white font-bold py-3 px-6 rounded-xl hover:bg-white/10 transition-all">
+                        <button className="flex-1 bg-[#2a3441] text-white font-bold py-4 px-8 rounded-2xl hover:bg-[#3a4551] transition-all text-lg">
                             Book offline
                         </button>
                     </div>
@@ -161,16 +163,17 @@ export default function DaboEventPage() {
             </div>
 
             {/* Now Playing Section */}
-            <div className="px-6 py-4 bg-[#2d343a]">
+            <div className="px-6 py-6 bg-[#031313]">
                 <h3 className="text-white font-semibold text-sm mb-3">Now Playing</h3>
                 <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#1DB584] to-[#0891B2] rounded-lg flex items-center justify-center">
                         <Music className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1">
-                        <div className="flex gap-2 mb-2">
-                            <span className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-xs px-2 py-1 rounded-full">Bollytechno Mix</span>
-                            <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full">Techno Vibes</span>
+                        <div className="text-white text-sm font-bold mb-2">CLUB MUSIC</div>
+                        <div className="flex gap-2">
+                            <span className="bg-gradient-to-r from-[#1DB584] to-[#0891B2] text-white text-xs px-3 py-1 rounded-full font-medium">BollyAfro Mix</span>
+                            <span className="bg-gradient-to-r from-[#8B5CF6] to-[#EC4899] text-white text-xs px-3 py-1 rounded-full font-medium">Techno Vibes</span>
                         </div>
                     </div>
                 </div>
@@ -180,25 +183,25 @@ export default function DaboEventPage() {
             <div className="px-6 py-4">
                 <h3 className="text-white font-semibold text-base mb-4">Today's Offers</h3>
                 <div className="space-y-3">
-                    <div className="glassmorphism rounded-xl p-4 flex items-center justify-between">
+                    <div className="bg-gradient-to-r from-[#1DB584] to-[#0891B2] bg-opacity-20 rounded-[20px] p-4 flex items-center justify-between border-2 border-dashed border-[#1DB584]">
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                            <div className="w-8 h-8 bg-gradient-to-r from-[#1DB584] to-[#0891B2] rounded-lg flex items-center justify-center">
                                 <Wine className="w-4 h-4 text-white" />
                             </div>
-                            <span className="text-white text-sm">Buy 1 get 1 on IMFL Drinks</span>
+                            <span className="text-white text-sm font-medium">Buy 1 get 1 on IMFL Drinks</span>
                         </div>
-                        <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-[#1DB584]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                     </div>
-                    <div className="glassmorphism rounded-xl p-4 flex items-center justify-between">
+                    <div className="bg-gradient-to-r from-[#1DB584] to-[#0891B2] bg-opacity-20 rounded-[20px] p-4 flex items-center justify-between border-2 border-dashed border-[#1DB584]">
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                            <div className="w-8 h-8 bg-gradient-to-r from-[#1DB584] to-[#0891B2] rounded-lg flex items-center justify-center">
                                 <Clock className="w-4 h-4 text-white" />
                             </div>
-                            <span className="text-white text-sm">Free Entry for all before 09:00 PM</span>
+                            <span className="text-white text-sm font-medium">Free Entry for all before 09:00 PM</span>
                         </div>
-                        <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-[#1DB584]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                     </div>
@@ -208,7 +211,7 @@ export default function DaboEventPage() {
             {/* Entry/Booking Section */}
             <div className="px-6 py-4">
                 <h3 className="text-white font-semibold text-base mb-4">Entry/Booking</h3>
-                <div className="glassmorphism rounded-xl p-4">
+                <div className="glassmorphism rounded-[20px] p-4">
                     <div className="flex items-center justify-between mb-3">
                         <div>
                             <div className="flex gap-2 mb-1">
@@ -216,10 +219,10 @@ export default function DaboEventPage() {
                                 <span className="text-white text-sm">Male stag Entry</span>
                                 <span className="text-white text-sm">Female stag Entry</span>
                             </div>
-                            <div className="text-cyan-400 font-bold text-lg">Rs 1500 (Cover - 1000)</div>
+                            <div className="text-[#1DB584] font-bold text-lg">Rs 1500 (Cover - 1000)</div>
                             <div className="text-white/70 text-sm">*Redeemable before 12:00 AM</div>
                         </div>
-                        <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-[#1DB584]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                     </div>
