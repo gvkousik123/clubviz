@@ -7,7 +7,7 @@ export const designSystem = {
   // Typography
   typography: {
     fontFamily: {
-      primary: "'Poppins', sans-serif",
+      primary: "'Manrope', sans-serif",
       fallback: "system-ui, -apple-system, sans-serif"
     },
     fontSizes: {
@@ -98,30 +98,33 @@ export const designSystem = {
       950: '#020617',
     },
 
-    // Background Colors (From design screens - very dark)
+    // Background Colors (From COLOR_PALETTE_REFERENCE.md)
     background: {
-      primary: '#0a0a0a',   // Very dark background from screens
-      secondary: '#1a1a1a', // Card/component background
-      tertiary: '#2a2a2a',  // Hover states
-      glass: 'rgba(26, 26, 26, 0.85)', // Glass morphism with slight transparency
+      primary: '#031313',   // Main Background - Deep Teal Black
+      secondary: '#0e1f1f', // Cards & Components - Dark Teal
+      tertiary: '#1a3030',  // Border/Muted Elements
+      glass: 'rgba(14, 31, 31, 0.7)', // Glassmorphism Base - Dark Teal with transparency
     },
 
-    // Text Colors (High contrast for dark theme)
+    // Text Colors (From COLOR_PALETTE_REFERENCE.md)
     text: {
-      primary: '#ffffff',
-      secondary: '#e5e5e5',
-      tertiary: '#a3a3a3',
-      disabled: '#6b7280',
+      primary: '#ffffff',               // Primary Text - White
+      secondary: 'rgba(255, 255, 255, 0.8)',  // Secondary Text - 80% opacity
+      tertiary: 'rgba(255, 255, 255, 0.7)',   // Tertiary Text - 70% opacity
+      muted: 'rgba(255, 255, 255, 0.5)',      // Muted Text - 50% opacity
     },
 
-    // Accent Colors (Supporting colors from designs)
+    // Accent Colors (From COLOR_PALETTE_REFERENCE.md)
     accent: {
-      teal: '#14b8a6',      // Primary teal
-      cyan: '#06b6d4',      // Secondary cyan  
-      green: '#10b981',     // Success/rating
-      yellow: '#f59e0b',    // Warning
-      red: '#ef4444',       // Error/danger
-      orange: '#f97316',    // Secondary accent
+      teal: '#14b8a6',      // Teal 500 - Primary Brand
+      tealDark: '#0d9488',  // Teal 600
+      tealDarker: '#0f766e', // Teal 700
+      cyan: '#06b6d4',      // Cyan 500 - Secondary Brand
+      cyanDark: '#0891b2',  // Cyan 600
+      cyanDarker: '#0e7490', // Cyan 700
+      green: '#10b981',     // Success/Live - Green
+      yellow: '#f59e0b',    // Warning/Scheduled - Orange
+      red: '#ef4444',       // Error/Offline - Red
     },
 
     // Semantic Colors
@@ -132,13 +135,24 @@ export const designSystem = {
       info: '#14b8a6',  // Using teal for info
     },
 
-    // Gradient Definitions (Updated to match teal theme from designs)
+    // Gradient Definitions (From COLOR_PALETTE_REFERENCE.md)
     gradients: {
-      primaryHero: 'linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%)', // Teal to Cyan
-      secondaryHero: 'linear-gradient(135deg, #0d9488 0%, #0891b2 100%)', // Darker teal to darker cyan
+      primaryHeader: 'linear-gradient(135deg, #14b8a6 0%, #0891b2 100%)', // Primary Header Gradient
+      alternativeHeader: 'linear-gradient(to right, #14b8a6 0%, #06b6d4 100%)', // Alternative Header Gradient
       cardOverlay: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 100%)',
-      glassEffect: 'linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(6, 182, 212, 0.05) 100%)', // Teal glass
-      button: 'linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%)', // Primary button gradient
+      button: 'linear-gradient(135deg, #14b8a6 0%, #0891b2 100%)', // Primary button gradient
+      glassLight: 'rgba(14, 31, 31, 0.5)',   // Light Glass
+      glassStandard: 'rgba(14, 31, 31, 0.7)', // Standard Glass
+      glassStrong: 'rgba(14, 31, 31, 0.85)',  // Strong Glass
+    },
+
+    // Border Colors (From COLOR_PALETTE_REFERENCE.md)
+    borders: {
+      subtle: 'rgba(255, 255, 255, 0.1)',     // 10% white
+      medium: 'rgba(255, 255, 255, 0.15)',    // 15% white
+      strong: 'rgba(255, 255, 255, 0.2)',     // 20% white
+      tealMedium: 'rgba(20, 184, 166, 0.3)',  // 30% teal
+      tealStrong: 'rgba(45, 212, 191, 0.4)',  // 40% teal
     }
   },
 

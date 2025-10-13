@@ -4,47 +4,47 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { StoryViewer } from '@/components/story/story-viewer';
 
-// Mock story data - replace with your actual data source
+// Mock story data - Updated with gallery Frame images
 const mockStories = [
     {
         id: '1',
-        image: '/crowded-nightclub-with-red-lighting-and-people-dan.jpg',
-        title: 'TECHNO NIGHT',
+        image: '/gallery/Frame 1000001117.jpg',
+        title: 'CLUB AMBIENCE',
         timestamp: '2 hours ago',
         duration: 5,
     },
     {
         id: '2',
-        image: '/purple-neon-club-interior.jpg',
-        title: 'NEON VIBES',
+        image: '/gallery/Frame 1000001119.jpg',
+        title: 'NIGHT VIBES',
         timestamp: '4 hours ago',
         duration: 5,
     },
     {
         id: '3',
-        image: '/upscale-club-interior-with-blue-lighting.jpg',
-        title: 'DABO CLUB',
+        image: '/gallery/Frame 1000001120.jpg',
+        title: 'FOOD EXPERIENCE',
         timestamp: '6 hours ago',
         duration: 5,
     },
     {
         id: '4',
-        image: '/upscale-bar-interior-with-bottles.jpg',
-        title: 'CAFE BARREL',
-        timestamp: '8 hours ago',
-        duration: 5,
-    },
-    {
-        id: '4',
-        image: '/red-neon-lounge-interior.jpg',
-        title: 'RED ZONE',
+        image: '/gallery/Frame 1000001121.jpg',
+        title: 'DRINKS & BAR',
         timestamp: '8 hours ago',
         duration: 5,
     },
     {
         id: '5',
-        image: '/upscale-bar-interior-with-bottles.jpg',
-        title: 'COCKTAIL BAR',
+        image: '/gallery/Frame 1000001123.jpg',
+        title: 'INTERIOR DESIGN',
+        timestamp: '8 hours ago',
+        duration: 5,
+    },
+    {
+        id: '6',
+        image: '/gallery/Frame 1000001124.jpg',
+        title: 'BAR SETUP',
         timestamp: '10 hours ago',
         duration: 5,
     },

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -9,14 +9,18 @@ import { Input } from '@/components/ui/input';
 import SidebarMenu from '@/components/ui/sidebar-menu';
 import { useDragScroll } from '@/hooks/use-drag-scroll';
 import { ClubVizLogo } from '@/components/auth/logo';
+import { ClubService } from '@/lib/services/club.service';
+import { EventService } from '@/lib/services/event.service';
+import { Club, Event } from '@/lib/api-types';
+import { toast } from '@/hooks/use-toast';
 
-// Mock data for vibe meter
+// Mock data for vibe meter - Updated with organized images
 const vibeMeterData = [
-    { id: 1, name: 'DABO', logo: '/crowded-nightclub-with-red-lighting-and-people-dan.jpg', color: 'border-cyan-400' },
-    { id: 2, name: 'Elite', logo: '/upscale-club-interior-with-blue-lighting.jpg', color: 'border-cyan-400' },
-    { id: 3, name: 'Escape', logo: '/purple-neon-club-interior.jpg', color: 'border-cyan-400' },
-    { id: 4, name: 'Nitro', logo: '/red-neon-lounge-interior.jpg', color: 'border-cyan-400' },
-    { id: 5, name: 'GARAGE', logo: '/upscale-bar-interior-with-bottles.jpg', color: 'border-cyan-400' },
+    { id: 1, name: 'DABO', logo: '/dabo ambience main dabo page/Media.jpg', color: 'border-cyan-400' },
+    { id: 2, name: 'Elite', logo: '/gallery/Frame 1000001117.jpg', color: 'border-cyan-400' },
+    { id: 3, name: 'Escape', logo: '/gallery/Frame 1000001119.jpg', color: 'border-cyan-400' },
+    { id: 4, name: 'Nitro', logo: '/gallery/Frame 1000001120.jpg', color: 'border-cyan-400' },
+    { id: 5, name: 'GARAGE', logo: '/gallery/Frame 1000001121.jpg', color: 'border-cyan-400' },
 ];
 
 const venueData = [
@@ -25,7 +29,7 @@ const venueData = [
         name: 'DABO',
         openTime: 'Open until 1:30 am',
         rating: 4.2,
-        image: '/crowded-nightclub-with-red-lighting-and-people-dan.jpg',
+        image: '/dabo ambience main dabo page/Media-1.jpg',
         isFavorite: false,
     },
     {
@@ -33,16 +37,16 @@ const venueData = [
         name: 'GARAGE',
         openTime: 'Open until 2:00 am',
         rating: 4.5,
-        image: '/purple-neon-club-interior.jpg',
+        image: '/gallery/Frame 1000001123.jpg',
         isFavorite: false,
     },
 ];
 
-// Mock data for banner slides
+// Mock data for banner slides - Updated with event list images
 const bannerSlides = [
     {
         id: 1,
-        image: '/dj-woman-with-headphones-and-sunglasses-in-neon-li.jpg',
+        image: '/event list/Rectangle 1.jpg',
         musicBy: 'DJ MARTIN',
         hostedBy: 'DJ AMIL',
         sponsor: 'SPONSORED',
@@ -50,7 +54,7 @@ const bannerSlides = [
     },
     {
         id: 2,
-        image: '/dj-event-poster-with-woman-dj-and-neon-lighting.jpg',
+        image: '/event list/Rectangle 2.jpg',
         musicBy: 'DJ ALEXXX',
         hostedBy: 'CLUB ELITE',
         sponsor: 'FEATURED',
@@ -58,7 +62,7 @@ const bannerSlides = [
     },
     {
         id: 3,
-        image: '/night-party-event-poster-with-purple-and-pink-neon.jpg',
+        image: '/event list/Rectangle 3.jpg',
         musicBy: 'DJ SHADE',
         hostedBy: 'GARAGE CLUB',
         sponsor: 'TRENDING',
@@ -66,7 +70,7 @@ const bannerSlides = [
     },
     {
         id: 4,
-        image: '/purple-neon-club-interior.jpg',
+        image: '/event list/Rectangle 4.jpg',
         musicBy: 'DJ STORM',
         hostedBy: 'NITRO CLUB',
         sponsor: 'POPULAR',
@@ -74,7 +78,7 @@ const bannerSlides = [
     },
     {
         id: 5,
-        image: '/crowded-nightclub-with-red-lighting-and-people-dan.jpg',
+        image: '/event list/Rectangle 5.jpg',
         musicBy: 'DJ VIBE',
         hostedBy: 'ESCAPE',
         sponsor: 'EXCLUSIVE',
@@ -82,7 +86,7 @@ const bannerSlides = [
     }
 ];
 
-// Mock data for events
+// Mock data for events - Updated with event list images
 const eventData = [
     {
         id: 1,
@@ -90,7 +94,7 @@ const eventData = [
         venue: 'DABO, Airport Road',
         date: 'APR 04',
         category: 'Techno & Bollytech',
-        image: '/dj-event-poster-with-woman-dj-and-neon-lighting.jpg',
+        image: '/event list/Rectangle 12249.jpg',
         isFavorite: false,
     },
     {
@@ -99,7 +103,7 @@ const eventData = [
         venue: 'DABO, Airport Road',
         date: 'APR 06',
         category: 'Bollywood & Bollytech',
-        image: '/night-party-event-poster-with-purple-and-pink-neon.jpg',
+        image: '/event list/Rectangle 1.jpg',
         isFavorite: false,
     },
 ];
@@ -110,9 +114,57 @@ const HomePage: React.FC = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isAutoScrollPaused, setIsAutoScrollPaused] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+
+    // API data state
+    const [clubs, setClubs] = useState<Club[]>([]);
+    const [events, setEvents] = useState<Event[]>([]);
+    const [featuredClubs, setFeaturedClubs] = useState<Club[]>([]);
+    const [loading, setLoading] = useState(true);
+
     const venueScrollRef = useDragScroll();
     const eventScrollRef = useDragScroll();
     const autoScrollTimer = useRef<NodeJS.Timeout | null>(null);
+
+    // Fetch real data on component mount
+    useEffect(() => {
+        const fetchHomeData = async () => {
+            setLoading(true);
+            try {
+                // Fetch featured clubs and events in parallel
+                const [featuredClubsResponse, featuredEventsResponse, clubsResponse, eventsResponse] = await Promise.all([
+                    ClubService.getFeaturedClubs(10),
+                    EventService.getFeaturedEvents(10),
+                    ClubService.getClubs({ page: 1, limit: 20 }),
+                    EventService.getEvents({ page: 1, limit: 20 })
+                ]);
+
+                if (featuredClubsResponse.success && featuredClubsResponse.data) {
+                    setFeaturedClubs(featuredClubsResponse.data);
+                }
+
+                if (clubsResponse.success && clubsResponse.data) {
+                    setClubs(clubsResponse.data.clubs);
+                }
+
+                if (featuredEventsResponse.success && featuredEventsResponse.data) {
+                    setEvents(featuredEventsResponse.data);
+                } else if (eventsResponse.success && eventsResponse.data) {
+                    setEvents(eventsResponse.data.events);
+                }
+            } catch (error) {
+                console.error('Error fetching home data:', error);
+                toast({
+                    title: "Error",
+                    description: "Failed to load home data. Please refresh the page.",
+                    variant: "destructive",
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchHomeData();
+    }, []);
 
     // Auto-scroll functionality
     useEffect(() => {
@@ -153,8 +205,8 @@ const HomePage: React.FC = () => {
         setTimeout(() => setIsAutoScrollPaused(false), 5000); // Resume after 5 seconds
     };
 
-    const handleVibeMeterClick = (clubId: number) => {
-        router.push('/story');
+    const handleVibeMeterClick = (clubId: string) => {
+        router.push(`/story?clubId=${clubId}`);
     };
 
     const handleMenuClick = () => {
@@ -166,11 +218,11 @@ const HomePage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#0a2e30] font-['Poppins']">
+        <div className="min-h-screen bg-background-primary font-sans">
             {/* Fixed Header */}
-            <div className={`fixed top-0 left-0 right-0 z-40 w-full bg-gradient-to-r from-teal-600 to-teal-500 transition-all duration-300 ${isScrolled
-                    ? 'rounded-bl-[15px] rounded-br-[15px] pb-2 pt-2'
-                    : 'rounded-bl-[30px] rounded-br-[30px] pb-4 pt-4'
+            <div className={`fixed top-0 left-0 right-0 z-40 w-full header-gradient transition-all duration-300 ${isScrolled
+                ? 'rounded-bl-[20px] rounded-br-[20px] pb-2 pt-2'
+                : 'rounded-bl-[32px] rounded-br-[32px] pb-4 pt-4'
                 }`}>
                 {/* Main Header */}
                 <div className="px-4">
@@ -195,16 +247,16 @@ const HomePage: React.FC = () => {
                     {/* Search Bar and Menu - Always Visible */}
                     <div className="flex gap-3 pb-2">
                         <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-tertiary" />
                             <Input
                                 placeholder="Search"
-                                className="w-full pl-10 pr-4 py-2 bg-neutral-800 border-none rounded-[23px] text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
+                                className="w-full pl-10 pr-4 py-2 glass-standard border-none rounded-[23px] text-text-primary placeholder-text-tertiary focus:ring-2 focus:ring-accent-cyan"
                             />
                         </div>
                         <Button
                             onClick={handleMenuClick}
                             size="icon"
-                            className="w-9 h-9 bg-[#222831] hover:bg-[#2a2a38] rounded-[23px] border-none"
+                            className="w-9 h-9 glassmorphism hover:glassmorphism-strong rounded-[20px] border-none"
                         >
                             <Menu className="w-4 h-4 text-white" />
                         </Button>
@@ -254,7 +306,7 @@ const HomePage: React.FC = () => {
                                 </div>
                                 <div className="absolute top-4 right-4">
                                     <Link href={slide.bookingLink}>
-                                        <Button className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs px-3 py-1 rounded-full">
+                                        <Button className="header-gradient hover:header-gradient-alt text-text-primary text-xs px-3 py-1 rounded-full">
                                             BOOK NOW
                                         </Button>
                                     </Link>
@@ -348,30 +400,43 @@ const HomePage: React.FC = () => {
                         <div className="flex-1 h-px bg-gradient-to-r from-cyan-400 to-transparent"></div>
                     </div>
                     <div className="flex gap-4 pb-2">
-                        {vibeMeterData.map((club) => (
-                            <button
-                                key={club.id}
-                                onClick={() => handleVibeMeterClick(club.id)}
-                                className={`flex-shrink-0 w-16 h-16 rounded-full border-2 ${club.color} bg-black/80 flex items-center justify-center hover:scale-105 transition-transform p-2`}
-                            >
-                                <div className="w-full h-full rounded-full overflow-hidden bg-gray-800 flex items-center justify-center">
-                                    <img
-                                        src={club.logo}
-                                        alt={club.name}
-                                        className="w-full h-full object-cover"
-                                        onError={(e) => {
-                                            // Fallback to text if image fails to load
-                                            const target = e.target as HTMLImageElement;
-                                            target.style.display = 'none';
-                                            const parent = target.parentElement;
-                                            if (parent) {
-                                                parent.innerHTML = `<span class="text-white text-xs font-bold text-center leading-tight">${club.name}</span>`;
-                                            }
-                                        }}
-                                    />
-                                </div>
-                            </button>
-                        ))}
+                        {loading ? (
+                            // Loading skeleton for vibe meter
+                            Array.from({ length: 5 }).map((_, index) => (
+                                <div key={`loading-${index}`} className="flex-shrink-0 w-16 h-16 rounded-full border-2 border-cyan-400 bg-gray-800 animate-pulse"></div>
+                            ))
+                        ) : (
+                            featuredClubs.slice(0, 5).map((club) => (
+                                <button
+                                    key={club.id}
+                                    onClick={() => handleVibeMeterClick(club.id)}
+                                    className="flex-shrink-0 w-16 h-16 rounded-full border-2 border-cyan-400 bg-black/80 flex items-center justify-center hover:scale-105 transition-transform p-2"
+                                >
+                                    <div className="w-full h-full rounded-full overflow-hidden bg-gray-800 flex items-center justify-center">
+                                        {club.images && club.images.length > 0 ? (
+                                            <img
+                                                src={club.images[0]}
+                                                alt={club.name}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    // Fallback to text if image fails to load
+                                                    const target = e.target as HTMLImageElement;
+                                                    target.style.display = 'none';
+                                                    const parent = target.parentElement;
+                                                    if (parent) {
+                                                        parent.innerHTML = `<span class="text-white text-xs font-bold text-center leading-tight">${club.name.substring(0, 8)}</span>`;
+                                                    }
+                                                }}
+                                            />
+                                        ) : (
+                                            <span className="text-white text-xs font-bold text-center leading-tight">
+                                                {club.name.substring(0, 8)}
+                                            </span>
+                                        )}
+                                    </div>
+                                </button>
+                            ))
+                        )}
                     </div>
                 </div>
 
@@ -386,46 +451,71 @@ const HomePage: React.FC = () => {
                     </div>
                     <div ref={venueScrollRef} className="overflow-x-auto scrollbar-hide">
                         <div className="flex gap-4 pb-16" style={{ width: 'max-content' }}>
-                            {venueData.map((venue) => (
-                                <Link key={venue.id} href={`/club/${venue.name.toLowerCase()}`}>
-                                    <div className="flex-shrink-0 w-[336px] relative cursor-pointer transform transition-all duration-300 hover:scale-105">
-                                        <div className="relative h-[197px] rounded-[20px] border border-[#0c898b] bg-[#1a2f32]">
-                                            <div className="rounded-[20px] overflow-hidden h-full">
-                                                <img
-                                                    src={venue.image}
-                                                    alt={venue.name}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                                            </div>
-
-                                            {/* Glass effect card that extends beyond main card */}
+                            {loading ? (
+                                // Loading skeleton for venues
+                                Array.from({ length: 3 }).map((_, index) => (
+                                    <div key={`venue-loading-${index}`} className="flex-shrink-0 w-[336px] relative">
+                                        <div className="relative h-[197px] rounded-[20px] border border-teal-500/30 bg-gray-800 animate-pulse">
                                             <div className="absolute -bottom-8 left-2 right-2 glassmorphism-strong border border-white/20 p-5 rounded-2xl h-20 z-10">
-                                                <h3 className="text-white font-bold text-xl mb-2">{venue.name}</h3>
-                                                <p className="text-white/90 text-sm">{venue.openTime}</p>
+                                                <div className="h-4 bg-gray-600 rounded mb-2"></div>
+                                                <div className="h-3 bg-gray-700 rounded w-2/3"></div>
                                             </div>
-
-                                            <div className="absolute bottom-4 right-4 z-20">
-                                                <div className="glassmorphism text-white text-sm font-bold px-3 py-1.5 rounded-lg">
-                                                    {venue.rating}
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    // Handle favorite toggle
-                                                }}
-                                                className="absolute top-4 right-4 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center hover:bg-black/60 transition-all duration-300 z-20"
-                                            >
-                                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                                                </svg>
-                                            </button>
                                         </div>
                                     </div>
-                                </Link>
-                            ))}
+                                ))
+                            ) : (
+                                clubs.slice(0, 6).map((club) => (
+                                    <Link key={club.id} href={`/club/${club.id}`}>
+                                        <div className="flex-shrink-0 w-[336px] relative cursor-pointer transform transition-all duration-300 hover:scale-105">
+                                            <div className="relative h-[197px] rounded-[20px] border border-teal-500/30">
+                                                <div className="rounded-[20px] overflow-hidden h-full">
+                                                    <img
+                                                        src={club.images?.[0] || `/gallery/Frame ${1000001117 + (index % 13)}.jpg`}
+                                                        alt={club.name}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            target.src = `/gallery/Frame ${1000001117 + (index % 13)}.jpg`;
+                                                        }}
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                                                </div>
+
+                                                {/* Glass effect card that extends beyond main card */}
+                                                <div className="absolute -bottom-8 left-2 right-2 glassmorphism-strong border border-white/20 p-5 rounded-2xl h-20 z-10">
+                                                    <h3 className="text-white font-bold text-xl mb-2">{club.name}</h3>
+                                                    <p className="text-white/90 text-sm">
+                                                        {club.openingHours ? 'Open until 2:00 AM' : 'Hours not available'}
+                                                    </p>
+                                                </div>
+
+                                                <div className="absolute bottom-4 right-4 z-20">
+                                                    <div className="glassmorphism text-white text-sm font-bold px-3 py-1.5 rounded-lg">
+                                                        {club.rating || '4.5'}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        // Toggle favorite functionality here
+                                                    }}
+                                                    className="absolute top-4 right-4 z-20 glassmorphism rounded-full p-2 hover:bg-white/20 transition-colors"
+                                                >
+                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                        <path
+                                                            d="M8 14.5l-5.5-5.5c-1.5-1.5-1.5-3.5 0-5s3.5-1.5 5 0l.5.5.5-.5c1.5-1.5 3.5-1.5 5 0s1.5 3.5 0 5L8 14.5z"
+                                                            stroke="white"
+                                                            strokeWidth="1.5"
+                                                            fill="none"
+                                                            className="hover:fill-red-500 transition-colors"
+                                                        />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
@@ -441,49 +531,81 @@ const HomePage: React.FC = () => {
                     </div>
                     <div ref={eventScrollRef} className="overflow-x-auto scrollbar-hide">
                         <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
-                            {eventData.map((event) => (
-                                <div key={event.id} className="flex-shrink-0 w-[222px]">
-                                    <Link href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                                        <div className="bg-teal-900/20 rounded-[20px] overflow-hidden relative"
+                            {loading ? (
+                                // Loading skeleton for events
+                                Array.from({ length: 4 }).map((_, index) => (
+                                    <div key={`event-loading-${index}`} className="flex-shrink-0 w-[222px]">
+                                        <div className="bg-teal-900/20 rounded-[20px] overflow-hidden relative animate-pulse"
                                             style={{
                                                 clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%)'
                                             }}>
-                                            {/* Image Section */}
-                                            <div className="relative">
-                                                <img
-                                                    src={event.image}
-                                                    alt={event.title}
-                                                    className="w-full h-[200px] object-cover border-2 border-teal-400/30 rounded-t-[20px]"
-                                                />
-                                                {/* Date Badge */}
-                                                <div className="absolute top-3 right-3 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg min-w-[45px]">
-                                                    <div className="text-center">
-                                                        <div className="text-[10px] opacity-70">APR</div>
-                                                        <div className="text-sm font-bold">{event.date.split(' ')[1] || event.date}</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Content Section */}
-                                            <div className="p-4">
-                                                <div className="flex items-start justify-between mb-3">
-                                                    <div className="flex-1">
-                                                        <h3 className="text-white font-bold text-base leading-tight mb-1">{event.title}</h3>
-                                                        <p className="text-white/70 text-sm">{event.venue}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Full-width Teal Highlight Section */}
-                                            <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white text-sm font-medium px-3 py-2 w-full">
-                                                <div className="text-center">
-                                                    {event.category}
-                                                </div>
+                                            <div className="w-full h-[200px] bg-gray-700 rounded-t-[20px]"></div>
+                                            <div className="p-4 space-y-3">
+                                                <div className="h-4 bg-gray-600 rounded"></div>
+                                                <div className="h-3 bg-gray-700 rounded w-2/3"></div>
+                                                <div className="h-3 bg-gray-700 rounded w-1/2"></div>
                                             </div>
                                         </div>
-                                    </Link>
-                                </div>
-                            ))}
+                                    </div>
+                                ))
+                            ) : (
+                                events.slice(0, 6).map((event) => (
+                                    <div key={event.id} className="flex-shrink-0 w-[222px]">
+                                        <Link href={`/event/${event.id}`}>
+                                            <div className="bg-teal-900/20 rounded-[20px] overflow-hidden relative"
+                                                style={{
+                                                    clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%)'
+                                                }}>
+                                                {/* Image Section */}
+                                                <div className="relative">
+                                                    <img
+                                                        src={event.images?.[0] || `/gallery/Frame ${1000001120 + (index % 13)}.jpg`}
+                                                        alt={event.title}
+                                                        className="w-full h-[200px] object-cover border-2 border-teal-400/30 rounded-t-[20px]"
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            target.src = `/gallery/Frame ${1000001120 + (index % 13)}.jpg`;
+                                                        }}
+                                                    />
+                                                    {/* Date Badge */}
+                                                    <div className="absolute top-3 right-3 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg min-w-[45px]">
+                                                        <div className="text-center">
+                                                            <div className="text-[10px] opacity-70">
+                                                                {new Date(event.startDateTime).toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
+                                                            </div>
+                                                            <div className="text-sm font-bold">
+                                                                {new Date(event.startDateTime).getDate()}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Content Section */}
+                                                <div className="p-4">
+                                                    <div className="flex items-start justify-between mb-3">
+                                                        <div className="flex-1">
+                                                            <h3 className="text-white font-semibold text-sm mb-1 leading-tight">
+                                                                {event.title}
+                                                            </h3>
+                                                            <p className="text-white/70 text-xs mb-1">
+                                                                {event.club?.name || 'Club TBA'}
+                                                            </p>
+                                                            <p className="text-teal-400 text-xs font-medium">
+                                                                {event.musicGenres?.join(', ') || 'Various Genres'}
+                                                            </p>
+                                                        </div>
+                                                        <button className="w-8 h-8 bg-black/40 rounded-full flex items-center justify-center hover:bg-black/60 transition-all duration-300">
+                                                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>

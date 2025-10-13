@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, MapPin, Calendar, Edit, User, Mail, Phone } from 'lucide-react';
@@ -180,7 +180,7 @@ export default function BookingFormPage() {
             <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/90 to-transparent z-20">
                 <button
                     onClick={handleNext}
-                    className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold py-4 px-6 rounded-2xl 
+                    className="w-full header-gradient text-white font-bold py-4 px-6 rounded-2xl 
                    shadow-lg shadow-teal-500/25 hover:shadow-xl hover:shadow-teal-500/30 
                    transform hover:scale-[1.02] transition-all duration-300"
                 >

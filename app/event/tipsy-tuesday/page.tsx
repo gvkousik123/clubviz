@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
@@ -17,7 +17,7 @@ export default function TipsyTuesdayPage() {
             {/* Hero Section */}
             <div className="relative h-80 bg-black">
                 <img
-                    src="/dj-event-poster-with-woman-dj-and-neon-lighting.jpg"
+                    src="/gallery/Frame 1000001132.jpg"
                     alt="Tipsy Tuesday Event"
                     className="w-full h-full object-cover"
                 />
@@ -82,18 +82,43 @@ export default function TipsyTuesdayPage() {
                 </div>
             </div>
 
-            {/* Now Playing Section */}
-            <div className="px-6 py-4 bg-[#2d343a]">
-                <h3 className="text-white font-semibold text-sm mb-3">Now Playing</h3>
-                <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
-                        <Music className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                        <div className="flex gap-2 mb-2">
-                            <span className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-xs px-2 py-1 rounded-full">Bollytechno Mix</span>
-                            <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full">Techno Vibes</span>
+            {/* Now Playing Section with DJ Button */}
+            <div className="px-6 py-6 bg-[#031313]">
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-white font-semibold text-sm">Now Playing</h3>
+                </div>
+                <div className="glassmorphism p-4 rounded-2xl">
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="relative">
+                            <div className="w-16 h-16 header-gradient rounded-2xl flex items-center justify-center animate-pulse">
+                                <Music className="w-8 h-8 text-white" />
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-[#031313] flex items-center justify-center">
+                                <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                            </div>
                         </div>
+                        <div className="flex-1">
+                            <div className="text-white text-base font-bold mb-1">DJ SHADOW LIVE</div>
+                            <div className="text-white/70 text-sm">Bollytechno Specialist</div>
+                        </div>
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                        <span className="header-gradient text-white text-xs px-3 py-1.5 rounded-full font-medium">Bollytechno Mix</span>
+                        <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-3 py-1.5 rounded-full font-medium">Techno Vibes</span>
+                    </div>
+
+                    {/* Soundwave Visualization */}
+                    <div className="mt-4 flex items-center justify-center gap-1 h-12">
+                        {[4, 8, 6, 10, 7, 12, 9, 5, 11, 6, 8, 10, 7, 9, 6, 4].map((height, i) => (
+                            <div
+                                key={i}
+                                className="w-1 bg-gradient-to-t from-teal-500 to-cyan-400 rounded-full animate-soundwave"
+                                style={{
+                                    height: `${height * 3}px`,
+                                    animationDelay: `${i * 0.05}s`
+                                }}
+                            />
+                        ))}
                     </div>
                 </div>
             </div>

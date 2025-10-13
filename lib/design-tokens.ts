@@ -30,12 +30,12 @@ export const designTokens = {
       }
     },
     background: {
-      primary: '#0A0A0F',
-      secondary: '#141420',
-      tertiary: '#1A1A2E',
-      card: '#1E1E2E',
-      glass: 'rgba(30, 30, 46, 0.85)',
-      overlay: 'rgba(10, 10, 15, 0.9)'
+      primary: '#031313',
+      secondary: '#0e1f1f',
+      tertiary: '#1a3030',
+      card: '#0e1f1f',
+      glass: 'rgba(14, 31, 31, 0.7)',
+      overlay: 'rgba(3, 19, 19, 0.9)'
     },
     text: {
       primary: '#FFFFFF',
@@ -54,11 +54,21 @@ export const designTokens = {
     }
   },
   gradients: {
-    hero: 'linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%)',
-    card: 'linear-gradient(180deg, rgba(10, 10, 15, 0) 0%, rgba(10, 10, 15, 0.9) 100%)',
-    teal: 'linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)',
-    glass: 'linear-gradient(135deg, rgba(30, 30, 46, 0.7) 0%, rgba(30, 30, 46, 0.85) 100%)',
-    ticket: 'linear-gradient(180deg, #1E1E2E 0%, #141420 100%)'
+    // Header gradient - ONLY use for headers
+    header: 'linear-gradient(135deg, #14b8a6 0%, #0891b2 100%)',
+    headerAlt: 'linear-gradient(to right, #14b8a6 0%, #06b6d4 100%)',
+    // Card overlays
+    card: 'linear-gradient(180deg, rgba(3, 19, 19, 0) 0%, rgba(3, 19, 19, 0.9) 100%)',
+    glass: 'linear-gradient(135deg, rgba(14, 31, 31, 0.7) 0%, rgba(14, 31, 31, 0.85) 100%)',
+    ticket: 'linear-gradient(180deg, #0e1f1f 0%, #031313 100%)'
+  },
+  borderRadius: {
+    sm: '0.75rem',
+    md: '1rem',
+    lg: '1.25rem',
+    xl: '1.5rem',
+    '2xl': '2rem',
+    '3xl': '3rem',
   },
   ratings: {
     good: '#10B981',
@@ -168,9 +178,9 @@ export const generateCSSCustomProperties = () => {
     --color-rating-poor: ${designTokens.ratings.poor};
 
     /* Gradients */
-    --gradient-hero: ${designTokens.gradients.hero};
+    --gradient-header: ${designTokens.gradients.header};
+    --gradient-header-alt: ${designTokens.gradients.headerAlt};
     --gradient-card: ${designTokens.gradients.card};
-    --gradient-teal: ${designTokens.gradients.teal};
     --gradient-glass: ${designTokens.gradients.glass};
     --gradient-ticket: ${designTokens.gradients.ticket};
   `;
@@ -200,7 +210,7 @@ export const componentStyles = {
   // Button styles
   button: {
     primary: `
-      background: var(--gradient-teal);
+      background: var(--gradient-header);
       color: var(--color-text-primary);
       border-radius: var(--radius-full);
       padding: 0.75rem 1.5rem;

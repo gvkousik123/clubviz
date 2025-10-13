@@ -15,72 +15,79 @@
 }
 
 :root {
-  /* ClubViz Brand Colors - Dark Theme matching designs */
-  --clubviz-dark-bg: #1e2328;
-  --clubviz-dark-card: #2d343a;
+  /* ClubViz Brand Colors - From COLOR_PALETTE_REFERENCE.md */
+  --clubviz-dark-bg: #031313;
+  --clubviz-dark-card: #0e1f1f;
+  --clubviz-dark-accent: #1a3030;
   --clubviz-teal-gradient-start: #14b8a6;
   --clubviz-teal-gradient-end: #0891b2;
-  --clubviz-cyan: #00bcd4;
-  --clubviz-blue: #1976d2;
-  --clubviz-neon-cyan: #00ffff;
+  --clubviz-cyan: #06b6d4;
+  --clubviz-teal: #14b8a6;
+  --clubviz-teal-dark: #0d9488;
 
-  --background: #1e2328;
+  /* Standardized Border Radius */
+  --radius: 1rem;
+  --radius-sm: 0.75rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.5rem;
+
+  /* Design System Colors */
+  --background: #031313;
   --foreground: #ffffff;
-  --card: #2d343a;
+  --card: #0e1f1f;
   --card-foreground: #ffffff;
-  --popover: #2d343a;
+  --popover: #0e1f1f;
   --popover-foreground: #ffffff;
   --primary: #14b8a6;
   --primary-foreground: #ffffff;
-  --secondary: #2d343a;
+  --secondary: #0e1f1f;
   --secondary-foreground: #ffffff;
-  --muted: #3a434a;
-  --muted-foreground: #a3a3a3;
+  --muted: #1a3030;
+  --muted-foreground: rgba(255, 255, 255, 0.5);
   --accent: #14b8a6;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #3a434a;
-  --input: #2d343a;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: #0e1f1f;
   --ring: #14b8a6;
-  --radius: 0.75rem;
-  --sidebar: #2d343a;
+  --sidebar: #0e1f1f;
   --sidebar-foreground: #ffffff;
   --sidebar-primary: #14b8a6;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #3d3d40;
+  --sidebar-accent: #1a3030;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #3d3d40;
+  --sidebar-border: #1a3030;
   --sidebar-ring: #14b8a6;
 }
 
 .dark {
-  --background: #1e2328;
+  --background: #031313;
   --foreground: #ffffff;
-  --card: #2d343a;
+  --card: #0e1f1f;
   --card-foreground: #ffffff;
-  --popover: #2d343a;
+  --popover: #0e1f1f;
   --popover-foreground: #ffffff;
   --primary: #14b8a6;
   --primary-foreground: #ffffff;
-  --secondary: #2d343a;
+  --secondary: #0e1f1f;
   --secondary-foreground: #ffffff;
-  --muted: #3a434a;
+  --muted: #1a3030;
   --muted-foreground: #a3a3a3;
   --accent: #14b8a6;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #3a434a;
-  --input: #2d343a;
+  --border: #1a3030;
+  --input: #0e1f1f;
   --ring: #14b8a6;
-  --sidebar: #2d343a;
+  --sidebar: #0e1f1f;
   --sidebar-foreground: #ffffff;
   --sidebar-primary: #14b8a6;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #3a434a;
+  --sidebar-accent: #1a3030;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #3a434a;
+  --sidebar-border: #1a3030;
   --sidebar-ring: #14b8a6;
 }
 
@@ -97,8 +104,21 @@
     overflow-x: hidden;
     background-color: var(--background);
     color: var(--foreground);
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Manrope', sans-serif;
     height: 100%;
+  }
+
+  /* Hide scrollbar globally while keeping scroll functionality */
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
+  }
+
+  html {
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
   }
 
   /* Responsive container sizes */
@@ -194,26 +214,38 @@
     box-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
   }
 
-  /* Glassmorphism effects for ClubViz */
+  /* Glassmorphism effects for ClubViz - Updated with #0e1f1f */
   .glassmorphism {
-    background: rgba(45, 52, 58, 0.25);
+    background: rgba(14, 31, 31, 0.7);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius);
   }
 
   .glassmorphism-strong {
-    background: rgba(45, 52, 58, 0.4);
+    background: rgba(14, 31, 31, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius);
   }
 
   .glassmorphism-light {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(14, 31, 31, 0.5);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius);
+  }
+
+  /* Header gradient - ONLY for headers */
+  .header-gradient {
+    background: linear-gradient(135deg, #14b8a6, #0891b2);
+  }
+
+  .header-gradient-alt {
+    background: linear-gradient(to right, #14b8a6, #06b6d4);
   }
 
   .text-gradient-cyan {
@@ -221,5 +253,51 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  /* DJ Button Soundwave Animation */
+  @keyframes soundwave {
+
+    0%,
+    100% {
+      transform: scaleY(0.5);
+    }
+
+    50% {
+      transform: scaleY(1.5);
+    }
+  }
+
+  .animate-soundwave {
+    animation: soundwave 0.6s ease-in-out infinite;
+  }
+
+  /* Glassmorphism Effects - From COLOR_PALETTE_REFERENCE.md */
+  .glass-light {
+    background: rgba(14, 31, 31, 0.5);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-standard {
+    background: rgba(14, 31, 31, 0.7);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-strong {
+    background: rgba(14, 31, 31, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  /* Primary Header Gradient */
+  .header-gradient {
+    background: linear-gradient(135deg, #14b8a6 0%, #0891b2 100%);
+  }
+
+  /* Alternative Header Gradient */
+  .header-gradient-alt {
+    background: linear-gradient(to right, #14b8a6 0%, #06b6d4 100%);
   }
 }

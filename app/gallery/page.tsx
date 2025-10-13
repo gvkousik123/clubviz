@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -14,55 +14,85 @@ export default function GalleryPage() {
 
     const categories = ['All', 'Food', 'Drinks', 'Ambience'];
 
-    // Mock gallery data
+    // Gallery data using actual Frame images
     const galleryItems = [
         {
             id: 1,
-            image: '/placeholder.jpg', // Food image
-            category: 'Food',
-            alt: 'Gourmet dish with eggs and greens'
+            image: '/gallery/Frame 1000001117.jpg',
+            category: 'Ambience',
+            alt: 'Club ambience and interior'
         },
         {
             id: 2,
-            image: '/purple-neon-club-interior.jpg', // Ambience
+            image: '/gallery/Frame 1000001119.jpg',
             category: 'Ambience',
-            alt: 'Purple neon club interior with dance floor'
+            alt: 'Club lighting and atmosphere'
         },
         {
             id: 3,
-            image: '/crowded-nightclub-with-red-lighting-and-people-dan.jpg', // Ambience
-            category: 'Ambience',
-            alt: 'Crowded nightclub with red lighting'
+            image: '/gallery/Frame 1000001120.jpg',
+            category: 'Food',
+            alt: 'Club food and cuisine'
         },
         {
             id: 4,
-            image: '/placeholder.jpg', // Food
-            category: 'Food',
-            alt: 'Colorful healthy bowl with vegetables'
+            image: '/gallery/Frame 1000001121.jpg',
+            category: 'Drinks',
+            alt: 'Club drinks and beverages'
         },
         {
             id: 5,
-            image: '/placeholder.jpg', // Food
-            category: 'Food',
-            alt: 'Stack of pancakes with toppings'
+            image: '/gallery/Frame 1000001123.jpg',
+            category: 'Ambience',
+            alt: 'Club interior design'
         },
         {
             id: 6,
-            image: '/placeholder.jpg', // Drinks
+            image: '/gallery/Frame 1000001124.jpg',
             category: 'Drinks',
-            alt: 'Colorful cocktail with garnish'
+            alt: 'Club bar and beverages'
         },
         {
             id: 7,
-            image: '/placeholder.jpg', // Food
+            image: '/gallery/Frame 1000001126.jpg',
             category: 'Food',
-            alt: 'Gourmet pizza slice'
+            alt: 'Club dining and food experience'
         },
         {
             id: 8,
-            image: '/purple-neon-club-interior.jpg', // Ambience
+            image: '/gallery/Frame 1000001127.jpg',
             category: 'Ambience',
-            alt: 'Purple lighting in club setting'
+            alt: 'Club atmosphere and vibes'
+        },
+        {
+            id: 9,
+            image: '/gallery/Frame 1000001128.jpg',
+            category: 'Drinks',
+            alt: 'Bar setup and cocktails'
+        },
+        {
+            id: 10,
+            image: '/gallery/Frame 1000001129.jpg',
+            category: 'Ambience',
+            alt: 'Club dance floor and lighting'
+        },
+        {
+            id: 11,
+            image: '/gallery/Frame 1000001131.jpg',
+            category: 'Food',
+            alt: 'Club cuisine and dining'
+        },
+        {
+            id: 12,
+            image: '/gallery/Frame 1000001132.jpg',
+            category: 'Ambience',
+            alt: 'Club interior and seating'
+        },
+        {
+            id: 13,
+            image: '/gallery/Frame 1000001133.jpg',
+            category: 'Drinks',
+            alt: 'Premium bar experience'
         }
     ];
 
@@ -73,7 +103,7 @@ export default function GalleryPage() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#0d7377] to-[#222831] text-white">
             {/* Header with Gradient Background */}
-            <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-b-[30px] pb-8 pt-4">
+            <div className="header-gradient rounded-b-[30px] pb-8 pt-4">
                 <div className="flex items-center justify-between px-6 pt-4 mb-6">
                     <button
                         onClick={handleGoBack}

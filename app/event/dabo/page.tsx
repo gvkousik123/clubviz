@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -61,7 +61,7 @@ export default function DaboEventPage() {
             venue: 'DABO, Airport Road',
             date: 'APR 04',
             category: 'Techno & Bollytech',
-            image: '/dj-event-poster-with-woman-dj-and-neon-lighting.jpg',
+            image: '/gallery/Frame 1000001128.jpg',
         },
         {
             id: 2,
@@ -69,17 +69,15 @@ export default function DaboEventPage() {
             venue: 'DABO, Airport Road',
             date: 'APR 04',
             category: 'Bollywood & Bollytechno',
-            image: '/night-party-event-poster-with-purple-and-pink-neon.jpg',
+            image: '/gallery/Frame 1000001129.jpg',
         }
     ];
 
     const photos = [
-        '/crowded-nightclub-with-red-lighting-and-people-dan.jpg',
-        '/purple-neon-club-interior.jpg',
-        '/red-neon-lounge-interior.jpg',
-        '/dj-woman-with-headphones-and-sunglasses-in-neon-li.jpg',
-        '/night-party-event-poster-with-purple-and-pink-neon.jpg',
-        '/dj-event-poster-with-woman-dj-and-neon-lighting.jpg'
+        '/dabo ambience main dabo page/Media.jpg',
+        '/dabo ambience main dabo page/Media-1.jpg',
+        '/dabo ambience main dabo page/Media-2.jpg',
+        '/dabo ambience main dabo page/Media-3.jpg'
     ];
 
     return (
@@ -87,7 +85,7 @@ export default function DaboEventPage() {
             {/* Hero Section - Clean Image Only */}
             <div className="relative h-80 bg-black rounded-b-[30px] overflow-hidden">
                 <img
-                    src="/crowded-nightclub-with-red-lighting-and-people-dan.jpg"
+                    src="/dabo ambience main dabo page/Media.jpg"
                     alt="Dabo Club"
                     className="w-full h-full object-cover"
                 />
@@ -162,19 +160,44 @@ export default function DaboEventPage() {
                 </div>
             </div>
 
-            {/* Now Playing Section */}
+            {/* Now Playing Section with DJ Button */}
             <div className="px-6 py-6 bg-[#031313]">
-                <h3 className="text-white font-semibold text-sm mb-3">Now Playing</h3>
-                <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-[#1DB584] to-[#0891B2] rounded-lg flex items-center justify-center">
-                        <Music className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                        <div className="text-white text-sm font-bold mb-2">CLUB MUSIC</div>
-                        <div className="flex gap-2">
-                            <span className="bg-gradient-to-r from-[#1DB584] to-[#0891B2] text-white text-xs px-3 py-1 rounded-full font-medium">BollyAfro Mix</span>
-                            <span className="bg-gradient-to-r from-[#8B5CF6] to-[#EC4899] text-white text-xs px-3 py-1 rounded-full font-medium">Techno Vibes</span>
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-white font-semibold text-sm">Now Playing</h3>
+                </div>
+                <div className="glassmorphism p-4 rounded-2xl">
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="relative">
+                            <div className="w-16 h-16 header-gradient rounded-2xl flex items-center justify-center animate-pulse">
+                                <Music className="w-8 h-8 text-white" />
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-[#031313] flex items-center justify-center">
+                                <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                            </div>
                         </div>
+                        <div className="flex-1">
+                            <div className="text-white text-base font-bold mb-1">DJ MARTIN LIVE</div>
+                            <div className="text-white/70 text-sm">Spinning the best beats tonight</div>
+                        </div>
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                        <span className="header-gradient text-white text-xs px-3 py-1.5 rounded-full font-medium">BollyAfro Mix</span>
+                        <span className="bg-gradient-to-r from-[#8B5CF6] to-[#EC4899] text-white text-xs px-3 py-1.5 rounded-full font-medium">Techno Vibes</span>
+                        <span className="glassmorphism-light text-white text-xs px-3 py-1.5 rounded-full font-medium">EDM</span>
+                    </div>
+
+                    {/* Soundwave Visualization */}
+                    <div className="mt-4 flex items-center justify-center gap-1 h-12">
+                        {[4, 8, 6, 10, 7, 12, 9, 5, 11, 6, 8, 10, 7, 9, 6, 4].map((height, i) => (
+                            <div
+                                key={i}
+                                className="w-1 bg-gradient-to-t from-teal-500 to-cyan-400 rounded-full animate-soundwave"
+                                style={{
+                                    height: `${height * 3}px`,
+                                    animationDelay: `${i * 0.05}s`
+                                }}
+                            />
+                        ))}
                     </div>
                 </div>
             </div>
@@ -267,7 +290,7 @@ export default function DaboEventPage() {
                                     </div>
 
                                     {/* Full-width Teal Highlight Section */}
-                                    <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white text-sm font-medium px-3 py-2 w-full">
+                                    <div className="header-gradient text-white text-sm font-medium px-3 py-2 w-full">
                                         <div className="text-center">
                                             {event.category}
                                         </div>
@@ -330,7 +353,7 @@ export default function DaboEventPage() {
                 <div className="grid grid-cols-2 gap-3 mb-4">
                     {facilities.map((facility, index) => (
                         <div key={index} className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full flex items-center justify-center">
+                            <div className="w-6 h-6 header-gradient rounded-full flex items-center justify-center">
                                 <facility.icon className="w-3 h-3 text-white" />
                             </div>
                             <span className="text-white text-sm">{facility.label}</span>
@@ -412,7 +435,7 @@ export default function DaboEventPage() {
 
                 {/* Leave Review Button */}
                 <div className="flex items-center justify-center mt-6">
-                    <button className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-medium py-3 px-6 rounded-full hover:brightness-110 transition-all">
+                    <button className="header-gradient text-white font-medium py-3 px-6 rounded-full hover:brightness-110 transition-all">
                         Leave a review
                     </button>
                 </div>

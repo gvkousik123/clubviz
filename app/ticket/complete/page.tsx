@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Share, Eye } from 'lucide-react';
@@ -101,7 +101,7 @@ export default function BookingCompletePage() {
                 <div className="absolute bottom-0 left-0 right-0 p-6 pb-8 space-y-4">
                     <button
                         onClick={handleShareTicket}
-                        className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-semibold py-4 px-6 rounded-2xl 
+                        className="w-full header-gradient text-white font-semibold py-4 px-6 rounded-2xl 
                      shadow-lg shadow-teal-500/25 hover:shadow-xl hover:shadow-teal-500/30 
                      transform hover:scale-[1.02] transition-all duration-300 
                      border border-teal-400/20 backdrop-blur-sm

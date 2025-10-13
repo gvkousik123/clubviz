@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRouter } from 'next/navigation';
 import { ChevronRight, CreditCard, Building, DollarSign, ArrowLeft } from 'lucide-react';
@@ -37,7 +37,7 @@ export default function PaymentOptionsPage() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#0d7377] to-[#222831] text-white">
             {/* Header with Gradient Background */}
-            <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-b-[30px] pb-8 pt-4">
+            <div className="header-gradient rounded-b-[30px] pb-8 pt-4">
 
                 <div className="flex items-center justify-between px-6 pt-4 mb-6">
                     <button

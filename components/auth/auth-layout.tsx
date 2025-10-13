@@ -15,56 +15,15 @@ export function AuthLayout({
 }: AuthLayoutProps) {
     return (
         <div
-            className={`relative flex flex-col items-center justify-center w-full ${fullHeight ? 'h-screen max-h-screen' : ''} py-6 bg-[#0a0a0a] overflow-hidden`}
+            className={`relative flex flex-col items-center justify-center w-full ${fullHeight ? 'min-h-screen' : ''} py-6 bg-[#031313]`}
         >
-            {/* Background gradient/overlay */}
+            {/* Background blur effects - subtle accents only */}
             {withGradient && (
-                <>
-                    {/* Dark background base with enhanced gradient */}
-                    <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a]" />
-
-                    {/* Main teal gradient overlay */}
-                    <div
-                        className="absolute inset-0 z-0"
-                        style={{
-                            background: 'linear-gradient(135deg, rgba(6,182,212,0.15) 0%, rgba(20,184,166,0.25) 35%, rgba(14,116,144,0.2) 70%, rgba(0,0,0,0.8) 100%)',
-                        }}
-                    />
-
-                    {/* Central glow effect - enhanced */}
-                    <div
-                        className="absolute z-0 rounded-full opacity-35"
-                        style={{
-                            width: '90%',
-                            height: '80%',
-                            top: '10%',
-                            left: '5%',
-                            background: 'radial-gradient(ellipse, rgba(20,184,166,0.4) 0%, rgba(6,182,212,0.3) 30%, rgba(14,116,144,0.1) 60%, rgba(0,0,0,0) 100%)',
-                            filter: 'blur(80px)',
-                        }}
-                    />
-
-                    {/* Secondary teal accent */}
-                    <div
-                        className="absolute z-0 rounded-full opacity-25"
-                        style={{
-                            width: '40%',
-                            height: '30%',
-                            top: '30%',
-                            left: '60%',
-                            background: 'radial-gradient(circle, rgba(34,197,94,0.3) 0%, rgba(6,182,212,0.2) 50%, rgba(0,0,0,0) 100%)',
-                            filter: 'blur(60px)',
-                        }}
-                    />
-
-                    {/* Bottom glow effect - enhanced */}
-                    <div
-                        className="absolute bottom-0 left-0 right-0 z-0 h-[30vh]"
-                        style={{
-                            background: 'linear-gradient(to top, rgba(20,184,166,0.2) 0%, rgba(6,182,212,0.1) 50%, rgba(0,0,0,0) 100%)',
-                        }}
-                    />
-                </>
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-20 left-1/2 -translate-x-1/2 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-20 left-1/3 w-60 h-60 bg-cyan-500/10 rounded-full blur-3xl"></div>
+                    <div className="absolute top-1/3 right-1/4 w-40 h-40 bg-teal-500/10 rounded-full blur-2xl"></div>
+                </div>
             )}
 
             {/* Content */}

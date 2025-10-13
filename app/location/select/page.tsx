@@ -43,7 +43,7 @@ export default function LocationSelectPage() {
     return (
         <div className="min-h-screen bg-[#1e2328] text-white">
             {/* Header with Gradient Background */}
-            <div className="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-b-[30px] pb-8 pt-4">
+            <div className="header-gradient rounded-b-[30px] pb-8 pt-4">
                 <div className="flex items-center justify-center px-6 pt-4 mb-8 relative">
                     <button
                         onClick={handleGoBack}

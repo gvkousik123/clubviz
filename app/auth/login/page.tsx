@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -34,14 +34,14 @@ export default function LoginPage(): JSX.Element {
             icon: Smartphone,
             label: 'Login with Mobile',
             href: '/auth/mobile',
-            gradient: 'from-gray-100 to-gray-300',
-            textColor: 'text-gray-900'
+            gradient: 'from-background-secondary to-background-tertiary',
+            textColor: 'text-white'
         },
         {
             icon: Mail,
             label: 'Login with Email',
             href: '/auth/email',
-            gradient: 'from-[#00afb2] to-[#005c61]',
+            gradient: 'from-accent-teal to-accent-tealDark',
             textColor: 'text-white'
         },
         {
@@ -56,20 +56,20 @@ export default function LoginPage(): JSX.Element {
 
     return (
         <AuthLayout>
-            <div className="relative w-full min-h-screen flex flex-col overflow-y-auto overflow-x-hidden">
+            <div className="relative w-full flex flex-col">
 
                 {/* Guest Login Button */}
-                <div className="absolute top-16 right-6 p-4 z-10">
+                <div className="absolute top-4 right-6 z-10">
                     <Link
                         href="/home"
-                        className="bg-gray-600/40 border border-cyan-400 text-white text-sm font-medium px-6 py-2 rounded-full backdrop-blur-sm hover:bg-gray-600/60 transition-all duration-300"
+                        className="glass-light border border-accent-cyan text-white text-sm font-medium px-6 py-2 rounded-full hover:glass-standard transition-all duration-300"
                     >
                         Guest Login
                     </Link>
                 </div>
 
                 {/* Main Content */}
-                <div className="flex-1 flex flex-col justify-center items-center px-6">
+                <div className="flex flex-col justify-center items-center px-6 py-8">
                     {/* Logo Section with Dark Shadows */}
                     <div className="flex flex-col items-center space-y-6 mb-8">
                         <ClubVizLogo size="lg" variant="full" />
@@ -77,7 +77,7 @@ export default function LoginPage(): JSX.Element {
                 </div>
 
                 {/* Login Options */}
-                <div className="w-full px-6">
+                <div className="w-full px-6 pb-6">
                     {/* Terms and Privacy */}
                     <div className="text-center space-y-1 text-white pb-5">
                         <p className="text-base">
@@ -170,13 +170,16 @@ export default function LoginPage(): JSX.Element {
                     </div>
 
                     {/* Register Option */}
-                    <div className="mt-6 text-center">
+                    <div className="mt-6 text-center pb-8">
                         <p className="text-white text-base mb-3">
                             Don't have an account?
                         </p>
                         <Link
-                            href="/auth/register"
-                            className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold px-8 py-3 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
+                            href="/auth/signup"
+                            className="inline-block header-gradient text-white font-semibold px-8 py-3 rounded-xl hover:from-teal-600 hover:to-cyan-600 transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
+                            style={{
+                                boxShadow: '0 4px 20px rgba(20, 184, 166, 0.3)',
+                            }}
                         >
                             Register Here
                         </Link>

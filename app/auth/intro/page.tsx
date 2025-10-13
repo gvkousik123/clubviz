@@ -18,16 +18,16 @@ export default function IntroScreen() {
     }, [router]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-teal-900 to-cyan-900 relative overflow-hidden">
-            {/* Background blur effects */}
-            <div className="absolute inset-0">
-                <div className="absolute top-20 left-1/2 -translate-x-1/2 w-80 h-80 bg-teal-500/30 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-20 left-1/3 w-60 h-60 bg-cyan-500/20 rounded-full blur-3xl"></div>
-                <div className="absolute top-1/3 right-1/4 w-40 h-40 bg-emerald-500/20 rounded-full blur-2xl"></div>
+        <div className="h-screen bg-[#031313] relative overflow-hidden">
+            {/* Background blur effects - subtle accents */}
+            <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-20 left-1/2 -translate-x-1/2 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-20 left-1/3 w-60 h-60 bg-cyan-500/10 rounded-full blur-3xl"></div>
+                <div className="absolute top-1/3 right-1/4 w-40 h-40 bg-teal-500/10 rounded-full blur-2xl"></div>
             </div>
 
             {/* Content */}
-            <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6">
+            <div className="relative z-10 flex flex-col items-center justify-center h-full px-6">
                 {/* Logo */}
                 <div className="mb-8">
                     <ClubVizLogo size="lg" variant="full" />
@@ -40,7 +40,7 @@ export default function IntroScreen() {
                             className="absolute -top-6 -left-4 text-4xl text-teal-400 opacity-80"
                             style={{
                                 textShadow: '0 0 15px rgba(20, 184, 166, 0.6)',
-                                fontFamily: "'Poppins', sans-serif"
+                                fontFamily: "'Manrope', sans-serif"
                             }}
                         >
                             "
@@ -50,7 +50,7 @@ export default function IntroScreen() {
                             style={{
                                 color: '#5eead4',
                                 textShadow: '0 0 10px rgba(94, 234, 212, 0.4)',
-                                fontFamily: "'Poppins', sans-serif"
+                                fontFamily: "'Manrope', sans-serif"
                             }}
                         >
                             IGNITE
@@ -61,7 +61,7 @@ export default function IntroScreen() {
                             className="absolute -bottom-8 -right-4 text-4xl text-teal-400 opacity-80"
                             style={{
                                 textShadow: '0 0 15px rgba(20, 184, 166, 0.6)',
-                                fontFamily: "'Poppins', sans-serif"
+                                fontFamily: "'Manrope', sans-serif"
                             }}
                         >
                             "

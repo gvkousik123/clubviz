@@ -35,6 +35,7 @@ const config = {
         text: designSystem.colors.text,
         accent: designSystem.colors.accent,
         semantic: designSystem.colors.semantic,
+        borders: designSystem.colors.borders,
         
         // Additional semantic mappings for common Tailwind patterns
         teal: designSystem.colors.primary, // Map teal to our primary
@@ -76,9 +77,8 @@ const config = {
       
       // Custom gradients using CSS-in-JS approach for Tailwind v4
       backgroundImage: {
-        'gradient-primary': designSystem.colors.gradients.primaryHero,
-        'gradient-secondary': designSystem.colors.gradients.secondaryHero,
-        'gradient-glass': designSystem.colors.gradients.glassEffect,
+        'gradient-primary': designSystem.colors.gradients.primaryHeader,
+        'gradient-secondary': designSystem.colors.gradients.alternativeHeader,
         'gradient-button': designSystem.colors.gradients.button,
         'gradient-card-overlay': designSystem.colors.gradients.cardOverlay,
       },
@@ -102,7 +102,7 @@ const config = {
           'box-shadow': designSystem.shadows.glass,
         },
         '.gradient-text-primary': {
-          'background': designSystem.colors.gradients.primaryHero,
+          'background': designSystem.colors.gradients.primaryHeader,
           'background-clip': 'text',
           'color': 'transparent',
         },

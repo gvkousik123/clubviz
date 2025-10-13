@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, Minus, Shirt, Phone, Mail, Ticket, ChevronRight } from 'lucide-react';
@@ -41,7 +41,7 @@ export default function FinalBookingReviewPage() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-dark-800 via-dark-900 to-black text-white">
             {/* Header with Gradient Background */}
-            <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-b-[30px] pb-6">
+            <div className="header-gradient rounded-b-[30px] pb-6">
                 <div className="flex items-center justify-between p-6 pt-12">
                     <button
                         onClick={handleGoBack}

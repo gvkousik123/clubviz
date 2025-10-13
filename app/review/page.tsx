@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
@@ -19,7 +19,7 @@ export default function ReviewPage() {
         {
             id: 1,
             name: 'Rahul Sharma',
-            avatar: '/placeholder-user.jpg',
+            avatar: '/gallery/Frame 1000001126.jpg',
             rating: 5,
             date: '2 days ago',
             review: 'Amazing night at DABO! The music was incredible and the vibes were perfect. Definitely coming back next weekend!',
@@ -29,7 +29,7 @@ export default function ReviewPage() {
         {
             id: 2,
             name: 'Priya Patel',
-            avatar: '/placeholder-user.jpg',
+            avatar: '/gallery/Frame 1000001127.jpg',
             rating: 4,
             date: '1 week ago',
             review: 'Great ambiance and drinks. The crowd was energetic and the DJ played some amazing tracks. Only complaint is it got too crowded by midnight.',
@@ -39,7 +39,7 @@ export default function ReviewPage() {
         {
             id: 3,
             name: 'Arjun Singh',
-            avatar: '/placeholder-user.jpg',
+            avatar: '/gallery/Frame 1000001128.jpg',
             rating: 5,
             date: '2 weeks ago',
             review: 'Best club experience in the city! Staff was super friendly and the table service was top-notch. Will definitely recommend to friends.',
@@ -62,7 +62,7 @@ export default function ReviewPage() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#0d7377] to-[#222831] text-white">
             {/* Header with Gradient Background */}
-            <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-b-[30px] pb-8 pt-4">
+            <div className="header-gradient rounded-b-[30px] pb-8 pt-4">
                 <div className="flex items-center justify-between px-6 pt-4 mb-6">
                     <button
                         onClick={handleGoBack}

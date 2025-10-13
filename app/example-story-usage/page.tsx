@@ -4,46 +4,46 @@ import { StoriesSection } from '@/components/story';
 
 // Example usage of the story components
 export default function ExampleHomePage() {
-    // Example story data
+    // Example story data - Updated with gallery Frame images
     const stories = [
         {
             id: '1',
-            image: '/crowded-nightclub-with-red-lighting-and-people-dan.jpg',
-            title: 'TECHNO NIGHT',
+            image: '/gallery/Frame 1000001117.jpg',
+            title: 'CLUB AMBIENCE',
             timestamp: '2 hours ago',
-            clubName: 'Club Neon',
+            clubName: 'Club Gallery',
             duration: 5,
         },
         {
             id: '2',
-            image: '/purple-neon-club-interior.jpg',
-            title: 'NEON VIBES',
+            image: '/gallery/Frame 1000001119.jpg',
+            title: 'NIGHT VIBES',
             timestamp: '4 hours ago',
-            clubName: 'Purple Haze',
+            clubName: 'Gallery Club',
             duration: 5,
         },
         {
             id: '3',
-            image: '/upscale-club-interior-with-blue-lighting.jpg',
-            title: 'BLUE LOUNGE',
+            image: '/gallery/Frame 1000001120.jpg',
+            title: 'DINING EXPERIENCE',
             timestamp: '6 hours ago',
-            clubName: 'Blue Moon',
+            clubName: 'Gallery Lounge',
             duration: 5,
         },
         {
             id: '4',
-            image: '/red-neon-lounge-interior.jpg',
-            title: 'RED ZONE',
+            image: '/gallery/Frame 1000001121.jpg',
+            title: 'DRINKS & BAR',
             timestamp: '8 hours ago',
-            clubName: 'Red Light',
+            clubName: 'Gallery Bar',
             duration: 5,
         },
         {
             id: '5',
-            image: '/upscale-bar-interior-with-bottles.jpg',
-            title: 'COCKTAIL BAR',
+            image: '/gallery/Frame 1000001123.jpg',
+            title: 'INTERIOR DESIGN',
             timestamp: '10 hours ago',
-            clubName: 'The Mixer',
+            clubName: 'Design Club',
             duration: 5,
         },
     ];

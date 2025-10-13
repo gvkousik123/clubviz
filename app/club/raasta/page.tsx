@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
@@ -15,7 +15,7 @@ export default function RaastaClubPage() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#0d7377] to-[#222831] text-white">
             {/* Header with Gradient Background */}
-            <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-b-[30px] pb-8">
+            <div className="header-gradient rounded-b-[30px] pb-8">
 
                 <div className="flex items-center justify-between px-6 pt-4">
                     <button
@@ -35,7 +35,7 @@ export default function RaastaClubPage() {
                 {/* Club Image */}
                 <div className="relative h-48 rounded-2xl overflow-hidden">
                     <img
-                        src="/upscale-club-interior-with-blue-lighting.jpg"
+                        src="/gallery/Frame 1000001126.jpg"
                         alt="Raasta Club"
                         className="w-full h-full object-cover"
                     />
@@ -73,11 +73,37 @@ export default function RaastaClubPage() {
                         </div>
                     </div>
 
-                    {/* Current Event */}
-                    <div className="bg-[#222831] rounded-lg p-4">
-                        <h3 className="text-white font-bold text-lg mb-2">Current Event</h3>
-                        <p className="text-teal-400 font-medium">Weekend Vibes with DJ Zara</p>
-                        <p className="text-white/70 text-sm mt-1">Starting at 9:00 PM</p>
+                    {/* Now Playing with DJ */}
+                    <div className="glassmorphism p-4 rounded-2xl">
+                        <h3 className="text-white font-semibold text-sm mb-4">Now Playing</h3>
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="relative">
+                                <div className="w-16 h-16 header-gradient rounded-2xl flex items-center justify-center animate-pulse">
+                                    <span className="text-white text-2xl font-bold">Z</span>
+                                </div>
+                                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-[#031313] flex items-center justify-center">
+                                    <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                                </div>
+                            </div>
+                            <div className="flex-1">
+                                <div className="text-white text-base font-bold mb-1">DJ ZARA LIVE</div>
+                                <div className="text-white/70 text-sm">Weekend Vibes - Starting at 9:00 PM</div>
+                            </div>
+                        </div>
+
+                        {/* Soundwave Visualization */}
+                        <div className="flex items-center justify-center gap-1 h-12">
+                            {[4, 8, 6, 10, 7, 12, 9, 5, 11, 6, 8, 10, 7, 9, 6, 4].map((height, i) => (
+                                <div
+                                    key={i}
+                                    className="w-1 bg-gradient-to-t from-teal-500 to-cyan-400 rounded-full animate-soundwave"
+                                    style={{
+                                        height: `${height * 3}px`,
+                                        animationDelay: `${i * 0.05}s`
+                                    }}
+                                />
+                            ))}
+                        </div>
                     </div>
 
                     {/* Action Buttons */}

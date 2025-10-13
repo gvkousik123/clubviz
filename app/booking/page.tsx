@@ -1,16 +1,64 @@
-'use client';
+﻿'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Plus, Minus } from 'lucide-react';
 import { useDragScroll } from '@/hooks/use-drag-scroll';
+import { BookingService } from '@/lib/services/booking.service';
+import { Table } from '@/lib/api-types';
+import { toast } from '@/hooks/use-toast';
 
 export default function BookingPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const clubId = searchParams.get('clubId');
+    const eventId = searchParams.get('eventId');
+
     const [guests, setGuests] = useState(4);
     const [selectedDate, setSelectedDate] = useState('04');
     const [selectedTime, setSelectedTime] = useState('18:30 PM');
+    const [availableTables, setAvailableTables] = useState<Table[]>([]);
+    const [loading, setLoading] = useState(false);
     const dateScrollRef = useDragScroll();
+
+    // Fetch available tables when parameters change
+    useEffect(() => {
+        const fetchAvailableTables = async () => {
+            if (!clubId) return;
+
+            setLoading(true);
+            try {
+                // Format date and time for API (you may need to adjust this based on your API requirements)
+                const bookingDate = `2024-01-${selectedDate}`;
+                const bookingTime = selectedTime.replace(' PM', '').replace(' AM', '');
+                const dateTime = `${bookingDate}T${bookingTime}:00`;
+
+                const response = await BookingService.getAvailableTables(
+                    clubId,
+                    dateTime,
+                    guests
+                );
+
+                if (response.success && response.data) {
+                    setAvailableTables(response.data);
+                } else {
+                    throw new Error(response.message || 'Failed to fetch tables');
+                }
+            } catch (error) {
+                console.error('Error fetching available tables:', error);
+                toast({
+                    title: "Error",
+                    description: "Failed to fetch available tables. Please try again.",
+                    variant: "destructive",
+                });
+                setAvailableTables([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAvailableTables();
+    }, [clubId, selectedDate, selectedTime, guests]);
 
     const handleGoBack = () => {
         router.back();
@@ -37,7 +85,25 @@ export default function BookingPage() {
     };
 
     const handleContinue = () => {
-        router.push('/booking/table-selection');
+        if (!clubId) {
+            toast({
+                title: "Error",
+                description: "Club ID is missing. Please go back and select a club.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        // Pass booking details to table selection page
+        const bookingParams = new URLSearchParams({
+            clubId,
+            date: `2024-01-${selectedDate}`,
+            time: selectedTime,
+            guests: guests.toString(),
+            ...(eventId && { eventId })
+        });
+
+        router.push(`/booking/table-selection?${bookingParams.toString()}`);
     };
 
     // Date options
@@ -65,7 +131,7 @@ export default function BookingPage() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#0d7377] to-[#222831] text-white">
             {/* Header with Gradient Background */}
-            <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-b-[30px] pb-8 pt-4">
+            <div className="header-gradient rounded-b-[30px] pb-8 pt-4">
                 <div className="flex items-center justify-between px-6 pt-4 mb-6">
                     <button
                         onClick={handleGoBack}
@@ -168,21 +234,47 @@ export default function BookingPage() {
                     </div>
                 )}
 
+                {/* Available Tables Info */}
+                {clubId && (
+                    <div className="space-y-4">
+                        <h2 className="text-white font-medium text-lg">Table Availability</h2>
+                        <div className="p-4 bg-[#222831] rounded-2xl">
+                            {loading ? (
+                                <div className="flex items-center justify-center py-4">
+                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-teal-400"></div>
+                                    <span className="ml-2 text-white/70">Checking availability...</span>
+                                </div>
+                            ) : (
+                                <div className="text-center">
+                                    <p className="text-white font-medium">
+                                        {availableTables.length} tables available
+                                    </p>
+                                    <p className="text-white/70 text-sm">
+                                        for {guests} guests on selected date & time
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 {/* Continue Button */}
                 <div className="pt-4">
                     {selectedTime === '18:30 PM' ? (
                         <button
                             onClick={handleSelectTable}
-                            className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-2xl transition-all duration-300"
+                            disabled={loading || (!!clubId && availableTables.length === 0)}
+                            className="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl transition-all duration-300"
                         >
-                            Select Table
+                            {loading ? 'Checking...' : availableTables.length === 0 && clubId ? 'No Tables Available' : 'Select Table'}
                         </button>
                     ) : (
                         <button
                             onClick={handleContinue}
-                            className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-2xl transition-all duration-300"
+                            disabled={loading || (!!clubId && availableTables.length === 0)}
+                            className="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl transition-all duration-300"
                         >
-                            Continue
+                            {loading ? 'Checking...' : availableTables.length === 0 && clubId ? 'No Tables Available' : 'Continue'}
                         </button>
                     )}
                 </div>
