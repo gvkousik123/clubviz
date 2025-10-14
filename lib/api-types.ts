@@ -24,15 +24,10 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  username: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
+  fullName: string;
   email: string;
+  phoneNumber: string;
   password: string;
-  age: number;
-  dateOfBirth?: string;
-  gender?: 'male' | 'female' | 'other';
 }
 
 export interface OTPRequest {

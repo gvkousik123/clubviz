@@ -3,7 +3,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, Menu, MapPin, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Search,
+  Menu,
+  MapPin,
+  User,
+  SlidersHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  Heart,
+  Bookmark,
+  Phone,
+  MessageCircle,
+  Instagram,
+  Mail,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SidebarMenu from '@/components/ui/sidebar-menu';
@@ -14,658 +29,596 @@ import { EventService } from '@/lib/services/event.service';
 import { Club, Event } from '@/lib/api-types';
 import { toast } from '@/hooks/use-toast';
 
-// Mock data for vibe meter - Updated with organized images
-const vibeMeterData = [
-    { id: 1, name: 'DABO', logo: '/dabo ambience main dabo page/Media.jpg', color: 'border-cyan-400' },
-    { id: 2, name: 'Elite', logo: '/gallery/Frame 1000001117.jpg', color: 'border-cyan-400' },
-    { id: 3, name: 'Escape', logo: '/gallery/Frame 1000001119.jpg', color: 'border-cyan-400' },
-    { id: 4, name: 'Nitro', logo: '/gallery/Frame 1000001120.jpg', color: 'border-cyan-400' },
-    { id: 5, name: 'GARAGE', logo: '/gallery/Frame 1000001121.jpg', color: 'border-cyan-400' },
+const heroSlides = [
+  {
+    id: 1,
+    image: '/event list/Rectangle 1.jpg',
+    musicBy: 'DJ MARTIN',
+    hostedBy: 'DJ AMIL',
+    sponsor: 'SPONSORED',
+    bookingLink: '/booking',
+  },
+  {
+    id: 2,
+    image: '/event list/Rectangle 2.jpg',
+    musicBy: 'DJ ALEXXX',
+    hostedBy: 'CLUB ELITE',
+    sponsor: 'FEATURED',
+    bookingLink: '/booking',
+  },
+  {
+    id: 3,
+    image: '/event list/Rectangle 3.jpg',
+    musicBy: 'DJ SHADE',
+    hostedBy: 'GARAGE CLUB',
+    sponsor: 'TRENDING',
+    bookingLink: '/booking',
+  },
 ];
 
-const venueData = [
-    {
-        id: 1,
-        name: 'DABO',
-        openTime: 'Open until 1:30 am',
-        rating: 4.2,
-        image: '/dabo ambience main dabo page/Media-1.jpg',
-        isFavorite: false,
-    },
-    {
-        id: 2,
-        name: 'GARAGE',
-        openTime: 'Open until 2:00 am',
-        rating: 4.5,
-        image: '/gallery/Frame 1000001123.jpg',
-        isFavorite: false,
-    },
+const vibeMeterFallback = [
+  { id: 'dabo', name: 'DABO', image: '/dabo ambience main dabo page/Media.jpg' },
+  { id: 'elite', name: 'Elite', image: '/gallery/Frame 1000001117.jpg' },
+  { id: 'escape', name: 'Escape', image: '/gallery/Frame 1000001119.jpg' },
+  { id: 'nitro', name: 'Nitro', image: '/gallery/Frame 1000001120.jpg' },
+  { id: 'garage', name: 'Garage', image: '/gallery/Frame 1000001121.jpg' },
 ];
 
-// Mock data for banner slides - Updated with event list images
-const bannerSlides = [
-    {
-        id: 1,
-        image: '/event list/Rectangle 1.jpg',
-        musicBy: 'DJ MARTIN',
-        hostedBy: 'DJ AMIL',
-        sponsor: 'SPONSORED',
-        bookingLink: '/booking'
-    },
-    {
-        id: 2,
-        image: '/event list/Rectangle 2.jpg',
-        musicBy: 'DJ ALEXXX',
-        hostedBy: 'CLUB ELITE',
-        sponsor: 'FEATURED',
-        bookingLink: '/booking'
-    },
-    {
-        id: 3,
-        image: '/event list/Rectangle 3.jpg',
-        musicBy: 'DJ SHADE',
-        hostedBy: 'GARAGE CLUB',
-        sponsor: 'TRENDING',
-        bookingLink: '/booking'
-    },
-    {
-        id: 4,
-        image: '/event list/Rectangle 4.jpg',
-        musicBy: 'DJ STORM',
-        hostedBy: 'NITRO CLUB',
-        sponsor: 'POPULAR',
-        bookingLink: '/booking'
-    },
-    {
-        id: 5,
-        image: '/event list/Rectangle 5.jpg',
-        musicBy: 'DJ VIBE',
-        hostedBy: 'ESCAPE',
-        sponsor: 'EXCLUSIVE',
-        bookingLink: '/booking'
+const venueFallback = [
+  {
+    id: 'venue-1',
+    name: 'DABO',
+    openTime: 'Open until 1:30 am',
+    rating: 4.2,
+    image: '/dabo ambience main dabo page/Media-1.jpg',
+  },
+  {
+    id: 'venue-2',
+    name: 'Garage',
+    openTime: 'Open until 2:00 am',
+    rating: 4.5,
+    image: '/gallery/Frame 1000001123.jpg',
+  },
+  {
+    id: 'venue-3',
+    name: 'Escape',
+    openTime: 'Open until 12:30 am',
+    rating: 4.3,
+    image: '/gallery/Frame 1000001120.jpg',
+  },
+];
+
+const eventFallback = [
+  {
+    id: 'event-1',
+    title: 'Freaky Friday with DJ Alexxx',
+    venue: 'DABO, Airport Road',
+    startDateTime: new Date('2025-04-04T19:30:00Z').toISOString(),
+    category: 'Techno & Bollytech',
+    image: '/event list/Rectangle 12249.jpg',
+  },
+  {
+    id: 'event-2',
+    title: 'Wow Wednesday with DJ Shade',
+    venue: 'DABO, Airport Road',
+    startDateTime: new Date('2025-04-06T19:30:00Z').toISOString(),
+    category: 'Bollywood & Bollytech',
+    image: '/event list/Rectangle 1.jpg',
+  },
+];
+
+type DisplayClub = Club | (typeof venueFallback)[number];
+type DisplayEvent = Event | (typeof eventFallback)[number];
+
+const getClubImage = (club: DisplayClub) => {
+  if ('images' in club && Array.isArray(club.images) && club.images.length > 0) {
+    return club.images[0];
+  }
+  if ('image' in club) {
+    return club.image;
+  }
+  return '/gallery/Frame 1000001117.jpg';
+};
+
+const getClubOpenInfo = (club: DisplayClub) => {
+  if ('openingHours' in club && Array.isArray(club.openingHours) && club.openingHours.length > 0) {
+    const closing = club.openingHours[0]?.closeTime;
+    if (closing) {
+      return `Open until ${closing}`;
     }
-];
+  }
+  if ('openTime' in club) {
+    return club.openTime;
+  }
+  return 'Open till late';
+};
 
-// Mock data for events - Updated with event list images
-const eventData = [
-    {
-        id: 1,
-        title: 'Freaky Friday with DJ Alexxx',
-        venue: 'DABO, Airport Road',
-        date: 'APR 04',
-        category: 'Techno & Bollytech',
-        image: '/event list/Rectangle 12249.jpg',
-        isFavorite: false,
-    },
-    {
-        id: 2,
-        title: 'Wow Wednesday with DJ Shade',
-        venue: 'DABO, Airport Road',
-        date: 'APR 06',
-        category: 'Bollywood & Bollytech',
-        image: '/event list/Rectangle 1.jpg',
-        isFavorite: false,
-    },
-];
+const getClubRating = (club: DisplayClub) => {
+  if ('rating' in club && typeof club.rating === 'number') {
+    return club.rating;
+  }
+  return 4.2;
+};
+
+const getEventImage = (event: DisplayEvent) => {
+  if ('images' in event && Array.isArray(event.images) && event.images.length > 0) {
+    return event.images[0];
+  }
+  if ('coverImage' in event && event.coverImage) {
+    return event.coverImage;
+  }
+  if ('image' in event) {
+    return event.image;
+  }
+  return '/gallery/Frame 1000001120.jpg';
+};
+
+const getEventVenue = (event: DisplayEvent) => {
+  if ('club' in event && event.club) {
+    return event.club.name;
+  }
+  if ('venue' in event) {
+    return event.venue;
+  }
+  return 'Club Venue';
+};
+
+const getEventGenres = (event: DisplayEvent) => {
+  if ('musicGenres' in event && Array.isArray(event.musicGenres) && event.musicGenres.length > 0) {
+    return event.musicGenres.join(', ');
+  }
+  if ('category' in event && event.category) {
+    return event.category;
+  }
+  return 'Club Night';
+};
+
+const getEventMonth = (date: string | undefined) => {
+  if (!date) return 'APR';
+  try {
+    return new Date(date).toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+  } catch (error) {
+    return 'APR';
+  }
+};
+
+const getEventDay = (date: string | undefined) => {
+  if (!date) return '04';
+  try {
+    return new Date(date).getDate().toString().padStart(2, '0');
+  } catch (error) {
+    return '04';
+  }
+};
 
 const HomePage: React.FC = () => {
-    const router = useRouter();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [currentSlide, setCurrentSlide] = useState(0);
-    const [isAutoScrollPaused, setIsAutoScrollPaused] = useState(false);
-    const [isScrolled, setIsScrolled] = useState(false);
+  const router = useRouter();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoScrollPaused, setIsAutoScrollPaused] = useState(false);
+  const [clubs, setClubs] = useState<Club[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [featuredClubs, setFeaturedClubs] = useState<Club[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    // API data state
-    const [clubs, setClubs] = useState<Club[]>([]);
-    const [events, setEvents] = useState<Event[]>([]);
-    const [featuredClubs, setFeaturedClubs] = useState<Club[]>([]);
-    const [loading, setLoading] = useState(true);
+  const venueScrollRef = useDragScroll();
+  const eventScrollRef = useDragScroll();
+  const autoScrollTimer = useRef<NodeJS.Timeout | null>(null);
 
-    const venueScrollRef = useDragScroll();
-    const eventScrollRef = useDragScroll();
-    const autoScrollTimer = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    const fetchHomeData = async () => {
+      setLoading(true);
+      try {
+        const [featuredClubsResponse, featuredEventsResponse, clubsResponse, eventsResponse] = await Promise.all([
+          ClubService.getFeaturedClubs(10),
+          EventService.getFeaturedEvents(10),
+          ClubService.getClubs({ page: 1, limit: 20 }),
+          EventService.getEvents({ page: 1, limit: 20 }),
+        ]);
 
-    // Fetch real data on component mount
-    useEffect(() => {
-        const fetchHomeData = async () => {
-            setLoading(true);
-            try {
-                // Fetch featured clubs and events in parallel
-                const [featuredClubsResponse, featuredEventsResponse, clubsResponse, eventsResponse] = await Promise.all([
-                    ClubService.getFeaturedClubs(10),
-                    EventService.getFeaturedEvents(10),
-                    ClubService.getClubs({ page: 1, limit: 20 }),
-                    EventService.getEvents({ page: 1, limit: 20 })
-                ]);
-
-                if (featuredClubsResponse.success && featuredClubsResponse.data) {
-                    setFeaturedClubs(featuredClubsResponse.data);
-                }
-
-                if (clubsResponse.success && clubsResponse.data) {
-                    setClubs(clubsResponse.data.clubs);
-                }
-
-                if (featuredEventsResponse.success && featuredEventsResponse.data) {
-                    setEvents(featuredEventsResponse.data);
-                } else if (eventsResponse.success && eventsResponse.data) {
-                    setEvents(eventsResponse.data.events);
-                }
-            } catch (error) {
-                console.error('Error fetching home data:', error);
-                toast({
-                    title: "Error",
-                    description: "Failed to load home data. Please refresh the page.",
-                    variant: "destructive",
-                });
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchHomeData();
-    }, []);
-
-    // Auto-scroll functionality
-    useEffect(() => {
-        if (!isAutoScrollPaused) {
-            autoScrollTimer.current = setInterval(() => {
-                setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
-            }, 4000); // Auto-scroll every 4 seconds
+        if (featuredClubsResponse.success && featuredClubsResponse.data) {
+          setFeaturedClubs(featuredClubsResponse.data);
         }
 
-        return () => {
-            if (autoScrollTimer.current) {
-                clearInterval(autoScrollTimer.current);
-            }
-        };
-    }, [isAutoScrollPaused]);
+        if (clubsResponse.success && clubsResponse.data) {
+          setClubs(clubsResponse.data.clubs);
+        }
 
-    // Scroll detection for header behavior
-    useEffect(() => {
-        const handleScroll = () => {
-            const scrollPosition = window.scrollY;
-            setIsScrolled(scrollPosition > 50);
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
-    const handlePrevSlide = () => {
-        setCurrentSlide((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length);
+        if (featuredEventsResponse.success && featuredEventsResponse.data) {
+          setEvents(featuredEventsResponse.data);
+        } else if (eventsResponse.success && eventsResponse.data) {
+          setEvents(eventsResponse.data.events);
+        }
+      } catch (error) {
+        console.error('Error fetching home data:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load home data. Please refresh the page.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const handleNextSlide = () => {
-        setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
+    fetchHomeData();
+  }, []);
+
+  useEffect(() => {
+    if (!isAutoScrollPaused) {
+      autoScrollTimer.current = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+      }, 4500);
+    }
+
+    return () => {
+      if (autoScrollTimer.current) {
+        clearInterval(autoScrollTimer.current);
+      }
     };
+  }, [isAutoScrollPaused]);
 
-    const handleBannerTouch = () => {
-        setIsAutoScrollPaused(true);
-        setTimeout(() => setIsAutoScrollPaused(false), 5000); // Resume after 5 seconds
-    };
+  const handlePrevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+  };
 
-    const handleVibeMeterClick = (clubId: string) => {
-        router.push(`/story?clubId=${clubId}`);
-    };
+  const handleNextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+  };
 
-    const handleMenuClick = () => {
-        setIsSidebarOpen(true);
-    };
+  const handleHeroPause = () => {
+    setIsAutoScrollPaused(true);
+    setTimeout(() => setIsAutoScrollPaused(false), 6000);
+  };
 
-    const handleSidebarClose = () => {
-        setIsSidebarOpen(false);
-    };
+  const handleVibeMeterClick = (clubId: string) => {
+    router.push(`/story?clubId=${clubId}`);
+  };
 
-    return (
-        <div className="min-h-screen bg-background-primary font-sans">
-            {/* Fixed Header */}
-            <div className={`fixed top-0 left-0 right-0 z-40 w-full header-gradient transition-all duration-300 ${isScrolled
-                ? 'rounded-bl-[20px] rounded-br-[20px] pb-2 pt-2'
-                : 'rounded-bl-[32px] rounded-br-[32px] pb-4 pt-4'
-                }`}>
-                {/* Main Header */}
-                <div className="px-4">
-                    {/* Location and User Profile Row - Always Visible */}
-                    {!isScrolled && (
-                        <div className="flex justify-between items-center mb-4">
-                            <Link href="/location/select">
-                                <div className="flex items-center gap-2 hover:bg-white/10 rounded-lg px-2 py-1 transition-all duration-300">
-                                    <MapPin className="w-4 h-4 text-white" />
-                                    <span className="text-white font-medium">Dharampeth, Nagpur</span>
-                                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                    </svg>
-                                </div>
-                            </Link>
-                            <Link href="/account">
-                                <User className="w-6 h-6 text-white hover:text-cyan-300 transition-colors cursor-pointer" />
-                            </Link>
-                        </div>
-                    )}
+  const displayClubs = clubs.length ? clubs : venueFallback;
+  const displayEvents = events.length ? events : eventFallback;
+  const displayVibeMeter = (featuredClubs.length ? featuredClubs : vibeMeterFallback).slice(0, 6);
 
-                    {/* Search Bar and Menu - Always Visible */}
-                    <div className="flex gap-3 pb-2">
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-tertiary" />
-                            <Input
-                                placeholder="Search"
-                                className="w-full pl-10 pr-4 py-2 glass-standard border-none rounded-[23px] text-text-primary placeholder-text-tertiary focus:ring-2 focus:ring-accent-cyan"
-                            />
-                        </div>
-                        <Button
-                            onClick={handleMenuClick}
-                            size="icon"
-                            className="w-9 h-9 glassmorphism hover:glassmorphism-strong rounded-[20px] border-none"
-                        >
-                            <Menu className="w-4 h-4 text-white" />
+  return (
+    <div className="min-h-screen bg-[#031313] text-white">
+      <div className="relative mx-auto max-w-[428px] pb-24">
+        <div className="pointer-events-none absolute -top-48 right-[-180px] h-[360px] w-[360px] rounded-full bg-[#0891b2]/25 blur-[140px]" aria-hidden />
+        <div className="pointer-events-none absolute top-[420px] left-[-220px] h-[320px] w-[320px] rounded-full bg-[#14b8a6]/20 blur-[140px]" aria-hidden />
+
+        <header className="relative header-gradient rounded-b-[36px] px-5 pb-10 pt-12 shadow-[0px_32px_80px_rgba(6,182,212,0.35)]">
+          <div className="flex items-center justify-between">
+            <Link
+              href="/location/select"
+              className="flex items-center gap-2 text-sm font-semibold tracking-wide text-white"
+            >
+              <MapPin className="h-4 w-4" />
+              Dharampeth, Nagpur
+              <ChevronDown className="h-4 w-4 text-white/70" />
+            </Link>
+            <div className="flex items-center gap-3">
+              <Button
+                size="icon"
+                variant="secondary"
+                className="h-11 w-11 rounded-full border border-white/15 bg-white/10 backdrop-blur-md hover:bg-white/20"
+                onClick={() => router.push('/account')}
+              >
+                <User className="h-5 w-5 text-white" />
+              </Button>
+              <Button
+                size="icon"
+                variant="secondary"
+                className="h-11 w-11 rounded-full border border-white/15 bg-white/10 backdrop-blur-md hover:bg-white/20"
+                onClick={() => setIsSidebarOpen(true)}
+              >
+                <Menu className="h-5 w-5 text-white" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="mt-6 flex items-center gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-white/60" />
+              <Input
+                placeholder="Search events, clubs, vibes..."
+                className="pill-input w-full pl-14 pr-6 text-base"
+              />
+            </div>
+            <Button
+              size="icon"
+              variant="secondary"
+              className="h-11 w-11 rounded-full border border-white/15 bg-white/10 backdrop-blur-md hover:bg-white/20"
+            >
+              <SlidersHorizontal className="h-5 w-5 text-white" />
+            </Button>
+          </div>
+        </header>
+
+        <main className="relative z-10 space-y-10 px-5 pt-10">
+          <section
+            className="relative overflow-hidden rounded-[30px] surface-card"
+            onMouseEnter={handleHeroPause}
+            onTouchStart={handleHeroPause}
+            onMouseLeave={() => setIsAutoScrollPaused(false)}
+          >
+            <div
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+            >
+              {heroSlides.map((slide) => (
+                <article key={slide.id} className="relative h-[320px] w-full flex-shrink-0">
+                  <img
+                    src={slide.image}
+                    alt={slide.musicBy}
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/45 to-[#031313]/95" />
+
+                  <div className="absolute left-5 top-5 flex items-center gap-2">
+                    <span className="badge-tag text-[10px] uppercase tracking-[0.3em]">{slide.sponsor}</span>
+                  </div>
+
+                  <div className="absolute bottom-8 left-6 right-6 space-y-4">
+                    <div className="flex items-start justify-between gap-6">
+                      <div className="space-y-2">
+                        <p className="text-[11px] uppercase tracking-[0.4em] text-white/70">Music by</p>
+                        <h2 className="text-[32px] font-extrabold leading-[1.1]">{slide.musicBy}</h2>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[11px] uppercase tracking-[0.4em] text-white/70">Hosted by</p>
+                        <h3 className="text-lg font-semibold">{slide.hostedBy}</h3>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Link href={slide.bookingLink}>
+                        <Button size="default" variant="primary" className="px-7 py-3 text-sm uppercase tracking-[0.2em]">
+                          Book Now
                         </Button>
+                      </Link>
+                      <div className="flex items-center gap-2 text-sm text-white/70">
+                        <div className="h-2 w-2 rounded-full bg-[#1db584]" />
+                        Live tonight
+                      </div>
                     </div>
-                </div>
+                  </div>
+                </article>
+              ))}
             </div>
 
-            {/* Main Content */}
-            <div className={`px-4 py-6 space-y-8 transition-all duration-300 ${isScrolled ? 'pt-20' : 'pt-32'
-                }`}>
-                {/* Hero Banner with Auto-scroll */}
-                <div
-                    className="relative h-[262px] rounded-[20px] overflow-hidden shadow-lg"
-                    onTouchStart={handleBannerTouch}
-                    onMouseEnter={() => setIsAutoScrollPaused(true)}
-                    onMouseLeave={() => setIsAutoScrollPaused(false)}
+            <div className="absolute inset-x-0 bottom-5 flex items-center justify-between px-5">
+              <Button
+                variant="secondary"
+                size="icon"
+                className="h-10 w-10 rounded-full border border-white/15 bg-black/40 hover:bg-black/60"
+                onClick={handlePrevSlide}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <div className="flex items-center gap-2">
+                {heroSlides.map((slide, index) => (
+                  <button
+                    key={slide.id}
+                    className={`h-[6px] rounded-full transition-all duration-300 ${
+                      index === currentSlide ? 'w-8 bg-white' : 'w-3 bg-white/40'
+                    }`}
+                    onClick={() => setCurrentSlide(index)}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
+              <Button
+                variant="secondary"
+                size="icon"
+                className="h-10 w-10 rounded-full border border-white/15 bg-black/40 hover:bg-black/60"
+                onClick={handleNextSlide}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
+          </section>
+
+          <section>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-semibold tracking-wide">Vibe Meter</h3>
+                <div className="divider-line w-16" />
+              </div>
+              <Link href="/story" className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-300">
+                View All
+              </Link>
+            </div>
+            <div className="mt-6 flex gap-4 overflow-x-auto pb-1 scrollbar-hide">
+              {displayVibeMeter.map((club, index) => (
+                <button
+                  key={club.id ?? `vibe-${index}`}
+                  onClick={() => handleVibeMeterClick(String(club.id ?? club.name))}
+                  className="group flex flex-col items-center"
                 >
-                    {/* Banner Slides Container */}
-                    <div
-                        className="flex transition-transform duration-500 ease-in-out w-full h-full"
-                        style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-                    >
-                        {bannerSlides.map((slide) => (
-                            <div key={slide.id} className="relative w-full h-full flex-shrink-0">
-                                <img
-                                    src={slide.image}
-                                    alt="DJ Event"
-                                    className="w-full h-full object-cover"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="circle-glow mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-black/70">
+                    <div className="h-[74px] w-[74px] overflow-hidden rounded-full border border-white/15">
+                      <img
+                        src={(club as Club).images?.[0] ?? (club as any).image}
+                        alt={club.name}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  </div>
+                  <span className="text-xs font-medium uppercase tracking-[0.25em] text-white/60 group-hover:text-white">
+                    {club.name.length > 10 ? `${club.name.substring(0, 10)}…` : club.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
 
-                                {/* Content Overlay */}
-                                <div className="absolute top-4 left-4">
-                                    <span className="bg-black/40 text-white text-xs px-2 py-1 rounded">{slide.sponsor}</span>
-                                </div>
-                                <div className="absolute bottom-4 left-4">
-                                    <div className="text-white">
-                                        <p className="text-xs opacity-80">MUSIC BY</p>
-                                        <p className="font-bold">{slide.musicBy}</p>
-                                    </div>
-                                </div>
-                                <div className="absolute bottom-4 right-4">
-                                    <div className="text-white text-right">
-                                        <p className="text-xs opacity-80">HOSTED BY</p>
-                                        <p className="font-bold">{slide.hostedBy}</p>
-                                    </div>
-                                </div>
-                                <div className="absolute top-4 right-4">
-                                    <Link href={slide.bookingLink}>
-                                        <Button className="header-gradient hover:header-gradient-alt text-text-primary text-xs px-3 py-1 rounded-full">
-                                            BOOK NOW
-                                        </Button>
-                                    </Link>
-                                </div>
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-semibold tracking-wide">Venue List</h3>
+                <div className="divider-line w-16" />
+              </div>
+              <Link href="/clubs" className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-300">
+                View All
+              </Link>
+            </div>
+            <div ref={venueScrollRef} className="scrollbar-hide overflow-x-auto pb-1">
+              <div className="flex gap-5 pr-4" style={{ width: 'max-content' }}>
+                {loading
+                  ? Array.from({ length: 3 }).map((_, index) => (
+                      <div key={`venue-skeleton-${index}`} className="h-[260px] w-[300px] animate-pulse rounded-[28px] bg-white/5" />
+                    ))
+                  : displayClubs.slice(0, 6).map((club, index) => (
+                      <Link key={club.id ?? `venue-${index}`} href={`/club/${club.id ?? 'dabo'}`}>
+                        <article className="surface-panel relative h-[260px] w-[300px] overflow-hidden rounded-[28px] border border-white/10">
+                          <div className="relative h-[180px] overflow-hidden">
+                            <img
+                              src={getClubImage(club)}
+                              alt={club.name}
+                              className="h-full w-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-black/20 to-[#031313]/95" />
+                            <div className="absolute left-4 top-4 flex items-center gap-2">
+                              <div className="flex items-center gap-1 rounded-full bg-black/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-white/70">
+                                <Heart className="h-3 w-3" /> Live
+                              </div>
                             </div>
-                        ))}
-                    </div>
-
-                    {/* Navigation Buttons */}
-                    <button
-                        onClick={handlePrevSlide}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center transition-all duration-200"
-                    >
-                        <ChevronLeft className="w-4 h-4 text-white" />
-                    </button>
-                    <button
-                        onClick={handleNextSlide}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center transition-all duration-200"
-                    >
-                        <ChevronRight className="w-4 h-4 text-white" />
-                    </button>
-
-                    {/* Pagination dots */}
-                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-                        <div className="flex gap-1">
-                            {bannerSlides.map((_, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => setCurrentSlide(index)}
-                                    className={`w-2 h-2 rounded-full transition-all duration-200 ${index === currentSlide ? 'bg-white' : 'bg-white/50 hover:bg-white/70'
-                                        }`}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Quick Access (Development Testing) */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        <h2 className="text-white font-semibold text-base whitespace-nowrap">Quick Access</h2>
-                        <div className="flex-1 h-px bg-gradient-to-r from-cyan-400 to-transparent"></div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 mb-3">
-                        <Link href="/booking/review">
-                            <Button className="w-full bg-purple-600/20 border border-purple-400/40 text-purple-400 text-xs py-3 rounded-[16px] hover:bg-purple-600/30 transition-all">
-                                Start Booking
+                            <Button
+                              variant="secondary"
+                              size="icon"
+                              className="absolute right-4 top-4 h-10 w-10 rounded-full border border-white/10 bg-black/40 hover:bg-black/60"
+                            >
+                              <Bookmark className="h-4 w-4" />
                             </Button>
-                        </Link>
-                        <Link href="/ticket/view">
-                            <Button className="w-full bg-primary-600/20 border border-primary-400/40 text-primary-400 text-xs py-3 rounded-[16px] hover:bg-primary-600/30 transition-all">
-                                View Ticket
-                            </Button>
-                        </Link>
-                    </div>
-                    <div className="grid grid-cols-3 gap-3">
-                        <Link href="/ticket/complete">
-                            <Button className="w-full bg-green-600/20 border border-green-400/40 text-green-400 text-xs py-3 rounded-[16px] hover:bg-green-600/30 transition-all">
-                                Book Complete
-                            </Button>
-                        </Link>
-                        <Link href="/ticket/cancel">
-                            <Button className="w-full bg-red-600/20 border border-red-400/40 text-red-400 text-xs py-3 rounded-[16px] hover:bg-red-600/30 transition-all">
-                                Cancel Test
-                            </Button>
-                        </Link>
-                        <Link href="/booking/form">
-                            <Button className="w-full bg-orange-600/20 border border-orange-400/40 text-orange-400 text-xs py-3 rounded-[16px] hover:bg-orange-600/30 transition-all">
-                                Booking Form
-                            </Button>
-                        </Link>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 mt-3">
-                        <Link href="/profile/edit">
-                            <Button className="w-full bg-teal-600/20 border border-teal-400/40 text-teal-400 text-xs py-3 rounded-[16px] hover:bg-teal-600/30 transition-all">
-                                Edit Profile
-                            </Button>
-                        </Link>
-                        <Link href="/payment/options">
-                            <Button className="w-full bg-blue-600/20 border border-blue-400/40 text-blue-400 text-xs py-3 rounded-[16px] hover:bg-blue-600/30 transition-all">
-                                Payment Options
-                            </Button>
-                        </Link>
-                    </div>
-                </div>
-
-                {/* Vibe Meter Section */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        <h2 className="text-white font-semibold text-base whitespace-nowrap">Vibe Meter</h2>
-                        <div className="flex-1 h-px bg-gradient-to-r from-cyan-400 to-transparent"></div>
-                    </div>
-                    <div className="flex gap-4 pb-2">
-                        {loading ? (
-                            // Loading skeleton for vibe meter
-                            Array.from({ length: 5 }).map((_, index) => (
-                                <div key={`loading-${index}`} className="flex-shrink-0 w-16 h-16 rounded-full border-2 border-cyan-400 bg-gray-800 animate-pulse"></div>
-                            ))
-                        ) : (
-                            featuredClubs.slice(0, 5).map((club) => (
-                                <button
-                                    key={club.id}
-                                    onClick={() => handleVibeMeterClick(club.id)}
-                                    className="flex-shrink-0 w-16 h-16 rounded-full border-2 border-cyan-400 bg-black/80 flex items-center justify-center hover:scale-105 transition-transform p-2"
-                                >
-                                    <div className="w-full h-full rounded-full overflow-hidden bg-gray-800 flex items-center justify-center">
-                                        {club.images && club.images.length > 0 ? (
-                                            <img
-                                                src={club.images[0]}
-                                                alt={club.name}
-                                                className="w-full h-full object-cover"
-                                                onError={(e) => {
-                                                    // Fallback to text if image fails to load
-                                                    const target = e.target as HTMLImageElement;
-                                                    target.style.display = 'none';
-                                                    const parent = target.parentElement;
-                                                    if (parent) {
-                                                        parent.innerHTML = `<span class="text-white text-xs font-bold text-center leading-tight">${club.name.substring(0, 8)}</span>`;
-                                                    }
-                                                }}
-                                            />
-                                        ) : (
-                                            <span className="text-white text-xs font-bold text-center leading-tight">
-                                                {club.name.substring(0, 8)}
-                                            </span>
-                                        )}
-                                    </div>
-                                </button>
-                            ))
-                        )}
-                    </div>
-                </div>
-
-                {/* Venue List Section */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        <h2 className="text-white font-semibold text-base whitespace-nowrap">Venue List</h2>
-                        <div className="flex-1 h-px bg-gradient-to-r from-cyan-400 to-transparent"></div>
-                        <Link href="/clubs" className="text-cyan-400 text-sm font-medium whitespace-nowrap">
-                            View All
-                        </Link>
-                    </div>
-                    <div ref={venueScrollRef} className="overflow-x-auto scrollbar-hide">
-                        <div className="flex gap-4 pb-16" style={{ width: 'max-content' }}>
-                            {loading ? (
-                                // Loading skeleton for venues
-                                Array.from({ length: 3 }).map((_, index) => (
-                                    <div key={`venue-loading-${index}`} className="flex-shrink-0 w-[336px] relative">
-                                        <div className="relative h-[197px] rounded-[20px] border border-teal-500/30 bg-gray-800 animate-pulse">
-                                            <div className="absolute -bottom-8 left-2 right-2 glassmorphism-strong border border-white/20 p-5 rounded-2xl h-20 z-10">
-                                                <div className="h-4 bg-gray-600 rounded mb-2"></div>
-                                                <div className="h-3 bg-gray-700 rounded w-2/3"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                clubs.slice(0, 6).map((club) => (
-                                    <Link key={club.id} href={`/club/${club.id}`}>
-                                        <div className="flex-shrink-0 w-[336px] relative cursor-pointer transform transition-all duration-300 hover:scale-105">
-                                            <div className="relative h-[197px] rounded-[20px] border border-teal-500/30">
-                                                <div className="rounded-[20px] overflow-hidden h-full">
-                                                    <img
-                                                        src={club.images?.[0] || `/gallery/Frame ${1000001117 + (index % 13)}.jpg`}
-                                                        alt={club.name}
-                                                        className="w-full h-full object-cover"
-                                                        onError={(e) => {
-                                                            const target = e.target as HTMLImageElement;
-                                                            target.src = `/gallery/Frame ${1000001117 + (index % 13)}.jpg`;
-                                                        }}
-                                                    />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                                                </div>
-
-                                                {/* Glass effect card that extends beyond main card */}
-                                                <div className="absolute -bottom-8 left-2 right-2 glassmorphism-strong border border-white/20 p-5 rounded-2xl h-20 z-10">
-                                                    <h3 className="text-white font-bold text-xl mb-2">{club.name}</h3>
-                                                    <p className="text-white/90 text-sm">
-                                                        {club.openingHours ? 'Open until 2:00 AM' : 'Hours not available'}
-                                                    </p>
-                                                </div>
-
-                                                <div className="absolute bottom-4 right-4 z-20">
-                                                    <div className="glassmorphism text-white text-sm font-bold px-3 py-1.5 rounded-lg">
-                                                        {club.rating || '4.5'}
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        // Toggle favorite functionality here
-                                                    }}
-                                                    className="absolute top-4 right-4 z-20 glassmorphism rounded-full p-2 hover:bg-white/20 transition-colors"
-                                                >
-                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                        <path
-                                                            d="M8 14.5l-5.5-5.5c-1.5-1.5-1.5-3.5 0-5s3.5-1.5 5 0l.5.5.5-.5c1.5-1.5 3.5-1.5 5 0s1.5 3.5 0 5L8 14.5z"
-                                                            stroke="white"
-                                                            strokeWidth="1.5"
-                                                            fill="none"
-                                                            className="hover:fill-red-500 transition-colors"
-                                                        />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Event List Section */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        <h2 className="text-white font-semibold text-base whitespace-nowrap">Event List</h2>
-                        <div className="flex-1 h-px bg-gradient-to-r from-cyan-400 to-transparent"></div>
-                        <Link href="/events" className="text-cyan-400 text-sm font-medium whitespace-nowrap">
-                            View All
-                        </Link>
-                    </div>
-                    <div ref={eventScrollRef} className="overflow-x-auto scrollbar-hide">
-                        <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
-                            {loading ? (
-                                // Loading skeleton for events
-                                Array.from({ length: 4 }).map((_, index) => (
-                                    <div key={`event-loading-${index}`} className="flex-shrink-0 w-[222px]">
-                                        <div className="bg-teal-900/20 rounded-[20px] overflow-hidden relative animate-pulse"
-                                            style={{
-                                                clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%)'
-                                            }}>
-                                            <div className="w-full h-[200px] bg-gray-700 rounded-t-[20px]"></div>
-                                            <div className="p-4 space-y-3">
-                                                <div className="h-4 bg-gray-600 rounded"></div>
-                                                <div className="h-3 bg-gray-700 rounded w-2/3"></div>
-                                                <div className="h-3 bg-gray-700 rounded w-1/2"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                events.slice(0, 6).map((event) => (
-                                    <div key={event.id} className="flex-shrink-0 w-[222px]">
-                                        <Link href={`/event/${event.id}`}>
-                                            <div className="bg-teal-900/20 rounded-[20px] overflow-hidden relative"
-                                                style={{
-                                                    clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%)'
-                                                }}>
-                                                {/* Image Section */}
-                                                <div className="relative">
-                                                    <img
-                                                        src={event.images?.[0] || `/gallery/Frame ${1000001120 + (index % 13)}.jpg`}
-                                                        alt={event.title}
-                                                        className="w-full h-[200px] object-cover border-2 border-teal-400/30 rounded-t-[20px]"
-                                                        onError={(e) => {
-                                                            const target = e.target as HTMLImageElement;
-                                                            target.src = `/gallery/Frame ${1000001120 + (index % 13)}.jpg`;
-                                                        }}
-                                                    />
-                                                    {/* Date Badge */}
-                                                    <div className="absolute top-3 right-3 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg min-w-[45px]">
-                                                        <div className="text-center">
-                                                            <div className="text-[10px] opacity-70">
-                                                                {new Date(event.startDateTime).toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
-                                                            </div>
-                                                            <div className="text-sm font-bold">
-                                                                {new Date(event.startDateTime).getDate()}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Content Section */}
-                                                <div className="p-4">
-                                                    <div className="flex items-start justify-between mb-3">
-                                                        <div className="flex-1">
-                                                            <h3 className="text-white font-semibold text-sm mb-1 leading-tight">
-                                                                {event.title}
-                                                            </h3>
-                                                            <p className="text-white/70 text-xs mb-1">
-                                                                {event.club?.name || 'Club TBA'}
-                                                            </p>
-                                                            <p className="text-teal-400 text-xs font-medium">
-                                                                {event.musicGenres?.join(', ') || 'Various Genres'}
-                                                            </p>
-                                                        </div>
-                                                        <button className="w-8 h-8 bg-black/40 rounded-full flex items-center justify-center hover:bg-black/60 transition-all duration-300">
-                                                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                                                            </svg>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
-                </div>
+                            <div className="absolute -bottom-8 right-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-black/80 text-lg font-bold text-[#1db584] shadow-[0_16px_24px_rgba(3,19,19,0.6)]">
+                              {getClubRating(club).toFixed(1)}
+                            </div>
+                          </div>
+                          <div className="mt-10 space-y-1 px-5 pb-5">
+                            <h4 className="text-xl font-semibold">{club.name}</h4>
+                            <p className="text-sm text-white/70">{getClubOpenInfo(club)}</p>
+                          </div>
+                        </article>
+                      </Link>
+                    ))}
+              </div>
             </div>
+          </section>
 
-            {/* Footer */}
-            <div className="p-6 space-y-6 ">
-                <div className="text-center">
-                    <div className="flex justify-center mb-4">
-                        <ClubVizLogo size="sm" variant="full" />
-                    </div>
-                    <p className="text-white text-sm leading-relaxed max-w-[300px] mx-auto">
-                        Dive into the ultimate party scene discover lit club nights, epic events, and non-stop vibes all in one place!
-                    </p>
-                </div>
-
-                <div className="flex justify-center gap-6">
-                    <div className="w-6 h-6 bg-white/20 rounded-lg"></div>
-                    <div className="w-6 h-6 bg-white/20 rounded-lg"></div>
-                    <div className="w-6 h-6 bg-white/20 rounded-lg"></div>
-                    <div className="w-6 h-6 bg-white/20 rounded-lg"></div>
-                </div>
-
-                <div className="bg-[#0d7377] rounded-[16px] p-4 space-y-3 mx-6">
-                    <div className="flex items-center gap-3 text-white text-sm">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                        </svg>
-                        <span>contact@clubwiz.com</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-white text-sm">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                        </svg>
-                        <span>Location Details</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-white text-sm">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z" clipRule="evenodd" />
-                        </svg>
-                        <span>Terms & Condition</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-white text-sm">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z" clipRule="evenodd" />
-                        </svg>
-                        <span>Privacy Policy</span>
-                    </div>
-                </div>
-
-                <p className="text-white text-xs text-center opacity-80">
-                    Copy rights reserved with clubwiz.com
-                </p>
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-semibold tracking-wide">Event List</h3>
+                <div className="divider-line w-16" />
+              </div>
+              <Link href="/events" className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-300">
+                View All
+              </Link>
             </div>
+            <div ref={eventScrollRef} className="scrollbar-hide overflow-x-auto pb-1">
+              <div className="flex gap-5 pr-4" style={{ width: 'max-content' }}>
+                {loading
+                  ? Array.from({ length: 3 }).map((_, index) => (
+                      <div key={`event-skeleton-${index}`} className="h-[270px] w-[220px] animate-pulse rounded-[24px] bg-white/5" />
+                    ))
+                  : displayEvents.slice(0, 8).map((event, index) => (
+                      <Link key={event.id ?? `event-${index}`} href={`/event/${event.id ?? 'dabo'}`}>
+                        <article
+                          className="relative w-[220px] overflow-hidden rounded-[26px] border border-white/10"
+                          style={{
+                            clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%)',
+                            background: 'rgba(14, 31, 31, 0.65)',
+                          }}
+                        >
+                          <div className="relative h-[200px] overflow-hidden">
+                            <img
+                              src={getEventImage(event)}
+                              alt={event.title}
+                              className="h-full w-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/35 to-[#031313]/95" />
+                            <div className="absolute right-4 top-4 rounded-xl bg-gradient-to-b from-[#14b8a6] to-[#0891b2] px-3 py-2 text-center text-xs font-bold text-white">
+                              <div className="text-[10px] uppercase tracking-[0.3em] opacity-70">
+                                {getEventMonth(event.startDateTime)}
+                              </div>
+                              <div className="text-base leading-none">{getEventDay(event.startDateTime)}</div>
+                            </div>
+                          </div>
+                          <div className="space-y-3 px-4 pb-5 pt-4">
+                            <div>
+                              <h4 className="text-sm font-semibold leading-tight text-white">
+                                {event.title}
+                              </h4>
+                              <p className="mt-2 text-xs text-white/60">{getEventVenue(event)}</p>
+                            </div>
+                            <div className="badge-tag" data-variant="primary">
+                              {getEventGenres(event)}
+                            </div>
+                          </div>
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            className="absolute right-4 top-4 hidden h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/40 text-white hover:bg-black/60"
+                          >
+                            <Bookmark className="h-4 w-4" />
+                          </Button>
+                        </article>
+                      </Link>
+                    ))}
+              </div>
+            </div>
+          </section>
+        </main>
 
-            {/* Sidebar Menu */}
-            <SidebarMenu isOpen={isSidebarOpen} onClose={handleSidebarClose} />
-        </div>
-    );
+        <footer className="px-5 pb-16 pt-12">
+          <div className="text-center">
+            <ClubVizLogo size="sm" variant="full" />
+            <p className="mt-4 text-sm text-white/70">
+              Dive into the ultimate party scene. Discover lit club nights, epic events, and non-stop vibes all in one place!
+            </p>
+          </div>
+
+          <div className="mt-7 flex items-center justify-center gap-4">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10">
+              <Phone className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10">
+              <MessageCircle className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10">
+              <Instagram className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10">
+              <Mail className="h-5 w-5 text-white" />
+            </div>
+          </div>
+
+          <div className="mt-8 space-y-3 rounded-[26px] border border-white/10 bg-gradient-to-br from-[#0d9488]/30 to-[#0891b2]/20 p-6">
+            <div className="flex items-center gap-3 text-sm text-white/85">
+              <Phone className="h-4 w-4 text-cyan-300" />
+              contact@clubwiz.com
+            </div>
+            <div className="flex items-center gap-3 text-sm text-white/85">
+              <MapPin className="h-4 w-4 text-cyan-300" />
+              Location Details
+            </div>
+            <div className="flex items-center gap-3 text-sm text-white/85">
+              <MessageCircle className="h-4 w-4 text-cyan-300" />
+              Terms &amp; Conditions
+            </div>
+            <div className="flex items-center gap-3 text-sm text-white/85">
+              <Mail className="h-4 w-4 text-cyan-300" />
+              Privacy Policy
+            </div>
+          </div>
+
+          <p className="mt-6 text-center text-xs text-white/50">
+            Copyrights reserved with clubwiz.com
+          </p>
+        </footer>
+
+        <SidebarMenu isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      </div>
+    </div>
+  );
 };
 
 export default HomePage;
