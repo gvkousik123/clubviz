@@ -24,11 +24,13 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
+  username: string;
   firstName: string;
   lastName: string;
-  phone: string;
+  phoneNumber: string;
   email: string;
   password: string;
+  age: number;
   dateOfBirth?: string;
   gender?: 'male' | 'female' | 'other';
 }
@@ -54,10 +56,12 @@ export interface AuthResponse {
 // User Types
 export interface User {
   id: string;
+  username?: string;
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
+  age?: number;
   avatar?: string;
   dateOfBirth?: string;
   gender?: 'male' | 'female' | 'other';

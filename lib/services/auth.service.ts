@@ -87,7 +87,13 @@ export class AuthService {
    */
   static async register(data: RegisterRequest): Promise<ApiResponse<AuthResponse>> {
     try {
-      const response = await api.post<ApiResponse<AuthResponse>>('/auth/signup', data);
+      const { age, ...rest } = data;
+      const payload = {
+        ...rest,
+        age: Number(age),
+      };
+
+      const response = await api.post<ApiResponse<AuthResponse>>('/auth/signup', payload);
       const result = handleApiResponse(response);
       
       // Store token in localStorage

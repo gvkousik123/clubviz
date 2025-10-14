@@ -13,10 +13,12 @@ export default function RegisterScreen() {
     const router = useRouter();
     const { toast } = useToast();
     const [formData, setFormData] = useState({
+        username: "",
         firstName: "",
         lastName: "",
         email: "",
-        phone: "",
+        phoneNumber: "",
+        age: "",
         password: "",
         confirmPassword: ""
     });
@@ -30,38 +32,60 @@ export default function RegisterScreen() {
         setIsLoading(true);
         setError(null);
 
+        const trimmedUsername = formData.username.trim();
+        const trimmedFirstName = formData.firstName.trim();
+        const trimmedLastName = formData.lastName.trim();
+        const trimmedEmail = formData.email.trim();
+        const trimmedPassword = formData.password.trim();
+        const trimmedConfirmPassword = formData.confirmPassword.trim();
+        const trimmedAge = formData.age.trim();
+        const sanitizedPhoneNumber = formData.phoneNumber.replace(/[^0-9]/g, '');
+
         // Basic validation
-        if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.password) {
-            setError('Please fill in all fields');
+        if (!trimmedUsername || !trimmedFirstName || !trimmedLastName || !trimmedEmail || !sanitizedPhoneNumber || !trimmedAge || !trimmedPassword) {
+            setError('Please fill in all required fields');
             setIsLoading(false);
             return;
         }
 
-        if (formData.password !== formData.confirmPassword) {
+        if (trimmedPassword !== trimmedConfirmPassword) {
             setError('Passwords do not match');
             setIsLoading(false);
             return;
         }
 
-        if (formData.password.length < 6) {
+        if (trimmedPassword.length < 6) {
             setError('Password must be at least 6 characters long');
             setIsLoading(false);
             return;
         }
 
-        if (!formData.email.includes('@')) {
-            setError('Please enter a valid email address');
+        const allowedDomains = ['gmail.com', 'yahoo.com'];
+        const emailParts = trimmedEmail.toLowerCase().split('@');
+
+        if (emailParts.length !== 2 || !allowedDomains.includes(emailParts[1])) {
+            setError('Email must be a Gmail or Yahoo address');
+            setIsLoading(false);
+            return;
+        }
+
+        const ageValue = parseInt(trimmedAge, 10);
+
+        if (Number.isNaN(ageValue) || ageValue <= 0) {
+            setError('Please enter a valid age');
             setIsLoading(false);
             return;
         }
 
         try {
             const response = await AuthService.register({
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                email: formData.email,
-                phone: formData.phone.replace(/[^0-9]/g, ''), // Clean phone number
-                password: formData.password
+                username: trimmedUsername,
+                firstName: trimmedFirstName,
+                lastName: trimmedLastName,
+                email: trimmedEmail.toLowerCase(),
+                phoneNumber: sanitizedPhoneNumber,
+                password: trimmedPassword,
+                age: ageValue
             });
 
             // Store authentication tokens
@@ -143,6 +167,21 @@ export default function RegisterScreen() {
 
                             {/* Registration Form */}
                             <form className="space-y-4" onSubmit={handleSubmit}>
+                                {/* Username Field */}
+                                <div>
+                                    <label className="block text-gray-800 font-medium mb-2">Username</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Choose a username"
+                                        value={formData.username}
+                                        onChange={(e) => handleInputChange('username', e.target.value)}
+                                        className="w-full py-4 px-4 rounded-2xl border-2 border-teal-400 
+                                             bg-gray-50 text-gray-900 placeholder-gray-400
+                                             focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent
+                                             transition-all duration-200"
+                                    />
+                                </div>
+
                                 {/* First Name Field */}
                                 <div>
                                     <label className="block text-gray-800 font-medium mb-2">First Name</label>
@@ -195,8 +234,24 @@ export default function RegisterScreen() {
                                     <input
                                         type="tel"
                                         placeholder="Enter your phone number"
-                                        value={formData.phone}
-                                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                                        value={formData.phoneNumber}
+                                        onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                                        className="w-full py-4 px-4 rounded-2xl border-2 border-teal-400 
+                                             bg-gray-50 text-gray-900 placeholder-gray-400
+                                             focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent
+                                             transition-all duration-200"
+                                    />
+                                </div>
+
+                                {/* Age Field */}
+                                <div>
+                                    <label className="block text-gray-800 font-medium mb-2">Age</label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        placeholder="Enter your age"
+                                        value={formData.age}
+                                        onChange={(e) => handleInputChange('age', e.target.value)}
                                         className="w-full py-4 px-4 rounded-2xl border-2 border-teal-400 
                                              bg-gray-50 text-gray-900 placeholder-gray-400
                                              focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent
