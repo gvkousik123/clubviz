@@ -1,448 +1,718 @@
 ﻿'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share, Heart, MapPin, Star, Phone, Clock, Users, Wifi, Car, Wine, Music, Utensils, Calendar, Camera } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import {
+    ArrowLeft,
+    Share,
+    Heart,
+    MapPin,
+    Star,
+    Phone,
+    Clock,
+    Users,
+    Wifi,
+    Car,
+    Wine,
+    Music,
+    Utensils,
+    Calendar,
+    Camera,
+    ShieldCheck,
+    Ticket,
+    ChevronRight,
+    Sparkles,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
+
+type Offer = {
+    icon: LucideIcon;
+    title: string;
+    description: string;
+    accent?: 'teal' | 'purple';
+};
+
+type EntryOption = {
+    label: string;
+    price: string;
+    cover: string;
+    note: string;
+};
+
+type UpcomingEvent = {
+    id: number;
+    title: string;
+    venue: string;
+    date: string;
+    month: string;
+    category: string;
+    image: string;
+    slug: string;
+};
+
+type Review = {
+    name: string;
+    initial: string;
+    rating: number;
+    comment: string;
+    timeAgo: string;
+};
+
+type AmenityGroup = {
+    title: string;
+    icon: LucideIcon;
+    items: string[];
+};
+
+type FacilityChip = {
+    icon: LucideIcon;
+    label: string;
+};
+
+type QuickFact = {
+    icon: LucideIcon;
+    label: string;
+};
+
+const quickFacts: QuickFact[] = [
+    { icon: MapPin, label: 'DABO Club & Kitchen • Airport Road' },
+    { icon: Calendar, label: 'Friday • 04 Apr 2025' },
+    { icon: Clock, label: '8:00 PM onwards' },
+];
+
+const vibeTags = ['Techno & Bollytech', 'Afrohouse Grooves', 'Live Percussion'];
+
+const offers: Offer[] = [
+    {
+        icon: Wine,
+        title: 'Buy 1 get 1 on premium IMFL',
+        description: 'Available till 10:30 PM',
+        accent: 'teal',
+    },
+    {
+        icon: Clock,
+        title: 'Free entry before 09:30 PM',
+        description: 'Redeemable cover worth ₹1,000',
+        accent: 'teal',
+    },
+    {
+        icon: Sparkles,
+        title: 'Ladies night perks',
+        description: 'Complimentary welcome shots for first 50 guests',
+        accent: 'purple',
+    },
+];
+
+const entryOptions: EntryOption[] = [
+    {
+        label: 'Couple + group entry',
+        price: '₹3,500',
+        cover: 'Includes ₹2,000 cover',
+        note: 'Redeem before 11:30 PM',
+    },
+    {
+        label: 'Male stag entry',
+        price: '₹2,200',
+        cover: 'Includes ₹1,200 cover',
+        note: 'Subject to profiling at door',
+    },
+    {
+        label: 'Female stag entry',
+        price: '₹1,200',
+        cover: 'Complimentary welcome drink',
+        note: 'Limited slots available',
+    },
+];
+
+const upcomingEvents: UpcomingEvent[] = [
+    {
+        id: 1,
+        title: 'Freaky Friday with DJ Alexxx',
+        venue: 'DABO, Airport Road',
+        date: '04',
+        month: 'APR',
+        category: 'Techno & Bollytech',
+        image: '/event list/Rectangle 12249.jpg',
+        slug: 'freaky-friday-with-dj-alexxx',
+    },
+    {
+        id: 2,
+        title: 'Wow Wednesday with DJ Shade',
+        venue: 'DABO, Airport Road',
+        date: '06',
+        month: 'APR',
+        category: 'Bollywood & Bollytech',
+        image: '/event list/Rectangle 1.jpg',
+        slug: 'wow-wednesday-with-dj-shade',
+    },
+    {
+        id: 3,
+        title: 'Sunset Sunday Rooftop',
+        venue: 'DABO Terrace',
+        date: '07',
+        month: 'APR',
+        category: 'Deep House & Chill',
+        image: '/gallery/Frame 1000001128.jpg',
+        slug: 'sunset-sunday-rooftop',
+    },
+];
+
+const galleryImages: string[] = [
+    '/dabo ambience main dabo page/Media.jpg',
+    '/dabo ambience main dabo page/Media-1.jpg',
+    '/dabo ambience main dabo page/Media-2.jpg',
+    '/dabo ambience main dabo page/Media-3.jpg',
+    '/event list/Rectangle 12249.jpg',
+    '/event list/Rectangle 1.jpg',
+];
+
+const facilityChips: FacilityChip[] = [
+    { icon: Wifi, label: 'Wi-Fi enabled' },
+    { icon: Car, label: 'Valet parking' },
+    { icon: Users, label: 'Private lounge' },
+    { icon: ShieldCheck, label: 'Security check' },
+];
+
+const amenityGroups: AmenityGroup[] = [
+    {
+        title: 'Food',
+        icon: Utensils,
+        items: ['Asian fusion', 'Italian classics', 'North Indian staples', 'Gourmet bar snacks'],
+    },
+    {
+        title: 'Music',
+        icon: Music,
+        items: ['DJ Martin live set', 'Techno & Bollytech mashups', 'Karaoke afterhours', 'Surprise guest acts'],
+    },
+    {
+        title: 'Bar',
+        icon: Wine,
+        items: ['Signature cocktails', 'Premium spirits', 'Wine cellar', 'Craft beers'],
+    },
+];
+
+const reviews: Review[] = [
+    {
+        name: 'Anjali Sharma',
+        initial: 'A',
+        rating: 5,
+        comment:
+            'Loved the energy! The lighting, music, and service were all on point. Highly recommend booking a table in advance.',
+        timeAgo: '2 days ago',
+    },
+    {
+        name: 'Rahul Verma',
+        initial: 'R',
+        rating: 4,
+        comment:
+            'Great vibe and crowd. Drinks menu is extensive and the DJ kept everyone on the floor all night.',
+        timeAgo: '1 week ago',
+    },
+];
+
+const eventTitle = 'Freaky Friday ft. DJ Martin';
+const eventVenue = 'DABO Club & Kitchen';
+const eventLocation = 'Dharampeth, Nagpur';
+const heroImage = '/dabo ambience main dabo page/Media.jpg';
 
 export default function DaboEventPage() {
     const router = useRouter();
     const [isLiked, setIsLiked] = useState(false);
-    const [activeTab, setActiveTab] = useState('info');
 
     const handleGoBack = () => {
         router.back();
     };
 
-    const handleShare = () => {
-        if (navigator.share) {
-            navigator.share({
-                title: 'DABO CLUB & KITCHEN',
-                text: 'Check out this amazing club!',
-                url: window.location.href,
+    const handleShare = async () => {
+        if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+            return;
+        }
+
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: eventTitle,
+                    text: `Join ${eventTitle} at ${eventVenue}.`,
+                    url: window.location.href,
+                });
+                return;
+            }
+
+            await navigator.clipboard?.writeText(window.location.href);
+            toast({
+                title: 'Link copied',
+                description: 'Event link copied to your clipboard.',
+            });
+        } catch (error) {
+            console.error('Share failed', error);
+            toast({
+                title: 'Unable to share automatically',
+                description: 'Copy the link from your browser address bar instead.',
+                variant: 'destructive',
             });
         }
     };
 
-    const facilities = [
-        { icon: Wifi, label: 'Open till midnight' },
-        { icon: Car, label: 'Disabled Access' },
-        { icon: Users, label: 'Private dining space' },
-        { icon: Wine, label: 'Table booking' },
-    ];
+    const handleToggleLike = () => {
+        setIsLiked((prev) => !prev);
+    };
 
-    const foodOptions = [
-        { icon: Utensils, label: 'Gluten free options' },
-        { icon: Wine, label: 'Bar Snacks' },
-        { icon: Utensils, label: 'Asian' },
-        { icon: Utensils, label: 'Italian' },
-        { icon: Utensils, label: 'North Indian' },
-        { icon: Wine, label: 'Burgers & Sandwich' },
-    ];
-
-    const musicOptions = [
-        { icon: Music, label: 'Karaoke' },
-        { icon: Music, label: 'DJs' },
-        { icon: Music, label: 'Live Music' },
-    ];
-
-    const barOptions = [
-        { icon: Wine, label: 'Spirits' },
-        { icon: Wine, label: 'Wine' },
-        { icon: Wine, label: 'Draught' },
-        { icon: Wine, label: 'Cocktail' },
-        { icon: Wine, label: 'Non Alcoholic' },
-    ];
-
-    const events = [
-        {
-            id: 1,
-            title: 'Freaky Friday with DJ Alexxx',
-            venue: 'DABO, Airport Road',
-            date: 'APR 04',
-            category: 'Techno & Bollytech',
-            image: '/gallery/Frame 1000001128.jpg',
-        },
-        {
-            id: 2,
-            title: 'Wow Wednesday with DJ Shade',
-            venue: 'DABO, Airport Road',
-            date: 'APR 04',
-            category: 'Bollywood & Bollytechno',
-            image: '/gallery/Frame 1000001129.jpg',
-        }
-    ];
-
-    const photos = [
-        '/dabo ambience main dabo page/Media.jpg',
-        '/dabo ambience main dabo page/Media-1.jpg',
-        '/dabo ambience main dabo page/Media-2.jpg',
-        '/dabo ambience main dabo page/Media-3.jpg'
-    ];
+    const iconButtonClasses =
+        'h-11 w-11 rounded-full border border-white/15 bg-black/40 backdrop-blur-md hover:bg-black/60';
 
     return (
         <div className="min-h-screen bg-[#031313] text-white">
-            {/* Hero Section - Clean Image Only */}
-            <div className="relative h-80 bg-black rounded-b-[30px] overflow-hidden">
-                <img
-                    src="/dabo ambience main dabo page/Media.jpg"
-                    alt="Dabo Club"
-                    className="w-full h-full object-cover"
+            <div className="relative mx-auto max-w-[428px] pb-28">
+                <div
+                    className="pointer-events-none absolute -top-48 right-[-180px] h-[360px] w-[360px] rounded-full bg-[#0891b2]/25 blur-[140px]"
+                    aria-hidden
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
+                <div
+                    className="pointer-events-none absolute top-[420px] left-[-220px] h-[320px] w-[320px] rounded-full bg-[#14b8a6]/20 blur-[140px]"
+                    aria-hidden
+                />
 
-                {/* Header Icons Only */}
-                <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
-                    <button
-                        onClick={handleGoBack}
-                        className="p-2 glassmorphism-light rounded-full hover:bg-white/10 transition-all duration-300"
-                    >
-                        <ArrowLeft size={24} className="text-white" />
-                    </button>
-                    <div className="flex gap-3">
-                        <button
-                            onClick={handleShare}
-                            className="p-2 glassmorphism-light rounded-full hover:bg-white/10 transition-all duration-300"
-                        >
-                            <Share size={20} className="text-white" />
-                        </button>
-                        <button className="p-2 glassmorphism-light rounded-full hover:bg-white/10 transition-all duration-300">
-                            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
+                <section className="relative overflow-hidden rounded-b-[40px]">
+                    <div className="relative h-[360px]">
+                        <img src={heroImage} alt={eventTitle} className="h-full w-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/45 to-[#031313]/95" />
 
-            {/* Club Info Section - Below Image */}
-            <div className="relative bg-[#031313] rounded-t-[30px] -mt-[30px] pt-8">
-                <div className="relative p-6">
-                    <div className="flex items-center justify-center mb-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center border-4 border-white/20">
-                            <span className="text-white font-bold text-2xl">D</span>
-                        </div>
-                    </div>
-
-                    <div className="text-center mb-4">
-                        <h1 className="text-white font-bold text-2xl mb-1">DABO CLUB & KITCHEN</h1>
-                        <div className="flex items-center justify-center gap-1 mb-2">
-                            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                            <span className="text-white font-medium">4.2</span>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center justify-center gap-4 mb-6">
-                        <div className="glassmorphism px-4 py-2 rounded-full">
-                            <Phone className="w-4 h-4 text-cyan-400" />
-                        </div>
-                        <div className="glassmorphism px-4 py-2 rounded-full">
-                            <MapPin className="w-4 h-4 text-cyan-400" />
-                        </div>
-                        <div className="glassmorphism px-4 py-2 rounded-full">
-                            <Clock className="w-4 h-4 text-cyan-400" />
-                        </div>
-                        <div className="glassmorphism px-4 py-2 rounded-full">
-                            <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                            </svg>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-3">
-                        <button className="flex-1 bg-gradient-to-r from-[#1DB584] to-[#0891B2] text-white font-bold py-4 px-8 rounded-2xl hover:brightness-110 transition-all text-lg">
-                            Reserve your spot
-                        </button>
-                        <button className="flex-1 bg-[#2a3441] text-white font-bold py-4 px-8 rounded-2xl hover:bg-[#3a4551] transition-all text-lg">
-                            Book offline
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Now Playing Section with DJ Button */}
-            <div className="px-6 py-6 bg-[#031313]">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-white font-semibold text-sm">Now Playing</h3>
-                </div>
-                <div className="glassmorphism p-4 rounded-2xl">
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="relative">
-                            <div className="w-16 h-16 header-gradient rounded-2xl flex items-center justify-center animate-pulse">
-                                <Music className="w-8 h-8 text-white" />
-                            </div>
-                            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-[#031313] flex items-center justify-center">
-                                <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-5 pt-6">
+                            <Button
+                                variant="secondary"
+                                size="icon"
+                                className={iconButtonClasses}
+                                onClick={handleGoBack}
+                                aria-label="Go back"
+                            >
+                                <ArrowLeft className="h-5 w-5 text-white" />
+                            </Button>
+                            <div className="flex items-center gap-3">
+                                <Button
+                                    variant="secondary"
+                                    size="icon"
+                                    className={iconButtonClasses}
+                                    onClick={handleShare}
+                                    aria-label="Share event"
+                                >
+                                    <Share className="h-5 w-5 text-white" />
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    size="icon"
+                                    className={iconButtonClasses}
+                                    onClick={handleToggleLike}
+                                    aria-pressed={isLiked}
+                                    aria-label="Add to favourites"
+                                >
+                                    <Heart
+                                        className="h-5 w-5 text-white"
+                                        fill={isLiked ? 'currentColor' : 'none'}
+                                    />
+                                </Button>
                             </div>
                         </div>
-                        <div className="flex-1">
-                            <div className="text-white text-base font-bold mb-1">DJ MARTIN LIVE</div>
-                            <div className="text-white/70 text-sm">Spinning the best beats tonight</div>
-                        </div>
-                    </div>
-                    <div className="flex gap-2 flex-wrap">
-                        <span className="header-gradient text-white text-xs px-3 py-1.5 rounded-full font-medium">BollyAfro Mix</span>
-                        <span className="bg-gradient-to-r from-[#8B5CF6] to-[#EC4899] text-white text-xs px-3 py-1.5 rounded-full font-medium">Techno Vibes</span>
-                        <span className="glassmorphism-light text-white text-xs px-3 py-1.5 rounded-full font-medium">EDM</span>
-                    </div>
 
-                    {/* Soundwave Visualization */}
-                    <div className="mt-4 flex items-center justify-center gap-1 h-12">
-                        {[4, 8, 6, 10, 7, 12, 9, 5, 11, 6, 8, 10, 7, 9, 6, 4].map((height, i) => (
-                            <div
-                                key={i}
-                                className="w-1 bg-gradient-to-t from-teal-500 to-cyan-400 rounded-full animate-soundwave"
-                                style={{
-                                    height: `${height * 3}px`,
-                                    animationDelay: `${i * 0.05}s`
-                                }}
-                            />
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Today's Offers */}
-            <div className="px-6 py-4">
-                <h3 className="text-white font-semibold text-base mb-4">Today's Offers</h3>
-                <div className="space-y-3">
-                    <div className="bg-gradient-to-r from-[#1DB584] to-[#0891B2] bg-opacity-20 rounded-[20px] p-4 flex items-center justify-between border-2 border-dashed border-[#1DB584]">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-r from-[#1DB584] to-[#0891B2] rounded-lg flex items-center justify-center">
-                                <Wine className="w-4 h-4 text-white" />
+                        <div className="absolute bottom-8 left-5 right-5 space-y-4">
+                            <div className="flex items-center justify-between gap-4">
+                                <span className="badge-tag text-[10px] uppercase tracking-[0.35em]">Tonight</span>
+                                <span className="rounded-full bg-white/15 px-4 py-1 text-[11px] uppercase tracking-[0.3em] text-white/80">
+                                    Featured Event
+                                </span>
                             </div>
-                            <span className="text-white text-sm font-medium">Buy 1 get 1 on IMFL Drinks</span>
-                        </div>
-                        <svg className="w-5 h-5 text-[#1DB584]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                    </div>
-                    <div className="bg-gradient-to-r from-[#1DB584] to-[#0891B2] bg-opacity-20 rounded-[20px] p-4 flex items-center justify-between border-2 border-dashed border-[#1DB584]">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-r from-[#1DB584] to-[#0891B2] rounded-lg flex items-center justify-center">
-                                <Clock className="w-4 h-4 text-white" />
+                            <div className="space-y-2">
+                                <h1 className="text-[32px] font-extrabold leading-[1.1]">{eventTitle}</h1>
+                                <p className="text-sm uppercase tracking-[0.35em] text-white/70">Hosted by {eventVenue}</p>
                             </div>
-                            <span className="text-white text-sm font-medium">Free Entry for all before 09:00 PM</span>
-                        </div>
-                        <svg className="w-5 h-5 text-[#1DB584]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            {/* Entry/Booking Section */}
-            <div className="px-6 py-4">
-                <h3 className="text-white font-semibold text-base mb-4">Entry/Booking</h3>
-                <div className="glassmorphism rounded-[20px] p-4">
-                    <div className="flex items-center justify-between mb-3">
-                        <div>
-                            <div className="flex gap-2 mb-1">
-                                <span className="text-white text-sm">Couple & Group Entry</span>
-                                <span className="text-white text-sm">Male stag Entry</span>
-                                <span className="text-white text-sm">Female stag Entry</span>
+                            <div className="flex flex-wrap items-center gap-3 text-sm text-white/75">
+                                <div className="flex items-center gap-2">
+                                    <MapPin className="h-4 w-4" />
+                                    <span>{eventLocation}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Clock className="h-4 w-4" />
+                                    <span>8:00 PM onwards</span>
+                                </div>
                             </div>
-                            <div className="text-[#1DB584] font-bold text-lg">Rs 1500 (Cover - 1000)</div>
-                            <div className="text-white/70 text-sm">*Redeemable before 12:00 AM</div>
                         </div>
-                        <svg className="w-5 h-5 text-[#1DB584]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
                     </div>
-                </div>
-            </div>
+                </section>
 
-            {/* Events in Dabo */}
-            <div className="px-6 py-4">
-                <h3 className="text-white font-semibold text-base mb-4">Events in Dabo</h3>
-                <div className="flex gap-4 overflow-x-auto scrollbar-hide">
-                    {events.map((event) => (
-                        <div key={event.id} className="flex-shrink-0 w-[222px]">
-                            <Link href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                                <div className="bg-teal-900/20 rounded-[20px] overflow-hidden relative"
-                                    style={{
-                                        clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%)'
-                                    }}>
-                                    {/* Image Section */}
-                                    <div className="relative">
-                                        <img
-                                            src={event.image}
-                                            alt={event.title}
-                                            className="w-full h-[200px] object-cover border-2 border-teal-400/30 rounded-t-[20px]"
-                                        />
-                                        {/* Date Badge */}
-                                        <div className="absolute top-3 right-3 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg min-w-[45px]">
-                                            <div className="text-center">
-                                                <div className="text-[10px] opacity-70">APR</div>
-                                                <div className="text-sm font-bold">{event.date.split(' ')[1] || event.date}</div>
-                                            </div>
+                <main className="relative z-10 space-y-10 px-5 pt-12">
+                    <section className="-mt-16">
+                        <div className="surface-card rounded-[32px] border border-white/10 px-6 pb-8 pt-10 shadow-[0px_32px_80px_rgba(6,182,212,0.18)]">
+                            <div className="space-y-6 text-center">
+                                <div>
+                                    <h2 className="text-[24px] font-semibold leading-tight">Experience the neon pulse</h2>
+                                    <p className="mt-2 text-sm text-white/65">
+                                        Dive into Nagpur&apos;s premium nightlife with curated beats, luxe ambiance, and signature cocktails.
+                                    </p>
+                                </div>
+                                <div className="flex flex-wrap justify-center gap-3 text-sm text-white/75">
+                                    {quickFacts.map((fact) => (
+                                        <div
+                                            key={fact.label}
+                                            className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2"
+                                        >
+                                            <fact.icon className="h-4 w-4 text-cyan-300" />
+                                            <span>{fact.label}</span>
                                         </div>
+                                    ))}
+                                </div>
+                                <div className="flex flex-wrap items-center justify-center gap-3">
+                                    <div className="flex items-center gap-2 rounded-2xl bg-white/10 px-4 py-2">
+                                        <Star className="h-4 w-4 text-amber-300" fill="currentColor" />
+                                        <span className="text-sm font-semibold">4.2 · 2.4k reviews</span>
                                     </div>
-
-                                    {/* Content Section */}
-                                    <div className="p-4">
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div className="flex-1">
-                                                <h3 className="text-white font-bold text-base leading-tight mb-1">{event.title}</h3>
-                                                <p className="text-white/70 text-sm">{event.venue}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Full-width Teal Highlight Section */}
-                                    <div className="header-gradient text-white text-sm font-medium px-3 py-2 w-full">
-                                        <div className="text-center">
-                                            {event.category}
-                                        </div>
+                                    <div className="flex items-center gap-2 rounded-2xl bg-[#14b8a6]/15 px-4 py-2 text-sm text-[#5eead4]">
+                                        <Users className="h-4 w-4" />
+                                        <span>Premium crowd</span>
                                     </div>
                                 </div>
+                                <div className="flex flex-col gap-3">
+                                    <Button
+                                        variant="primary"
+                                        className="h-14 rounded-full text-sm uppercase tracking-[0.3em]"
+                                    >
+                                        Reserve your spot
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+                                        className="h-14 rounded-full border border-white/20 bg-white/10 text-sm uppercase tracking-[0.3em]"
+                                    >
+                                        Book offline
+                                    </Button>
+                                </div>
+                                <div className="mt-2 flex items-center justify-center gap-4">
+                                    <a
+                                        href="tel:+919876543210"
+                                        className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
+                                        aria-label="Call the venue"
+                                    >
+                                        <Phone className="h-5 w-5" />
+                                    </a>
+                                    <a
+                                        href="https://maps.app.goo.gl/3xg4X7gY1pL5xpHq7"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
+                                        aria-label="Open directions"
+                                    >
+                                        <MapPin className="h-5 w-5" />
+                                    </a>
+                                    <button
+                                        type="button"
+                                        onClick={handleShare}
+                                        className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
+                                        aria-label="Share event link"
+                                    >
+                                        <Share className="h-5 w-5" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <h3 className="text-lg font-semibold tracking-wide">Now playing</h3>
+                                <div className="divider-line w-16" />
+                            </div>
+                            <span className="text-xs uppercase tracking-[0.3em] text-white/60">Live tonight</span>
+                        </div>
+                        <div className="surface-panel space-y-5 rounded-[28px] border border-white/10 px-6 py-6">
+                            <div className="flex items-center gap-4">
+                                <div className="relative">
+                                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl header-gradient">
+                                        <Music className="h-8 w-8 text-white" />
+                                    </div>
+                                    <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#1db584]">
+                                        <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
+                                    </div>
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[11px] uppercase tracking-[0.4em] text-white/60">Headliner</p>
+                                    <h4 className="text-xl font-semibold">DJ Martin Live</h4>
+                                    <p className="mt-1 text-sm text-white/70">Spinning techno, bollytech, and afro beats all night.</p>
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {vibeTags.map((tag) => (
+                                    <span key={tag} className="badge-tag" data-variant="primary">
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                            <div>
+                                <div className="progress-track">
+                                    <div className="progress-fill w-[68%]" />
+                                </div>
+                                <div className="mt-2 flex items-center justify-between text-xs text-white/55">
+                                    <span>Energy meter</span>
+                                    <span>68% capacity</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="space-y-4">
+                        <div className="flex items-center gap-3">
+                            <h3 className="text-lg font-semibold tracking-wide">Today&apos;s offers</h3>
+                            <div className="divider-line w-16" />
+                        </div>
+                        <div className="space-y-3">
+                            {offers.map((offer) => (
+                                <div
+                                    key={offer.title}
+                                    className={`flex items-center justify-between gap-4 rounded-[24px] border border-white/10 px-5 py-4 backdrop-blur-md ${offer.accent === 'purple'
+                                        ? 'bg-gradient-to-r from-[#8b5cf6]/20 via-[#ec4899]/15 to-transparent'
+                                        : 'bg-gradient-to-r from-[#14b8a6]/20 via-[#0f766e]/10 to-transparent'
+                                        }`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
+                                            <offer.icon className="h-5 w-5 text-white" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-white">{offer.title}</p>
+                                            <p className="mt-1 text-xs text-white/70">{offer.description}</p>
+                                        </div>
+                                    </div>
+                                    <ChevronRight className="h-5 w-5 text-white/60" />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section className="space-y-4">
+                        <div className="flex items-center gap-3">
+                            <h3 className="text-lg font-semibold tracking-wide">Entry · booking</h3>
+                            <div className="divider-line w-16" />
+                        </div>
+                        <div className="space-y-3">
+                            {entryOptions.map((option) => (
+                                <div
+                                    key={option.label}
+                                    className="surface-panel rounded-[24px] border border-white/10 px-5 py-4 text-left"
+                                >
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div>
+                                            <h4 className="text-sm font-semibold uppercase tracking-[0.25em] text-white/80">
+                                                {option.label}
+                                            </h4>
+                                            <p className="mt-2 text-[22px] font-bold text-[#5eead4]">{option.price}</p>
+                                            <p className="text-xs text-white/65">{option.cover}</p>
+                                        </div>
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5">
+                                            <Ticket className="h-4 w-4 text-white/80" />
+                                        </div>
+                                    </div>
+                                    <p className="mt-4 text-xs text-white/55">{option.note}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section className="space-y-5">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <h3 className="text-lg font-semibold tracking-wide">Upcoming at DABO</h3>
+                                <div className="divider-line w-16" />
+                            </div>
+                            <Link
+                                href="/events"
+                                className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300"
+                            >
+                                View all
                             </Link>
                         </div>
-                    ))}
-                </div>
-            </div>
+                        <div className="scrollbar-hide overflow-x-auto pb-1">
+                            <div className="flex gap-5 pr-4" style={{ width: 'max-content' }}>
+                                {upcomingEvents.map((event) => (
+                                    <Link key={event.id} href={`/event/${event.slug}`}>
+                                        <article
+                                            className="relative w-[220px] overflow-hidden rounded-[26px] border border-white/10"
+                                            style={{
+                                                clipPath:
+                                                    'polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%)',
+                                                background: 'rgba(14, 31, 31, 0.65)',
+                                            }}
+                                        >
+                                            <div className="relative h-[200px] overflow-hidden">
+                                                <img
+                                                    src={event.image}
+                                                    alt={event.title}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/35 to-[#031313]/95" />
+                                                <div className="absolute right-4 top-4 rounded-xl bg-gradient-to-b from-[#14b8a6] to-[#0891b2] px-3 py-2 text-center text-xs font-bold text-white">
+                                                    <div className="text-[10px] uppercase tracking-[0.3em] opacity-70">{event.month}</div>
+                                                    <div className="text-base leading-none">{event.date}</div>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-3 px-4 pb-5 pt-4">
+                                                <div>
+                                                    <h4 className="text-sm font-semibold leading-tight text-white">{event.title}</h4>
+                                                    <p className="mt-2 text-xs text-white/60">{event.venue}</p>
+                                                </div>
+                                                <div className="badge-tag" data-variant="primary">
+                                                    {event.category}
+                                                </div>
+                                            </div>
+                                        </article>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
 
-            {/* Photos Section */}
-            <div className="px-6 py-4">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-white font-semibold text-base">Photos</h3>
-                    <button className="text-cyan-400 text-sm flex items-center gap-1">
-                        <Camera className="w-4 h-4" />
-                        +7
-                    </button>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                    {photos.slice(0, 6).map((photo, index) => (
-                        <div key={index} className="relative aspect-square rounded-xl overflow-hidden">
-                            <img
-                                src={photo}
-                                alt={`Dabo photo ${index + 1}`}
-                                className="w-full h-full object-cover"
-                            />
-                            {index === 5 && (
-                                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                    <Camera className="w-6 h-6 text-white" />
+                    <section className="space-y-5">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <h3 className="text-lg font-semibold tracking-wide">Photo gallery</h3>
+                                <div className="divider-line w-16" />
+                            </div>
+                            <button className="flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300">
+                                <Camera className="h-4 w-4" />
+                                +7
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                            {galleryImages.map((image, index) => (
+                                <div key={`${image}-${index}`} className="relative aspect-square overflow-hidden rounded-xl">
+                                    <img src={image} alt={`Gallery ${index + 1}`} className="h-full w-full object-cover" />
+                                    {index === galleryImages.length - 1 && (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                                            <Camera className="h-6 w-6 text-white" />
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                            ))}
                         </div>
-                    ))}
-                </div>
-            </div>
+                    </section>
 
-            {/* Location Section */}
-            <div className="px-6 py-4">
-                <h3 className="text-white font-semibold text-base mb-4">Location</h3>
-                <div className="glassmorphism rounded-xl p-4 mb-4">
-                    <div className="flex items-start gap-3">
-                        <MapPin className="w-5 h-5 text-cyan-400 mt-0.5" />
-                        <div className="flex-1">
-                            <p className="text-white font-medium text-sm mb-1">House 10/156/1, Yogeshwari CHS, Wardha Road, Nagpur</p>
+                    <section className="space-y-5">
+                        <div className="flex items-center gap-3">
+                            <h3 className="text-lg font-semibold tracking-wide">Location</h3>
+                            <div className="divider-line w-16" />
                         </div>
-                    </div>
-                </div>
-                <div className="glassmorphism rounded-xl overflow-hidden">
-                    <div className="h-32 bg-gradient-to-br from-teal-600 to-cyan-600 flex items-center justify-center">
-                        <MapPin className="w-8 h-8 text-white" />
-                    </div>
-                </div>
-            </div>
-
-            {/* Facilities Section */}
-            <div className="px-6 py-4">
-                <h3 className="text-white font-semibold text-base mb-4">Facilities</h3>
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                    {facilities.map((facility, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                            <div className="w-6 h-6 header-gradient rounded-full flex items-center justify-center">
-                                <facility.icon className="w-3 h-3 text-white" />
-                            </div>
-                            <span className="text-white text-sm">{facility.label}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Food, Music, Bar Sections */}
-            <div className="px-6 space-y-6">
-                {/* Food */}
-                <div>
-                    <h3 className="text-white font-semibold text-base mb-3">Food</h3>
-                    <div className="flex flex-wrap gap-2">
-                        {foodOptions.map((option, index) => (
-                            <div key={index} className="flex items-center gap-2 glassmorphism px-3 py-2 rounded-full">
-                                <option.icon className="w-4 h-4 text-cyan-400" />
-                                <span className="text-white text-sm">{option.label}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Music */}
-                <div>
-                    <h3 className="text-white font-semibold text-base mb-3">Music</h3>
-                    <div className="flex flex-wrap gap-2">
-                        {musicOptions.map((option, index) => (
-                            <div key={index} className="flex items-center gap-2 glassmorphism px-3 py-2 rounded-full">
-                                <option.icon className="w-4 h-4 text-cyan-400" />
-                                <span className="text-white text-sm">{option.label}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Bar */}
-                <div>
-                    <h3 className="text-white font-semibold text-base mb-3">Bar</h3>
-                    <div className="flex flex-wrap gap-2">
-                        {barOptions.map((option, index) => (
-                            <div key={index} className="flex items-center gap-2 glassmorphism px-3 py-2 rounded-full">
-                                <option.icon className="w-4 h-4 text-cyan-400" />
-                                <span className="text-white text-sm">{option.label}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Reviews Section */}
-            <div className="px-6 py-6">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-white font-semibold text-base">Reviews</h3>
-                    <button className="text-cyan-400 text-sm">View All</button>
-                </div>
-                <div className="space-y-4">
-                    <div className="glassmorphism rounded-xl p-4">
-                        <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                                <span className="text-white font-bold text-sm">A</span>
-                            </div>
-                            <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-white font-medium text-sm">Anjali Sharma</span>
-                                    <div className="flex">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <Star key={star} className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                                        ))}
-                                    </div>
-                                </div>
-                                <p className="text-white/80 text-sm">
-                                    I recently ate at Dabo and had a great time. The lighting was good, the vibes were good. The food was perfect. The service was excellent.
+                        <div className="surface-panel space-y-4 rounded-[24px] border border-white/10 p-5">
+                            <div className="flex items-start gap-3">
+                                <MapPin className="mt-1 h-5 w-5 text-cyan-300" />
+                                <p className="text-sm text-white/80">
+                                    House 10/156/1, Yogeshwari CHS, Wardha Road, Nagpur — opposite Airport Metro station.
                                 </p>
                             </div>
+                            <div className="overflow-hidden rounded-[20px] border border-white/10">
+                                <div className="h-36 bg-gradient-to-br from-[#14b8a6]/30 to-[#0ea5e9]/20">
+                                    <div className="flex h-full items-center justify-center">
+                                        <MapPin className="h-8 w-8 text-white" />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    </section>
 
-                {/* Leave Review Button */}
-                <div className="flex items-center justify-center mt-6">
-                    <button className="header-gradient text-white font-medium py-3 px-6 rounded-full hover:brightness-110 transition-all">
-                        Leave a review
-                    </button>
-                </div>
+                    <section className="space-y-5">
+                        <div className="flex items-center gap-3">
+                            <h3 className="text-lg font-semibold tracking-wide">Facilities</h3>
+                            <div className="divider-line w-16" />
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {facilityChips.map((item) => (
+                                <span
+                                    key={item.label}
+                                    className="glassmorphism-light flex items-center gap-2 rounded-full px-4 py-2 text-sm"
+                                >
+                                    <item.icon className="h-4 w-4 text-cyan-300" />
+                                    {item.label}
+                                </span>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section className="space-y-5">
+                        <div className="flex items-center gap-3">
+                            <h3 className="text-lg font-semibold tracking-wide">Experience zones</h3>
+                            <div className="divider-line w-16" />
+                        </div>
+                        <div className="space-y-3">
+                            {amenityGroups.map((group) => (
+                                <div key={group.title} className="surface-panel rounded-[24px] border border-white/10 p-5">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10">
+                                            <group.icon className="h-5 w-5 text-white" />
+                                        </div>
+                                        <h4 className="text-sm font-semibold uppercase tracking-[0.3em] text-white/75">
+                                            {group.title}
+                                        </h4>
+                                    </div>
+                                    <ul className="mt-4 space-y-2 text-sm text-white/70">
+                                        {group.items.map((item) => (
+                                            <li key={item} className="flex items-start gap-2">
+                                                <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[#5eead4]" aria-hidden />
+                                                <span>{item}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section className="space-y-5 pb-8">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <h3 className="text-lg font-semibold tracking-wide">Reviews</h3>
+                                <div className="divider-line w-16" />
+                            </div>
+                            <button className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300">
+                                View all
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            {reviews.map((review) => (
+                                <div key={review.name} className="surface-panel rounded-[24px] border border-white/10 p-5">
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#8b5cf6] to-[#ec4899] text-lg font-bold">
+                                            {review.initial}
+                                        </div>
+                                        <div className="flex-1 space-y-2">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span className="text-sm font-semibold text-white">{review.name}</span>
+                                                <span className="text-xs uppercase tracking-[0.3em] text-white/45">{review.timeAgo}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                {Array.from({ length: 5 }).map((_, index) => (
+                                                    <Star
+                                                        key={index}
+                                                        className="h-3.5 w-3.5"
+                                                        fill={index < review.rating ? 'currentColor' : 'none'}
+                                                        color={index < review.rating ? '#facc15' : 'rgba(255,255,255,0.2)'}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <p className="text-sm text-white/75">{review.comment}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex justify-center">
+                            <Button
+                                variant="secondary"
+                                className="h-12 rounded-full border border-white/20 bg-white/10 px-8 text-xs font-semibold uppercase tracking-[0.35em]"
+                            >
+                                Leave a review
+                            </Button>
+                        </div>
+                    </section>
+                </main>
             </div>
-
-            {/* Bottom padding */}
-            <div className="h-20"></div>
         </div>
     );
 }

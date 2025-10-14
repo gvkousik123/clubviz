@@ -140,7 +140,7 @@ export const designSystem = {
       primaryHeader: 'linear-gradient(135deg, #14b8a6 0%, #0891b2 100%)', // Primary Header Gradient
       alternativeHeader: 'linear-gradient(to right, #14b8a6 0%, #06b6d4 100%)', // Alternative Header Gradient
       cardOverlay: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 100%)',
-      button: 'linear-gradient(135deg, #14b8a6 0%, #0891b2 100%)', // Primary button gradient
+  button: 'linear-gradient(135deg, #1db584 0%, #0891b2 100%)', // Primary button gradient
       glassLight: 'rgba(14, 31, 31, 0.5)',   // Light Glass
       glassStandard: 'rgba(14, 31, 31, 0.7)', // Standard Glass
       glassStrong: 'rgba(14, 31, 31, 0.85)',  // Strong Glass
@@ -201,24 +201,27 @@ export const designSystem = {
   components: {
     button: {
       primary: {
-        background: 'linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%)', // Teal gradient
+        background: 'linear-gradient(135deg, #1db584 0%, #0891b2 100%)', // Updated CTA gradient
         color: '#ffffff',
-        borderRadius: '0.75rem',
-        padding: '0.75rem 1.5rem',
+        borderRadius: '9999px',
+        padding: '0.85rem 1.75rem',
         fontWeight: 600,
-        fontSize: '1rem',
+        fontSize: '1.05rem',
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
         border: 'none',
-        boxShadow: '0 4px 14px 0 rgba(20, 184, 166, 0.4)',
+        boxShadow: '0 18px 32px rgba(8, 145, 178, 0.35)',
       },
       secondary: {
-        background: 'rgba(255, 255, 255, 0.1)',
-        color: '#ffffff',
-        borderRadius: '0.75rem',
-        padding: '0.75rem 1.5rem',
+        background: 'rgba(14, 31, 31, 0.8)',
+        color: 'rgba(255, 255, 255, 0.92)',
+        borderRadius: '9999px',
+        padding: '0.85rem 1.75rem',
         fontWeight: 500,
         fontSize: '1rem',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
-        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(20, 184, 166, 0.35)',
+        backdropFilter: 'blur(16px)',
+        boxShadow: '0 12px 24px rgba(3, 19, 19, 0.45)',
       },
       ghost: {
         background: 'transparent',
@@ -233,18 +236,25 @@ export const designSystem = {
 
     card: {
       primary: {
-        background: 'rgba(26, 26, 26, 0.85)', // Darker background to match designs
-        borderRadius: '1rem',
-        padding: '1.5rem',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        backdropFilter: 'blur(20px)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+        background: 'rgba(14, 31, 31, 0.82)', // Elevated glass card
+        borderRadius: '1.75rem',
+        padding: '1.75rem',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        backdropFilter: 'blur(24px)',
+        boxShadow: '0 24px 45px rgba(3, 19, 19, 0.65)',
       },
       glass: {
         background: 'rgba(20, 184, 166, 0.05)', // Teal glass effect
-        borderRadius: '1rem',
-        padding: '1.5rem',
+        borderRadius: '1.75rem',
+        padding: '1.75rem',
         border: '1px solid rgba(20, 184, 166, 0.2)',
+        backdropFilter: 'blur(24px)',
+      },
+      surface: {
+        background: 'rgba(3, 19, 19, 0.9)',
+        borderRadius: '1.5rem',
+        padding: '1.5rem',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
         backdropFilter: 'blur(20px)',
       }
     },

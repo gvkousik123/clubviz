@@ -80,6 +80,7 @@ const config = {
         'gradient-primary': designSystem.colors.gradients.primaryHeader,
         'gradient-secondary': designSystem.colors.gradients.alternativeHeader,
         'gradient-button': designSystem.colors.gradients.button,
+        'gradient-hero': designSystem.colors.gradients.primaryHeader,
         'gradient-card-overlay': designSystem.colors.gradients.cardOverlay,
       },
     },
