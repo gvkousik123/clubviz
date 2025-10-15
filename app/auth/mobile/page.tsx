@@ -41,7 +41,7 @@ export default function MobileVerificationScreen() {
     const handleSubmit = async () => {
         console.log("=== Mobile Login: handleSubmit called ===");
         console.log("Current phone number:", phoneNumber);
-        
+
         setIsLoading(true);
         setError(null);
 
@@ -55,7 +55,7 @@ export default function MobileVerificationScreen() {
             }
 
             console.log("Calling AuthService.sendOTP with:", { phone: cleanPhone, type: 'login' });
-            
+
             // Send OTP
             const response = await AuthService.sendOTP({
                 phone: cleanPhone,
@@ -78,7 +78,7 @@ export default function MobileVerificationScreen() {
             console.error("=== OTP send error ===", err);
             console.error("Error response:", err.response);
             console.error("Error message:", err.message);
-            
+
             const errorMessage = err.response?.data?.message || err.message || 'Failed to send OTP. Please try again.';
             setError(errorMessage);
 
