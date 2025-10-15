@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Bookmark, Calendar, MapPin, Users } from 'lucide-react';
-import { useDragScroll } from '@/hooks/use-drag-scroll';
+import { ArrowLeft, Heart } from 'lucide-react';
 import { EventService } from '@/lib/services/event.service';
 import type { Event } from '@/lib/api-types';
 import { useToast } from '@/hooks/use-toast';
+import { EventCard } from '@/components/events/event-card';
 
 export default function EventsListPage() {
     const router = useRouter();
@@ -181,156 +181,50 @@ export default function EventsListPage() {
             {/* Main Content */}
             <div className="px-6 space-y-4">
                 {/* Events Today Grid */}
-                <div className="flex gap-4 overflow-x-auto scrollbar-hide" style={{ width: 'max-content' }}>
-                    {events.slice(0, 2).map((event, index) => (
-                        <div key={event.id} className="flex-shrink-0 w-[222px]">
-                            <Link href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                                <div className="bg-teal-900/20 rounded-[20px] overflow-hidden relative"
-                                    style={{
-                                        clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%)'
-                                    }}>
-                                    {/* Image Section */}
-                                    <div className="relative">
-                                        <img
-                                            src={event.coverImage || event.images?.[0] || getEventFallbackImage(index)}
-                                            alt={event.title}
-                                            className="w-full h-[200px] object-cover border-2 border-teal-400/30 rounded-t-[20px]"
-                                            onError={(e) => {
-                                                const target = e.target as HTMLImageElement;
-                                                target.src = getEventFallbackImage(index);
-                                            }}
-                                        />
-                                        {/* Date Badge */}
-                                        <div className="absolute top-3 right-3 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg min-w-[45px]">
-                                            <div className="text-center">
-                                                <div className="text-[10px] opacity-70">{formatEventDate(event.startDateTime).month}</div>
-                                                <div className="text-sm font-bold">{formatEventDate(event.startDateTime).day}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Content Section */}
-                                    <div className="p-4">
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div className="flex-1">
-                                                <h3 className="text-white font-bold text-base leading-tight mb-1">{event.title}</h3>
-                                                <p className="text-white/70 text-sm">{event.club?.name || 'Venue TBD'}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Full-width Teal Highlight Section */}
-                                    <div className="header-gradient text-white text-sm font-medium px-3 py-2 w-full">
-                                        <div className="text-center">
-                                            {event.musicGenres?.[0] || 'Music Event'}
-                                        </div>
-                                    </div>
-                                </div>
-                            </Link>
-                        </div>
+                <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide">
+                    {events.slice(0, 4).map((event, index) => (
+                        <EventCard
+                            key={event.id}
+                            event={event}
+                            href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}
+                            fallbackImage={getEventFallbackImage(index)}
+                            formattedDate={formatEventDate(event.startDateTime)}
+                            isFavorite={favorites.includes(event.id)}
+                            onToggleFavorite={toggleFavorite}
+                        />
                     ))}
-                </div>                {/* Events This Week Section */}
+                </div>
+                {/* Events This Week Section */}
                 <div className="mt-8">
                     <h2 className="text-white font-semibold text-lg mb-4">Events this week</h2>
-                    <div className="flex gap-4 overflow-x-auto scrollbar-hide" style={{ width: 'max-content' }}>
-                        {events.slice(0, 2).map((event, index) => (
-                            <div key={`week-${event.id}`} className="flex-shrink-0 w-[222px]">
-                                <Link href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                                    <div className="bg-teal-900/20 rounded-[20px] overflow-hidden relative"
-                                        style={{
-                                            clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%)'
-                                        }}>
-                                        {/* Image Section */}
-                                        <div className="relative">
-                                            <img
-                                                src={event.coverImage || event.images?.[0] || getEventFallbackImage(index + 10)}
-                                                alt={event.title}
-                                                className="w-full h-[200px] object-cover border-2 border-teal-400/30 rounded-t-[20px]"
-                                                onError={(e) => {
-                                                    const target = e.target as HTMLImageElement;
-                                                    target.src = getEventFallbackImage(index + 10);
-                                                }}
-                                            />
-                                            {/* Date Badge */}
-                                            <div className="absolute top-3 right-3 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg min-w-[45px]">
-                                                <div className="text-center">
-                                                    <div className="text-[10px] opacity-70">{formatEventDate(event.startDateTime).month}</div>
-                                                    <div className="text-sm font-bold">{formatEventDate(event.startDateTime).day}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Content Section */}
-                                        <div className="p-4">
-                                            <div className="flex items-start justify-between mb-3">
-                                                <div className="flex-1">
-                                                    <h3 className="text-white font-bold text-base leading-tight mb-1">{event.title}</h3>
-                                                    <p className="text-white/70 text-sm">{event.club?.name || 'Venue TBD'}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Full-width Teal Highlight Section */}
-                                        <div className="header-gradient text-white text-sm font-medium px-3 py-2 w-full">
-                                            <div className="text-center">
-                                                {event.musicGenres?.[0] || 'Music Event'}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Link>
-                            </div>
+                    <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide">
+                        {events.slice(2, 6).map((event, index) => (
+                            <EventCard
+                                key={`week-${event.id}`}
+                                event={event}
+                                href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}
+                                fallbackImage={getEventFallbackImage(index + 10)}
+                                formattedDate={formatEventDate(event.startDateTime)}
+                                isFavorite={favorites.includes(event.id)}
+                                onToggleFavorite={toggleFavorite}
+                            />
                         ))}
                     </div>
-                </div>                {/* All Events Section */}
+                </div>
+                {/* All Events Section */}
                 <div className="mt-8">
                     <h2 className="text-white font-semibold text-lg mb-4">All Events</h2>
-                    <div className="flex gap-4 overflow-x-auto scrollbar-hide" style={{ width: 'max-content' }}>
+                    <div className="flex gap-5 overflow-x-auto pb-6 scrollbar-hide">
                         {events.map((event, index) => (
-                            <div key={`all-${event.id}`} className="flex-shrink-0 w-[222px]">
-                                <Link href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                                    <div className="bg-teal-900/20 rounded-[20px] overflow-hidden relative"
-                                        style={{
-                                            clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%)'
-                                        }}>
-                                        {/* Image Section */}
-                                        <div className="relative">
-                                            <img
-                                                src={event.coverImage || event.images?.[0] || getEventFallbackImage(index)}
-                                                alt={event.title}
-                                                className="w-full h-[200px] object-cover border-2 border-teal-400/30 rounded-t-[20px]"
-                                                onError={(e) => {
-                                                    const target = e.target as HTMLImageElement;
-                                                    target.src = getEventFallbackImage(index);
-                                                }}
-                                            />
-                                            {/* Date Badge */}
-                                            <div className="absolute top-3 right-3 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg min-w-[45px]">
-                                                <div className="text-center">
-                                                    <div className="text-[10px] opacity-70">{formatEventDate(event.startDateTime).month}</div>
-                                                    <div className="text-sm font-bold">{formatEventDate(event.startDateTime).day}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Content Section */}
-                                        <div className="p-4">
-                                            <div className="flex items-start justify-between mb-3">
-                                                <div className="flex-1">
-                                                    <h3 className="text-white font-bold text-base leading-tight mb-1">{event.title}</h3>
-                                                    <p className="text-white/70 text-sm">{event.club?.name || 'Venue TBD'}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Full-width Teal Highlight Section */}
-                                        <div className="header-gradient text-white text-sm font-medium px-3 py-2 w-full">
-                                            <div className="text-center">
-                                                {event.musicGenres?.[0] || 'Music Event'}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Link>
-                            </div>
+                            <EventCard
+                                key={`all-${event.id}`}
+                                event={event}
+                                href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}
+                                fallbackImage={getEventFallbackImage(index)}
+                                formattedDate={formatEventDate(event.startDateTime)}
+                                isFavorite={favorites.includes(event.id)}
+                                onToggleFavorite={toggleFavorite}
+                            />
                         ))}
                     </div>
                 </div>

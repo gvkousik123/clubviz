@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -55,6 +55,8 @@ const heroSlides = [
         bookingLink: '/booking',
     },
 ];
+
+type HeroSlide = (typeof heroSlides)[number];
 
 const vibeMeterFallback = [
     { id: 'dabo', name: 'DABO', image: '/dabo ambience main dabo page/Media.jpg' },
@@ -203,7 +205,6 @@ const HomePage: React.FC = () => {
 
     const venueScrollRef = useDragScroll();
     const eventScrollRef = useDragScroll();
-    const autoScrollTimer = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         const fetchHomeData = async () => {
