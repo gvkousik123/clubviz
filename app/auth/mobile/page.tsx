@@ -39,22 +39,30 @@ export default function MobileVerificationScreen() {
     };
 
     const handleSubmit = async () => {
+        console.log("=== Mobile Login: handleSubmit called ===");
+        console.log("Current phone number:", phoneNumber);
+        
         setIsLoading(true);
         setError(null);
 
         try {
             // Clean phone number (remove formatting and keep only digits)
             const cleanPhone = phoneNumber.replace(/[^0-9]/g, '');
+            console.log("Cleaned phone number:", cleanPhone);
 
             if (cleanPhone.length !== 12) { // Should be 12 digits (91 + 10 digits)
                 throw new Error('Please enter a valid 10-digit mobile number');
             }
 
+            console.log("Calling AuthService.sendOTP with:", { phone: cleanPhone, type: 'login' });
+            
             // Send OTP
-            await AuthService.sendOTP({
+            const response = await AuthService.sendOTP({
                 phone: cleanPhone,
                 type: 'login'
             });
+
+            console.log("OTP API Response:", response);
 
             toast({
                 title: "OTP sent successfully",
@@ -67,7 +75,10 @@ export default function MobileVerificationScreen() {
             // Navigate to OTP verification page
             router.push('/auth/otp');
         } catch (err: any) {
-            console.error("OTP send error:", err);
+            console.error("=== OTP send error ===", err);
+            console.error("Error response:", err.response);
+            console.error("Error message:", err.message);
+            
             const errorMessage = err.response?.data?.message || err.message || 'Failed to send OTP. Please try again.';
             setError(errorMessage);
 

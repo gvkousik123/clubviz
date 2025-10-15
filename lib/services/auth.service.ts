@@ -85,17 +85,13 @@ export class AuthService {
   /**
    * Register new user
    */
-  static async register(data: RegisterRequest): Promise<ApiResponse<AuthResponse>> {
+  static async register(data: RegisterRequest): Promise<ApiResponse<any>> {
     try {
-      const response = await api.post<ApiResponse<AuthResponse>>('/auth/signup', data);
+      const response = await api.post<ApiResponse<any>>('/auth/signup', data);
       const result = handleApiResponse(response);
       
-      // Store token in localStorage
-      if (result.success && result.data.token) {
-        localStorage.setItem('auth_token', result.data.token);
-        localStorage.setItem('refresh_token', result.data.refreshToken);
-        localStorage.setItem('user', JSON.stringify(result.data.user));
-      }
+      // Registration doesn't return token - user needs to login after signup
+      // Tokens are only stored after successful login
       
       return result;
     } catch (error) {

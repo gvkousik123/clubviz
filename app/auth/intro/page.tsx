@@ -20,15 +20,14 @@ export default function IntroScreen() {
         <div className="relative h-screen overflow-hidden bg-[#031313] text-white">
             {/* Atmospheric background */}
             <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute inset-0 bg-[url('/intro%20bg.gif')] bg-cover bg-center opacity-80 scale-110 blur-[8px]"></div>
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(94,234,212,0.28),rgba(3,19,19,0.6)_60%,rgba(3,19,19,0.95)_100%)]"></div>
-                <div className="absolute inset-0 bg-gradient-to-b from-[#061b1b]/40 via-[#031313]/70 to-[#020808]"></div>
+                <div className="absolute inset-0 bg-[url('/intro%20bg.gif')] bg-cover bg-center opacity-70 scale-[1.08] blur-[10px]"></div>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_48%_38%,rgba(94,234,212,0.45),rgba(3,19,19,0.3)_45%,rgba(3,19,19,0.85)_80%,rgba(3,19,19,0.95)_100%)] opacity-95"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-[#061b1b]/45 via-[#031313]/72 to-[#020808]"></div>
 
-                {/* Halo stroke */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 mt-12 w-[360px] h-[360px]">
-                    <div className="absolute inset-0 rounded-full border border-teal-300/30 blur-[1px]" style={{ boxShadow: '0 0 80px rgba(20,184,166,0.35)' }}></div>
-                    <div className="absolute inset-[18%] rounded-full border border-teal-400/20"></div>
-                    <div className="absolute inset-[36%] rounded-full border border-teal-500/10"></div>
+                {/* Central sphere glow */}
+                <div className="absolute top-[12%] left-1/2 -translate-x-1/2 w-[420px] h-[420px]">
+                    <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(94,234,212,0.55)_0%,rgba(3,19,19,0.15)_48%,rgba(3,19,19,0.92)_100%)] blur-[40px] opacity-90"></div>
+                    <div className="absolute inset-[26%] rounded-full bg-[radial-gradient(circle,rgba(94,234,212,0.3)_0%,rgba(3,19,19,0.75)_75%,rgba(3,19,19,0.95)_100%)] blur-[14px] opacity-70"></div>
                 </div>
 
                 {/* Extra glows */}
@@ -63,21 +62,20 @@ export default function IntroScreen() {
             </div>
 
             {/* Bottom stroke & swipe indicator */}
-            <div className="absolute inset-x-0 bottom-0 flex justify-center">
-                <div className="relative w-[320px] h-[170px]">
-                    <div className="absolute inset-x-[-40px] bottom-[-100px] h-[260px] rounded-[300px] border border-teal-400/35 bg-gradient-to-t from-[#0a2b2f] via-[#093a40]/80 to-transparent backdrop-blur-[6px]" style={{ boxShadow: '0 0 120px rgba(20,184,166,0.35)' }}></div>
-                    <div className="absolute inset-x-[-16px] bottom-[-30px] h-[160px] rounded-[160px] border border-teal-500/20"></div>
-                    <div className="absolute inset-0 flex translate-y-6 items-center justify-center">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-teal-400/40 bg-[#0b2226]/80 shadow-[0_0_20px_rgba(20,184,166,0.45)] animate-bounce">
+            <div className="absolute inset-x-0 bottom-8 flex justify-center">
+                <div className="relative w-[220px] h-[110px]">
+                    <div className="absolute inset-0 bottom-0 h-[110px] rounded-[180px] border border-teal-400/25 bg-gradient-to-t from-[#0a2b2f]/85 via-[#093a40]/55 to-transparent backdrop-blur-[4px]" style={{ boxShadow: '0 0 60px rgba(20,184,166,0.28)' }}></div>
+                    <div className="absolute inset-0 flex translate-y-3 items-center justify-center">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-teal-400/45 bg-[#0b2226]/85 shadow-[0_0_16px_rgba(20,184,166,0.4)] animate-bounce">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
-                                className="h-6 w-6 text-teal-200"
+                                className="h-5 w-5 text-teal-200"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
                                 style={{ filter: 'drop-shadow(0 0 6px rgba(94,234,212,0.6))' }}
                             >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 14l7-7 7 7" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.4} d="M5 14l7-7 7 7" />
                             </svg>
                         </div>
                     </div>

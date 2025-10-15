@@ -70,18 +70,17 @@ export default function RegisterScreen() {
                 password: trimmedPassword
             });
 
-            // Store authentication tokens
-            localStorage.setItem('auth_token', response.data.token);
-            localStorage.setItem('refresh_token', response.data.refreshToken);
-            localStorage.setItem('user', JSON.stringify(response.data.user));
+            // Store phone number for OTP verification if needed
+            localStorage.setItem('pending_phone', sanitizedPhoneNumber);
+            localStorage.setItem('pending_email', trimmedEmail.toLowerCase());
 
             toast({
                 title: "Registration successful",
-                description: "Welcome to ClubViz!",
+                description: "User registered successfully!",
             });
 
-            // Navigate to home page
-            router.push('/home');
+            // Navigate to login page after successful registration
+            router.push('/auth/login');
         } catch (err: any) {
             console.error("Registration error:", err);
             const errorMessage = err.response?.data?.message || err.message || 'Registration failed. Please try again.';
