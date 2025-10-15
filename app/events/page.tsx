@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Heart } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { EventService } from '@/lib/services/event.service';
 import type { Event } from '@/lib/api-types';
 import { useToast } from '@/hooks/use-toast';
@@ -104,6 +104,9 @@ export default function EventsListPage() {
         }
     };
 
+    const eventsTodayList = events.slice(0, 4);
+    const eventsThisWeekList = events.slice(2, 6);
+
     if (loading) {
         return (
             <div className="min-h-screen bg-[#1e2328] text-white flex items-center justify-center">
@@ -181,52 +184,73 @@ export default function EventsListPage() {
             {/* Main Content */}
             <div className="px-6 space-y-4">
                 {/* Events Today Grid */}
-                <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide">
-                    {events.slice(0, 4).map((event, index) => (
-                        <EventCard
-                            key={event.id}
-                            event={event}
-                            href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}
-                            fallbackImage={getEventFallbackImage(index)}
-                            formattedDate={formatEventDate(event.startDateTime)}
-                            isFavorite={favorites.includes(event.id)}
-                            onToggleFavorite={toggleFavorite}
-                        />
-                    ))}
-                </div>
-                {/* Events This Week Section */}
-                <div className="mt-8">
-                    <h2 className="text-white font-semibold text-lg mb-4">Events this week</h2>
-                    <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide">
-                        {events.slice(2, 6).map((event, index) => (
-                            <EventCard
-                                key={`week-${event.id}`}
-                                event={event}
-                                href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}
-                                fallbackImage={getEventFallbackImage(index + 10)}
-                                formattedDate={formatEventDate(event.startDateTime)}
-                                isFavorite={favorites.includes(event.id)}
-                                onToggleFavorite={toggleFavorite}
-                            />
-                        ))}
+                {eventsTodayList.length === 0 ? (
+                    <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60">
+                        No events available for today.
                     </div>
-                </div>
-                {/* All Events Section */}
-                <div className="mt-8">
-                    <h2 className="text-white font-semibold text-lg mb-4">All Events</h2>
-                    <div className="flex gap-5 overflow-x-auto pb-6 scrollbar-hide">
-                        {events.map((event, index) => (
+                ) : (
+                    <div className="space-y-5">
+                        {eventsTodayList.map((event, index) => (
                             <EventCard
-                                key={`all-${event.id}`}
+                                key={`today-${event.id ?? index}`}
                                 event={event}
                                 href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}
                                 fallbackImage={getEventFallbackImage(index)}
                                 formattedDate={formatEventDate(event.startDateTime)}
                                 isFavorite={favorites.includes(event.id)}
                                 onToggleFavorite={toggleFavorite}
+                                className="w-full"
                             />
                         ))}
                     </div>
+                )}
+                {/* Events This Week Section */}
+                <div className="mt-8">
+                    <h2 className="text-white font-semibold text-lg mb-4">Events this week</h2>
+                    {eventsThisWeekList.length === 0 ? (
+                        <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60">
+                            No events scheduled for later this week.
+                        </div>
+                    ) : (
+                        <div className="space-y-5">
+                            {eventsThisWeekList.map((event, index) => (
+                                <EventCard
+                                    key={`week-${event.id ?? index}`}
+                                    event={event}
+                                    href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}
+                                    fallbackImage={getEventFallbackImage(index + 10)}
+                                    formattedDate={formatEventDate(event.startDateTime)}
+                                    isFavorite={favorites.includes(event.id)}
+                                    onToggleFavorite={toggleFavorite}
+                                    className="w-full"
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
+                {/* All Events Section */}
+                <div className="mt-8">
+                    <h2 className="text-white font-semibold text-lg mb-4">All Events</h2>
+                    {events.length === 0 ? (
+                        <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60">
+                            We couldn’t find any events right now. Check back soon!
+                        </div>
+                    ) : (
+                        <div className="space-y-5 pb-6">
+                            {events.map((event, index) => (
+                                <EventCard
+                                    key={`all-${event.id ?? index}`}
+                                    event={event}
+                                    href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}
+                                    fallbackImage={getEventFallbackImage(index)}
+                                    formattedDate={formatEventDate(event.startDateTime)}
+                                    isFavorite={favorites.includes(event.id)}
+                                    onToggleFavorite={toggleFavorite}
+                                    className="w-full"
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

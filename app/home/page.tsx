@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -195,13 +195,34 @@ const getEventDay = (date: string | undefined) => {
 
 const HomePage: React.FC = () => {
     const router = useRouter();
+    const transitionDuration = 500;
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [currentSlide, setCurrentSlide] = useState(0);
+    const slides = useMemo<Array<HeroSlide & { key: string }>>(() => {
+        if (heroSlides.length <= 1) {
+            return heroSlides.map((slide) => ({ ...slide, key: `slide-${slide.id}` }));
+        }
+
+        const firstSlide = heroSlides[0];
+        const lastSlide = heroSlides[heroSlides.length - 1];
+
+        return [
+            { ...lastSlide, key: `clone-start-${lastSlide.id}` },
+            ...heroSlides.map((slide) => ({ ...slide, key: `slide-${slide.id}` })),
+            { ...firstSlide, key: `clone-end-${firstSlide.id}` },
+        ];
+    }, []);
+
+    const hasMultipleSlides = heroSlides.length > 1;
+
+    const [currentSlide, setCurrentSlide] = useState(hasMultipleSlides ? 1 : 0);
+    const [isTransitionEnabled, setIsTransitionEnabled] = useState(true);
     const [isAutoScrollPaused, setIsAutoScrollPaused] = useState(false);
     const [clubs, setClubs] = useState<Club[]>([]);
     const [events, setEvents] = useState<Event[]>([]);
     const [featuredClubs, setFeaturedClubs] = useState<Club[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const venueScrollRef = useDragScroll();
     const eventScrollRef = useDragScroll();
@@ -246,31 +267,107 @@ const HomePage: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        if (!isAutoScrollPaused) {
-            autoScrollTimer.current = setInterval(() => {
-                setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-            }, 4500);
+        if (!hasMultipleSlides || isAutoScrollPaused) {
+            return;
         }
 
-        return () => {
-            if (autoScrollTimer.current) {
-                clearInterval(autoScrollTimer.current);
-            }
-        };
-    }, [isAutoScrollPaused]);
+        const interval = setInterval(() => {
+            setIsTransitionEnabled(true);
+            setCurrentSlide((prev) => Math.min(prev + 1, slides.length - 1));
+        }, 4500);
 
-    const handlePrevSlide = () => {
-        setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
-    };
+        return () => clearInterval(interval);
+    }, [hasMultipleSlides, isAutoScrollPaused, slides.length]);
 
-    const handleNextSlide = () => {
-        setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    };
+    const clearPauseTimeout = useCallback(() => {
+        if (pauseTimeoutRef.current) {
+            clearTimeout(pauseTimeoutRef.current);
+            pauseTimeoutRef.current = null;
+        }
+    }, []);
 
-    const handleHeroPause = () => {
+    useEffect(() => {
+        return () => clearPauseTimeout();
+    }, [clearPauseTimeout]);
+
+    const triggerAutoPause = useCallback(() => {
+        if (!hasMultipleSlides) {
+            return;
+        }
+        clearPauseTimeout();
         setIsAutoScrollPaused(true);
-        setTimeout(() => setIsAutoScrollPaused(false), 6000);
-    };
+        pauseTimeoutRef.current = setTimeout(() => {
+            setIsAutoScrollPaused(false);
+            pauseTimeoutRef.current = null;
+        }, 6000);
+    }, [clearPauseTimeout, hasMultipleSlides]);
+
+    const handlePrevSlide = useCallback(() => {
+        if (!hasMultipleSlides) {
+            return;
+        }
+        triggerAutoPause();
+        setIsTransitionEnabled(true);
+        setCurrentSlide((prev) => Math.max(prev - 1, 0));
+    }, [hasMultipleSlides, triggerAutoPause]);
+
+    const handleNextSlide = useCallback(() => {
+        if (!hasMultipleSlides) {
+            return;
+        }
+        triggerAutoPause();
+        setIsTransitionEnabled(true);
+        setCurrentSlide((prev) => Math.min(prev + 1, slides.length - 1));
+    }, [hasMultipleSlides, triggerAutoPause, slides.length]);
+
+    const handleHeroPause = useCallback(() => {
+        triggerAutoPause();
+    }, [triggerAutoPause]);
+
+    const resumeAutoScroll = useCallback(() => {
+        clearPauseTimeout();
+        setIsAutoScrollPaused(false);
+    }, [clearPauseTimeout]);
+
+    const handleIndicatorClick = useCallback(
+        (index: number) => {
+            if (hasMultipleSlides) {
+                triggerAutoPause();
+                setIsTransitionEnabled(true);
+                setCurrentSlide(index + 1);
+            } else {
+                setCurrentSlide(index);
+            }
+        },
+        [hasMultipleSlides, triggerAutoPause]
+    );
+
+    useEffect(() => {
+        if (!hasMultipleSlides) {
+            return;
+        }
+
+        if (currentSlide === slides.length - 1) {
+            const timeout = setTimeout(() => {
+                setIsTransitionEnabled(false);
+                setCurrentSlide(1);
+            }, transitionDuration);
+            return () => clearTimeout(timeout);
+        }
+
+        if (currentSlide === 0) {
+            const timeout = setTimeout(() => {
+                setIsTransitionEnabled(false);
+                setCurrentSlide(slides.length - 2);
+            }, transitionDuration);
+            return () => clearTimeout(timeout);
+        }
+
+        if (!isTransitionEnabled) {
+            const frame = requestAnimationFrame(() => setIsTransitionEnabled(true));
+            return () => cancelAnimationFrame(frame);
+        }
+    }, [currentSlide, hasMultipleSlides, slides.length, transitionDuration, isTransitionEnabled]);
 
     const handleVibeMeterClick = (clubId: string) => {
         router.push(`/story?clubId=${clubId}`);
@@ -279,6 +376,14 @@ const HomePage: React.FC = () => {
     const displayClubs = clubs.length ? clubs : venueFallback;
     const displayEvents = events.length ? events : eventFallback;
     const displayVibeMeter = (featuredClubs.length ? featuredClubs : vibeMeterFallback).slice(0, 6);
+
+    const activeIndicatorIndex = useMemo(() => {
+        if (!hasMultipleSlides) {
+            return currentSlide;
+        }
+        const total = heroSlides.length;
+        return ((currentSlide - 1 + total) % total + total) % total;
+    }, [currentSlide, hasMultipleSlides]);
 
     return (
         <div className="min-h-screen bg-[#031313] text-white">
@@ -339,14 +444,16 @@ const HomePage: React.FC = () => {
                         className="relative overflow-hidden rounded-[30px] surface-card"
                         onMouseEnter={handleHeroPause}
                         onTouchStart={handleHeroPause}
-                        onMouseLeave={() => setIsAutoScrollPaused(false)}
+                        onTouchEnd={resumeAutoScroll}
+                        onTouchCancel={resumeAutoScroll}
+                        onMouseLeave={resumeAutoScroll}
                     >
                         <div
-                            className="flex transition-transform duration-500 ease-in-out"
+                            className={`flex ${isTransitionEnabled ? 'transition-transform duration-500 ease-in-out' : ''}`}
                             style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                         >
-                            {heroSlides.map((slide) => (
-                                <article key={slide.id} className="relative h-[320px] w-full flex-shrink-0">
+                            {slides.map((slide) => (
+                                <article key={slide.key} className="relative h-[320px] w-full flex-shrink-0">
                                     <img
                                         src={slide.image}
                                         alt={slide.musicBy}
@@ -398,9 +505,9 @@ const HomePage: React.FC = () => {
                                 {heroSlides.map((slide, index) => (
                                     <button
                                         key={slide.id}
-                                        className={`h-[6px] rounded-full transition-all duration-300 ${index === currentSlide ? 'w-8 bg-white' : 'w-3 bg-white/40'
+                                        className={`h-[6px] rounded-full transition-all duration-300 ${index === activeIndicatorIndex ? 'w-8 bg-white' : 'w-3 bg-white/40'
                                             }`}
-                                        onClick={() => setCurrentSlide(index)}
+                                        onClick={() => handleIndicatorClick(index)}
                                         aria-label={`Go to slide ${index + 1}`}
                                     />
                                 ))}

@@ -45,6 +45,10 @@ export function EventCard({
     }, [event.club?.name, event.club?.city]);
 
     const imageSrc = event.coverImage || event.images?.[0] || fallbackImage;
+    const capacityValue = typeof event.capacity === 'number' ? event.capacity : null;
+    const ticketPrice = event.ticketPrice;
+    const ticketPriceMinValue = ticketPrice && typeof ticketPrice.min === 'number' ? ticketPrice.min : null;
+    const ticketPriceCurrency = ticketPrice?.currency ?? '';
 
     const handleFavorite = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -53,8 +57,8 @@ export function EventCard({
     };
 
     return (
-        <Link href={href} className={cn("block group", className)}>
-            <article className="relative">
+        <Link href={href} className={cn("group block w-full", className)}>
+            <article className="relative w-full">
                 <div
                     className="absolute inset-0 rounded-[28px] opacity-60 blur-[26px] transition duration-500 group-hover:opacity-100"
                     style={{
@@ -64,7 +68,7 @@ export function EventCard({
                     }}
                 />
                 <div
-                    className="relative overflow-hidden border border-teal-500/12 bg-[#071414]/90 backdrop-blur-[12px] transition-all duration-500 group-hover:border-teal-400/40"
+                    className="relative w-full overflow-hidden border border-teal-500/12 bg-[#071414]/90 backdrop-blur-[12px] transition-all duration-500 group-hover:border-teal-400/40"
                     style={{ clipPath: CARD_CLIP_PATH }}
                 >
                     {/* Image */}
@@ -113,16 +117,21 @@ export function EventCard({
                             <h3 className="text-lg font-semibold leading-snug tracking-wide text-white line-clamp-2">
                                 {event.title}
                             </h3>
-                            <div className="flex items-center gap-2 text-sm text-white/60">
+                            <div className="flex items-center gap-2 text-sm text-white/70">
                                 <MapPin className="h-4 w-4 text-teal-300/80" />
                                 <span className="truncate">{locationLabel}</span>
                             </div>
                         </div>
-
-                        <div className="flex items-center justify-between text-xs uppercase tracking-[0.18em] text-white/40">
-                            <span>Capacity {event.capacity ?? "--"}</span>
-                            <span>{event.ticketPrice?.currency ?? ""} {event.ticketPrice?.min ?? ""}</span>
-                        </div>
+                        {(capacityValue !== null || ticketPriceMinValue !== null) && (
+                            <div className="flex items-center justify-between text-xs uppercase tracking-[0.18em] text-white/40">
+                                <span>{capacityValue !== null ? `Capacity ${capacityValue}` : ''}</span>
+                                <span>
+                                    {ticketPriceMinValue !== null
+                                        ? `${ticketPriceCurrency} ${ticketPriceMinValue.toLocaleString()}`
+                                        : ''}
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Footer ribbon */}

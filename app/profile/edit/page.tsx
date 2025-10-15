@@ -264,4 +264,4 @@ export default function EditProfilePage() {
             </div>
         </div>
     );
-} 'use client';
+} 
