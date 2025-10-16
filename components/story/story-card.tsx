@@ -39,12 +39,12 @@ export function StoryCard({
             className="block relative w-20 h-20 md:w-24 md:h-24"
             onClick={handleClick}
         >
-            {/* Story Ring */}
-            <div className={`absolute inset-0 rounded-full p-0.5 ${isViewed
-                    ? 'bg-gray-300'
-                    : 'bg-gradient-to-tr from-primary-500 via-cyan-500 to-purple-500'
+            {/* Story Ring - Reduced border thickness */}
+            <div className={`absolute inset-0 rounded-full p-[1.5px] ${isViewed
+                ? 'bg-gray-300'
+                : 'bg-gradient-to-tr from-primary-500 via-cyan-500 to-purple-500'
                 }`}>
-                <div className="w-full h-full bg-background-primary rounded-full p-0.5">
+                <div className="w-full h-full bg-background-primary rounded-full p-[1px]">
                     <div className="relative w-full h-full rounded-full overflow-hidden">
                         {/* Loading placeholder */}
                         {!imageLoaded && (
@@ -63,7 +63,7 @@ export function StoryCard({
                         />
 
                         {/* Overlay for better text visibility */}
-                        <div className="absolute inset-0 bg-black/20" />
+                        <div className="absolute inset-0 bg-black/10" />
 
                         {/* Live indicator (optional) */}
                         {!isViewed && (
@@ -74,8 +74,8 @@ export function StoryCard({
             </div>
 
             {/* Story Title */}
-            <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-center">
-                <p className="text-xs text-text-secondary font-medium truncate max-w-20">
+            <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-center w-full">
+                <p className="text-xs text-text-secondary font-medium truncate px-1">
                     {clubName || title}
                 </p>
             </div>

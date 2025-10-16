@@ -218,10 +218,11 @@ const HomePage: React.FC = () => {
     const [currentSlide, setCurrentSlide] = useState(hasMultipleSlides ? 1 : 0);
     const [isTransitionEnabled, setIsTransitionEnabled] = useState(true);
     const [isAutoScrollPaused, setIsAutoScrollPaused] = useState(false);
-    const [clubs, setClubs] = useState<Club[]>([]);
-    const [events, setEvents] = useState<Event[]>([]);
-    const [featuredClubs, setFeaturedClubs] = useState<Club[]>([]);
+    const [clubs, setClubs] = useState<any[]>([]);
+    const [events, setEvents] = useState<any[]>([]);
+    const [featuredClubs, setFeaturedClubs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -233,40 +234,44 @@ const HomePage: React.FC = () => {
             setLoading(true);
             try {
                 const location = resolveLocation();
-                const clubsPromise = ClubService.getClubs({
-                    page: 1,
-                    limit: 20,
-                    location: {
-                        latitude: location.latitude,
-                        longitude: location.longitude,
-                        radius: location.radius ?? 15,
-                    },
+
+                // Use getPublicClubsList with pagination and location
+                const clubsPromise = ClubService.getPublicClubsList({
+                    page: 0,
+                    size: 20,
+                    location: location.city,
                 });
 
                 const eventsPromise = EventService.getEvents({
-                    page: 1,
+                    page: 0,
                     size: 20,
                 });
 
                 const [featuredClubsResponse, featuredEventsResponse, clubsResponse, eventsResponse] = await Promise.all([
-                    ClubService.getFeaturedClubs(10),
+                    ClubService.getPublicClubs(),
                     EventService.getFeaturedEvents(10),
                     clubsPromise,
                     eventsPromise,
                 ]);
 
                 if (featuredClubsResponse.success && featuredClubsResponse.data) {
-                    setFeaturedClubs(featuredClubsResponse.data);
+                    setFeaturedClubs(Array.isArray(featuredClubsResponse.data) ? featuredClubsResponse.data : []);
                 }
 
                 if (clubsResponse.success && clubsResponse.data) {
-                    setClubs(clubsResponse.data.clubs);
+                    const clubsData = Array.isArray(clubsResponse.data)
+                        ? clubsResponse.data
+                        : clubsResponse.data.content || [];
+                    setClubs(clubsData);
                 }
 
                 if (featuredEventsResponse.success && featuredEventsResponse.data) {
-                    setEvents(featuredEventsResponse.data);
+                    setEvents(Array.isArray(featuredEventsResponse.data) ? featuredEventsResponse.data : []);
                 } else if (eventsResponse.success && eventsResponse.data) {
-                    setEvents(eventsResponse.data.events);
+                    const eventsData = Array.isArray(eventsResponse.data)
+                        ? eventsResponse.data
+                        : eventsResponse.data.events || [];
+                    setEvents(eventsData);
                 }
             } catch (error) {
                 console.error('Error fetching home data:', error);
@@ -390,6 +395,18 @@ const HomePage: React.FC = () => {
         router.push(`/story?clubId=${clubId}`);
     };
 
+    const handleSearch = useCallback(() => {
+        if (searchQuery.trim()) {
+            router.push(`/filter?query=${encodeURIComponent(searchQuery.trim())}`);
+        }
+    }, [searchQuery, router]);
+
+    const handleSearchKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    }, [handleSearch]);
+
     const displayClubs = clubs.length ? clubs : venueFallback;
     const displayEvents = events.length ? events : eventFallback;
     const displayVibeMeter = (featuredClubs.length ? featuredClubs : vibeMeterFallback).slice(0, 6);
@@ -444,12 +461,16 @@ const HomePage: React.FC = () => {
                             <Input
                                 placeholder="Search events, clubs, vibes..."
                                 className="pill-input w-full pl-14 pr-6 text-base"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={handleSearchKeyDown}
                             />
                         </div>
                         <Button
                             size="icon"
                             variant="secondary"
                             className="h-11 w-11 rounded-full border border-white/15 bg-white/10 backdrop-blur-md hover:bg-white/20"
+                            onClick={() => router.push('/filter')}
                         >
                             <SlidersHorizontal className="h-5 w-5 text-white" />
                         </Button>
@@ -557,12 +578,12 @@ const HomePage: React.FC = () => {
                                     onClick={() => handleVibeMeterClick(String(club.id ?? club.name))}
                                     className="group flex flex-col items-center"
                                 >
-                                    <div className="circle-glow mb-3 flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-full bg-black/70 p-1">
-                                        <div className="h-full w-full overflow-hidden rounded-full border border-[#14b8a6]">
+                                    <div className="circle-glow relative mb-3 flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-full bg-black/70">
+                                        <div className="relative h-[72px] w-[72px] overflow-hidden rounded-full border border-[#14b8a6]/80">
                                             <img
                                                 src={(club as Club).images?.[0] ?? (club as any).image}
                                                 alt={club.name}
-                                                className="h-full w-full object-cover object-center"
+                                                className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
                                             />
                                         </div>
                                     </div>
