@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthService } from "@/lib/services/auth.service";
 import { useToast } from "@/hooks/use-toast";
+import { STORAGE_KEYS } from "@/lib/constants/storage";
 
 export default function RegisterScreen() {
     const router = useRouter();
@@ -71,7 +72,7 @@ export default function RegisterScreen() {
             });
 
             // Store phone number for OTP verification if needed
-            localStorage.setItem('pending_phone', sanitizedPhoneNumber);
+            localStorage.setItem(STORAGE_KEYS.pendingPhone, sanitizedPhoneNumber);
             localStorage.setItem('pending_email', trimmedEmail.toLowerCase());
 
             toast({

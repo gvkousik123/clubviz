@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { ClubService } from '@/lib/services/club.service';
 import type { Club } from '@/lib/api-types';
 import { useToast } from '@/hooks/use-toast';
+import { resolveLocation } from '@/lib/location';
 
 export default function ClubsPage() {
     const router = useRouter();
@@ -29,9 +30,15 @@ export default function ClubsPage() {
         try {
             setLoading(true);
             setError(null);
+            const location = resolveLocation();
             const response = await ClubService.getClubs({
                 page: 1,
-                limit: 50
+                limit: 50,
+                location: {
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    radius: location.radius ?? 15,
+                },
             });
             setClubs(response.data.clubs);
         } catch (err) {

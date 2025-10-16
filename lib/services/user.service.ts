@@ -1,4 +1,5 @@
 import { api, handleApiResponse, handleApiError } from '../api-client';
+import { STORAGE_KEYS } from '../constants/storage';
 import {
   ApiResponse,
   User,
@@ -32,7 +33,7 @@ export class UserService {
       
       // Update user in localStorage
       if (result.success) {
-        localStorage.setItem('user', JSON.stringify(result.data));
+        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(result.data));
       }
       
       return result;
@@ -131,9 +132,9 @@ export class UserService {
       );
       
       // Clear localStorage
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
+  localStorage.removeItem(STORAGE_KEYS.accessToken);
+  localStorage.removeItem(STORAGE_KEYS.refreshToken);
+  localStorage.removeItem(STORAGE_KEYS.user);
       
       return handleApiResponse(response);
     } catch (error) {

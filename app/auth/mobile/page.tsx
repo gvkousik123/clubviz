@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { AuthService } from "@/lib/services/auth.service";
 import { useToast } from "@/hooks/use-toast";
+import { STORAGE_KEYS } from "@/lib/constants/storage";
 
 export default function MobileVerificationScreen() {
     const router = useRouter();
@@ -70,7 +71,7 @@ export default function MobileVerificationScreen() {
             });
 
             // Store phone number for OTP verification
-            localStorage.setItem('pending_phone', cleanPhone);
+            localStorage.setItem(STORAGE_KEYS.pendingPhone, cleanPhone);
 
             // Navigate to OTP verification page
             router.push('/auth/otp');

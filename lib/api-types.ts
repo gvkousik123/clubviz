@@ -18,7 +18,9 @@ export interface PaginationMeta {
 
 // Authentication Types
 export interface LoginRequest {
-  phone: string;
+  usernameOrEmail?: string;
+  phone?: string;
+  email?: string;
   password?: string;
   otp?: string;
 }
@@ -42,10 +44,11 @@ export interface OTPVerifyRequest {
 }
 
 export interface AuthResponse {
-  user: User;
+  user?: User;
   token: string;
   refreshToken: string;
-  expiresIn: number;
+  expiresIn?: number;
+  [key: string]: any;
 }
 
 // User Types
@@ -146,28 +149,109 @@ export interface Event {
   title: string;
   description: string;
   clubId: string;
-  club: Club;
-  coverImage: string;
-  images: string[];
+  club?: Club;
+  coverImage?: string;
+  imageUrl?: string;
+  images?: string[];
+  location: string;
+  locationText?: string;
+  locationMap?: {
+    lat: number;
+    lng: number;
+  };
   startDateTime: string;
   endDateTime: string;
-  ticketPrice: {
+  formattedTime?: string;
+  timeUntilEvent?: string;
+  ticketPrice?: {
     min: number;
     max: number;
     currency: string;
   };
-  ticketTypes: TicketType[];
-  capacity: number;
-  soldTickets: number;
-  ageRestriction: number;
+  ticketTypes?: TicketType[];
+  maxAttendees?: number;
+  capacity?: number;
+  attendedCount?: number;
+  soldTickets?: number;
+  maxAttended?: number;
+  isRegistered?: boolean;
+  rsvpStatus?: 'NOT_REGISTERED' | 'REGISTERED';
+  ageRestriction?: number;
   dressCode?: string;
-  musicGenres: string[];
-  performers: Performer[];
-  isActive: boolean;
-  featured: boolean;
-  tags: string[];
+  musicGenres?: string[];
+  performers?: Performer[];
+  isPublic: boolean;
+  requiresApproval: boolean;
+  isActive?: boolean;
+  featured?: boolean;
+  tags?: string[];
+  organizer?: {
+    id: string;
+    username: string;
+    firstName: string;
+    lastName: string;
+    avatar: string;
+    displayName: string;
+    fullName: string;
+  };
+  recentAttendees?: Array<{
+    id: string;
+    username: string;
+    firstName: string;
+    lastName: string;
+    avatar: string;
+    displayName: string;
+    fullName: string;
+    rsvpStatus: string;
+    registeredAt: string;
+  }>;
   createdAt: string;
   updatedAt: string;
+}
+
+// Attending Event with additional details
+export interface AttendingEvent {
+  id: string;
+  title: string;
+  description: string;
+  startDateTime: string;
+  endDateTime: string;
+  location: string;
+  imageUrl?: string;
+  images?: string[];
+  locationMap?: {
+    lat: number;
+    lng: number;
+  };
+  clubId?: string;
+  club: {
+    id: string;
+    name: string;
+    description?: string;
+    logoUrl?: string;
+    images?: string[];
+  };
+  locationTypes?: string[];
+  foodCuisines?: string[];
+  facilities?: string[];
+  music?: string[];
+  ambiance?: string[];
+  entryPricing?: {
+    completeEntryPrice?: number;
+    maleEntryPrice?: number;
+    femaleEntryPrice?: number;
+    coupleEntryPrice?: number;
+    priceDetails?: string;
+    hasTimeRestrictions?: boolean;
+    lastTimeRestrictions?: string;
+    inclusions?: string[];
+  };
+  roles?: Array<{
+    role: string;
+  }>;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface TicketType {

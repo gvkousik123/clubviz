@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { STORAGE_KEYS } from './constants/storage';
 
 // API Configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://98.90.141.103/api';
@@ -18,7 +19,7 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     // Get auth token from localStorage or your preferred storage
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -41,7 +42,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       // Unauthorized - clear token and redirect to login
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth_token');
+  localStorage.removeItem(STORAGE_KEYS.accessToken);
         window.location.href = '/auth/login';
       }
     } else if (error.response?.status === 403) {

@@ -6,52 +6,133 @@ import {
   TicketType,
   Performer,
   PaginationMeta,
+  AttendingEvent,
 } from '../api-types';
+
+// Event-specific types matching API documentation
+export interface EventListParams {
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  category?: string;
+  search?: string;
+  status?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface EventCreateRequest {
+  title: string;
+  description: string;
+  startDateTime: string;
+  endDateTime: string;
+  location: string;
+  imageUrl?: string;
+  clubId: string;
+  maxAttendees?: number;
+  isPublic: boolean;
+  requiresApproval: boolean;
+  locationText?: string;
+  locationMap?: {
+    lat: number;
+    lng: number;
+  };
+}
+
+export interface EventUpdateRequest {
+  title?: string;
+  description?: string;
+  startDateTime?: string;
+  endDateTime?: string;
+  location?: string;
+  imageUrl?: string;
+  clubId?: string;
+  maxAttendees?: number;
+  isPublic?: boolean;
+  requiresApproval?: boolean;
+  locationText?: string;
+  locationMap?: {
+    lat: number;
+    lng: number;
+  };
+}
+
+export interface EventDetailsResponse {
+  id: string;
+  title: string;
+  description: string;
+  startDateTime: string;
+  endDateTime: string;
+  location: string;
+  imageUrl: string;
+  images?: string[];
+  clubId: string;
+  maxAttendees: number;
+  attendedCount: number;
+  maxAttended: number;
+  isRegistered: boolean;
+  isPublic: boolean;
+  requiresApproval: boolean;
+  createdAt: string;
+  updatedAt: string;
+  rsvpStatus: 'NOT_REGISTERED' | 'REGISTERED';
+  club: {
+    id: string;
+    name: string;
+    logo: string;
+    category: string;
+  };
+  organizer: {
+    id: string;
+    username: string;
+    firstName: string;
+    lastName: string;
+    avatar: string;
+    displayName: string;
+    fullName: string;
+  };
+  recentAttendees: Array<{
+    id: string;
+    username: string;
+    firstName: string;
+    lastName: string;
+    avatar: string;
+    displayName: string;
+    fullName: string;
+    rsvpStatus: string;
+    registeredAt: string;
+  }>;
+  locationMap?: {
+    lat: number;
+    lng: number;
+  };
+  formattedTime?: string;
+  timeUntilEvent?: string;
+}
 
 export class EventService {
   /**
-   * Get all events with optional filtering
+   * Get all events with optional filtering (API: GET /events/list)
    */
-  static async getEvents(filters?: EventsFilter): Promise<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>> {
+  static async getEvents(params?: EventListParams): Promise<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>> {
     try {
-      const params = new URLSearchParams();
+      const queryParams = new URLSearchParams();
       
-      if (filters) {
-        if (filters.clubId) {
-          params.append('clubId', filters.clubId);
-        }
-        if (filters.dateRange) {
-          params.append('startDate', filters.dateRange.startDate);
-          params.append('endDate', filters.dateRange.endDate);
-        }
-        if (filters.priceRange) {
-          params.append('minPrice', filters.priceRange.min.toString());
-          params.append('maxPrice', filters.priceRange.max.toString());
-        }
-        if (filters.musicGenres?.length) {
-          params.append('musicGenres', filters.musicGenres.join(','));
-        }
-        if (filters.location) {
-          params.append('latitude', filters.location.latitude.toString());
-          params.append('longitude', filters.location.longitude.toString());
-          params.append('radius', filters.location.radius.toString());
-        }
-        if (filters.sortBy) {
-          params.append('sortBy', filters.sortBy);
-        }
-        if (filters.sortOrder) {
-          params.append('sortOrder', filters.sortOrder);
-        }
-        if (filters.page) {
-          params.append('page', filters.page.toString());
-        }
-        if (filters.limit) {
-          params.append('limit', filters.limit.toString());
-        }
+      if (params) {
+        if (params.page !== undefined) queryParams.append('page', params.page.toString());
+        if (params.size !== undefined) queryParams.append('size', params.size.toString());
+        if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+        if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+        if (params.category) queryParams.append('category', params.category);
+        if (params.search) queryParams.append('search', params.search);
+        if (params.status) queryParams.append('status', params.status);
+        if (params.startDate) queryParams.append('startDate', params.startDate);
+        if (params.endDate) queryParams.append('endDate', params.endDate);
       }
 
       const response = await api.get<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>>(
-        `/events?${params.toString()}`
+        `/events/list${queryParams.toString() ? '?' + queryParams.toString() : ''}`
       );
       return handleApiResponse(response);
     } catch (error) {
@@ -60,11 +141,158 @@ export class EventService {
   }
 
   /**
-   * Get event by ID
+   * Get event by ID (API: GET /events/{id})
    */
   static async getEventById(eventId: string): Promise<ApiResponse<Event>> {
     try {
       const response = await api.get<ApiResponse<Event>>(`/events/${eventId}`);
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Get detailed event information with organizer and attendees (API: GET /events/{id}/details)
+   */
+  static async getEventDetails(eventId: string): Promise<ApiResponse<EventDetailsResponse>> {
+    try {
+      const response = await api.get<ApiResponse<EventDetailsResponse>>(`/events/${eventId}/details`);
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Get events by club (API: GET /events/club/{clubId})
+   */
+  static async getEventsByClub(
+    clubId: string, 
+    params?: { page?: number; size?: number; sortBy?: string; sortOrder?: 'asc' | 'desc' }
+  ): Promise<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+      if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+
+      const response = await api.get<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>>(
+        `/events/club/${clubId}${queryParams.toString() ? '?' + queryParams.toString() : ''}`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Create a new event (API: POST /events)
+   */
+  static async createEvent(eventData: EventCreateRequest): Promise<ApiResponse<Event>> {
+    try {
+      const response = await api.post<ApiResponse<Event>>('/events', eventData);
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Update an event (API: PUT /events/{id})
+   */
+  static async updateEvent(eventId: string, eventData: EventUpdateRequest): Promise<ApiResponse<Event>> {
+    try {
+      const response = await api.put<ApiResponse<Event>>(`/events/${eventId}`, eventData);
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Delete an event (API: DELETE /events/{id})
+   */
+  static async deleteEvent(eventId: string): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await api.delete<ApiResponse<{ message: string }>>(`/events/${eventId}`);
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Attend/Register for an event (API: POST /events/{id}/attend)
+   */
+  static async attendEvent(eventId: string): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await api.post<ApiResponse<{ message: string }>>(`/events/${eventId}/attend`);
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Leave/Unregister from an event (API: POST /events/{id}/leave)
+   */
+  static async leaveEvent(eventId: string): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await api.post<ApiResponse<{ message: string }>>(`/events/${eventId}/leave`);
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Get user's event registrations (API: GET /events/my-registrations)
+   */
+  static async getMyRegistrations(params?: { page?: number; size?: number; sortBy?: string; sortOrder?: 'asc' | 'desc' }): Promise<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+      if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+
+      const response = await api.get<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>>(
+        `/events/my-registrations${queryParams.toString() ? '?' + queryParams.toString() : ''}`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Get events organized by the current user (API: GET /events/my-organized-events)
+   */
+  static async getMyOrganizedEvents(params?: { page?: number; size?: number; sortBy?: string; sortOrder?: 'asc' | 'desc' }): Promise<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+      if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+
+      const response = await api.get<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>>(
+        `/events/my-organized-events${queryParams.toString() ? '?' + queryParams.toString() : ''}`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Get events the user is attending (API: GET /events/attending)
+   */
+  static async getAttendingEvents(): Promise<ApiResponse<AttendingEvent[]>> {
+    try {
+      const response = await api.get<ApiResponse<AttendingEvent[]>>('/events/attending');
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -89,20 +317,6 @@ export class EventService {
   static async getUpcomingEvents(limit: number = 20): Promise<ApiResponse<Event[]>> {
     try {
       const response = await api.get<ApiResponse<Event[]>>(`/events/upcoming?limit=${limit}`);
-      return handleApiResponse(response);
-    } catch (error) {
-      throw new Error(handleApiError(error));
-    }
-  }
-
-  /**
-   * Get events by club
-   */
-  static async getEventsByClub(clubId: string, page: number = 1, limit: number = 10): Promise<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>> {
-    try {
-      const response = await api.get<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>>(
-        `/clubs/${clubId}/events?page=${page}&limit=${limit}`
-      );
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));

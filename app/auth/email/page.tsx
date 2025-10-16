@@ -23,32 +23,40 @@ export default function EmailLoginScreen() {
         setIsLoading(true);
         setError(null);
 
-        // Basic email validation
+        // Basic validation
         if (!email || !password) {
             setError('Please fill in all fields');
             setIsLoading(false);
             return;
         }
 
-        if (!email.includes('@')) {
-            setError('Please enter a valid email address');
-            setIsLoading(false);
-            return;
-        }
-
         try {
-            // Note: The API currently only supports phone-based login
-            // This is a temporary implementation that shows the limitation
-            toast({
-                title: "Email login not yet supported",
-                description: "Please use mobile number login for now",
-                variant: "destructive",
+            const trimmedEmail = email.trim().toLowerCase();
+            const trimmedPassword = password.trim();
+
+            const response = await AuthService.login({
+                usernameOrEmail: trimmedEmail,
+                password: trimmedPassword,
             });
 
-            // Redirect to mobile login
-            setTimeout(() => {
-                router.push('/auth/mobile');
-            }, 2000);
+            if (response.success) {
+                toast({
+                    title: "Login successful",
+                    description: "Welcome back to ClubViz!",
+                });
+
+                router.push('/home');
+                return;
+            }
+
+            const message = response.message || 'Login failed. Please try again.';
+            setError(message);
+
+            toast({
+                title: "Login failed",
+                description: message,
+                variant: "destructive",
+            });
 
         } catch (err: any) {
             console.error("Login error:", err);
@@ -74,61 +82,62 @@ export default function EmailLoginScreen() {
                 <div className="absolute top-1/3 right-1/4 w-40 h-40 bg-teal-500/10 rounded-full blur-2xl"></div>
             </div>
 
-            {/* Content - Scrollable with hidden scrollbar */}
-            <div className="relative z-10 min-h-screen overflow-y-auto overflow-x-hidden scrollbar-hide">
-                <div className="flex flex-col min-h-screen">
-                    {/* Header with Back and Skip */}
-                    <div className="flex items-center justify-between p-4 pt-8 flex-shrink-0">
-                        <Link
-                            href="/auth/login"
-                            className="w-10 h-10 flex items-center justify-center rounded-full border border-teal-400/30 text-teal-300 hover:bg-teal-500/10 transition-colors"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </Link>
+            {/* Content */}
+            <div className="relative z-10 h-screen flex flex-col">
+                {/* Header with Back and Skip */}
+                <div className="flex items-center justify-between p-4 pt-6 flex-shrink-0">
+                    <Link
+                        href="/auth/login"
+                        className="w-10 h-10 flex items-center justify-center rounded-full border border-teal-400/30 text-teal-300 hover:bg-teal-500/10 transition-colors"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                    </Link>
 
-                        <Link
-                            href="/auth/login"
-                            className="px-4 py-2 rounded-full border border-teal-400/30 text-sm text-teal-300 hover:bg-teal-500/10 transition"
-                        >
-                            Skip
-                        </Link>
-                    </div>
+                    <Link
+                        href="/auth/login"
+                        className="px-4 py-2 rounded-full border border-teal-400/30 text-sm text-teal-300 hover:bg-teal-500/10 transition"
+                    >
+                        Skip
+                    </Link>
+                </div>
 
-                    {/* Logo Area - Takes natural space */}
-                    <div className="flex flex-col items-center justify-center px-6 py-8 flex-shrink-0">
-                        <ClubVizLogo size="md" variant="full" />
-                    </div>
+                {/* Logo Area */}
+                <div className="flex flex-col items-center justify-center px-6 py-4 flex-shrink-0">
+                    <ClubVizLogo size="md" variant="full" />
+                </div>
 
-                    {/* White Card Container */}
-                    <div className="flex-1 min-h-0 pb-8">
-                        <div className="bg-white rounded-t-3xl px-6 py-8 min-h-full">
-                            {/* Header */}
-                            <div className="mb-6">
-                                <h1 className="text-2xl font-semibold text-gray-900 mb-2">Login</h1>
-                                <p className="text-teal-600 text-sm">Good to see you back</p>
+                {/* White Card Container - Sticks to bottom and takes remaining space */}
+                <div className="flex-1 flex items-end">
+                    <div className="bg-white rounded-t-3xl w-full px-6 pt-6 pb-8 overflow-y-auto flex flex-col">
+                        {/* Header */}
+                        <div className="mb-6">
+                            <h1 className="text-2xl font-semibold text-gray-900 mb-2">Login</h1>
+                            <p className="text-teal-600 text-sm">Good to see you back</p>
+                        </div>
+
+                        {/* Error Display */}
+                        {error && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-red-600 text-sm">{error}</p>
                             </div>
+                        )}
 
-                            {/* Error Display */}
-                            {error && (
-                                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                    <p className="text-red-600 text-sm">{error}</p>
-                                </div>
-                            )}
-
-                            {/* Login Form */}
-                            <form className="space-y-4 pb-8" onSubmit={handleSubmit}>
-                                {/* Email Field */}
+                        {/* Login Form */}
+                        <form className="mt-auto flex flex-col gap-6" onSubmit={handleSubmit}>
+                            {/* Form Fields */}
+                            <div className="space-y-4">
+                                {/* Email/Username Field */}
                                 <div>
-                                    <label className="block text-gray-800 font-medium mb-2">Email</label>
+                                    <label className="block text-gray-800 font-medium mb-2">Email or Username</label>
                                     <input
-                                        type="email"
-                                        placeholder="Email address"
+                                        type="text"
+                                        placeholder="Email address or username"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="w-full py-4 px-4 rounded-2xl border-2 border-teal-400 
-                                             bg-gray-50 text-gray-900 placeholder-gray-400
-                                             focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent
-                                             transition-all duration-200"
+                                                 bg-gray-50 text-gray-900 placeholder-gray-400
+                                                 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent
+                                                 transition-all duration-200"
                                         autoFocus
                                     />
                                 </div>
@@ -143,9 +152,9 @@ export default function EmailLoginScreen() {
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             className="w-full py-4 px-4 pr-12 rounded-2xl border-2 border-teal-400 
-                                                 bg-gray-50 text-gray-900 placeholder-gray-400
-                                                 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent
-                                                 transition-all duration-200"
+                                                     bg-gray-50 text-gray-900 placeholder-gray-400
+                                                     focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent
+                                                     transition-all duration-200"
                                         />
                                         <button
                                             type="button"
@@ -156,16 +165,19 @@ export default function EmailLoginScreen() {
                                         </button>
                                     </div>
                                 </div>
+                            </div>
 
+                            {/* Bottom section - Login Button and Register Link */}
+                            <div className="space-y-4 pt-4">
                                 {/* Login Button */}
                                 <button
                                     type="submit"
                                     disabled={isLoading}
                                     className={`w-full py-4 px-6 rounded-2xl font-medium text-white 
-                                         header-gradient 
-                                         hover:from-teal-600 hover:to-cyan-600 
-                                         shadow-lg transition-all duration-200
-                                         ${isLoading ? 'opacity-80 cursor-not-allowed' : 'active:scale-[0.98]'}`}
+                                             header-gradient 
+                                             hover:from-teal-600 hover:to-cyan-600 
+                                             shadow-lg transition-all duration-200
+                                             ${isLoading ? 'opacity-80 cursor-not-allowed' : 'active:scale-[0.98]'}`}
                                     style={{
                                         boxShadow: '0 4px 20px rgba(20, 184, 166, 0.3)',
                                     }}
@@ -182,15 +194,15 @@ export default function EmailLoginScreen() {
                                         'Login'
                                     )}
                                 </button>
-                            </form>
 
-                            {/* Register Link */}
-                            <div className="mt-6 text-center">
-                                <p className="text-gray-600">
-                                    Don't have an account? <AuthLink href="/auth/signup">Register</AuthLink>
-                                </p>
+                                {/* Register Link */}
+                                <div className="text-center pb-2">
+                                    <p className="text-gray-600">
+                                        Don't have an account? <AuthLink href="/auth/signup">Register</AuthLink>
+                                    </p>
+                                </div>
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>

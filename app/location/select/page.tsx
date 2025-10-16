@@ -3,10 +3,13 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, MapPin, Navigation, X } from 'lucide-react';
+import { setStoredLocation, SavedLocation, DEFAULT_LOCATION } from '@/lib/location';
+import { useToast } from '@/hooks/use-toast';
 
 export default function LocationSelectPage() {
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState('Nagpur');
+    const { toast } = useToast();
 
     const handleGoBack = () => {
         router.back();
@@ -16,17 +19,46 @@ export default function LocationSelectPage() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    console.log('Current position:', position);
+                    const { latitude, longitude } = position.coords;
+
+                    setStoredLocation({
+                        latitude,
+                        longitude,
+                        radius: DEFAULT_LOCATION.radius,
+                        label: 'Current Location',
+                    });
+
+                    toast({
+                        title: 'Location updated',
+                        description: 'Using your current location for recommendations.',
+                    });
                     router.back();
                 },
                 (error) => {
                     console.error('Geolocation error:', error);
+                    toast({
+                        title: 'Unable to access location',
+                        description: 'Please enable location access or pick a location manually.',
+                        variant: 'destructive',
+                    });
                 }
             );
         }
     };
 
-    const handleLocationSelect = (location: { name: string; city: string }) => {
+    const handleLocationSelect = (location: LocationOption) => {
+        setStoredLocation({
+            latitude: location.latitude,
+            longitude: location.longitude,
+            radius: DEFAULT_LOCATION.radius,
+            city: location.city,
+            label: location.name,
+        });
+
+        toast({
+            title: 'Location updated',
+            description: `${location.name}, ${location.city}`,
+        });
         router.back();
     };
 
@@ -34,10 +66,12 @@ export default function LocationSelectPage() {
         setSearchTerm('');
     };
 
-    const searchResults = [
-        { name: 'Dharampeth', city: 'Nagpur' },
-        { name: 'Airport Road', city: 'Nagpur' },
-        { name: 'Sadar', city: 'Nagpur' },
+    type LocationOption = SavedLocation & { name: string; city: string };
+
+    const searchResults: LocationOption[] = [
+        { name: 'Dharampeth', city: 'Nagpur', latitude: 21.1457, longitude: 79.0689 },
+        { name: 'Airport Road', city: 'Nagpur', latitude: 21.1059, longitude: 79.0475 },
+        { name: 'Sadar', city: 'Nagpur', latitude: 21.1578, longitude: 79.0882 },
     ];
 
     return (

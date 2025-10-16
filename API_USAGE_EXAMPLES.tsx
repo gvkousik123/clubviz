@@ -11,7 +11,8 @@ import {
     ReviewService,
     MediaService,
     StoryService,
-    NotificationService
+    NotificationService,
+    LookupService
 } from '@/lib/services';
 import { Club, Event, Booking, User } from '@/lib/api-types';
 import { toast } from '@/hooks/use-toast';
@@ -560,6 +561,272 @@ export const ClubDetailPageExample = ({ clubId }: { clubId: string }) => {
     );
 };
 
+// Example 11: Lookup Data Hook
+export const useLookupData = () => {
+    const [lookupData, setLookupData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        loadAllLookupData();
+    }, []);
+
+    const loadAllLookupData = async () => {
+        try {
+            setLoading(true);
+            const response = await LookupService.getAllLookupData();
+            if (response.success) {
+                setLookupData(response.data);
+            }
+        } catch (err: any) {
+            setError(err.message);
+            toast({
+                title: "Error",
+                description: "Failed to load lookup data",
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getLookupByCategory = async (category: 'facilities' | 'foodCuisines' | 'music' | 'barOptions') => {
+        try {
+            const response = await LookupService.getLookupByCategory(category);
+            return response.success ? response.data : [];
+        } catch (err: any) {
+            console.error(`Failed to load ${category}:`, err);
+            return [];
+        }
+    };
+
+    const reloadLookupData = async () => {
+        try {
+            await LookupService.reloadLookupData();
+            await loadAllLookupData();
+            toast({
+                title: "Success",
+                description: "Lookup data reloaded successfully",
+            });
+        } catch (err: any) {
+            toast({
+                title: "Error",
+                description: "Failed to reload lookup data",
+                variant: "destructive",
+            });
+        }
+    };
+
+    return {
+        lookupData,
+        loading,
+        error,
+        getLookupByCategory,
+        reloadLookupData,
+    };
+};
+
+// Example 12: Club Creation Form with Lookup Data
+export const ClubCreationFormExample = () => {
+    const { lookupData, loading: lookupLoading } = useLookupData();
+    const [formData, setFormData] = useState({
+        name: '',
+        description: '',
+        category: '',
+        music: [] as string[],
+        foodCuisines: [] as string[],
+        facilities: [] as string[],
+        barOptions: [] as string[],
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        try {
+            const response = await ClubService.createClub({
+                name: formData.name,
+                description: formData.description,
+                category: formData.category,
+                music: formData.music,
+                foodCuisines: formData.foodCuisines,
+                facilities: formData.facilities,
+                barOptions: formData.barOptions,
+            });
+
+            if (response.success) {
+                toast({
+                    title: "Success",
+                    description: "Club created successfully",
+                });
+            }
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+            });
+        }
+    };
+
+    if (lookupLoading) {
+        return <div>Loading form options...</div>;
+    }
+
+    return (
+        <form onSubmit={handleSubmit}>
+            <input
+                type="text"
+                placeholder="Club Name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            />
+
+            <textarea
+                placeholder="Description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            />
+
+            {/* Music Genres Multi-select */}
+            <div>
+                <label>Music Genres</label>
+                {lookupData?.music?.map((item: any) => (
+                    <label key={item.id}>
+                        <input
+                            type="checkbox"
+                            checked={formData.music.includes(item.label)}
+                            onChange={(e) => {
+                                const newMusic = e.target.checked
+                                    ? [...formData.music, item.label]
+                                    : formData.music.filter(m => m !== item.label);
+                                setFormData({ ...formData, music: newMusic });
+                            }}
+                        />
+                        {item.label}
+                    </label>
+                ))}
+            </div>
+
+            {/* Food Cuisines Multi-select */}
+            <div>
+                <label>Food Cuisines</label>
+                {lookupData?.foodCuisines?.map((item: any) => (
+                    <label key={item.id}>
+                        <input
+                            type="checkbox"
+                            checked={formData.foodCuisines.includes(item.label)}
+                            onChange={(e) => {
+                                const newCuisines = e.target.checked
+                                    ? [...formData.foodCuisines, item.label]
+                                    : formData.foodCuisines.filter(c => c !== item.label);
+                                setFormData({ ...formData, foodCuisines: newCuisines });
+                            }}
+                        />
+                        {item.label}
+                    </label>
+                ))}
+            </div>
+
+            {/* Facilities Multi-select */}
+            <div>
+                <label>Facilities</label>
+                {lookupData?.facilities?.map((item: any) => (
+                    <label key={item.id}>
+                        <input
+                            type="checkbox"
+                            checked={formData.facilities.includes(item.label)}
+                            onChange={(e) => {
+                                const newFacilities = e.target.checked
+                                    ? [...formData.facilities, item.label]
+                                    : formData.facilities.filter(f => f !== item.label);
+                                setFormData({ ...formData, facilities: newFacilities });
+                            }}
+                        />
+                        {item.icon && <span>{item.icon}</span>}
+                        {item.label}
+                    </label>
+                ))}
+            </div>
+
+            {/* Bar Options Multi-select */}
+            <div>
+                <label>Bar Options</label>
+                {lookupData?.barOptions?.map((item: any) => (
+                    <label key={item.id}>
+                        <input
+                            type="checkbox"
+                            checked={formData.barOptions.includes(item.label)}
+                            onChange={(e) => {
+                                const newOptions = e.target.checked
+                                    ? [...formData.barOptions, item.label]
+                                    : formData.barOptions.filter(o => o !== item.label);
+                                setFormData({ ...formData, barOptions: newOptions });
+                            }}
+                        />
+                        {item.label}
+                    </label>
+                ))}
+            </div>
+
+            <button type="submit">Create Club</button>
+        </form>
+    );
+};
+
+// Example 13: Search Filters with Lookup Data
+export const SearchFiltersExample = () => {
+    const [filters, setFilters] = useState({
+        music: [] as string[],
+        cuisines: [] as string[],
+        facilities: [] as string[],
+    });
+    const [lookupData, setLookupData] = useState<any>(null);
+
+    useEffect(() => {
+        loadFilters();
+    }, []);
+
+    const loadFilters = async () => {
+        // Load all lookup data for filters
+        const response = await LookupService.getAllLookupData();
+        if (response.success) {
+            setLookupData(response.data);
+        }
+    };
+
+    const applyFilters = async () => {
+        const results = await ClubService.getClubs({
+            music: filters.music,
+            foodCuisines: filters.cuisines,
+            facilities: filters.facilities,
+        });
+        // Handle results...
+    };
+
+    return (
+        <div>
+            <h3>Filter Clubs</h3>
+
+            {/* Music filter */}
+            <select
+                multiple
+                onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions, option => option.value);
+                    setFilters({ ...filters, music: selected });
+                }}
+            >
+                {lookupData?.music?.map((item: any) => (
+                    <option key={item.id} value={item.label}>
+                        {item.label}
+                    </option>
+                ))}
+            </select>
+
+            <button onClick={applyFilters}>Apply Filters</button>
+        </div>
+    );
+};
+
 export default {
     useAuth,
     useClubs,
@@ -567,6 +834,9 @@ export default {
     useMediaUpload,
     useStories,
     useNotifications,
+    useLookupData,
     BookingFlowExample,
-    ClubDetailPageExample
+    ClubDetailPageExample,
+    ClubCreationFormExample,
+    SearchFiltersExample
 };

@@ -8,6 +8,7 @@ import { EventService } from '@/lib/services/event.service';
 import type { Event } from '@/lib/api-types';
 import { useToast } from '@/hooks/use-toast';
 import { EventCard } from '@/components/events/event-card';
+import { resolveLocation } from '@/lib/location';
 
 export default function EventsListPage() {
     const router = useRouter();
@@ -44,9 +45,15 @@ export default function EventsListPage() {
         try {
             setLoading(true);
             setError(null);
+            const location = resolveLocation();
             const response = await EventService.getEvents({
                 page: 1,
-                limit: 50
+                limit: 50,
+                location: {
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    radius: location.radius ?? 25,
+                },
             });
             setEvents(response.data.events);
         } catch (err) {

@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AuthService } from "@/lib/services/auth.service";
 import { useToast } from "@/hooks/use-toast";
+import { STORAGE_KEYS } from "@/lib/constants/storage";
 
 export default function OTPVerificationScreen() {
     const router = useRouter();
@@ -22,7 +23,7 @@ export default function OTPVerificationScreen() {
 
     useEffect(() => {
         // Get phone number from localStorage
-        const savedPhone = localStorage.getItem('pending_phone');
+        const savedPhone = localStorage.getItem(STORAGE_KEYS.pendingPhone);
         if (!savedPhone) {
             router.push('/auth/mobile');
             return;
@@ -88,8 +89,12 @@ export default function OTPVerificationScreen() {
 
             if (response.data.verified && response.data.token) {
                 // Store authentication tokens
-                localStorage.setItem('auth_token', response.data.token);
-                localStorage.removeItem('pending_phone');
+                localStorage.setItem(STORAGE_KEYS.accessToken, response.data.token);
+                const maybeRefresh = (response.data as Record<string, unknown>).refreshToken;
+                if (typeof maybeRefresh === 'string' && maybeRefresh) {
+                    localStorage.setItem(STORAGE_KEYS.refreshToken, maybeRefresh);
+                }
+                localStorage.removeItem(STORAGE_KEYS.pendingPhone);
 
                 toast({
                     title: "Login successful",

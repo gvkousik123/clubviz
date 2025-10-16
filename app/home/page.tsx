@@ -28,6 +28,7 @@ import { ClubService } from '@/lib/services/club.service';
 import { EventService } from '@/lib/services/event.service';
 import { Club, Event } from '@/lib/api-types';
 import { toast } from '@/hooks/use-toast';
+import { resolveLocation } from '@/lib/location';
 
 const heroSlides = [
     {
@@ -231,11 +232,27 @@ const HomePage: React.FC = () => {
         const fetchHomeData = async () => {
             setLoading(true);
             try {
+                const location = resolveLocation();
+                const clubsPromise = ClubService.getClubs({
+                    page: 1,
+                    limit: 20,
+                    location: {
+                        latitude: location.latitude,
+                        longitude: location.longitude,
+                        radius: location.radius ?? 15,
+                    },
+                });
+
+                const eventsPromise = EventService.getEvents({
+                    page: 1,
+                    size: 20,
+                });
+
                 const [featuredClubsResponse, featuredEventsResponse, clubsResponse, eventsResponse] = await Promise.all([
                     ClubService.getFeaturedClubs(10),
                     EventService.getFeaturedEvents(10),
-                    ClubService.getClubs({ page: 1, limit: 20 }),
-                    EventService.getEvents({ page: 1, limit: 20 }),
+                    clubsPromise,
+                    eventsPromise,
                 ]);
 
                 if (featuredClubsResponse.success && featuredClubsResponse.data) {
@@ -453,11 +470,11 @@ const HomePage: React.FC = () => {
                             style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                         >
                             {slides.map((slide) => (
-                                <article key={slide.key} className="relative h-[320px] w-full flex-shrink-0">
+                                <article key={slide.key} className="relative h-[280px] w-full flex-shrink-0">
                                     <img
                                         src={slide.image}
                                         alt={slide.musicBy}
-                                        className="h-full w-full object-cover"
+                                        className="h-full w-full object-cover object-center"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/45 to-[#031313]/95" />
 
@@ -540,12 +557,12 @@ const HomePage: React.FC = () => {
                                     onClick={() => handleVibeMeterClick(String(club.id ?? club.name))}
                                     className="group flex flex-col items-center"
                                 >
-                                    <div className="circle-glow mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-black/70">
-                                        <div className="h-[74px] w-[74px] overflow-hidden rounded-full border border-white/15">
+                                    <div className="circle-glow mb-3 flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-full bg-black/70 p-1">
+                                        <div className="h-full w-full overflow-hidden rounded-full border border-[#14b8a6]">
                                             <img
                                                 src={(club as Club).images?.[0] ?? (club as any).image}
                                                 alt={club.name}
-                                                className="h-full w-full object-cover"
+                                                className="h-full w-full object-cover object-center"
                                             />
                                         </div>
                                     </div>
@@ -575,12 +592,12 @@ const HomePage: React.FC = () => {
                                     ))
                                     : displayClubs.slice(0, 6).map((club, index) => (
                                         <Link key={club.id ?? `venue-${index}`} href={`/club/${club.id ?? 'dabo'}`}>
-                                            <article className="surface-panel relative h-[260px] w-[300px] overflow-hidden rounded-[28px] border border-white/10">
+                                            <article className="surface-panel relative h-[280px] w-[300px] overflow-hidden rounded-[28px] border border-white/10">
                                                 <div className="relative h-[180px] overflow-hidden">
                                                     <img
                                                         src={getClubImage(club)}
                                                         alt={club.name}
-                                                        className="h-full w-full object-cover"
+                                                        className="h-full w-full object-cover object-center"
                                                     />
                                                     <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-black/20 to-[#031313]/95" />
                                                     <div className="absolute left-4 top-4 flex items-center gap-2">
@@ -600,8 +617,8 @@ const HomePage: React.FC = () => {
                                                     </div>
                                                 </div>
                                                 <div className="mt-10 space-y-1 px-5 pb-5">
-                                                    <h4 className="text-xl font-semibold">{club.name}</h4>
-                                                    <p className="text-sm text-white/70">{getClubOpenInfo(club)}</p>
+                                                    <h4 className="text-xl font-semibold truncate">{club.name}</h4>
+                                                    <p className="text-sm text-white/70 truncate">{getClubOpenInfo(club)}</p>
                                                 </div>
                                             </article>
                                         </Link>
