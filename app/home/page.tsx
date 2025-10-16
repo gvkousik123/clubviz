@@ -113,12 +113,27 @@ const eventFallback = [
 type DisplayClub = Club | (typeof venueFallback)[number];
 type DisplayEvent = Event | (typeof eventFallback)[number];
 
-const getClubImage = (club: DisplayClub) => {
-    if ('images' in club && Array.isArray(club.images) && club.images.length > 0) {
-        return club.images[0];
+const unwrapApiData = <T,>(payload: any): T => {
+    if (payload && typeof payload === 'object' && 'data' in payload) {
+        return (payload as { data: T }).data;
     }
-    if ('image' in club) {
-        return club.image;
+    return payload as T;
+};
+
+const getClubImage = (club: DisplayClub) => {
+    const images = (club as any)?.images;
+    if (Array.isArray(images) && images.length > 0) {
+        const firstImage = images[0];
+        if (typeof firstImage === 'string') {
+            return firstImage;
+        }
+        if (firstImage?.url) {
+            return firstImage.url;
+        }
+    }
+    const image = (club as any)?.image ?? (club as any)?.logoUrl ?? (club as any)?.logo;
+    if (typeof image === 'string' && image.length > 0) {
+        return image;
     }
     return '/gallery/Frame 1000001117.jpg';
 };
@@ -144,14 +159,19 @@ const getClubRating = (club: DisplayClub) => {
 };
 
 const getEventImage = (event: DisplayEvent) => {
-    if ('images' in event && Array.isArray(event.images) && event.images.length > 0) {
-        return event.images[0];
+    const images = (event as any)?.images;
+    if (Array.isArray(images) && images.length > 0) {
+        const firstImage = images[0];
+        if (typeof firstImage === 'string') {
+            return firstImage;
+        }
+        if (firstImage?.url) {
+            return firstImage.url;
+        }
     }
-    if ('coverImage' in event && event.coverImage) {
-        return event.coverImage;
-    }
-    if ('image' in event) {
-        return event.image;
+    const directImage = (event as any)?.coverImage ?? (event as any)?.image ?? (event as any)?.imageUrl;
+    if (typeof directImage === 'string' && directImage.length > 0) {
+        return directImage;
     }
     return '/gallery/Frame 1000001120.jpg';
 };
@@ -198,6 +218,7 @@ const HomePage: React.FC = () => {
     const router = useRouter();
     const transitionDuration = 500;
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [userLocation, setUserLocation] = useState(() => resolveLocation());
     const slides = useMemo<Array<HeroSlide & { key: string }>>(() => {
         if (heroSlides.length <= 1) {
             return heroSlides.map((slide) => ({ ...slide, key: `slide-${slide.id}` }));
@@ -234,44 +255,69 @@ const HomePage: React.FC = () => {
             setLoading(true);
             try {
                 const location = resolveLocation();
+                setUserLocation(location);
 
-                // Use getPublicClubsList with pagination and location
-                const clubsPromise = ClubService.getPublicClubsList({
-                    page: 0,
-                    size: 20,
-                    location: location.city,
-                });
-
-                const eventsPromise = EventService.getEvents({
-                    page: 0,
-                    size: 20,
-                });
-
-                const [featuredClubsResponse, featuredEventsResponse, clubsResponse, eventsResponse] = await Promise.all([
+                const [clubsListResult, publicClubsResult, eventsResult] = await Promise.allSettled([
+                    ClubService.getPublicClubsList({
+                        page: 0,
+                        size: 20,
+                        location: location.city,
+                    }),
                     ClubService.getPublicClubs(),
-                    EventService.getFeaturedEvents(10),
-                    clubsPromise,
-                    eventsPromise,
+                    EventService.getEvents({
+                        page: 0,
+                        size: 20,
+                        status: 'UPCOMING',
+                    }),
                 ]);
 
-                if (featuredClubsResponse.success && featuredClubsResponse.data) {
-                    setFeaturedClubs(Array.isArray(featuredClubsResponse.data) ? featuredClubsResponse.data : []);
+                let nextClubs: DisplayClub[] = [];
+                let nextFeatured: DisplayClub[] = [];
+
+                if (clubsListResult.status === 'fulfilled') {
+                    const clubsResponse = unwrapApiData<any>(clubsListResult.value);
+                    const clubsData = Array.isArray(clubsResponse)
+                        ? clubsResponse
+                        : clubsResponse?.content ?? [];
+                    if (Array.isArray(clubsData) && clubsData.length > 0) {
+                        nextClubs = clubsData;
+                    }
+                } else {
+                    console.warn('Failed to load club list:', clubsListResult.reason);
                 }
 
-                if (clubsResponse.success && clubsResponse.data) {
-                    const clubsData = Array.isArray(clubsResponse.data)
-                        ? clubsResponse.data
-                        : clubsResponse.data.content || [];
-                    setClubs(clubsData);
+                if (publicClubsResult.status === 'fulfilled') {
+                    const featuredClubsResponse = unwrapApiData<any>(publicClubsResult.value);
+                    const featuredData = Array.isArray(featuredClubsResponse)
+                        ? featuredClubsResponse
+                        : featuredClubsResponse?.content ?? featuredClubsResponse ?? [];
+                    if (Array.isArray(featuredData) && featuredData.length > 0) {
+                        nextFeatured = featuredData;
+                        if (!nextClubs.length) {
+                            nextClubs = featuredData;
+                        }
+                    }
+                } else {
+                    console.warn('Failed to load featured clubs:', publicClubsResult.reason);
                 }
 
-                if (featuredEventsResponse.success && featuredEventsResponse.data) {
-                    setEvents(Array.isArray(featuredEventsResponse.data) ? featuredEventsResponse.data : []);
-                } else if (eventsResponse.success && eventsResponse.data) {
-                    const eventsData = Array.isArray(eventsResponse.data)
-                        ? eventsResponse.data
-                        : eventsResponse.data.events || [];
-                    setEvents(eventsData);
+                if (nextClubs.length) {
+                    setClubs(nextClubs);
+                }
+                if (nextFeatured.length) {
+                    setFeaturedClubs(nextFeatured);
+                }
+
+                if (eventsResult.status === 'fulfilled') {
+                    const eventsResponse = unwrapApiData<any>(eventsResult.value);
+                    const eventsData = Array.isArray(eventsResponse)
+                        ? eventsResponse
+                        : eventsResponse?.events ?? eventsResponse?.content ?? [];
+                    if (Array.isArray(eventsData) && eventsData.length > 0) {
+                        setEvents(eventsData);
+                    }
+                } else {
+                    console.warn('Failed to load events:', eventsResult.reason);
                 }
             } catch (error) {
                 console.error('Error fetching home data:', error);
@@ -432,7 +478,7 @@ const HomePage: React.FC = () => {
                             className="flex items-center gap-2 text-sm font-semibold tracking-wide text-white"
                         >
                             <MapPin className="h-4 w-4" />
-                            Dharampeth, Nagpur
+                            {userLocation.label ?? userLocation.city ?? 'Select Location'}
                             <ChevronDown className="h-4 w-4 text-white/70" />
                         </Link>
                         <div className="flex items-center gap-3">
@@ -578,13 +624,15 @@ const HomePage: React.FC = () => {
                                     onClick={() => handleVibeMeterClick(String(club.id ?? club.name))}
                                     className="group flex flex-col items-center"
                                 >
-                                    <div className="circle-glow relative mb-3 flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-full bg-black/70">
-                                        <div className="relative h-[72px] w-[72px] overflow-hidden rounded-full border border-[#14b8a6]/80">
-                                            <img
-                                                src={(club as Club).images?.[0] ?? (club as any).image}
-                                                alt={club.name}
-                                                className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                                            />
+                                    <div className="circle-glow mb-3 flex h-20 w-20 flex-shrink-0 items-center justify-center">
+                                        <div className="story-ring">
+                                            <div className="story-ring__inner">
+                                                <img
+                                                    src={(club as Club).images?.[0] ?? (club as any).image}
+                                                    alt={club.name}
+                                                    className="story-ring__image"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                     <span className="text-xs font-medium uppercase tracking-[0.25em] text-white/60 group-hover:text-white">

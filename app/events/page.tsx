@@ -8,7 +8,13 @@ import { EventService } from '@/lib/services/event.service';
 import type { Event } from '@/lib/api-types';
 import { useToast } from '@/hooks/use-toast';
 import { EventCard } from '@/components/events/event-card';
-import { resolveLocation } from '@/lib/location';
+
+const unwrapApiData = <T,>(payload: any): T => {
+    if (payload && typeof payload === 'object' && 'data' in payload) {
+        return (payload as { data: T }).data;
+    }
+    return payload as T;
+};
 
 export default function EventsListPage() {
     const router = useRouter();
@@ -45,20 +51,58 @@ export default function EventsListPage() {
         try {
             setLoading(true);
             setError(null);
-            const location = resolveLocation();
-            const response = await EventService.getEvents({
-                page: 1,
-                limit: 50,
-                location: {
-                    latitude: location.latitude,
-                    longitude: location.longitude,
-                    radius: location.radius ?? 25,
-                },
-            });
-            setEvents(response.data.events);
+
+            const [eventsResult, upcomingResult] = await Promise.allSettled([
+                EventService.getEvents({
+                    page: 0,
+                    size: 50,
+                    status: 'UPCOMING',
+                    sortBy: 'startDateTime',
+                    sortOrder: 'asc',
+                }),
+                EventService.getUpcomingEvents(50),
+            ]);
+
+            let nextEvents: Event[] = [];
+
+            if (eventsResult.status === 'fulfilled') {
+                const listResponse = unwrapApiData<any>(eventsResult.value);
+                const eventsPayload = Array.isArray(listResponse)
+                    ? listResponse
+                    : listResponse?.events ?? listResponse?.content ?? [];
+                if (Array.isArray(eventsPayload) && eventsPayload.length > 0) {
+                    nextEvents = eventsPayload;
+                } else {
+                    console.warn('Events list response missing usable data.');
+                }
+            } else {
+                console.warn('Events list request failed:', eventsResult.reason);
+            }
+
+            if (!nextEvents.length) {
+                if (upcomingResult.status === 'fulfilled') {
+                    const upcomingResponse = unwrapApiData<any>(upcomingResult.value);
+                    const upcomingData = Array.isArray(upcomingResponse)
+                        ? upcomingResponse
+                        : upcomingResponse?.events ?? upcomingResponse?.content ?? [];
+                    if (Array.isArray(upcomingData) && upcomingData.length > 0) {
+                        nextEvents = upcomingData;
+                    } else {
+                        console.warn('Upcoming events response missing usable data.');
+                    }
+                } else {
+                    console.warn('Upcoming events request failed:', upcomingResult.reason);
+                }
+            }
+
+            if (!nextEvents.length) {
+                throw new Error('No events data available from API');
+            }
+
+            setEvents(nextEvents);
         } catch (err) {
-            setError('Failed to load events. Please try again.');
             console.error('Error fetching events:', err);
+            setError('Failed to load events. Please try again.');
         } finally {
             setLoading(false);
         }

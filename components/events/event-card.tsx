@@ -27,6 +27,11 @@ export function EventCard({
     onToggleFavorite,
     className
 }: EventCardProps) {
+    const rawImages = (event as any)?.images;
+    const rawLocationText = (event as any)?.locationText;
+    const rawImageUrl = (event as any)?.imageUrl;
+    const rawImage = (event as any)?.image;
+
     const primaryGenre = useMemo(() => {
         if (event.musicGenres && event.musicGenres.length > 0) {
             return event.musicGenres.slice(0, 2).join(" & ");
@@ -40,11 +45,37 @@ export function EventCard({
     const locationLabel = useMemo(() => {
         const parts: string[] = [];
         if (event.club?.name) parts.push(event.club.name);
-        if (event.club?.city) parts.push(event.club.city);
+        const clubCity = rawLocationText?.city ?? event.club?.city;
+        if (clubCity) parts.push(clubCity);
+        if (parts.length === 0 && typeof event.location === 'string' && event.location.length > 0) {
+            parts.push(event.location);
+        }
+        if (parts.length === 0 && rawLocationText?.address1) {
+            parts.push(rawLocationText.address1);
+        }
         return parts.length > 0 ? parts.join(", ") : "Venue to be announced";
-    }, [event.club?.name, event.club?.city]);
-
-    const imageSrc = event.coverImage || event.images?.[0] || fallbackImage;
+    }, [event.club?.name, event.club?.city, event.location, rawLocationText]);
+    const imageSrc = useMemo(() => {
+        if (typeof event.coverImage === 'string' && event.coverImage.length > 0) {
+            return event.coverImage;
+        }
+        if (Array.isArray(rawImages) && rawImages.length > 0) {
+            const first = rawImages[0];
+            if (typeof first === 'string') {
+                return first;
+            }
+            if (first?.url) {
+                return first.url;
+            }
+        }
+        if (typeof rawImageUrl === 'string' && rawImageUrl.length > 0) {
+            return rawImageUrl;
+        }
+        if (typeof rawImage === 'string' && rawImage.length > 0) {
+            return rawImage;
+        }
+        return fallbackImage;
+    }, [event.coverImage, rawImages, rawImageUrl, rawImage, fallbackImage]);
     const capacityValue = typeof event.capacity === 'number' ? event.capacity : null;
     const ticketPrice = event.ticketPrice;
     const ticketPriceMinValue = ticketPrice && typeof ticketPrice.min === 'number' ? ticketPrice.min : null;
