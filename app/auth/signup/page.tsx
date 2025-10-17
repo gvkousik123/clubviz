@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { ClubVizLogo } from "@/components/auth/logo";
 import { AuthLink } from "@/components/auth/auth-link";
@@ -110,170 +110,164 @@ export default function RegisterScreen() {
                 <div className="absolute top-1/3 right-1/4 w-40 h-40 bg-teal-500/10 rounded-full blur-2xl"></div>
             </div>
 
-            {/* Content - Scrollable with hidden scrollbar */}
-            <div className="relative z-10 min-h-screen overflow-y-auto overflow-x-hidden scrollbar-hide">
-                <div className="flex flex-col min-h-screen">
-                    {/* Header with Back and Skip */}
-                    <div className="flex items-center justify-between p-4 pt-12 flex-shrink-0">
-                        <Link
-                            href="/auth/login"
-                            className="w-10 h-10 flex items-center justify-center rounded-full border border-teal-400/30 text-teal-300 hover:bg-teal-500/10 transition-colors"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </Link>
+            {/* Content */}
+            <div className="relative z-10 min-h-screen flex flex-col">
+                {/* Header with Back and Skip - Fixed position */}
+                <div className="flex items-center justify-between p-4 pt-6 flex-shrink-0">
+                    <Link
+                        href="/auth/login"
+                        className="w-10 h-10 flex items-center justify-center rounded-full border border-teal-400/30 text-teal-300 hover:bg-teal-500/10 transition-colors"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                    </Link>
 
-                        <Link
-                            href="/auth/login"
-                            className="px-4 py-2 rounded-full border border-teal-400/30 text-sm text-teal-300 hover:bg-teal-500/10 transition"
-                        >
-                            Skip
-                        </Link>
+                    <Link
+                        href="/auth/login"
+                        className="px-4 py-1.5 rounded-full border border-teal-400/30 text-sm text-teal-300 hover:bg-teal-500/10 transition"
+                    >
+                        Skip
+                    </Link>
+                </div>
+
+                {/* White Card Container - Sticks to bottom and takes remaining space */}
+                <div className="flex-1 flex flex-col">
+                    {/* Logo Area - Now positioned just above the form with increased spacing */}
+                    <div className="flex-1 flex flex-col items-center justify-end px-6 pb-8">
+                        <ClubVizLogo size="md" variant="full" />
                     </div>
 
-                    {/* Main Content - Logo Area */}
-                    <div className="flex flex-col items-center justify-center px-6 py-8 flex-shrink-0">
-                        {/* Logo */}
-                        <div className="mb-8">
-                            <ClubVizLogo size="md" variant="full" />
+                    <div className="bg-white rounded-t-3xl w-full px-6 pt-6 pb-8 overflow-y-auto flex flex-col">
+                        {/* Header */}
+                        <div className="mb-6">
+                            <h1 className="text-2xl font-bold text-[#2C1945] mb-2">Create Account</h1>
+                            <p className="text-[#0C898B] text-sm font-semibold">Join the ClubWiz community</p>
                         </div>
-                    </div>
 
-                    {/* White Card Container */}
-                    <div className="flex-1 min-h-0 pb-8">
-                        <div className="bg-white rounded-t-3xl px-6 py-6 min-h-full">
-                            {/* Header */}
-                            <div className="mb-6">
-                                <h1 className="text-2xl font-semibold text-gray-900 mb-2">Create Account</h1>
-                                <p className="text-teal-600 text-sm">Join the ClubWiz community</p>
+                        {/* Error Message */}
+                        {error && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-red-600 text-sm">{error}</p>
+                            </div>
+                        )}
+
+                        {/* Registration Form */}
+                        <form className="space-y-5" onSubmit={handleSubmit}>
+                            {/* Full Name Field */}
+                            <div>
+                                <label className="block text-[#0C0C0D] font-bold mb-2 text-base">Full Name</label>
+                                <input
+                                    type="text"
+                                    placeholder="Enter your full name"
+                                    value={formData.fullName}
+                                    onChange={(e) => handleInputChange('fullName', e.target.value)}
+                                    className="w-full py-3.5 px-5 rounded-[36px] border border-[#0C898B] 
+                                             bg-[#EFEFEF] text-gray-900 placeholder-[#A09F99] text-base
+                                             focus:outline-none focus:ring-2 focus:ring-[#0C898B] focus:border-transparent
+                                             transition-all duration-200 h-[55px]"
+                                    autoFocus
+                                />
                             </div>
 
-                            {/* Error Message */}
-                            {error && (
-                                <div className="mb-4 p-4 rounded-2xl bg-red-50 border border-red-200">
-                                    <p className="text-red-600 text-sm">{error}</p>
-                                </div>
-                            )}
+                            {/* Email Field */}
+                            <div>
+                                <label className="block text-[#0C0C0D] font-bold mb-2 text-base">Email</label>
+                                <input
+                                    type="email"
+                                    placeholder="Enter your email address"
+                                    value={formData.email}
+                                    onChange={(e) => handleInputChange('email', e.target.value)}
+                                    className="w-full py-3.5 px-5 rounded-[36px] border border-[#0C898B] 
+                                             bg-[#EFEFEF] text-gray-900 placeholder-[#A09F99] text-base
+                                             focus:outline-none focus:ring-2 focus:ring-[#0C898B] focus:border-transparent
+                                             transition-all duration-200 h-[55px]"
+                                />
+                            </div>
 
-                            {/* Registration Form */}
-                            <form className="space-y-4" onSubmit={handleSubmit}>
-                                {/* Full Name Field */}
-                                <div>
-                                    <label className="block text-gray-800 font-medium mb-2">Full Name</label>
+                            {/* Phone Field */}
+                            <div>
+                                <label className="block text-[#0C0C0D] font-bold mb-2 text-base">Phone Number</label>
+                                <input
+                                    type="tel"
+                                    placeholder="Enter your phone number"
+                                    value={formData.phoneNumber}
+                                    onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                                    className="w-full py-3.5 px-5 rounded-[36px] border border-[#0C898B] 
+                                             bg-[#EFEFEF] text-gray-900 placeholder-[#A09F99] text-base
+                                             focus:outline-none focus:ring-2 focus:ring-[#0C898B] focus:border-transparent
+                                             transition-all duration-200 h-[55px]"
+                                />
+                            </div>
+
+                            {/* Password Field */}
+                            <div>
+                                <label className="block text-[#0C0C0D] font-bold mb-2 text-base">Password</label>
+                                <div className="relative">
                                     <input
-                                        type="text"
-                                        placeholder="Enter your full name"
-                                        value={formData.fullName}
-                                        onChange={(e) => handleInputChange('fullName', e.target.value)}
-                                        className="w-full py-4 px-4 rounded-2xl border-2 border-teal-400 
-                                             bg-gray-50 text-gray-900 placeholder-gray-400
-                                             focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent
-                                             transition-all duration-200"
-                                        autoFocus
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Create a password"
+                                        value={formData.password}
+                                        onChange={(e) => handleInputChange('password', e.target.value)}
+                                        className="w-full py-3.5 px-5 pr-12 rounded-[38px] border border-[#0C898B] 
+                                                 bg-[#EFEFEF] text-gray-900 placeholder-[#A09F99] text-base
+                                                 focus:outline-none focus:ring-2 focus:ring-[#0C898B] focus:border-transparent
+                                                 transition-all duration-200 h-[55px]"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-5 top-1/2 -translate-y-1/2 text-[#A09F99]"
+                                    >
+                                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
                                 </div>
+                            </div>
 
-                                {/* Email Field */}
-                                <div>
-                                    <label className="block text-gray-800 font-medium mb-2">Email</label>
+                            {/* Confirm Password Field */}
+                            <div>
+                                <label className="block text-[#0C0C0D] font-bold mb-2 text-base">Confirm Password</label>
+                                <div className="relative">
                                     <input
-                                        type="email"
-                                        placeholder="Enter your email address"
-                                        value={formData.email}
-                                        onChange={(e) => handleInputChange('email', e.target.value)}
-                                        className="w-full py-4 px-4 rounded-2xl border-2 border-teal-400 
-                                             bg-gray-50 text-gray-900 placeholder-gray-400
-                                             focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent
-                                             transition-all duration-200"
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        placeholder="Confirm your password"
+                                        value={formData.confirmPassword}
+                                        onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                                        className="w-full py-3.5 px-5 pr-12 rounded-[38px] border border-[#0C898B] 
+                                                 bg-[#EFEFEF] text-gray-900 placeholder-[#A09F99] text-base
+                                                 focus:outline-none focus:ring-2 focus:ring-[#0C898B] focus:border-transparent
+                                                 transition-all duration-200 h-[55px]"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-5 top-1/2 -translate-y-1/2 text-[#A09F99]"
+                                    >
+                                        {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
                                 </div>
+                            </div>
 
-                                {/* Phone Field */}
-                                <div>
-                                    <label className="block text-gray-800 font-medium mb-2">Phone Number</label>
-                                    <input
-                                        type="tel"
-                                        placeholder="Enter your phone number"
-                                        value={formData.phoneNumber}
-                                        onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                                        className="w-full py-4 px-4 rounded-2xl border-2 border-teal-400 
-                                             bg-gray-50 text-gray-900 placeholder-gray-400
-                                             focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent
-                                             transition-all duration-200"
-                                    />
-                                </div>
-
-                                {/* Password Field */}
-                                <div>
-                                    <label className="block text-gray-800 font-medium mb-2">Password</label>
-                                    <div className="relative">
-                                        <input
-                                            type={showPassword ? "text" : "password"}
-                                            placeholder="Create a password"
-                                            value={formData.password}
-                                            onChange={(e) => handleInputChange('password', e.target.value)}
-                                            className="w-full py-4 px-4 pr-12 rounded-2xl border-2 border-teal-400 
-                                                 bg-gray-50 text-gray-900 placeholder-gray-400
-                                                 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent
-                                                 transition-all duration-200"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                        >
-                                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Confirm Password Field */}
-                                <div>
-                                    <label className="block text-gray-800 font-medium mb-2">Confirm Password</label>
-                                    <div className="relative">
-                                        <input
-                                            type={showConfirmPassword ? "text" : "password"}
-                                            placeholder="Confirm your password"
-                                            value={formData.confirmPassword}
-                                            onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                                            className="w-full py-4 px-4 pr-12 rounded-2xl border-2 border-teal-400 
-                                                 bg-gray-50 text-gray-900 placeholder-gray-400
-                                                 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent
-                                                 transition-all duration-200"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                        >
-                                            {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Register Button */}
+                            {/* Register Button */}
+                            <div className="pt-4">
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="w-full py-4 px-6 rounded-2xl font-medium text-white 
-                                         header-gradient 
-                                         hover:from-teal-600 hover:to-cyan-600 
-                                         disabled:opacity-50 disabled:cursor-not-allowed
-                                         shadow-lg active:scale-[0.98] transition-all duration-200"
-                                    style={{
-                                        boxShadow: '0 4px 20px rgba(20, 184, 166, 0.3)',
-                                    }}
+                                    className={`w-full h-[55px] rounded-[30px] font-extrabold text-white border border-white
+                                             bg-gradient-to-b from-[#0D7377] to-[#222830] 
+                                             transition-all duration-200 text-base
+                                             ${isLoading ? 'opacity-80 cursor-not-allowed' : 'active:scale-[0.98]'}`}
                                 >
                                     {isLoading ? 'Creating Account...' : 'Create Account'}
                                 </button>
-                            </form>
+                            </div>
 
                             {/* Login Link */}
-                            <div className="mt-6 text-center pb-4">
-                                <p className="text-gray-600">
-                                    Already have an account? <AuthLink href="/auth/email">Login</AuthLink>
-                                </p>
+                            <div className="text-center pt-4">
+                                <div className="flex justify-center items-center">
+                                    <span className="text-[#2C1945] font-bold text-[15px]">Already have an account ?</span>
+                                    <AuthLink href="/auth/email" className="text-[#0095FF] font-bold text-[15px]">Login</AuthLink>
+                                </div>
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>

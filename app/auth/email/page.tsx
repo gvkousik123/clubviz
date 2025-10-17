@@ -95,24 +95,24 @@ export default function EmailLoginScreen() {
 
                     <Link
                         href="/auth/login"
-                        className="px-4 py-2 rounded-full border border-teal-400/30 text-sm text-teal-300 hover:bg-teal-500/10 transition"
+                        className="px-4 py-1.5 rounded-full border border-teal-400/30 text-sm text-teal-300 hover:bg-teal-500/10 transition"
                     >
                         Skip
                     </Link>
                 </div>
 
-                {/* Logo Area */}
-                <div className="flex flex-col items-center justify-center px-6 py-4 flex-shrink-0">
-                    <ClubVizLogo size="md" variant="full" />
-                </div>
-
                 {/* White Card Container - Sticks to bottom and takes remaining space */}
-                <div className="flex-1 flex items-end">
+                <div className="flex-1 flex flex-col">
+                    {/* Logo Area - Now positioned just above the form with increased spacing */}
+                    <div className="flex-1 flex flex-col items-center justify-end px-6 pb-8">
+                        <ClubVizLogo size="md" variant="full" />
+                    </div>
+
                     <div className="bg-white rounded-t-3xl w-full px-6 pt-6 pb-8 overflow-y-auto flex flex-col">
                         {/* Header */}
                         <div className="mb-6">
-                            <h1 className="text-2xl font-semibold text-gray-900 mb-2">Login</h1>
-                            <p className="text-teal-600 text-sm">Good to see you back</p>
+                            <h1 className="text-2xl font-bold text-[#2C1945] mb-2">Login</h1>
+                            <p className="text-[#0C898B] text-sm font-semibold">Good to see you back</p>
                         </div>
 
                         {/* Error Display */}
@@ -125,41 +125,43 @@ export default function EmailLoginScreen() {
                         {/* Login Form */}
                         <form className="mt-auto flex flex-col gap-6" onSubmit={handleSubmit}>
                             {/* Form Fields */}
-                            <div className="space-y-4">
+                            <div className="space-y-5">
                                 {/* Email/Username Field */}
                                 <div>
-                                    <label className="block text-gray-800 font-medium mb-2">Email or Username</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Email address or username"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full py-4 px-4 rounded-2xl border-2 border-teal-400 
-                                                 bg-gray-50 text-gray-900 placeholder-gray-400
-                                                 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent
-                                                 transition-all duration-200"
-                                        autoFocus
-                                    />
+                                    <label className="block text-[#0C0C0D] font-bold mb-2 text-base">Email</label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            placeholder="Email address"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className="w-full py-3.5 px-5 rounded-[36px] border border-[#0C898B] 
+                                                     bg-[#EFEFEF] text-gray-900 placeholder-[#A09F99] text-base
+                                                     focus:outline-none focus:ring-2 focus:ring-[#0C898B] focus:border-transparent
+                                                     transition-all duration-200 h-[55px]"
+                                            autoFocus
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* Password Field */}
                                 <div>
-                                    <label className="block text-gray-800 font-medium mb-2">Password</label>
+                                    <label className="block text-[#0C0C0D] font-bold mb-2 text-base">Password</label>
                                     <div className="relative">
                                         <input
                                             type={showPassword ? "text" : "password"}
                                             placeholder="Password"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full py-4 px-4 pr-12 rounded-2xl border-2 border-teal-400 
-                                                     bg-gray-50 text-gray-900 placeholder-gray-400
-                                                     focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent
-                                                     transition-all duration-200"
+                                            className="w-full py-3.5 px-5 pr-12 rounded-[38px] border border-[#0C898B] 
+                                                     bg-[#EFEFEF] text-gray-900 placeholder-[#A09F99] text-base
+                                                     focus:outline-none focus:ring-2 focus:ring-[#0C898B] focus:border-transparent
+                                                     transition-all duration-200 h-[55px]"
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                            className="absolute right-5 top-1/2 -translate-y-1/2 text-[#A09F99]"
                                         >
                                             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                         </button>
@@ -168,19 +170,15 @@ export default function EmailLoginScreen() {
                             </div>
 
                             {/* Bottom section - Login Button and Register Link */}
-                            <div className="space-y-4 pt-4">
+                            <div className="space-y-6 pt-4">
                                 {/* Login Button */}
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className={`w-full py-4 px-6 rounded-2xl font-medium text-white 
-                                             header-gradient 
-                                             hover:from-teal-600 hover:to-cyan-600 
-                                             shadow-lg transition-all duration-200
+                                    className={`w-full h-[55px] rounded-[30px] font-extrabold text-white border border-white
+                                             bg-gradient-to-b from-[#0D7377] to-[#222830] 
+                                             transition-all duration-200 text-base
                                              ${isLoading ? 'opacity-80 cursor-not-allowed' : 'active:scale-[0.98]'}`}
-                                    style={{
-                                        boxShadow: '0 4px 20px rgba(20, 184, 166, 0.3)',
-                                    }}
                                 >
                                     {isLoading ? (
                                         <span className="flex items-center justify-center">
@@ -197,9 +195,10 @@ export default function EmailLoginScreen() {
 
                                 {/* Register Link */}
                                 <div className="text-center pb-2">
-                                    <p className="text-gray-600">
-                                        Don't have an account? <AuthLink href="/auth/signup">Register</AuthLink>
-                                    </p>
+                                    <div className="flex justify-center items-center">
+                                        <span className="text-[#2C1945] font-bold text-[15px]">Don't have an account ? </span>
+                                        <AuthLink href="/auth/signup" className="text-[#0095FF] font-bold text-[15px] pl-1">Register</AuthLink>
+                                    </div>
                                 </div>
                             </div>
                         </form>
