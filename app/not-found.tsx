@@ -1,12 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, Wifi, BatteryFull, Signal } from "lucide-react";
-
-const statusBarItems = [
-    { id: "signal", icon: Signal },
-    { id: "wifi", icon: Wifi },
-    { id: "battery", icon: BatteryFull },
-];
+import { ChevronLeft } from "lucide-react";
 
 export default function NotFound() {
     return (
@@ -18,7 +12,7 @@ export default function NotFound() {
             </div>
 
             <div className="relative flex w-full max-w-sm flex-col gap-10 px-6 pb-12 pt-12 text-center">
-                <header className="flex items-center justify-between text-white/70">
+                <header className="flex items-center justify-start text-white/70">
                     <Link
                         href="/"
                         aria-label="Go back"
@@ -26,12 +20,6 @@ export default function NotFound() {
                     >
                         <ChevronLeft className="h-5 w-5" strokeWidth={2.6} />
                     </Link>
-                    <span className="text-sm font-semibold tracking-[0.4em] text-white/80">9:41</span>
-                    <div className="flex items-center gap-1 text-white/60">
-                        {statusBarItems.map(({ id, icon: Icon }) => (
-                            <Icon key={id} className="h-4 w-4" strokeWidth={2.2} />
-                        ))}
-                    </div>
                 </header>
 
                 <div className="relative flex flex-col items-center">
@@ -55,7 +43,7 @@ export default function NotFound() {
                 </div>
 
                 <div className="flex flex-col items-center gap-3">
-                    <p className="text-sm uppercase tracking-[0.6em] text-white/40">Error Message Here</p>
+                    {/* <p className="text-sm uppercase tracking-[0.6em] text-white/40">Error Message Here</p> */}
                     <h2 className="text-lg font-semibold tracking-[0.58em] text-white">
                         Page Not Found
                     </h2>
@@ -70,12 +58,6 @@ export default function NotFound() {
                         className="flex w-full items-center justify-center gap-2 rounded-full bg-[#12FFE8]/10 px-6 py-3 text-white transition hover:bg-[#12FFE8]/20"
                     >
                         Go Home
-                    </Link>
-                    <Link
-                        href="/events"
-                        className="flex w-full items-center justify-center gap-2 rounded-full border border-white/20 px-6 py-3 text-white/80 transition hover:border-white/40 hover:text-white"
-                    >
-                        Explore Events
                     </Link>
                 </div>
             </div>
