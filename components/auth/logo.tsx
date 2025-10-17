@@ -7,18 +7,18 @@ interface LogoProps {
 }
 
 export function ClubVizLogo({ size = 'md', variant = 'full' }: LogoProps) {
-    // Size classes for logo icon (slightly reduced)
+    // Size classes for logo icon (smaller size)
     const logoSizes = {
-        sm: { width: 80, height: 80 },
-        md: { width: 120, height: 120 },
-        lg: { width: 150, height: 150 },
+        sm: { width: 70, height: 70 },
+        md: { width: 85, height: 85 },
+        lg: { width: 100, height: 100 },
     };
 
-    // Size classes for text logo (significantly reduced)
+    // Size classes for text logo (smaller size)
     const textSizes = {
-        sm: { width: 190, fontSize: 'text-2xl' },
-        md: { width: 240, fontSize: 'text-3xl' },
-        lg: { width: 300, fontSize: 'text-4xl' },
+        sm: { width: 160, fontSize: 'text-2xl' },
+        md: { width: 200, fontSize: 'text-3xl' },
+        lg: { width: 240, fontSize: 'text-4xl' },
     };
 
     return (

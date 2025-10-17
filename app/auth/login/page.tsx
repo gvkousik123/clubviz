@@ -11,6 +11,7 @@ import {
     Smartphone,
     Wifi,
 } from 'lucide-react';
+import { ClubVizLogo } from '@/components/auth/logo';
 import GoogleIcon from '@/components/auth/google-icon';
 
 const statusIndicators = [
@@ -63,110 +64,90 @@ export default function LoginPage(): JSX.Element {
                 {/* Login options with logo and terms */}
                 <div>
                     {/* Logo and branding */}
-                    <div className="flex flex-col items-center justify-center px-6">
-                        <div className="mb-4">
-                            <Image
-                                src="/logo/logo.png"
-                                alt="ClubWiz Logo"
-                                width={90}
-                                height={90}
-                                className="object-contain"
-                                priority={true}
-                            />
-                        </div>
-                        <div className="mb-8">
-                            <Image
-                                src="/logo/CLUBWIZ.png"
-                                alt="CLUBWIZ"
-                                width={190}
-                                height={44}
-                                className="object-contain"
-                                priority={true}
-                            />
-                        </div>
-
-                        {/* Terms text - exact match to design */}
-                        <div className="text-center mb-8">
-                            <p className="text-[15px] font-normal leading-tight text-white">
-                                By login you are agreeing to
-                            </p>
-                            <p className="text-[15px] font-normal leading-tight mt-1">
-                                <Link href="/terms" className="text-[#00DCE5] font-normal">
-                                    Terms &amp; Condition
-                                </Link>
-                                <span className="text-white"> and </span>
-                                <Link href="/privacy" className="text-[#00DCE5] font-normal">
-                                    Privacy Policy
-                                </Link>
-                            </p>
-                        </div>
+                    <div className="flex flex-col items-center justify-center px-6 mb-8">
+                        <ClubVizLogo size="md" variant="full" />
                     </div>
 
-                    {/* Login buttons with consistent height and no gaps between them */}
-                    <div className="w-full">
-                        {/* Mobile Login Button */}
-                        <div className="relative w-full rounded-t-[30px] overflow-visible bg-gradient-to-b from-white to-[#BCBCBC] z-10 border-t border-white">
-                            <Link
-                                href="/auth/mobile"
-                                className="flex w-full items-center justify-center gap-3 h-[110px] pb-[20px] text-black"
-                            >
-                                <Smartphone className="h-6 w-6" />
-                                <span className="text-[18px] font-semibold font-['Manrope'] leading-[21px] tracking-tight">Login with Mobile</span>
+                    {/* Terms text - exact match to design */}
+                    <div className="text-center mb-8">
+                        <p className="text-[15px] font-normal leading-tight text-white">
+                            By login you are agreeing to
+                        </p>
+                        <p className="text-[15px] font-normal leading-tight mt-1">
+                            <Link href="/terms" className="text-[#00DCE5] font-normal">
+                                Terms &amp; Condition
                             </Link>
-                        </div>
-
-                        {/* Email Login Button */}
-                        <div className="relative w-full -mt-[22px] rounded-t-[30px] overflow-visible bg-gradient-to-b from-[#00B0B3] to-[#005D62] z-20 border-t border-white">
-                            <Link
-                                href="/auth/email"
-                                className="flex w-full items-center justify-center gap-3 h-[115px] pb-[25px] text-white"
-                            >
-                                <Mail className="h-6 w-6" />
-                                <span className="text-[18px] font-semibold font-['Manrope'] leading-[21px]">Login with Email</span>
+                            <span className="text-white"> and </span>
+                            <Link href="/privacy" className="text-[#00DCE5] font-normal">
+                                Privacy Policy
                             </Link>
-                        </div>
+                        </p>
+                    </div>
+                </div>
 
-                        {/* Google Login Button */}
-                        <div className="relative w-full -mt-[22px] rounded-t-[30px] overflow-visible bg-gradient-to-b from-[#FF5757] to-[#993434] z-30 border-t border-white">
-                            <button
-                                type="button"
-                                onClick={handleGoogleLogin}
-                                disabled={isLoading}
-                                className="flex w-full items-center justify-center gap-3 h-[95px] pb-[5px] text-white"
-                            >
-                                {isLoading ? (
-                                    <svg
-                                        className="h-6 w-6 animate-spin text-white"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <circle
-                                            className="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                        />
-                                        <path
-                                            className="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                        />
-                                    </svg>
-                                ) : (
-                                    <GoogleIcon className="h-6 w-6" />
-                                )}
-                                <span className="text-[18px] font-semibold font-['Manrope'] leading-[21px]">
-                                    {isLoading ? 'Logging in...' : 'Login with Google'}
-                                </span>
-                            </button>
-                        </div>
+                {/* Login buttons with consistent height and no gaps between them */}
+                <div className="w-full">
+                    {/* Mobile Login Button */}
+                    <div className="relative w-full rounded-t-[30px] overflow-visible bg-gradient-to-b from-white to-[#BCBCBC] z-10 border-t border-white">
+                        <Link
+                            href="/auth/mobile"
+                            className="flex w-full items-center justify-center gap-3 h-[110px] pb-[20px] text-black"
+                        >
+                            <Smartphone className="h-6 w-6" />
+                            <span className="text-[18px] font-semibold font-['Manrope'] leading-[21px] tracking-tight">Login with Mobile</span>
+                        </Link>
+                    </div>
+
+                    {/* Email Login Button */}
+                    <div className="relative w-full -mt-[22px] rounded-t-[30px] overflow-visible bg-gradient-to-b from-[#00B0B3] to-[#005D62] z-20 border-t border-white">
+                        <Link
+                            href="/auth/email"
+                            className="flex w-full items-center justify-center gap-3 h-[115px] pb-[25px] text-white"
+                        >
+                            <Mail className="h-6 w-6" />
+                            <span className="text-[18px] font-semibold font-['Manrope'] leading-[21px]">Login with Email</span>
+                        </Link>
+                    </div>
+
+                    {/* Google Login Button */}
+                    <div className="relative w-full -mt-[22px] rounded-t-[30px] overflow-visible bg-gradient-to-b from-[#FF5757] to-[#993434] z-30 border-t border-white">
+                        <button
+                            type="button"
+                            onClick={handleGoogleLogin}
+                            disabled={isLoading}
+                            className="flex w-full items-center justify-center gap-3 h-[95px] pb-[5px] text-white"
+                        >
+                            {isLoading ? (
+                                <svg
+                                    className="h-6 w-6 animate-spin text-white"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        className="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                    />
+                                    <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    />
+                                </svg>
+                            ) : (
+                                <GoogleIcon className="h-6 w-6" />
+                            )}
+                            <span className="text-[18px] font-semibold font-['Manrope'] leading-[21px]">
+                                {isLoading ? 'Logging in...' : 'Login with Google'}
+                            </span>
+                        </button>
                     </div>
                 </div>
             </div>
-
         </div>
     );
 }
