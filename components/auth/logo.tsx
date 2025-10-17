@@ -24,7 +24,7 @@ export function ClubVizLogo({ size = 'md', variant = 'full' }: LogoProps) {
     return (
         <div className="flex flex-col items-center gap-4 relative z-50">
             {/* Logo Icon */}
-            <div className="relative z-50 bg-white">
+            <div className="relative z-50">
                 <Image
                     src="/logo/logo.png"
                     alt="ClubWiz Logo"
