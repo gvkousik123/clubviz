@@ -3,84 +3,170 @@
 import { ClubVizLogo } from "@/components/auth/logo";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { BatteryFull, ChevronUp, Signal, Wifi } from "lucide-react";
+
+const statusIndicators = [
+    { id: "signal", icon: Signal },
+    { id: "wifi", icon: Wifi },
+    { id: "battery", icon: BatteryFull },
+];
 
 export default function IntroScreen() {
     const router = useRouter();
 
-    // Auto-navigate to login after a delay
     useEffect(() => {
         const timer = setTimeout(() => {
-            router.push('/auth/login');
+            router.push("/auth/login");
         }, 3000);
 
         return () => clearTimeout(timer);
     }, [router]);
 
     return (
-        <div className="relative h-screen overflow-hidden bg-[#031313] text-white">
-            {/* Atmospheric background */}
-            <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute inset-0 bg-[url('/intro%20bg.gif')] bg-cover bg-center opacity-70 scale-[1.08] blur-[10px]"></div>
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_48%_38%,rgba(94,234,212,0.45),rgba(3,19,19,0.3)_45%,rgba(3,19,19,0.85)_80%,rgba(3,19,19,0.95)_100%)] opacity-95"></div>
-                <div className="absolute inset-0 bg-gradient-to-b from-[#061b1b]/45 via-[#031313]/72 to-[#020808]"></div>
+        <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#031313] text-white">
+            <div className="pointer-events-none absolute inset-0">
+                {/* Main disco ball background */}
+                <div className="absolute inset-0 scale-[1.05] bg-[url('/disco-ball-bg.gif')] bg-cover bg-center opacity-90" />
 
-                {/* Central sphere glow */}
-                <div className="absolute top-[12%] left-1/2 -translate-x-1/2 w-[420px] h-[420px]">
-                    <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(94,234,212,0.55)_0%,rgba(3,19,19,0.15)_48%,rgba(3,19,19,0.92)_100%)] blur-[40px] opacity-90"></div>
-                    <div className="absolute inset-[26%] rounded-full bg-[radial-gradient(circle,rgba(94,234,212,0.3)_0%,rgba(3,19,19,0.75)_75%,rgba(3,19,19,0.95)_100%)] blur-[14px] opacity-70"></div>
+                {/* Blur overlay for the background */}
+                <div className="absolute inset-0 backdrop-blur-[4px] bg-[#031313]/20" />
+
+                {/* Overlay gradient to enhance contrast for text */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(3,19,19,0.1),rgba(3,19,19,0.3)_35%,rgba(3,19,19,0.75)_80%,rgba(3,19,19,0.95)_100%)] opacity-80" />
+
+                {/* Additional floating particles */}
+                <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute -top-[10%] left-[5%] h-28 w-28 rounded-full bg-[#14FFEC]/20 blur-[25px] animate-pulse" style={{ animationDuration: '7s' }} />
+                    <div className="absolute top-[25%] left-[85%] h-32 w-32 rounded-full bg-[#14FFEC]/15 blur-[30px] animate-pulse" style={{ animationDuration: '9s' }} />
+                    <div className="absolute top-[65%] left-[15%] h-36 w-36 rounded-full bg-[#14FFEC]/10 blur-[35px] animate-pulse" style={{ animationDuration: '8s' }} />
+                    <div className="absolute top-[40%] left-[75%] h-24 w-24 rounded-full bg-[#14FFEC]/25 blur-[20px] animate-pulse" style={{ animationDuration: '10s' }} />
+                    <div className="absolute top-[80%] left-[60%] h-28 w-28 rounded-full bg-[#14FFEC]/20 blur-[25px] animate-pulse" style={{ animationDuration: '7.5s' }} />
                 </div>
 
-                {/* Extra glows */}
-                <div className="absolute -left-16 top-1/4 w-72 h-72 bg-teal-500/30 blur-[120px]"></div>
-                <div className="absolute right-0 bottom-1/3 w-60 h-60 bg-cyan-500/20 blur-[100px]"></div>
-            </div>
-
-            {/* Content */}
-            <div className="relative z-10 flex h-full flex-col items-center justify-center px-6">
-                <div className="mb-8 drop-shadow-[0_18px_45px_rgba(0,0,0,0.55)]">
-                    <ClubVizLogo size="lg" variant="full" />
+                {/* Main focal glow in center */}
+                <div className="absolute top-[40%] left-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2">
+                    <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(20,255,236,0.25)_0%,rgba(3,19,19,0.05)_48%,rgba(3,19,19,0)_100%)] blur-[40px] opacity-90" />
                 </div>
 
-                <div className="mt-10 text-center">
-                    <div className="relative inline-block px-10 py-6">
-                        <span className="absolute -top-8 -left-3 text-5xl text-teal-100" style={{ textShadow: '0 0 18px rgba(94,234,212,0.55)' }}>
-                            “
-                        </span>
-                        <h2
-                            className="text-[34px] leading-[1.15] tracking-[0.28em] font-extralight uppercase text-teal-100"
-                            style={{ textShadow: '0 0 18px rgba(94,234,212,0.45)' }}
-                        >
-                            IGNITE
-                            <br />
-                            THE
-                        </h2>
-                        <span className="absolute -bottom-10 -right-2 text-5xl text-teal-100" style={{ textShadow: '0 0 18px rgba(94,234,212,0.55)' }}>
-                            ”
-                        </span>
-                    </div>
-                </div>
-            </div>
+                {/* Extra ambient light sources */}
+                <div className="absolute -left-16 top-1/4 h-72 w-72 bg-teal-500/15 blur-[140px]" />
+                <div className="absolute bottom-1/3 right-0 h-60 w-60 bg-cyan-500/10 blur-[120px]" />
 
-            {/* Bottom stroke & swipe indicator */}
-            <div className="absolute inset-x-0 bottom-8 flex justify-center">
-                <div className="relative w-[220px] h-[110px]">
-                    <div className="absolute inset-0 bottom-0 h-[110px] rounded-[180px] border border-teal-400/25 bg-gradient-to-t from-[#0a2b2f]/85 via-[#093a40]/55 to-transparent backdrop-blur-[4px]" style={{ boxShadow: '0 0 60px rgba(20,184,166,0.28)' }}></div>
-                    <div className="absolute inset-0 flex translate-y-3 items-center justify-center">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-teal-400/45 bg-[#0b2226]/85 shadow-[0_0_16px_rgba(20,184,166,0.4)] animate-bounce">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-5 w-5 text-teal-200"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                style={{ filter: 'drop-shadow(0 0 6px rgba(94,234,212,0.6))' }}
-                            >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.4} d="M5 14l7-7 7 7" />
-                            </svg>
+                {/* Bottom curve with exact radial gradient from design */}
+                <div className="absolute bottom-0 left-0 right-0 h-[100px] overflow-hidden">
+                    <div className="absolute bottom-0 left-1/2 w-[862px] h-[862px] -translate-x-1/2 translate-y-[92%]">
+                        <div
+                            className="w-full h-full rounded-[862px]"
+                            style={{
+                                background: "radial-gradient(38.77% 38.77% at 115.84% 50%, #14FFEC 0%, #003336 88.46%)"
+                            }}
+                        />
+                        {/* Up arrow icon */}
+                        <div className="absolute left-1/2 top-[2%] -translate-x-1/2 flex h-8 w-8 items-center justify-center">
+                            <ChevronUp
+                                className="h-6 w-6 text-[#ffffff]"
+                                strokeWidth={3}
+                            />
                         </div>
                     </div>
                 </div>
             </div>
+
+
+
+            <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 pb-28 pt-10">
+                <div className="mb-16 drop-shadow-[0_18px_45px_rgba(0,0,0,0.55)]">
+                    <ClubVizLogo size="lg" variant="full" />
+                </div>
+
+                <div className="relative text-center mt-12">
+                    {/* Opening Double Quotes SVG */}
+                    <div className="absolute -left-14 -top-8 flex space-x-2">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="32"
+                            viewBox="0 0 18 31"
+                            fill="none"
+                            style={{
+                                filter: "drop-shadow(0 0 15px rgba(80,204,218,0.5))"
+                            }}
+                        >
+                            <path
+                                d="M17.051 30.9076L0.0531366 30.8768L0.0839613 13.8619L6.9249 0.241743L15.3982 0.257094L8.59145 13.8773L17.0819 13.8927L17.051 30.9076Z"
+                                fill="#50CCDA"
+                            />
+                        </svg>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="32"
+                            viewBox="0 0 18 31"
+                            fill="none"
+                            style={{
+                                filter: "drop-shadow(0 0 15px rgba(0,134,125,0.5))"
+                            }}
+                        >
+                            <path
+                                d="M17.051 30.9076L0.0531366 30.8768L0.0839613 13.8619L6.9249 0.241743L15.3982 0.257094L8.59145 13.8773L17.0819 13.8927L17.051 30.9076Z"
+                                fill="#00867D"
+                            />
+                        </svg>
+                    </div>
+                    <h2
+                        className="text-center font-['Anton_SC',system-ui] text-[36px] leading-[37px] tracking-[-0.32px] mt-6"
+                        style={{
+                            background: "linear-gradient(180deg, #7FF9FF 0%, #FFF 102.94%)",
+                            WebkitBackgroundClip: "text",
+                            backgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                            WebkitTextStrokeWidth: "1px",
+                            WebkitTextStrokeColor: "#029694",
+                            fontWeight: 600,
+                            fontStyle: "normal",
+                            textShadow: "0 0 10px rgba(127, 249, 255, 0.5)"
+                        }}
+                    >
+                        IGNITE
+                        <br />
+                        THE
+                    </h2>
+                    {/* Closing Double Quotes SVG */}
+                    <div className="absolute -bottom-10 -right-14 flex space-x-2">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="32"
+                            viewBox="0 0 18 31"
+                            fill="none"
+                            style={{
+                                filter: "drop-shadow(0 0 15px rgba(80,204,218,0.5))"
+                            }}
+                        >
+                            <path
+                                d="M0.958374 0.125H17.9563V17.14L11.14 30.7725H2.66671L9.44879 17.14H0.958374V0.125Z"
+                                fill="#50CCDA"
+                            />
+                        </svg>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="32"
+                            viewBox="0 0 18 31"
+                            fill="none"
+                            style={{
+                                filter: "drop-shadow(0 0 15px rgba(0,134,125,0.5))"
+                            }}
+                        >
+                            <path
+                                d="M0.958374 0.125H17.9563V17.14L11.14 30.7725H2.66671L9.44879 17.14H0.958374V0.125Z"
+                                fill="#00867D"
+                            />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
         </div>
     );
 }
