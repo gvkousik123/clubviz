@@ -14,10 +14,17 @@ export function ClubVizLogo({ size = 'md', variant = 'full' }: LogoProps) {
         lg: { width: 100, height: 100 },
     };
 
+    // Size classes for text logo
+    const textSizes = {
+        sm: { width: 190, fontSize: 'text-3xl' },
+        md: { width: 240, fontSize: 'text-4xl' },
+        lg: { width: 300, fontSize: 'text-5xl' },
+    };
+
     return (
         <div className="flex flex-col items-center gap-4 relative z-50">
             {/* Logo Icon */}
-            <div className="relative z-50">
+            <div className="relative z-50 bg-white">
                 <Image
                     src="/logo/logo.png"
                     alt="ClubWiz Logo"
@@ -25,15 +32,12 @@ export function ClubVizLogo({ size = 'md', variant = 'full' }: LogoProps) {
                     height={logoSizes[size].height}
                     className="object-contain"
                     priority={true}
-                    style={{
-                        filter: 'drop-shadow(0 0 15px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 30px rgba(0, 0, 0, 0.4))',
-                    }}
                 />
             </div>
 
-            {/* ClubWiz text with enhanced neon effect */}
+            {/* ClubWiz text with neon effect */}
             {variant === 'full' && (
-                <div className="relative z-50">
+                <div className="relative z-50 text-center mt-2">
                     <Image
                         src="/logo/CLUBWIZ.png"
                         alt="CLUBWIZ"
@@ -41,17 +45,6 @@ export function ClubVizLogo({ size = 'md', variant = 'full' }: LogoProps) {
                         height={size === 'lg' ? 70 : size === 'md' ? 56 : 45}
                         className="object-contain"
                         priority={true}
-                        style={{
-                            filter: 'drop-shadow(0 0 15px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 30px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 45px rgba(0, 0, 0, 0.3))',
-                        }}
-                    />
-                    {/* Extra glow effect overlay */}
-                    <div
-                        className="absolute inset-0 -z-10"
-                        style={{
-                            background: 'radial-gradient(ellipse at center, rgba(0, 0, 0, 0.3) 0%, transparent 70%)',
-                            filter: 'blur(20px)',
-                        }}
                     />
                 </div>
             )}
