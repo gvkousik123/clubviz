@@ -9,16 +9,16 @@ interface LogoProps {
 export function ClubVizLogo({ size = 'md', variant = 'full' }: LogoProps) {
     // Size classes for logo icon
     const logoSizes = {
-        sm: { width: 60, height: 60 },
-        md: { width: 80, height: 80 },
-        lg: { width: 100, height: 100 },
+        sm: { width: 75, height: 75 },
+        md: { width: 100, height: 100 },
+        lg: { width: 125, height: 125 },
     };
 
     // Size classes for text logo
     const textSizes = {
-        sm: { width: 190, fontSize: 'text-3xl' },
-        md: { width: 240, fontSize: 'text-4xl' },
-        lg: { width: 300, fontSize: 'text-5xl' },
+        sm: { width: 238, fontSize: 'text-3xl' },
+        md: { width: 300, fontSize: 'text-4xl' },
+        lg: { width: 375, fontSize: 'text-5xl' },
     };
 
     return (
@@ -41,8 +41,8 @@ export function ClubVizLogo({ size = 'md', variant = 'full' }: LogoProps) {
                     <Image
                         src="/logo/CLUBWIZ.png"
                         alt="CLUBWIZ"
-                        width={size === 'lg' ? 300 : size === 'md' ? 240 : 190}
-                        height={size === 'lg' ? 70 : size === 'md' ? 56 : 45}
+                        width={size === 'lg' ? 375 : size === 'md' ? 300 : 238}
+                        height={size === 'lg' ? 87 : size === 'md' ? 70 : 56}
                         className="object-contain"
                         priority={true}
                     />

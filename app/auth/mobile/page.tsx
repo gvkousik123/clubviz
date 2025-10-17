@@ -5,7 +5,7 @@ import { ClubVizLogo } from "@/components/auth/logo";
 import { AuthLink } from "@/components/auth/auth-link";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { AuthService } from "@/lib/services/auth.service";
 import { useToast } from "@/hooks/use-toast";
 import { STORAGE_KEYS } from "@/lib/constants/storage";
@@ -104,107 +104,115 @@ export default function MobileVerificationScreen() {
                 <div className="absolute top-1/3 right-1/4 w-40 h-40 bg-teal-500/10 rounded-full blur-2xl"></div>
             </div>
 
-            {/* Content - Scrollable with hidden scrollbar */}
-            <div className="relative z-10 min-h-screen overflow-y-auto overflow-x-hidden scrollbar-hide">
-                <div className="flex flex-col min-h-screen">
-                    {/* Header with Back and Skip */}
-                    <div className="flex items-center justify-between p-4 pt-8 flex-shrink-0">
-                        <Link
-                            href="/auth/login"
-                            className="w-10 h-10 flex items-center justify-center rounded-full border border-teal-400/30 text-teal-300 hover:bg-teal-500/10 transition-colors"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </Link>
+            {/* Content */}
+            <div className="relative z-10 h-screen flex flex-col">
+                {/* Header with Back and Skip */}
+                <div className="flex items-center justify-between p-4 pt-6 flex-shrink-0">
+                    <Link
+                        href="/auth/login"
+                        className="w-10 h-10 flex items-center justify-center rounded-full border border-teal-400/30 text-teal-300 hover:bg-teal-500/10 transition-colors"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                    </Link>
 
-                        <Link
-                            href="/auth/login"
-                            className="px-4 py-2 rounded-full border border-teal-400/30 text-sm text-teal-300 hover:bg-teal-500/10 transition"
-                        >
-                            Skip
-                        </Link>
-                    </div>
+                    <Link
+                        href="/auth/login"
+                        className="px-4 py-1.5 rounded-full border border-teal-400/30 text-sm text-teal-300 hover:bg-teal-500/10 transition"
+                    >
+                        Skip
+                    </Link>
+                </div>
 
-                    {/* Logo Area */}
-                    <div className="flex flex-col items-center justify-center px-6 py-6 flex-shrink-0">
+                {/* White Card Container - Sticks to bottom and takes remaining space */}
+                <div className="flex-1 flex flex-col">
+                    {/* Logo Area - Now positioned just above the form with increased spacing */}
+                    <div className="flex-1 flex flex-col items-center justify-end px-6 pb-8">
                         <ClubVizLogo size="md" variant="full" />
                     </div>
 
-                    {/* Terms and Conditions */}
-                    <div className="px-6 pb-4 flex-shrink-0">
-                        <div className="text-center text-sm text-white/70">
-                            By login you are agreeing to
-                            <br />
-                            <AuthLink href="/terms">Terms & Condition</AuthLink> and <AuthLink href="/privacy">Privacy Policy</AuthLink>
+                    <div className="bg-white rounded-t-3xl w-full px-6 pt-8 pb-8 overflow-y-auto flex flex-col">
+                        {/* Header */}
+                        <div className="mb-6">
+                            <h1 className="text-[24px] font-semibold text-[#2C1945] mb-5 text-center">Enter your Mobile Number</h1>
                         </div>
-                    </div>
 
-                    {/* White Card Container */}
-                    <div className="flex-1 min-h-0 pb-8">
-                        <div className="bg-white rounded-t-3xl px-6 py-8 min-h-full">
-                            {/* Header */}
-                            <div className="mb-6">
-                                <h1 className="text-xl font-semibold text-gray-900 mb-4 text-center">Enter your Mobile Number</h1>
-
-                                <div className="w-full py-4 px-4 rounded-2xl border-2 border-teal-400 bg-gray-50 text-gray-900 text-lg font-mono text-center mb-3">
+                        {/* Phone number display */}
+                        <div className="mb-3 text-center">
+                            <div className="w-full max-w-[380px] h-[76px] mx-auto bg-[#EFEFEF] rounded-[52px] border border-[#0C898B] flex items-center justify-center">
+                                <div className="text-[22px] font-medium text-[#666666] text-center">
                                     {phoneNumber}
                                 </div>
-
-                                <p className="text-sm text-gray-600 text-center">We will send you a confirmation code</p>
                             </div>
+                        </div>
 
-                            {/* Number Keypad */}
-                            <div className="space-y-4 pb-8">
-                                {/* Keypad Grid */}
-                                <div className="grid grid-cols-3 gap-4 justify-items-center">
-                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                                        <button
-                                            key={num}
-                                            onClick={() => handleNumberPress(num.toString())}
-                                            className="w-16 h-16 rounded-full border-2 border-teal-400 
-                                                 text-gray-900 text-xl font-medium
-                                                 hover:bg-teal-50 active:bg-teal-100 
-                                                 transition-colors duration-200"
-                                        >
-                                            {num}
-                                        </button>
-                                    ))}
-                                </div>
+                        {/* Confirmation text */}
+                        <div className="mb-8 text-center">
+                            <p className="text-[#2C1945] text-[15px] font-medium">We will send you a confirmation code</p>
+                        </div>
+
+                        {/* Number Keypad */}
+                        <div className="mx-auto w-[280px] space-y-4 mb-6">
+                            {/* Keypad Grid */}
+                            <div className="grid grid-cols-3 gap-4">
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                                    <button
+                                        key={num}
+                                        onClick={() => handleNumberPress(num.toString())}
+                                        className="w-[70px] h-[70px] rounded-full border border-[#0C898B] 
+                                             bg-white text-[#42353B] text-3xl font-semibold
+                                             hover:bg-gray-50 active:bg-gray-100 
+                                             flex items-center justify-center"
+                                    >
+                                        {num}
+                                    </button>
+                                ))}
 
                                 {/* Bottom Row */}
-                                <div className="flex justify-center items-center gap-4 mt-4">
-                                    <button
-                                        onClick={handleDelete}
-                                        className="w-16 h-16 rounded-full bg-gray-200 
-                                             text-gray-600 text-xl font-medium
-                                             hover:bg-gray-300 active:bg-gray-400 
-                                             transition-colors duration-200"
-                                    >
-                                        ×
-                                    </button>
+                                <button
+                                    onClick={handleDelete}
+                                    className="w-[70px] h-[70px] rounded-full bg-[#EFEFEF] 
+                                        text-gray-900 flex items-center justify-center"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
 
-                                    <button
-                                        onClick={() => handleNumberPress('0')}
-                                        className="w-16 h-16 rounded-full border-2 border-teal-400 
-                                             text-gray-900 text-xl font-medium
-                                             hover:bg-teal-50 active:bg-teal-100 
-                                             transition-colors duration-200"
-                                    >
-                                        0
-                                    </button>
+                                <button
+                                    onClick={() => handleNumberPress('0')}
+                                    className="w-[70px] h-[70px] rounded-full border border-[#0C898B] 
+                                        bg-white text-[#42353B] text-3xl font-semibold
+                                        hover:bg-gray-50 active:bg-gray-100
+                                        flex items-center justify-center"
+                                >
+                                    0
+                                </button>
 
-                                    <button
-                                        onClick={handleSubmit}
-                                        disabled={!canSubmit}
-                                        className={`w-16 h-16 rounded-full text-white font-medium
-                                             transition-all duration-200 
-                                             ${canSubmit
-                                                ? 'header-gradient hover:from-teal-600 hover:to-cyan-600 shadow-lg'
-                                                : 'bg-gray-300 cursor-not-allowed'
-                                            }`}
-                                    >
-                                        <ArrowRight className="w-5 h-5 mx-auto" />
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={!canSubmit}
+                                    className="w-[70px] h-[70px] rounded-full bg-[#0D7377] 
+                                        text-white flex items-center justify-center"
+                                >
+                                    <ArrowRight className="w-6 h-6 text-white" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Display the phone number status somewhere */}
+                        <div className="hidden">
+                            Current number: {phoneNumber}
+                        </div>
+
+                        {/* Terms and Conditions */}
+                        <div className="mt-auto pt-4">
+                            <div className="text-center">
+                                <p className="text-black font-semibold text-[14px]">
+                                    By login you are agreeing to
+                                </p>
+                                <p className="text-[14px] font-semibold mt-1">
+                                    <AuthLink href="/terms" className="text-[#0095FF] font-semibold underline">Terms & Condition</AuthLink>
+                                    <span className="text-black"> and </span>
+                                    <AuthLink href="/privacy" className="text-[#0095FF] font-semibold underline">Privacy Policy</AuthLink>
+                                </p>
                             </div>
                         </div>
                     </div>

@@ -45,7 +45,7 @@ export default function EmailLoginScreen() {
                     description: "Welcome back to ClubViz!",
                 });
 
-                router.push('/home');
+                router.push('/location/allow');
                 return;
             }
 
