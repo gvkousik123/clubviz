@@ -454,6 +454,7 @@ const HomePage: React.FC = () => {
     }, [handleSearch]);
 
     const displayClubs = clubs.length ? clubs : venueFallback;
+    const topVenueCards = useMemo(() => displayClubs.slice(0, 3), [displayClubs]);
     const displayEvents = events.length ? events : eventFallback;
     const displayVibeMeter = (featuredClubs.length ? featuredClubs : vibeMeterFallback).slice(0, 6);
 
@@ -659,7 +660,7 @@ const HomePage: React.FC = () => {
                                     ? Array.from({ length: 3 }).map((_, index) => (
                                         <div key={`venue-skeleton-${index}`} className="h-[260px] w-[300px] animate-pulse rounded-[28px] bg-white/5" />
                                     ))
-                                    : displayClubs.slice(0, 6).map((club, index) => (
+                                    : topVenueCards.map((club, index) => (
                                         <Link key={club.id ?? `venue-${index}`} href={`/club/${club.id ?? 'dabo'}`}>
                                             <article className="surface-panel relative h-[280px] w-[300px] overflow-hidden rounded-[28px] border border-white/10">
                                                 <div className="relative h-[180px] overflow-hidden">

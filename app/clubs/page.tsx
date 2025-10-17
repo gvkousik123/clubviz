@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Star, Bookmark, MapPin, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -17,6 +17,8 @@ const unwrapApiData = <T,>(payload: any): T => {
     }
     return payload as T;
 };
+
+const FALLBACK_CLUB_IMAGE = '/placeholder.jpg';
 
 const getClubImageSrc = (club: DisplayClub) => {
     const data = club as any;
@@ -35,7 +37,7 @@ const getClubImageSrc = (club: DisplayClub) => {
         return directImage;
     }
 
-    return '/placeholder-club.jpg';
+    return FALLBACK_CLUB_IMAGE;
 };
 
 const getClubAddressLabel = (club: DisplayClub) => {
@@ -100,6 +102,25 @@ const getClubName = (club: DisplayClub) => {
     return typeof data?.name === 'string' ? data.name : 'Unnamed Club';
 };
 
+const getClubCategories = (club: DisplayClub) => {
+    const data = club as any;
+    const categories: string[] = [];
+
+    if (Array.isArray(data?.categories)) {
+        data.categories.forEach((value: unknown) => {
+            if (typeof value === 'string' && value.trim().length > 0) {
+                categories.push(value.trim());
+            }
+        });
+    }
+
+    if (typeof data?.category === 'string' && data.category.trim().length > 0) {
+        categories.push(data.category.trim());
+    }
+
+    return Array.from(new Set(categories));
+};
+
 export default function ClubsPage() {
     const router = useRouter();
     const { toast } = useToast();
@@ -107,6 +128,7 @@ export default function ClubsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [favorites, setFavorites] = useState<string[]>([]);
+    const [activeCategory, setActiveCategory] = useState<string>('All');
 
     const handleGoBack = () => {
         router.back();
@@ -169,6 +191,9 @@ export default function ClubsPage() {
             }
 
             setClubs(nextClubs);
+            if (activeCategory !== 'All') {
+                setActiveCategory('All');
+            }
         } catch (err) {
             console.error('Error fetching clubs:', err);
             setError('Failed to load clubs. Please try again.');
@@ -212,6 +237,29 @@ export default function ClubsPage() {
             });
         }
     };
+
+    const availableCategories = useMemo(() => {
+        const unique = new Set<string>();
+        clubs.forEach((club) => {
+            getClubCategories(club).forEach((category) => {
+                if (category.length > 0) {
+                    unique.add(category);
+                }
+            });
+        });
+        return ['All', ...Array.from(unique)];
+    }, [clubs]);
+
+    const filteredClubs = useMemo(() => {
+        if (activeCategory === 'All') {
+            return clubs;
+        }
+        const target = activeCategory.toLowerCase();
+        return clubs.filter((club) => {
+            const categories = getClubCategories(club).map((category) => category.toLowerCase());
+            return categories.includes(target);
+        });
+    }, [clubs, activeCategory]);
 
     if (loading) {
         return (
@@ -257,35 +305,36 @@ export default function ClubsPage() {
 
                 <div className="horizontal-scroll-container px-6">
                     <div className="flex gap-3 text-sm">
-                        <button className="bg-cyan-500/30 text-cyan-300 px-6 py-2 rounded-full font-medium whitespace-nowrap">
-                            All
-                        </button>
-                        <button className="bg-white/10 text-white/80 px-6 py-2 rounded-full whitespace-nowrap">
-                            Nightclub
-                        </button>
-                        <button className="bg-white/10 text-white/80 px-6 py-2 rounded-full whitespace-nowrap">
-                            Sports Bar
-                        </button>
-                        <button className="bg-white/10 text-white/80 px-6 py-2 rounded-full whitespace-nowrap">
-                            Lounge
-                        </button>
-                        <button className="bg-white/10 text-white/80 px-6 py-2 rounded-full whitespace-nowrap">
-                            Rooftop
-                        </button>
+                        {availableCategories.map((category) => {
+                            const isActive = activeCategory.toLowerCase() === category.toLowerCase();
+                            return (
+                                <button
+                                    key={category}
+                                    onClick={() => setActiveCategory(category)}
+                                    className={`rounded-full px-6 py-2 whitespace-nowrap transition-colors ${isActive
+                                        ? 'bg-cyan-500/30 text-cyan-200 font-medium'
+                                        : 'bg-white/10 text-white/80 hover:bg-white/15'
+                                        }`}
+                                >
+                                    {category}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
 
             <div className="px-6 py-6 space-y-4">
-                {clubs.length === 0 ? (
+                {filteredClubs.length === 0 ? (
                     <div className="text-center py-12">
                         <p className="text-white/60 text-lg">No clubs found</p>
                     </div>
                 ) : (
-                    clubs.map((club, index) => {
+                    filteredClubs.map((club, index) => {
                         const clubId = getClubId(club);
                         const clubKey = clubId || `club-${index}`;
                         const clubName = getClubName(club);
+                        const primaryCategory = getClubCategoryLabel(club);
                         return (
                             <Link
                                 key={clubKey}
@@ -300,7 +349,8 @@ export default function ClubsPage() {
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
-                                                target.src = '/placeholder-club.jpg';
+                                                target.onerror = null;
+                                                target.src = FALLBACK_CLUB_IMAGE;
                                             }}
                                         />
                                     </div>
@@ -311,9 +361,9 @@ export default function ClubsPage() {
                                                 <h3 className="font-bold text-white text-lg mb-1 truncate">
                                                     {clubName}
                                                 </h3>
-                                                <div className="flex items-center gap-1 text-white/70 text-sm mb-1">
+                                                <div className="flex items-start gap-1 text-white/70 text-sm mb-1">
                                                     <MapPin size={14} />
-                                                    <p className="truncate">
+                                                    <p className="leading-snug text-white/70 line-clamp-2">
                                                         {getClubAddressLabel(club)}
                                                     </p>
                                                 </div>
@@ -356,10 +406,10 @@ export default function ClubsPage() {
                                             </p>
                                         )}
 
-                                        {getClubCategoryLabel(club) && (
+                                        {primaryCategory && (
                                             <div className="mt-2">
                                                 <span className="bg-cyan-500/20 text-cyan-300 px-2 py-1 rounded-full text-xs">
-                                                    {getClubCategoryLabel(club)}
+                                                    {primaryCategory}
                                                 </span>
                                             </div>
                                         )}
