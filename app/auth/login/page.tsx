@@ -6,12 +6,12 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
     BatteryFull,
-    Chrome,
     Mail,
     Signal,
     Smartphone,
     Wifi,
 } from 'lucide-react';
+import GoogleIcon from '@/components/auth/google-icon';
 
 const statusIndicators = [
     { id: 'signal', icon: Signal },
@@ -105,10 +105,10 @@ export default function LoginPage(): JSX.Element {
                     {/* Login buttons with consistent height and no gaps between them */}
                     <div className="w-full">
                         {/* Mobile Login Button */}
-                        <div className="relative w-full rounded-t-[30px] overflow-hidden bg-gradient-to-b from-white to-[#BCBCBC]  z-10">
+                        <div className="relative w-full rounded-t-[30px] overflow-visible bg-gradient-to-b from-white to-[#BCBCBC] z-10 border-t border-white">
                             <Link
                                 href="/auth/mobile"
-                                className="flex w-full items-center justify-center gap-3 h-[100px] pb-[10px] text-black"
+                                className="flex w-full items-center justify-center gap-3 h-[110px] pb-[20px] text-black"
                             >
                                 <Smartphone className="h-6 w-6" />
                                 <span className="text-[18px] font-semibold font-['Manrope'] leading-[21px] tracking-tight">Login with Mobile</span>
@@ -116,10 +116,10 @@ export default function LoginPage(): JSX.Element {
                         </div>
 
                         {/* Email Login Button */}
-                        <div className="relative w-full -mt-[10px] rounded-t-[30px] overflow-hidden bg-gradient-to-b from-[#00B0B3] to-[#005D62]  z-20">
+                        <div className="relative w-full -mt-[22px] rounded-t-[30px] overflow-visible bg-gradient-to-b from-[#00B0B3] to-[#005D62] z-20 border-t border-white">
                             <Link
                                 href="/auth/email"
-                                className="flex w-full items-center justify-center gap-3 h-[100px] pb-[10px] text-white"
+                                className="flex w-full items-center justify-center gap-3 h-[115px] pb-[25px] text-white"
                             >
                                 <Mail className="h-6 w-6" />
                                 <span className="text-[18px] font-semibold font-['Manrope'] leading-[21px]">Login with Email</span>
@@ -127,12 +127,12 @@ export default function LoginPage(): JSX.Element {
                         </div>
 
                         {/* Google Login Button */}
-                        <div className="relative w-full -mt-[10px] rounded-t-[30px] overflow-hidden bg-gradient-to-b from-[#FF5757] to-[#993434]  z-30">
+                        <div className="relative w-full -mt-[22px] rounded-t-[30px] overflow-visible bg-gradient-to-b from-[#FF5757] to-[#993434] z-30 border-t border-white">
                             <button
                                 type="button"
                                 onClick={handleGoogleLogin}
                                 disabled={isLoading}
-                                className="flex w-full items-center justify-center gap-3 h-[90px] text-white"
+                                className="flex w-full items-center justify-center gap-3 h-[95px] pb-[5px] text-white"
                             >
                                 {isLoading ? (
                                     <svg
@@ -156,7 +156,7 @@ export default function LoginPage(): JSX.Element {
                                         />
                                     </svg>
                                 ) : (
-                                    <Chrome className="h-6 w-6" />
+                                    <GoogleIcon className="h-6 w-6" />
                                 )}
                                 <span className="text-[18px] font-semibold font-['Manrope'] leading-[21px]">
                                     {isLoading ? 'Logging in...' : 'Login with Google'}
