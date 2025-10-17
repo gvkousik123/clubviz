@@ -83,7 +83,7 @@ export default function EmailLoginScreen() {
             </div>
 
             {/* Content */}
-            <div className="relative z-10 h-screen flex flex-col">
+            <div className="relative z-10 min-h-screen flex flex-col">
                 {/* Header with Back and Skip */}
                 <div className="flex items-center justify-between p-4 pt-6 flex-shrink-0">
                     <Link
@@ -105,7 +105,7 @@ export default function EmailLoginScreen() {
                 <div className="flex-1 flex flex-col">
                     {/* Logo Area - Now positioned just above the form with increased spacing */}
                     <div className="flex-1 flex flex-col items-center justify-end px-6 pb-8">
-                        <ClubVizLogo size="md" variant="full" />
+                        <ClubVizLogo size="lg" variant="full" />
                     </div>
 
                     <div className="bg-white rounded-t-3xl w-full px-6 pt-6 pb-8 overflow-y-auto flex flex-col">

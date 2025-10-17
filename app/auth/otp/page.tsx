@@ -68,7 +68,7 @@ export default function OTPVerificationScreen() {
         }
     };
 
-    const handleVerifyOTP = async (otpCode?: string) => {
+    const handleVerifyOTP = (otpCode?: string) => {
         if (!phoneNumber) return;
 
         const otpValue = otpCode || otp.join('');
@@ -80,81 +80,45 @@ export default function OTPVerificationScreen() {
         setIsLoading(true);
         setError(null);
 
-        try {
-            const response = await AuthService.verifyOTP({
-                phone: phoneNumber,
-                otp: otpValue,
-                type: 'login'
-            });
+        // Store dummy authentication tokens
+        localStorage.setItem(STORAGE_KEYS.accessToken, 'dummy-auth-token-' + Date.now());
+        localStorage.setItem(STORAGE_KEYS.refreshToken, 'dummy-refresh-token-' + Date.now());
+        localStorage.removeItem(STORAGE_KEYS.pendingPhone);
 
-            if (response.data.verified && response.data.token) {
-                // Store authentication tokens
-                localStorage.setItem(STORAGE_KEYS.accessToken, response.data.token);
-                const maybeRefresh = (response.data as Record<string, unknown>).refreshToken;
-                if (typeof maybeRefresh === 'string' && maybeRefresh) {
-                    localStorage.setItem(STORAGE_KEYS.refreshToken, maybeRefresh);
-                }
-                localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+        // Show success toast
+        toast({
+            title: "Login successful",
+            description: "Welcome to ClubViz!",
+        });
 
-                toast({
-                    title: "Login successful",
-                    description: "Welcome to ClubViz!",
-                });
-
-                router.push('/location/allow');
-            } else {
-                throw new Error('OTP verification failed');
-            }
-        } catch (err: any) {
-            console.error("OTP verification error:", err);
-            const errorMessage = err.response?.data?.message || err.message || 'Invalid OTP. Please try again.';
-            setError(errorMessage);
-
-            toast({
-                title: "Verification failed",
-                description: errorMessage,
-                variant: "destructive",
-            });
-        } finally {
+        // Navigate to location allow page after a short delay
+        setTimeout(() => {
+            router.push('/location/allow');
             setIsLoading(false);
-        }
+        }, 800);
     };
 
-    const handleResendOTP = async () => {
+    const handleResendOTP = () => {
         if (!phoneNumber || !canResend) return;
 
         setIsLoading(true);
         setError(null);
 
-        try {
-            await AuthService.sendOTP({
-                phone: phoneNumber,
-                type: 'login'
-            });
+        // Show toast for dummy OTP sent
+        toast({
+            title: "OTP sent",
+            description: "New verification code sent to your mobile",
+        });
 
-            toast({
-                title: "OTP sent",
-                description: "New verification code sent to your mobile",
-            });
+        // Reset timer
+        setTimer(30);
+        setCanResend(false);
+        setOtp(['', '', '', '', '', '']); // Clear current OTP
 
-            // Reset timer
-            setTimer(30);
-            setCanResend(false);
-            setOtp(['', '', '', '', '', '']); // Clear current OTP
-
-        } catch (err: any) {
-            console.error("Resend OTP error:", err);
-            const errorMessage = err.response?.data?.message || err.message || 'Failed to resend OTP. Please try again.';
-            setError(errorMessage);
-
-            toast({
-                title: "Failed to resend OTP",
-                description: errorMessage,
-                variant: "destructive",
-            });
-        } finally {
+        // Finish loading after a short delay
+        setTimeout(() => {
             setIsLoading(false);
-        }
+        }, 500);
     };
 
     const canSubmit = otp.every(digit => digit !== '') && !isLoading;
@@ -169,7 +133,7 @@ export default function OTPVerificationScreen() {
             </div>
 
             {/* Content */}
-            <div className="relative z-10 h-screen flex flex-col">
+            <div className="relative z-10 min-h-screen flex flex-col">
                 {/* Header with Back and Skip */}
                 <div className="flex items-center justify-between p-4 pt-6 flex-shrink-0">
                     <Link
@@ -191,7 +155,7 @@ export default function OTPVerificationScreen() {
                 <div className="flex-1 flex flex-col">
                     {/* Logo Area - Now positioned just above the form with increased spacing */}
                     <div className="flex-1 flex flex-col items-center justify-end px-6 pb-8">
-                        <ClubVizLogo size="md" variant="full" />
+                        <ClubVizLogo size="lg" variant="full" />
                     </div>
 
                     <div className="bg-white rounded-t-3xl w-full px-6 pt-8 pb-8 overflow-y-auto flex flex-col">

@@ -68,8 +68,8 @@ export default function LoginPage(): JSX.Element {
                             <Image
                                 src="/logo/logo.png"
                                 alt="ClubWiz Logo"
-                                width={100}
-                                height={100}
+                                width={90}
+                                height={90}
                                 className="object-contain"
                                 priority={true}
                             />
@@ -78,8 +78,8 @@ export default function LoginPage(): JSX.Element {
                             <Image
                                 src="/logo/CLUBWIZ.png"
                                 alt="CLUBWIZ"
-                                width={240}
-                                height={56}
+                                width={190}
+                                height={44}
                                 className="object-contain"
                                 priority={true}
                             />

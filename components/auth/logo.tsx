@@ -7,18 +7,18 @@ interface LogoProps {
 }
 
 export function ClubVizLogo({ size = 'md', variant = 'full' }: LogoProps) {
-    // Size classes for logo icon
+    // Size classes for logo icon (slightly reduced)
     const logoSizes = {
-        sm: { width: 75, height: 75 },
-        md: { width: 100, height: 100 },
-        lg: { width: 125, height: 125 },
+        sm: { width: 80, height: 80 },
+        md: { width: 120, height: 120 },
+        lg: { width: 150, height: 150 },
     };
 
-    // Size classes for text logo
+    // Size classes for text logo (significantly reduced)
     const textSizes = {
-        sm: { width: 238, fontSize: 'text-3xl' },
-        md: { width: 300, fontSize: 'text-4xl' },
-        lg: { width: 375, fontSize: 'text-5xl' },
+        sm: { width: 190, fontSize: 'text-2xl' },
+        md: { width: 240, fontSize: 'text-3xl' },
+        lg: { width: 300, fontSize: 'text-4xl' },
     };
 
     return (
@@ -41,8 +41,8 @@ export function ClubVizLogo({ size = 'md', variant = 'full' }: LogoProps) {
                     <Image
                         src="/logo/CLUBWIZ.png"
                         alt="CLUBWIZ"
-                        width={size === 'lg' ? 375 : size === 'md' ? 300 : 238}
-                        height={size === 'lg' ? 87 : size === 'md' ? 70 : 56}
+                        width={textSizes[size].width}
+                        height={size === 'lg' ? 70 : size === 'md' ? 56 : 44}
                         className="object-contain"
                         priority={true}
                     />

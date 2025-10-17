@@ -39,58 +39,35 @@ export default function MobileVerificationScreen() {
         }
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = () => {
         console.log("=== Mobile Login: handleSubmit called ===");
         console.log("Current phone number:", phoneNumber);
 
         setIsLoading(true);
-        setError(null);
 
-        try {
-            // Clean phone number (remove formatting and keep only digits)
-            const cleanPhone = phoneNumber.replace(/[^0-9]/g, '');
-            console.log("Cleaned phone number:", cleanPhone);
+        // Clean phone number (remove formatting and keep only digits)
+        const cleanPhone = phoneNumber.replace(/[^0-9]/g, '');
 
-            if (cleanPhone.length !== 12) { // Should be 12 digits (91 + 10 digits)
-                throw new Error('Please enter a valid 10-digit mobile number');
-            }
-
-            console.log("Calling AuthService.sendOTP with:", { phone: cleanPhone, type: 'login' });
-
-            // Send OTP
-            const response = await AuthService.sendOTP({
-                phone: cleanPhone,
-                type: 'login'
-            });
-
-            console.log("OTP API Response:", response);
-
-            toast({
-                title: "OTP sent successfully",
-                description: "Please check your mobile for the verification code",
-            });
-
-            // Store phone number for OTP verification
-            localStorage.setItem(STORAGE_KEYS.pendingPhone, cleanPhone);
-
-            // Navigate to OTP verification page
-            router.push('/auth/otp');
-        } catch (err: any) {
-            console.error("=== OTP send error ===", err);
-            console.error("Error response:", err.response);
-            console.error("Error message:", err.message);
-
-            const errorMessage = err.response?.data?.message || err.message || 'Failed to send OTP. Please try again.';
-            setError(errorMessage);
-
-            toast({
-                title: "Failed to send OTP",
-                description: errorMessage,
-                variant: "destructive",
-            });
-        } finally {
+        if (cleanPhone.length !== 12) { // Should be 12 digits (91 + 10 digits)
+            setError('Please enter a valid 10-digit mobile number');
             setIsLoading(false);
+            return;
         }
+
+        // Store phone number for OTP verification (using dummy data)
+        localStorage.setItem(STORAGE_KEYS.pendingPhone, cleanPhone);
+
+        // Show success toast
+        toast({
+            title: "OTP sent successfully",
+            description: "Please check your mobile for the verification code",
+        });
+
+        // Navigate to OTP verification page after a short delay
+        setTimeout(() => {
+            router.push('/auth/otp');
+            setIsLoading(false);
+        }, 800);
     };
 
     const canSubmit = !phoneNumber.includes('X') && !isLoading;
@@ -105,7 +82,7 @@ export default function MobileVerificationScreen() {
             </div>
 
             {/* Content */}
-            <div className="relative z-10 h-screen flex flex-col">
+            <div className="relative z-10 min-h-screen flex flex-col">
                 {/* Header with Back and Skip */}
                 <div className="flex items-center justify-between p-4 pt-6 flex-shrink-0">
                     <Link
@@ -127,7 +104,7 @@ export default function MobileVerificationScreen() {
                 <div className="flex-1 flex flex-col">
                     {/* Logo Area - Now positioned just above the form with increased spacing */}
                     <div className="flex-1 flex flex-col items-center justify-end px-6 pb-8">
-                        <ClubVizLogo size="md" variant="full" />
+                        <ClubVizLogo size="lg" variant="full" />
                     </div>
 
                     <div className="bg-white rounded-t-3xl w-full px-6 pt-8 pb-8 overflow-y-auto flex flex-col">
