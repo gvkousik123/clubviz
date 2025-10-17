@@ -64,8 +64,8 @@ export default function LoginPage(): JSX.Element {
                 {/* Login options with logo and terms */}
                 <div>
                     {/* Logo and branding */}
-                    <div className="flex flex-col items-center justify-center px-6 mb-8">
-                        <ClubVizLogo size="md" variant="full" />
+                    <div className="flex-1 flex flex-col items-center justify-end px-6 pb-8">
+                        <ClubVizLogo size="lg" variant="full" />
                     </div>
 
                     {/* Terms text - exact match to design */}
