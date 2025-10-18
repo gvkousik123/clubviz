@@ -73,7 +73,7 @@ const HomePage = () => {
         <div className="min-h-screen bg-[#031313] text-white">
             <div className="relative mx-auto max-w-[430px]">
                 {/* Header */}
-                <header className="relative bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-10 pt-12 z-50">
+                <header className="relative bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-6 pt-12 z-50">
                     {/* Location and Profile */}
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-2">
@@ -88,25 +88,20 @@ const HomePage = () => {
 
                     {/* Search Bar */}
                     <div className="flex items-center gap-3">
-                        <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] flex items-center gap-2">
-                            <Search className="w-5 h-5 text-white" />
-                            <input
-                                type="text"
-                                placeholder="Search"
-                                className="flex-1 bg-transparent text-white placeholder-white/60 outline-none text-base font-bold"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                            />
+                        <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2">
+                            <Search className="w-[21px] h-[21px] text-white" />
+                            <span className="text-white text-base font-bold tracking-[0.5px]">Search</span>
                         </div>
-                        <button className="w-10 h-10 bg-white/20 rounded-[23px] flex items-center justify-center">
-                            <Menu className="w-6 h-6 text-white" />
+                        <button className="w-10 h-10 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center relative">
+                            <div className="w-[15px] h-[2px] absolute top-[15px] left-[14px] bg-white rounded-[2px]"></div>
+                            <div className="w-[19px] h-[2px] absolute top-[21px] left-[12px] bg-white rounded-[6px]"></div>
+                            <div className="w-[15px] h-[2px] absolute top-[27px] left-[14px] bg-white rounded-[2px]"></div>
                         </button>
                     </div>
                 </header>
 
                 {/* Main Content */}
-                <main className="px-0 pt-0 space-y-8">
+                <main className="px-0 pt-0 space-y-6">
                     {/* Hero Carousel */}
                     <section className="relative w-full -mt-[30px]">
                         <div data-property-1="Default" className="w-full h-full relative shadow-[0px_4px_5.6px_rgba(20,255,236,0.11)] overflow-hidden rounded-b-[30px]">
@@ -135,9 +130,9 @@ const HomePage = () => {
                                 </div>
 
                                 {/* Sponsor badge with exact styling */}
-                                <div className="w-[102px] h-[30px] absolute left-[15px] top-[38px]">
+                                <div className="w-[90px] h-[28px] absolute left-[15px] top-[45px]">
                                     <div className="w-full h-full absolute left-0 top-0 bg-[rgba(212.01,212.01,212.01,0.10)] rounded-[6px] border border-[rgba(255,255,255,0.50)] backdrop-blur-[17.50px]"></div>
-                                    <div className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">
+                                    <div className="absolute inset-0 flex items-center justify-center text-white text-[10px] font-bold font-['Manrope'] leading-[15px] break-words">
                                         {heroSlides[currentSlide].sponsor}
                                     </div>
                                 </div>
@@ -184,30 +179,40 @@ const HomePage = () => {
                         </div>
                         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                             {venueFallback.map((club) => (
-                                <div key={club.id} className="w-[336px] flex-shrink-0 relative">
-                                    <div className="w-[336px] h-[169px] relative overflow-hidden rounded-[15px]">
+                                <div key={club.id} className="w-[336px] h-[201px] relative flex-shrink-0 mr-1">
+                                    {/* Main image container with rounded top */}
+                                    <div className="w-[336px] h-[169px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[15px] border-[#14FFEC] overflow-hidden">
                                         <img
                                             src={club.image}
                                             alt={club.name}
-                                            className="w-[336px] h-[197px] absolute left-0 top-0 rounded-[11px]"
+                                            className="w-full h-full object-cover absolute inset-0"
                                         />
-                                        <div className="w-[336px] h-[169px] absolute left-0 top-0 bg-gradient-to-b from-black via-black/50 to-transparent overflow-hidden rounded-[10px]">
-                                            <div className="w-[39px] h-[39px] absolute left-[281px] top-[17px] bg-[rgba(212.01,212.01,212.01,0.10)] overflow-hidden rounded-[22px] backdrop-blur-[17.5px] flex justify-center items-center">
-                                                <Heart className="w-6 h-6 text-[#14FFEC]" />
+                                        {/* White overlay effect */}
+                                        <div className="w-full h-full absolute inset-0 bg-white/10 mix-blend-overlay"></div>
+                                        <div className="w-[336px] h-[169px] pl-[281px] pr-4 pt-[17px] pb-[113px] left-0 top-0 absolute justify-end items-center inline-flex bg-gradient-to-b from-black via-black/50 to-black/0 rounded-[10px] overflow-hidden">
+                                            <div className="w-[39px] self-stretch bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] justify-center items-center inline-flex overflow-hidden">
+                                                <Bookmark className="w-5 h-5 text-[#14FFEC]" />
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="w-[30px] h-[30px] absolute left-[250px] top-[110px] bg-[#008479] overflow-hidden rounded-[17px]">
-                                        <div className="absolute left-[4px] top-[5px] flex justify-center flex-col text-white text-[13px] font-['Manrope'] font-extrabold leading-[20px] tracking-[0.13px] break-words">
+
+                                    {/* Glassmorphism bottom section - the translucent gray area */}
+                                    <div className="w-[320px] h-[85px] left-[8px] top-[125px] absolute bg-[rgba(212.01,212.01,212.01,0.10)] rounded-[15px] border  backdrop-blur-[17.50px]"></div>
+
+                                    {/* Rating badge */}
+                                    <div className="w-[30px] h-[30px] pl-1 pr-[5px] py-[5px] left-[250px] top-[110px] absolute justify-center items-center inline-flex bg-[#008378] rounded-[17px] overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),inset_0_-1px_2px_rgba(255,255,255,0.1)]">
+                                        <div className="text-white text-[13px] font-extrabold font-['Manrope'] leading-5 tracking-[0.01em]">
                                             {club.rating}
                                         </div>
                                     </div>
-                                    <div className="w-[128px] h-[43px] absolute left-[33px] top-[144px] flex justify-start items-center gap-[29px]">
-                                        <div className="w-[208px] flex flex-col justify-center items-start gap-2">
-                                            <div className="self-stretch h-[20px] flex justify-center flex-col text-[#14FFEC] text-2xl font-normal font-['Anton SC'] leading-[20px] tracking-[1.2px] break-words">
+
+                                    {/* Text content */}
+                                    <div className="w-32 h-[50px] left-[33px] top-[144px] absolute justify-start items-center gap-[29px] inline-flex">
+                                        <div className="w-52 flex-col justify-center items-start gap-2 inline-flex">
+                                            <div className="self-stretch h-5 text-[#14FFEC] text-xl font-black font-['Manrope'] leading-5 tracking-[0.02em] first-letter:text-2xl first-letter:leading-2">
                                                 {club.name}
                                             </div>
-                                            <div className="self-stretch h-[12px] flex justify-center flex-col text-white text-[13px] font-['Manrope'] font-semibold leading-[20px] tracking-[0.13px] break-words">
+                                            <div className="self-stretch h-5 text-white text-[13px] font-semibold font-['Manrope'] leading-5 tracking-[0.01em]">
                                                 {club.openTime}
                                             </div>
                                         </div>
@@ -225,7 +230,7 @@ const HomePage = () => {
                         </div>
                         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                             {eventFallback.map((event) => (
-                                <div key={event.id} className="w-[222px] h-[332px] flex-shrink-0 relative rounded-[20px] overflow-hidden" style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}>
+                                <div key={event.id} className="w-[222px] h-[331px] flex-shrink-0 relative rounded-[20px] overflow-hidden" style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}>
                                     {/* Image */}
                                     <img
                                         src={event.image}
@@ -234,19 +239,26 @@ const HomePage = () => {
                                     />
 
                                     {/* Date Badge */}
-                                    <div className="absolute right-4 top-0 w-9 px-2 py-3 bg-gradient-to-b from-black to-[#00C0CA] rounded-b-[28px] border-l border-r border-b border-[#CDCDCD] text-center">
-                                        <div className="text-white text-sm font-semibold">APR<br />04</div>
+                                    <div className="w-[36px] h-[45px] px-[2px] py-[10px] left-[147px] top-0 absolute bg-gradient-to-b from-black to-[#00C0CA] rounded-b-[28px] border-l border-r border-b border-[#CDCDCD] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex flex-col justify-center items-center">
+                                        <div className="w-[31px] text-center text-white text-[14px] font-semibold font-['Manrope'] leading-4">APR<br />04</div>
                                     </div>
 
                                     {/* Content */}
-                                    <div className="absolute bottom-0 left-0 right-0 p-5 space-y-3">
-                                        <div>
-                                            <h3 className="text-white text-base font-bold leading-tight">{event.title}</h3>
-                                            <p className="text-[#C3C3C3] text-xs font-bold mt-1">{event.venue}</p>
+                                    <div className="w-[144px] h-[68px] left-[18px] top-[217px] absolute flex flex-col justify-start items-start gap-[3px]">
+                                        <div className="self-stretch h-[42px] flex flex-col justify-center text-[#E6E6E6] text-base font-bold font-['Manrope'] leading-[22px] tracking-[0.16px] break-words">{event.title}</div>
+                                        <div className="w-[144px] h-[23px] flex flex-col justify-center text-[#C3C3C3] text-xs font-bold font-['Manrope'] leading-[17px] tracking-[0.12px] break-words">{event.venue}</div>
+                                    </div>
+
+                                    {/* Heart Icon */}
+                                    <div className="w-[23px] h-[21px] left-[175px] top-[241px] absolute">
+                                        <div className="w-[23px] h-[21px] border-2 border-[#28D2DB] rounded-sm flex items-center justify-center">
+                                            <Heart className="w-4 h-4 text-[#28D2DB]" />
                                         </div>
-                                        <div className="w-full h-[34px] bg-gradient-to-r from-[#005F57] to-[#14FFEC] rounded-b-[20px] border-t border-[#0FD8E2] flex items-center px-6">
-                                            <span className="text-white text-sm font-bold">{event.category}</span>
-                                        </div>
+                                    </div>
+
+                                    {/* Category Badge */}
+                                    <div className="w-[222px] h-[34px] left-0 top-[297px] absolute rounded-b-[20px] border-t border-[#0FD8E2] overflow-hidden" style={{ background: 'radial-gradient(ellipse 148.20% 1115.41% at 50.00% 50.00%, #005F57 0%, #14FFEC 100%)' }}>
+                                        <div className="w-[128px] left-[47px] top-[8px] absolute flex flex-col justify-center text-white text-[14px] font-bold font-['Manrope'] leading-[17px]">{event.category}</div>
                                     </div>
                                 </div>
                             ))}
