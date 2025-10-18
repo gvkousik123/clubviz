@@ -56,12 +56,12 @@ export function StoryViewer({
                     // Current internal story completed, move to next
                     if (currentInternalIndex < internalStories.length - 1) {
                         // Move to next internal story within the same story group
-                        setCurrentInternalIndex(currentInternalIndex + 1);
+                        setCurrentInternalIndex(prev => prev + 1);
                         return 0;
                     } else {
                         // All internal stories completed, move to next story group
                         if (currentStoryIndex < stories.length - 1) {
-                            setCurrentStoryIndex(currentStoryIndex + 1);
+                            setCurrentStoryIndex(prev => prev + 1);
                             setCurrentInternalIndex(0);
                             onNext?.(currentStoryIndex + 1, 0);
                             return 0;
@@ -88,11 +88,11 @@ export function StoryViewer({
     const handleNext = useCallback(() => {
         if (currentInternalIndex < internalStories.length - 1) {
             // Move to next internal story within the same story group
-            setCurrentInternalIndex(currentInternalIndex + 1);
+            setCurrentInternalIndex(prev => prev + 1);
             setProgress(0);
         } else if (currentStoryIndex < stories.length - 1) {
             // Move to next story group
-            setCurrentStoryIndex(currentStoryIndex + 1);
+            setCurrentStoryIndex(prev => prev + 1);
             setCurrentInternalIndex(0);
             onNext?.(currentStoryIndex + 1, 0);
             setProgress(0);
@@ -105,7 +105,7 @@ export function StoryViewer({
     const handlePrevious = useCallback(() => {
         if (currentInternalIndex > 0) {
             // Move to previous internal story within the same story group
-            setCurrentInternalIndex(currentInternalIndex - 1);
+            setCurrentInternalIndex(prev => prev - 1);
             setProgress(0);
         } else if (currentStoryIndex > 0) {
             // Move to previous story group (go to last internal story of previous group)
@@ -158,15 +158,15 @@ export function StoryViewer({
 
                 {/* User Profile Image from story folder */}
                 <img
-                    className="w-[37px] h-[37px] absolute left-[27px] top-[46px] rounded-full border border-[#E1CAFF] object-cover"
+                    className="w-[37px] h-[37px] absolute left-[27px] top-[36px] rounded-full border border-[#E1CAFF] object-cover"
                     src="/vibemeter/Screenshot_2025-05-16_192139-removebg-preview.png"
                     alt="User"
                 />
 
                 {/* Progress Bars for Internal Stories */}
-                <div className="absolute left-[84px] top-[63px] flex gap-2">
+                <div className="absolute left-[84px] right-[24px] top-[53px] flex gap-2">
                     {internalStories.map((_, index) => (
-                        <div key={index} className="w-[96px] h-1 relative">
+                        <div key={index} className="flex-1 h-1 relative max-w-[96px]">
                             <div className="w-full h-1 bg-white/25 rounded-[24px]"></div>
                             <div
                                 className="h-1 absolute left-0 top-0 bg-white rounded-[24px] transition-all duration-100 ease-linear"

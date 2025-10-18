@@ -4,68 +4,57 @@ import { StoriesSection } from '@/components/story';
 
 // Example usage of the story components
 export default function ExampleHomePage() {
-    // Example story data - Updated with gallery Frame images and internal stories
+    // Example story data - Using only the 4 story images from /story folder
     const stories = [
         {
             id: '1',
-            image: '/gallery/Frame 1000001117.jpg',
+            image: '/story/story1.png',
             title: 'CLUB AMBIENCE',
             timestamp: '2 hours ago',
             clubName: 'Club Gallery',
             duration: 5,
             internalStories: [
-                { id: '1-1', image: '/gallery/Frame 1000001117.jpg', duration: 5 },
-                { id: '1-2', image: '/gallery/Frame 1000001119.jpg', duration: 5 },
-                { id: '1-3', image: '/gallery/Frame 1000001120.jpg', duration: 5 },
+                { id: '1-1', image: '/story/story1.png', duration: 5 },
+                { id: '1-2', image: '/story/Story2.png', duration: 5 },
+                { id: '1-3', image: '/story/story3.png', duration: 5 },
             ],
         },
         {
             id: '2',
-            image: '/gallery/Frame 1000001119.jpg',
+            image: '/story/Story2.png',
             title: 'NIGHT VIBES',
             timestamp: '4 hours ago',
             clubName: 'Gallery Club',
             duration: 5,
             internalStories: [
-                { id: '2-1', image: '/gallery/Frame 1000001119.jpg', duration: 5 },
-                { id: '2-2', image: '/gallery/Frame 1000001121.jpg', duration: 5 },
+                { id: '2-1', image: '/story/Story2.png', duration: 5 },
+                { id: '2-2', image: '/story/story 2.png', duration: 5 },
             ],
         },
         {
             id: '3',
-            image: '/gallery/Frame 1000001120.jpg',
-            title: 'DINING EXPERIENCE',
+            image: '/story/story3.png',
+            title: 'FOOD EXPERIENCE',
             timestamp: '6 hours ago',
             clubName: 'Gallery Lounge',
             duration: 5,
             internalStories: [
-                { id: '3-1', image: '/gallery/Frame 1000001120.jpg', duration: 5 },
-                { id: '3-2', image: '/gallery/Frame 1000001123.jpg', duration: 5 },
-                { id: '3-3', image: '/gallery/Frame 1000001117.jpg', duration: 5 },
-                { id: '3-4', image: '/gallery/Frame 1000001119.jpg', duration: 5 },
+                { id: '3-1', image: '/story/story3.png', duration: 5 },
+                { id: '3-2', image: '/story/story 2.png', duration: 5 },
+                { id: '3-3', image: '/story/story1.png', duration: 5 },
+                { id: '3-4', image: '/story/Story2.png', duration: 5 },
             ],
         },
         {
             id: '4',
-            image: '/gallery/Frame 1000001121.jpg',
+            image: '/story/story 2.png',
             title: 'DRINKS & BAR',
             timestamp: '8 hours ago',
             clubName: 'Gallery Bar',
             duration: 5,
             internalStories: [
-                { id: '4-1', image: '/gallery/Frame 1000001121.jpg', duration: 5 },
-                { id: '4-2', image: '/gallery/Frame 1000001120.jpg', duration: 5 },
-            ],
-        },
-        {
-            id: '5',
-            image: '/gallery/Frame 1000001123.jpg',
-            title: 'INTERIOR DESIGN',
-            timestamp: '10 hours ago',
-            clubName: 'Design Club',
-            duration: 5,
-            internalStories: [
-                { id: '5-1', image: '/gallery/Frame 1000001123.jpg', duration: 5 },
+                { id: '4-1', image: '/story/story 2.png', duration: 5 },
+                { id: '4-2', image: '/story/story3.png', duration: 5 },
             ],
         },
     ];

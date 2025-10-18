@@ -4,49 +4,54 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { StoryViewer } from '@/components/story/story-viewer';
 
-// Mock story data - Updated with gallery Frame images
+// Mock story data - Using only the 4 story images from /story folder
 const mockStories = [
     {
         id: '1',
-        image: '/gallery/Frame 1000001117.jpg',
+        image: '/story/story1.png',
         title: 'CLUB AMBIENCE',
         timestamp: '2 hours ago',
         duration: 5,
+        internalStories: [
+            { id: '1-1', image: '/story/story1.png', duration: 5 },
+            { id: '1-2', image: '/story/Story2.png', duration: 5 },
+            { id: '1-3', image: '/story/story3.png', duration: 5 },
+        ],
     },
     {
         id: '2',
-        image: '/gallery/Frame 1000001119.jpg',
+        image: '/story/Story2.png',
         title: 'NIGHT VIBES',
         timestamp: '4 hours ago',
         duration: 5,
+        internalStories: [
+            { id: '2-1', image: '/story/Story2.png', duration: 5 },
+            { id: '2-2', image: '/story/story 2.png', duration: 5 },
+        ],
     },
     {
         id: '3',
-        image: '/gallery/Frame 1000001120.jpg',
+        image: '/story/story3.png',
         title: 'FOOD EXPERIENCE',
         timestamp: '6 hours ago',
         duration: 5,
+        internalStories: [
+            { id: '3-1', image: '/story/story3.png', duration: 5 },
+            { id: '3-2', image: '/story/story 2.png', duration: 5 },
+            { id: '3-3', image: '/story/story1.png', duration: 5 },
+            { id: '3-4', image: '/story/Story2.png', duration: 5 },
+        ],
     },
     {
         id: '4',
-        image: '/gallery/Frame 1000001121.jpg',
+        image: '/story/story 2.png',
         title: 'DRINKS & BAR',
         timestamp: '8 hours ago',
         duration: 5,
-    },
-    {
-        id: '5',
-        image: '/gallery/Frame 1000001123.jpg',
-        title: 'INTERIOR DESIGN',
-        timestamp: '8 hours ago',
-        duration: 5,
-    },
-    {
-        id: '6',
-        image: '/gallery/Frame 1000001124.jpg',
-        title: 'BAR SETUP',
-        timestamp: '10 hours ago',
-        duration: 5,
+        internalStories: [
+            { id: '4-1', image: '/story/story 2.png', duration: 5 },
+            { id: '4-2', image: '/story/story3.png', duration: 5 },
+        ],
     },
 ];
 
@@ -75,21 +80,21 @@ export default function StoryPage() {
         router.back();
     };
 
-    const handleNext = (index: number) => {
-        setCurrentIndex(index);
+    const handleNext = (storyIndex: number, internalIndex: number) => {
+        setCurrentIndex(storyIndex);
         // Update URL to reflect current story
-        const newStoryId = stories[index]?.id;
+        const newStoryId = stories[storyIndex]?.id;
         if (newStoryId) {
-            router.replace(`/story/${newStoryId}?index=${index}`, { scroll: false });
+            router.replace(`/story/${newStoryId}?index=${storyIndex}&internal=${internalIndex}`, { scroll: false });
         }
     };
 
-    const handlePrevious = (index: number) => {
-        setCurrentIndex(index);
+    const handlePrevious = (storyIndex: number, internalIndex: number) => {
+        setCurrentIndex(storyIndex);
         // Update URL to reflect current story
-        const newStoryId = stories[index]?.id;
+        const newStoryId = stories[storyIndex]?.id;
         if (newStoryId) {
-            router.replace(`/story/${newStoryId}?index=${index}`, { scroll: false });
+            router.replace(`/story/${newStoryId}?index=${storyIndex}&internal=${internalIndex}`, { scroll: false });
         }
     };
 
