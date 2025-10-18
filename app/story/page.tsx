@@ -20,7 +20,7 @@ const mockStories = [
     },
     {
         id: '2',
-        image: '/story/story2.png',
+        image: '/story/Story2.png',
         title: 'NIGHT VIBES',
         timestamp: '4 hours ago',
         duration: 5,
@@ -44,7 +44,7 @@ const mockStories = [
     },
     {
         id: '4',
-        image: '/story/story4.png',
+        image: '/story/story 2.png',
         title: 'DRINKS & BAR',
         timestamp: '8 hours ago',
         duration: 5,
