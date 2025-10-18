@@ -312,38 +312,8 @@ export default function ClubsListPage() {
                     </div>
                 </div>
 
-                {/* Clubs Section Headers */}
-                <div className="w-full px-5">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-white text-sm font-semibold truncate">Clubs today</h2>
-                        <Link href="/clubs" className="text-[#14FFEC] text-sm font-medium whitespace-nowrap">View All</Link>
-                    </div>
-                </div>
-
                 {/* Main Content */}
                 <div className="w-full px-5 space-y-6">
-                    {/* Clubs Today Section */}
-                    <section className="w-full">
-                        <div className="w-full flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-                            {clubsTodayList.length === 0 ? (
-                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full">
-                                    No clubs available for today.
-                                </div>
-                            ) : (
-                                clubsTodayList.map((club, index) => (
-                                    <ClubListCard
-                                        key={`today-${club.id ?? index}`}
-                                        club={club}
-                                        href={`/club/${club.name.toLowerCase().replace(/\s+/g, '-')}`}
-                                        fallbackImage={getClubFallbackImage(index)}
-                                        isFavorite={favorites.includes(club.id)}
-                                        onToggleFavorite={toggleFavorite}
-                                    />
-                                ))
-                            )}
-                        </div>
-                    </section>
-
                     {/* Clubs Nearby Section */}
                     <section className="w-full">
                         <div className="flex items-center justify-between mb-4">
