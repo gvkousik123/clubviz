@@ -70,7 +70,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         >
                             MY ACCOUNT
                         </Link>
-                        <div className="w-full h-px bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
+                        <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
                         <Link
                             href="/favorites/events"
                             onClick={onClose}
@@ -78,7 +78,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         >
                             FAVOURITE EVENTS
                         </Link>
-                        <div className="w-full h-px bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
+                        <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
                         <Link
                             href="/favorites/clubs"
                             onClick={onClose}
@@ -86,7 +86,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         >
                             FAVOURITE CLUBS
                         </Link>
-                        <div className="w-full h-px bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
+                        <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
                         <Link
                             href="/contact"
                             onClick={onClose}
