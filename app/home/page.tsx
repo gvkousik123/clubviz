@@ -22,18 +22,19 @@ import {
 
 // Dummy data
 const heroSlides = [
-    { id: 1, image: '/dj-woman-with-headphones-and-sunglasses-in-neon-li.jpg', musicBy: 'DJ ALEXXX', hostedBy: 'DABO CLUB', sponsor: 'SPONSORED', bookingLink: '/booking' },
-    { id: 2, image: '/dj-event-poster-with-woman-dj-and-neon-lighting.jpg', musicBy: 'DJ SHADE', hostedBy: 'GARAGE CLUB', sponsor: 'TRENDING', bookingLink: '/booking' },
-    { id: 3, image: '/night-party-event-poster-with-purple-and-pink-neon.jpg', musicBy: 'DJ VIBE', hostedBy: 'ELITE CLUB', sponsor: 'FEATURED', bookingLink: '/booking' },
+    { id: 1, image: '/venue/Screenshot 2024-12-10 195651.png', musicBy: 'DJ ALEXXX', hostedBy: 'DABO CLUB', sponsor: 'SPONSORED', bookingLink: '/booking' },
+    { id: 2, image: '/venue/Screenshot 2024-12-10 195852.png', musicBy: 'DJ SHADE', hostedBy: 'GARAGE CLUB', sponsor: 'TRENDING', bookingLink: '/booking' },
+    { id: 3, image: '/venue/Screenshot 2024-12-10 200154.png', musicBy: 'DJ VIBE', hostedBy: 'ELITE CLUB', sponsor: 'FEATURED', bookingLink: '/booking' },
 ];
 
 const vibeMeterFallback = [
-    { id: 'dabo', name: 'DABO', image: '/event page going people/story1.png' },
-    { id: 'elite', name: 'Elite', image: '/event page going people/Story2.png' },
-    { id: 'escape', name: 'Escape', image: '/event page going people/story 2.png' },
-    { id: 'nitro', name: 'Nitro', image: '/event page going people/story@3x.png' },
-    { id: 'garage', name: 'Garage', image: '/event page going people/Frame 3896.png' },
-    { id: 'brillo', name: 'Brillo', image: '/event page going people/my account profile.png' },
+    { id: 'vibe1', name: 'Sarah', image: '/vibemeter/Screenshot_2025-05-16_192139-removebg-preview.png' },
+    { id: 'vibe2', name: 'Michael', image: '/vibemeter/Screenshot_2025-05-16_193232-removebg-preview.png' },
+    { id: 'vibe3', name: 'Jessica', image: '/vibemeter/Screenshot_2025-05-23_223510-removebg-preview.png' },
+    { id: 'vibe4', name: 'Alex', image: '/vibemeter/Screenshot_2025-05-24_094641-removebg-preview.png' },
+    { id: 'vibe5', name: 'Emma', image: '/vibemeter/Screenshot_2025-05-24_110818-removebg-preview.png' },
+    { id: 'vibe6', name: 'Jason', image: '/vibemeter/Screenshot_2025-05-24_115115-removebg-preview.png' },
+    { id: 'vibe7', name: 'Olivia', image: '/vibemeter/Screenshot_2025-05-31_121940-removebg-preview.png' },
 ];
 
 const venueFallback = [
@@ -105,39 +106,77 @@ const HomePage = () => {
                 {/* Main Content */}
                 <main className="px-0 pt-8 space-y-8">
                     {/* Hero Carousel */}
-                    <section className="relative w-full h-[262px] rounded-b-[30px] overflow-hidden">
-                        <div
-                            className="flex transition-transform duration-500 ease-in-out"
-                            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-                        >
-                            {heroSlides.map((slide) => (
-                                <div key={slide.id} className="w-full h-[262px] flex-shrink-0 relative">
-                                    <img src={slide.image} alt={slide.musicBy} className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-transparent"></div>
-
-                                    {/* Sponsored Badge */}
-                                    <div className="absolute left-8 top-10 px-3 py-2 bg-white/10 rounded-md border border-white/50 backdrop-blur-sm">
-                                        <div className="text-white text-xs font-bold">{slide.sponsor}</div>
-                                    </div>
-
-                                    {/* Book Now Button */}
-                                    <div className="absolute right-0 bottom-16 w-10 h-14 bg-[#1E6266]/50 rounded-l-[25px] border-l border-b border-white backdrop-blur-sm flex items-center justify-center rotate-90 origin-bottom-right">
-                                        <div className="-rotate-90 text-white text-xs font-bold text-center leading-tight">BOOK<br />NOW</div>
-                                    </div>
+                    <section className="relative w-full h-[262px]">
+                        <div data-property-1="Default" className="w-full h-full relative shadow-[0px_4px_5.6px_rgba(20,255,236,0.11)] overflow-hidden rounded-b-[30px]">
+                            {/* All carousel slides with different positions */}
+                            <div
+                                className="w-[430px] h-[262px] absolute transition-transform duration-500 ease-in-out"
+                                style={{
+                                    left: "0px",
+                                    top: "0px",
+                                    transform: currentSlide === 0 ? 'translateX(0)' : 'translateX(-9999px)'
+                                }}
+                            >
+                                <img className="w-[430px] h-[262px] absolute left-0 top-0 bg-gradient-to-b from-transparent to-black/70 border-t border-black" src={heroSlides[0].image} alt={heroSlides[0].musicBy} />
+                                <div className="w-[430px] h-[129px] absolute left-0 top-0 bg-gradient-to-b from-black/70 to-transparent"></div>
+                                <div className="w-[40px] h-[54px] pb-2 px-[1px] absolute left-[430px] top-[193px] transform rotate-90 origin-top-left bg-[rgba(30,98,102,0.5)] shadow-[0px_0px_10px_rgba(233.78,233.78,233.78,0.25)] rounded-bl-[25px] rounded-br-[25px] border-l border-r border-b border-white backdrop-blur-sm flex flex-col justify-center items-center gap-[10px]">
+                                    <div className="transform -rotate-90 origin-top-left text-center justify-center flex flex-col text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">BOOK<br />NOW</div>
                                 </div>
-                            ))}
-                        </div>
+                                <div className="w-[74px] h-[30px] absolute left-[31px] top-[38px]">
+                                    <div className="w-[74px] h-[30px] absolute left-0 top-0 bg-[rgba(212.01,212.01,212.01,0.1)] rounded-[6px] border border-white/50 backdrop-blur-[17.5px]"></div>
+                                    <div className="absolute left-3 top-[7px] text-center justify-center flex flex-col text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">{heroSlides[0].sponsor}</div>
+                                </div>
+                            </div>
 
-                        {/* Pagination Dots */}
-                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 px-4 py-2 bg-white/10 rounded-full backdrop-blur-sm">
-                            {heroSlides.map((_, index) => (
-                                <button
-                                    key={index}
-                                    className={`w-3 h-3 rounded-full transition-all ${index === currentSlide ? 'bg-white' : 'border border-white'
-                                        }`}
-                                    onClick={() => setCurrentSlide(index)}
-                                />
-                            ))}
+                            <div
+                                className="w-[430px] h-[262px] absolute transition-transform duration-500 ease-in-out"
+                                style={{
+                                    left: "0px",
+                                    top: "0px",
+                                    transform: currentSlide === 1 ? 'translateX(0)' : 'translateX(-9999px)'
+                                }}
+                            >
+                                <img className="w-[430px] h-[262px] absolute left-0 top-0" src={heroSlides[1].image} alt={heroSlides[1].musicBy} />
+                                <div className="w-[430px] h-[129px] absolute left-0 top-0 bg-gradient-to-b from-black/70 to-transparent"></div>
+                                <div className="w-[40px] h-[54px] pb-2 px-[1px] absolute left-[430px] top-[193px] transform rotate-90 origin-top-left bg-[rgba(30,98,102,0.5)] shadow-[0px_0px_10px_rgba(233.78,233.78,233.78,0.25)] rounded-bl-[25px] rounded-br-[25px] border-l border-r border-b border-white backdrop-blur-sm flex flex-col justify-center items-center gap-[10px]">
+                                    <div className="transform -rotate-90 origin-top-left text-center justify-center flex flex-col text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">BOOK<br />NOW</div>
+                                </div>
+                                <div className="w-[74px] h-[30px] absolute left-[31px] top-[38px]">
+                                    <div className="w-[74px] h-[30px] absolute left-0 top-0 bg-[rgba(212.01,212.01,212.01,0.1)] rounded-[6px] border border-white/50 backdrop-blur-[17.5px]"></div>
+                                    <div className="absolute left-3 top-[7px] text-center justify-center flex flex-col text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">{heroSlides[1].sponsor}</div>
+                                </div>
+                            </div>
+
+                            <div
+                                className="w-[430px] h-[262px] absolute transition-transform duration-500 ease-in-out"
+                                style={{
+                                    left: "0px",
+                                    top: "0px",
+                                    transform: currentSlide === 2 ? 'translateX(0)' : 'translateX(-9999px)'
+                                }}
+                            >
+                                <img className="w-[430px] h-[262px] absolute left-0 top-0" src={heroSlides[2].image} alt={heroSlides[2].musicBy} />
+                                <div className="w-[430px] h-[129px] absolute left-0 top-0 bg-gradient-to-b from-black/70 to-transparent"></div>
+                                <div className="w-[40px] h-[54px] pb-2 px-[1px] absolute left-[430px] top-[193px] transform rotate-90 origin-top-left bg-[rgba(30,98,102,0.5)] shadow-[0px_0px_10px_rgba(233.78,233.78,233.78,0.25)] rounded-bl-[25px] rounded-br-[25px] border-l border-r border-b border-white backdrop-blur-sm flex flex-col justify-center items-center gap-[10px]">
+                                    <div className="transform -rotate-90 origin-top-left text-center justify-center flex flex-col text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">BOOK<br />NOW</div>
+                                </div>
+                                <div className="w-[74px] h-[30px] absolute left-[31px] top-[38px]">
+                                    <div className="w-[74px] h-[30px] absolute left-0 top-0 bg-[rgba(212.01,212.01,212.01,0.1)] rounded-[6px] border border-white/50 backdrop-blur-[17.5px]"></div>
+                                    <div className="absolute left-3 top-[7px] text-center justify-center flex flex-col text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">{heroSlides[2].sponsor}</div>
+                                </div>
+                            </div>
+
+                            {/* Pagination Dots */}
+                            <div className="w-[90px] h-[19px] p-2 absolute left-[170px] top-[225px] bg-white/10 rounded-[28px] border border-white backdrop-blur-[5px] flex justify-center items-center gap-[5px]">
+                                {heroSlides.map((_, index) => (
+                                    <div key={index} className="w-[12px] h-[12px] relative">
+                                        <div
+                                            className={`w-[12px] h-[12px] absolute left-0 top-0 rounded-full ${index === currentSlide ? 'bg-white' : 'border border-white'}`}
+                                            onClick={() => setCurrentSlide(index)}
+                                        ></div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </section>
 
@@ -146,11 +185,16 @@ const HomePage = () => {
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-white text-base font-semibold">Vibe Meter</h2>
                         </div>
-                        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                        <div className="pl-4 pr-4 overflow-x-auto flex items-center justify-start gap-4">
                             {vibeMeterFallback.map((user) => (
-                                <div key={user.id} className="flex flex-col items-center gap-2 flex-shrink-0">
-                                    <div className="w-[72px] h-[72px] rounded-full border-2 border-[#14FFEC] p-1">
-                                        <img src={user.image} alt={user.name} className="w-full h-full rounded-full object-cover" />
+                                <div key={user.id} className="flex flex-col items-center gap-2">
+                                    <div className="w-[72px] h-[72px] relative">
+                                        <div className="w-[72px] h-[72px] absolute left-0 top-0 rounded-full border-2 border-[#14FFEC]"></div>
+                                        <img
+                                            src={user.image}
+                                            alt={user.name}
+                                            className="w-[64px] h-[64px] absolute left-1 top-1 rounded-full border border-white"
+                                        />
                                     </div>
                                     <span className="text-xs text-white/80">{user.name}</span>
                                 </div>
@@ -167,20 +211,32 @@ const HomePage = () => {
                         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                             {venueFallback.map((club) => (
                                 <div key={club.id} className="w-[336px] flex-shrink-0 relative">
-                                    <div className="h-[169px] rounded-[15px] overflow-hidden relative">
-                                        <img src={club.image} alt={club.name} className="w-full h-full object-cover" />
-                                        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-transparent">
-                                            <button className="absolute right-4 top-4 w-10 h-10 bg-white/10 rounded-full backdrop-blur-sm flex items-center justify-center">
+                                    <div className="w-[336px] h-[169px] relative overflow-hidden rounded-[15px]">
+                                        <img
+                                            src={club.image}
+                                            alt={club.name}
+                                            className="w-[336px] h-[197px] absolute left-0 top-0 rounded-[11px]"
+                                        />
+                                        <div className="w-[336px] h-[169px] absolute left-0 top-0 bg-gradient-to-b from-black via-black/50 to-transparent overflow-hidden rounded-[10px]">
+                                            <div className="w-[39px] h-[39px] absolute left-[281px] top-[17px] bg-[rgba(212.01,212.01,212.01,0.10)] overflow-hidden rounded-[22px] backdrop-blur-[17.5px] flex justify-center items-center">
                                                 <Heart className="w-6 h-6 text-[#14FFEC]" />
-                                            </button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="absolute right-8 bottom-8 w-[30px] h-[30px] bg-[#008479] rounded-full flex items-center justify-center">
-                                        <span className="text-white text-xs font-extrabold">{club.rating}</span>
+                                    <div className="w-[30px] h-[30px] absolute left-[250px] top-[110px] bg-[#008479] overflow-hidden rounded-[17px]">
+                                        <div className="absolute left-[4px] top-[5px] flex justify-center flex-col text-white text-[13px] font-['Manrope'] font-extrabold leading-[20px] tracking-[0.13px] break-words">
+                                            {club.rating}
+                                        </div>
                                     </div>
-                                    <div className="mt-4">
-                                        <h3 className="text-[#14FFEC] text-2xl font-normal">{club.name}</h3>
-                                        <p className="text-white text-sm font-semibold mt-2">{club.openTime}</p>
+                                    <div className="w-[128px] h-[43px] absolute left-[33px] top-[144px] flex justify-start items-center gap-[29px]">
+                                        <div className="w-[208px] flex flex-col justify-center items-start gap-2">
+                                            <div className="self-stretch h-[20px] flex justify-center flex-col text-[#14FFEC] text-2xl font-normal font-['Anton SC'] leading-[20px] tracking-[1.2px] break-words">
+                                                {club.name}
+                                            </div>
+                                            <div className="self-stretch h-[12px] flex justify-center flex-col text-white text-[13px] font-['Manrope'] font-semibold leading-[20px] tracking-[0.13px] break-words">
+                                                {club.openTime}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
