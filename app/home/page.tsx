@@ -19,7 +19,7 @@ import {
     ChevronRight,
     Bookmark
 } from 'lucide-react';
-import Sidebar from '@/components/common/sidebar';
+import Sidebar from '@/components/common/sidebar.tsx';
 
 // Dummy data
 const heroSlides = [

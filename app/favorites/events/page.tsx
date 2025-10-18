@@ -1,70 +1,41 @@
 ﻿'use client';
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import React from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Bookmark, Share2 } from 'lucide-react';
-import { useDragScroll } from '@/hooks/use-drag-scroll';
-import { EventService } from '@/lib/services/event.service';
-import { Event } from '@/lib/api-types';
+import { Bookmark, Share2 } from 'lucide-react';
+import PageHeader from '@/components/common/page-header';
 import { toast } from '@/hooks/use-toast';
+
+// Dummy favorite events data for display
+const favoriteEventsData = [
+    {
+        id: '1',
+        title: 'Freaky Friday with DJ Alexxx',
+        venue: 'DABO , Airport Road',
+        date: 'APR 04',
+        category: 'Techno & Bollytech',
+        image: '/venue/Screenshot 2024-12-10 195651.png'
+    },
+    {
+        id: '2',
+        title: 'Freaky Friday with DJ Alexxx',
+        venue: 'DABO , Airport Road',
+        date: 'APR 04',
+        category: 'Techno & Bollytech',
+        image: '/venue/Screenshot 2024-12-10 195651.png'
+    },
+    {
+        id: '3',
+        title: 'Freaky Friday with DJ Alexxx',
+        venue: 'DABO , Airport Road',
+        date: 'APR 04',
+        category: 'Techno & Bollytech',
+        image: '/venue/Screenshot 2024-12-10 195852.png'
+    }
+];
 
 export default function FavoriteEventsPage() {
     const router = useRouter();
-    const dragScrollRef = useDragScroll();
-    const [favoriteEvents, setFavoriteEvents] = useState<Event[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    // Fetch favorite events on component mount
-    useEffect(() => {
-        const fetchFavoriteEvents = async () => {
-            setLoading(true);
-            try {
-                const response = await EventService.getFavoriteEvents();
-
-                if (response.success && response.data) {
-                    setFavoriteEvents(response.data);
-                } else {
-                    throw new Error(response.message || 'Failed to fetch favorite events');
-                }
-            } catch (error) {
-                console.error('Error fetching favorite events:', error);
-                toast({
-                    title: "Error",
-                    description: "Failed to load favorite events. Please try again.",
-                    variant: "destructive",
-                });
-                setFavoriteEvents([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchFavoriteEvents();
-    }, []);
-
-    const handleGoBack = () => {
-        router.back();
-    };
-
-    const handleBookmark = async (eventId: string) => {
-        try {
-            await EventService.removeFromFavorites(eventId);
-            // Remove from local state
-            setFavoriteEvents(prev => prev.filter(event => event.id !== eventId));
-            toast({
-                title: "Success",
-                description: "Event removed from favorites.",
-            });
-        } catch (error) {
-            console.error('Error removing favorite:', error);
-            toast({
-                title: "Error",
-                description: "Failed to remove from favorites. Please try again.",
-                variant: "destructive",
-            });
-        }
-    };
 
     const handleShare = (eventId: string) => {
         // Handle share functionality
@@ -83,104 +54,97 @@ export default function FavoriteEventsPage() {
         }
     };
 
+    const handleBookmark = (eventId: string) => {
+        toast({
+            title: "Removed from favorites",
+            description: "Event removed from your favorites.",
+        });
+    };
+
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#0d7377] to-[#222831] text-white">
-            {/* Header with Gradient Background */}
-            <div className="header-gradient rounded-b-[30px] pb-8 pt-4">
-                <div className="flex items-center justify-between px-6 pt-4 mb-6">
-                    <button
-                        onClick={handleGoBack}
-                        className="p-2 hover:bg-white/10 rounded-full transition-all duration-300"
-                    >
-                        <ArrowLeft size={24} className="text-white" />
-                    </button>
-                    <h1 className="text-lg font-bold tracking-wide text-center flex-1 mr-10">
-                        FAVOURITE EVENTS
-                    </h1>
-                </div>
-            </div>
+        <div className="min-h-screen w-full bg-[#031414] overflow-hidden">
+            <PageHeader title="FAVOURITE EVENTS" />
 
-            {/* Main Content */}
-            <div className="px-4 py-6 space-y-8">
-                {loading ? (
-                    <div className="flex items-center justify-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-400"></div>
-                        <span className="ml-3 text-white">Loading your favorite events...</span>
-                    </div>
-                ) : favoriteEvents.length > 0 ? (
-                    <div className="overflow-x-auto scrollbar-hide">
-                        <div className="flex gap-4 pb-2" style={{ width: 'max-content' }}>
-                            {favoriteEvents.map((event) => (
-                                <div key={event.id} className="flex-shrink-0 w-[222px]">
-                                    <Link href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                                        <div className="bg-teal-900/20 rounded-[20px] overflow-hidden relative"
-                                            style={{
-                                                clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%)'
-                                            }}>
-                                            {/* Image Section */}
-                                            <div className="relative">
-                                                <img
-                                                    src={event.images?.[0] || '/gallery/Frame 1000001124.jpg'}
-                                                    alt={event.title}
-                                                    className="w-full h-[200px] object-cover border-2 border-teal-400/30 rounded-t-[20px]"
-                                                    onError={(e) => {
-                                                        const target = e.target as HTMLImageElement;
-                                                        target.src = '/gallery/Frame 1000001124.jpg';
-                                                    }}
-                                                />
-                                                {/* Date Badge */}
-                                                <div className="absolute top-3 right-3 bg-gradient-to-b from-teal-600 to-teal-700 text-white text-xs font-bold px-2 py-1 rounded-lg min-w-[45px]">
-                                                    <div className="text-center">
-                                                        <div className="text-[10px] opacity-70">APR</div>
-                                                        <div className="text-sm font-bold">04</div>
-                                                    </div>
-                                                </div>
+            {/* Event Cards */}
+            <div className="px-8 space-y-10 mt-10">
+                {favoriteEventsData.map((event) => (
 
-                                                {/* Favorite Button */}
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        handleBookmark(event.id);
-                                                    }}
-                                                    className="absolute top-3 left-3 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center hover:bg-black/60 transition-all duration-300"
-                                                >
-                                                    <Bookmark size={16} className="text-teal-400 fill-teal-400" />
-                                                </button>
-                                            </div>
+                    <div key={event.id} className="w-full h-[175px] relative">
+                        {/* Main card background */}
+                        <div
+                            className="w-full h-[175px] absolute left-0 top-0 rounded-[20px]"
+                            style={{
+                                background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)',
+                                outline: '15px #0D1F1F solid'
+                            }}
+                        >
+                            {/* Event image - Full height including category section */}
+                            <div className="w-[120px] h-[175px] absolute left-0 top-0 rounded-l-[20px] overflow-hidden">
+                                <img
+                                    src={event.image}
+                                    alt={event.title}
+                                    className="w-full h-full object-cover rounded-l-[20px]"
+                                    style={{
+                                        borderWidth: '1.5px',
+                                        borderStyle: 'solid',
+                                        borderColor: '#28D2DB',
+                                        borderRadius: '20px'
+                                    }}
+                                />
+                            </div>
 
-                                            {/* Content Section */}
-                                            <div className="p-4">
-                                                <div className="flex items-start justify-between mb-3">
-                                                    <div className="flex-1">
-                                                        <h3 className="text-white font-bold text-base leading-tight mb-1">{event.title}</h3>
-                                                        <p className="text-white/70 text-sm">{event.club?.name || 'Venue TBA'}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Full-width Teal Highlight Section */}
-                                            <div className="header-gradient text-white text-sm font-medium px-3 py-2 w-full">
-                                                <div className="text-center">
-                                                    {event.musicGenres?.join(', ') || 'Various Genres'}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
+                            {/* Date badge - Increased height, reduced width */}
+                            <div
+                                className="w-[35px] h-[36px] absolute left-[15px] top-0 rounded-b-[24px] border-l border-r border-b border-[#CDCDCD] flex flex-col justify-center items-center shadow-[0px_4px_4px_rgba(0,0,0,0.25)] z-10"
+                                style={{
+                                    background: 'linear-gradient(180deg, black 0%, #00C0CA 100%)'
+                                }}
+                            >
+                                <div className="w-[26px] text-center text-white text-[12px] font-['Manrope'] font-semibold leading-3">
+                                    {event.date}
                                 </div>
-                            ))}
+                            </div>
+
+                            {/* Event details - Wrapped text, avoid icons area */}
+                            <div className="absolute left-[135px] top-[35px] right-[70px] flex flex-col gap-[2px]">
+                                <div className="text-[#E6E6E6] text-[14px] font-['Manrope'] font-bold leading-[18px] tracking-[0.14px] break-words">
+                                    {event.title}
+                                </div>
+                                <div className="text-[#C3C3C3] text-[10px] font-['Manrope'] font-bold leading-[14px] tracking-[0.10px] break-words">
+                                    {event.venue}
+                                </div>
+                            </div>
+
+                            {/* Bookmark icon - Reduced size */}
+                            <button
+                                onClick={() => handleBookmark(event.id)}
+                                className="w-[32px] h-[32px] absolute right-[15px] top-[20px] bg-[#005D5C] rounded-[24px] backdrop-blur-[10.10px] flex justify-center items-center hover:bg-[#007D7C] transition-colors"
+                            >
+                                <Bookmark className="w-[18px] h-[18px] text-[#14FFEC] fill-[#14FFEC]" />
+                            </button>
+
+                            {/* Share icon - Reduced size */}
+                            <button
+                                onClick={() => handleShare(event.id)}
+                                className="w-[32px] h-[32px] absolute right-[15px] top-[65px] bg-[#005D5C] rounded-[24px] backdrop-blur-[10.10px] flex justify-center items-center hover:bg-[#007D7C] transition-colors"
+                            >
+                                <Share2 className="w-[18px] h-[18px] text-[#14FFEC]" />
+                            </button>
+
+                            {/* Category bar - Width matches content area only */}
+                            <div
+                                className="absolute left-[120px] right-0 bottom-0 h-[34px] rounded-br-[20px] border-t border-[#0FD8E2] flex justify-center items-center overflow-hidden"
+                                style={{
+                                    background: 'radial-gradient(ellipse 148.20% 1115.41% at 50.00% 50.00%, #004342 0%, #00C3C1 100%)'
+                                }}
+                            >
+                                <div className="text-[#14FFEC] text-[14px] font-['Manrope'] font-bold leading-[17px] text-center">
+                                    {event.category}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                ) : (
-                    <div className="text-center py-12">
-                        <Bookmark className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-white text-xl font-semibold mb-2">No Favorite Events</h3>
-                        <p className="text-gray-400">You haven't added any events to your favorites yet.</p>
-                        <Link href="/events" className="inline-block mt-4 bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-6 rounded-lg transition-colors">
-                            Explore Events
-                        </Link>
-                    </div>
-                )}
+                ))}
             </div>
         </div>
     );
