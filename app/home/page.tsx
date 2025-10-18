@@ -279,62 +279,46 @@ const HomePage = () => {
                     <div className="mt-8">
                         <div className="w-full h-full pt-6 pb-2 bg-gradient-to-t from-[#01413B] to-[#021313] overflow-hidden flex flex-col justify-end items-center gap-4">
                             <div className="mt-8">
-                                <img src="/logo/CLUBWIZ.png" alt="ClubWiz Logo" className="w-50 h-auto" />
+                                <img src="/logo/CLUBWIZ.png" alt="ClubWiz Logo" className="w-24 h-auto" />
                             </div>
                             <div className="w-[368px] h-[59px] text-center text-white text-base font-normal leading-5 tracking-[0.5px] break-words">
                                 Dive into the ultimate party scene discover lit club nights, epic events, and non-stop vibes all in one place!
                             </div>
                             <div className="w-[175px] h-[21px] flex justify-between items-center">
-                                <div className="w-6 h-6 relative overflow-hidden">
-                                    <div className="w-[18.75px] h-[18.75px] absolute left-[3px] top-[2.25px] bg-[#14FFEC]"></div>
-                                </div>
-                                <div className="w-6 h-6 relative overflow-hidden">
-                                    <div className="w-[19.50px] h-[19.50px] absolute left-[2.25px] top-[2.25px] bg-[#14FFEC]"></div>
-                                </div>
-                                <div className="w-6 h-6 relative overflow-hidden">
-                                    <div className="w-[19.50px] h-[19.50px] absolute left-[2.25px] top-[2.25px] bg-[#14FFEC]"></div>
-                                </div>
-                                <div className="w-6 h-6 relative overflow-hidden">
-                                    <div className="w-[16.50px] h-[18px] absolute left-[3.75px] top-[3px] bg-[#14FFEC]"></div>
-                                </div>
+                                <img src="/footer-logos/x-logo-fill.svg" alt="X" className="w-6 h-6" />
+                                <img src="/footer-logos/whatsapp-logo-fill.svg" alt="WhatsApp" className="w-6 h-6" />
+                                <img src="/footer-logos/Phone.svg" alt="Phone" className="w-6 h-6" />
+                                <img src="/footer-logos/Envelope.svg" alt="Email" className="w-6 h-6" />
                             </div>
                             <div className="h-[139px] px-[57px] py-[22px] bg-gradient-to-r from-[rgba(23.13,69.51,71.11,0.20)] to-[rgba(20,255,236,0.74)] overflow-hidden flex flex-col justify-center items-start gap-[10px]">
                                 <div className="w-[316px] flex flex-col justify-center items-start gap-[14px]">
                                     <div className="self-stretch h-[13px] flex justify-start items-center gap-[11px]">
-                                        <div className="w-[17px] h-[17px] relative overflow-hidden">
-                                            <div className="w-[13.81px] h-[10.62px] absolute left-[1.59px] top-[3.19px] bg-white"></div>
-                                        </div>
+                                        <img src="/footer-logos/Envelope.svg" alt="Email" className="w-[17px] h-[17px]" />
                                         <div className="w-[231px] h-[14px] flex justify-end flex-col text-white text-base font-medium leading-4 tracking-[0.5px] break-words">
                                             contact@clubwiz.com
                                         </div>
                                     </div>
                                     <div className="w-[210px] h-[13px] flex justify-start items-center gap-[10px]">
-                                        <div className="w-[17px] h-[17px] relative overflow-hidden">
-                                            <div className="w-[11.69px] h-[14.87px] absolute left-[2.66px] top-[1.06px] bg-white"></div>
-                                        </div>
+                                        <img src="/footer-logos/MapPin.svg" alt="Location" className="w-[17px] h-[17px]" />
                                         <div className="w-[190px] h-4 text-white text-base font-medium leading-4 tracking-[0.5px] break-words">
                                             Location Details
                                         </div>
                                     </div>
                                     <div className="self-stretch h-[13px] flex justify-start items-center gap-3">
-                                        <div className="w-[17px] h-[17px] relative overflow-hidden">
-                                            <div className="w-[11.69px] h-[13.81px] absolute left-[2.66px] top-[1.59px] bg-white"></div>
-                                        </div>
+                                        <img src="/footer-logos/File.svg" alt="Terms" className="w-[17px] h-[17px]" />
                                         <div className="w-[231px] h-[18px] text-white text-base font-medium leading-4 tracking-[0.5px] break-words">
                                             Terms & Condition
                                         </div>
                                     </div>
                                     <div className="h-[14px] flex justify-center items-center gap-[11px]">
-                                        <div className="w-[17px] h-[17px] relative overflow-hidden">
-                                            <div className="w-[11.69px] h-[13.81px] absolute left-[2.66px] top-[1.59px] bg-white"></div>
-                                        </div>
+                                        <img src="/footer-logos/File (1).svg" alt="Privacy" className="w-[17px] h-[17px]" />
                                         <div className="w-[118px] h-[17px] text-white text-base font-medium leading-4 tracking-[0.5px] break-words">
                                             Privacy Policy
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div className="w-[248px] h-[18px] text-white text-sm font-normal leading-4 tracking-[0.5px] break-words">
+                            <div className="w-full h-[18px] text-white text-sm font-normal leading-4 tracking-[0.5px] break-words text-center">
                                 Copy rights reserved with clubwiz.com
                             </div>
                         </div>
