@@ -297,27 +297,28 @@ export default function EventsListPage() {
                 </header>
 
                 {/* Filter Section */}
-                <div className="relative px-6 py-5">
-                    <div
-                        className="w-full h-full py-5 relative overflow-hidden flex justify-end items-end gap-3"
-                        style={{
-                            background: 'linear-gradient(180deg, #021313 0%, rgba(34, 40, 49, 0) 100%)'
-                        }}
-                    >
-                        {/* Filter Button */}
-                        <div className="flex-shrink-0">
+                <div className="w-full">
+                    <div className="w-full py-5 flex items-center bg-gradient-to-b from-[#021313] to-transparent">
+                        {/* Filter Button - fixed at left */}
+                        <div className="flex-shrink-0 pl-5 pr-3">
                             <button
                                 onClick={() => handleFilterChange('filter')}
-                                className="h-10 px-3.5 py-2 bg-[#004342] overflow-hidden rounded-[23px] border border-[#14FFEC] flex items-center justify-center gap-2 hover:bg-[#005F57] transition-colors"
+                                className="flex items-center gap-[10px] bg-[#004342] rounded-[23px] border border-[#14FFEC] px-4 py-2 hover:bg-[#005F57] transition-colors"
+                                style={{ width: 'auto', height: '40px', justifyContent: 'center', alignItems: 'center', display: 'inline-flex' }}
+                                data-filter="close"
                             >
-                                <div className="w-4 h-2 border border-white rounded-sm"></div>
-                                <div className="text-white text-sm font-extrabold tracking-[0.5px]">Filter</div>
+                                {/* Filter SVG icon */}
+                                <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M6.5 4H16.5M0.5 12H10.5" stroke="white" strokeLinecap="round" />
+                                    <path d="M0.5 4C0.5 5.65685 1.84315 7 3.5 7C5.15685 7 6.5 5.65685 6.5 4C6.5 2.34315 5.15685 1 3.5 1C1.84315 1 0.5 2.34315 0.5 4Z" stroke="white" strokeLinecap="round" />
+                                    <path d="M10.5 12C10.5 13.6569 11.8431 15 13.5 15C15.1569 15 16.5 13.6569 16.5 12C16.5 10.3431 15.1569 9 13.5 9C11.8431 9 10.5 10.3431 10.5 12Z" stroke="white" strokeLinecap="round" />
+                                </svg>
+                                <span style={{ color: 'white', fontSize: '14px', fontFamily: 'Manrope', fontWeight: 800, lineHeight: '16px', letterSpacing: '0.5px' }}>Filter</span>
                             </button>
                         </div>
-
-                        {/* Scrollable Filter Options */}
-                        <div className="flex-1 overflow-hidden">
-                            <div className="px-0.5 overflow-x-auto flex items-center gap-2 scrollbar-hide">
+                        {/* Scrollable Filter Options - scroll left, fill remaining width */}
+                        <div className="flex-1 overflow-x-auto scrollbar-hide pr-5">
+                            <div className="flex items-center gap-2 min-w-max">
                                 <button
                                     onClick={() => handleFilterChange('events-today')}
                                     className={`h-10 px-4 py-2 rounded-[25px] border flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors ${activeFilter === 'events-today'
@@ -327,7 +328,6 @@ export default function EventsListPage() {
                                 >
                                     <div className="text-sm tracking-[0.5px]">Events Today</div>
                                 </button>
-
                                 <button
                                     onClick={() => handleFilterChange('events-this-week')}
                                     className={`h-10 px-4 py-2 rounded-[25px] border flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors ${activeFilter === 'events-this-week'
@@ -337,7 +337,6 @@ export default function EventsListPage() {
                                 >
                                     <div className="text-sm tracking-[0.5px]">Events This Week</div>
                                 </button>
-
                                 <button
                                     onClick={() => handleFilterChange('distance')}
                                     className={`h-10 px-4 py-2 rounded-[25px] border flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors ${activeFilter === 'distance'
@@ -347,7 +346,6 @@ export default function EventsListPage() {
                                 >
                                     <div className="text-sm tracking-[0.5px]">Distance</div>
                                 </button>
-
                                 <button
                                     onClick={() => handleFilterChange('previously-visited')}
                                     className={`h-10 px-4 py-2 rounded-[25px] border flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors ${activeFilter === 'previously-visited'
@@ -357,7 +355,6 @@ export default function EventsListPage() {
                                 >
                                     <div className="text-sm tracking-[0.5px]">Previously Visited</div>
                                 </button>
-
                                 <button
                                     onClick={() => handleFilterChange('popularity')}
                                     className={`h-10 px-4 py-2 rounded-[25px] border flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors ${activeFilter === 'popularity'
@@ -369,19 +366,11 @@ export default function EventsListPage() {
                                 </button>
                             </div>
                         </div>
-
-                        {/* Gradient Fade on Right */}
-                        <div
-                            className="absolute right-0 top-8 w-8 h-[59px] pointer-events-none"
-                            style={{
-                                background: 'linear-gradient(270deg, #021313 0%, rgba(2, 19, 19, 0) 100%)'
-                            }}
-                        ></div>
                     </div>
                 </div>
 
                 {/* Events Section Headers */}
-                <div className="px-5">
+                <div className="w-full px-5">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-white text-base font-semibold">Events today</h2>
                         <Link href="/events" className="text-[#14FFEC] text-base font-medium">View All</Link>
@@ -389,10 +378,10 @@ export default function EventsListPage() {
                 </div>
 
                 {/* Main Content */}
-                <div className="px-5 space-y-8">
+                <div className="w-full px-5 space-y-8">
                     {/* Events Today Section */}
-                    <section>
-                        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                    <section className="w-full">
+                        <div className="w-full flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                             {eventsTodayList.length === 0 ? (
                                 <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full">
                                     No events available for today.
@@ -413,12 +402,12 @@ export default function EventsListPage() {
                         </div>
                     </section>
                     {/* Events This Week Section */}
-                    <section>
+                    <section className="w-full">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-white text-base font-semibold">Events this week</h2>
                             <Link href="/events" className="text-[#14FFEC] text-base font-medium">View All</Link>
                         </div>
-                        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                        <div className="w-full flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                             {eventsThisWeekList.length === 0 ? (
                                 <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full">
                                     No events scheduled for later this week.
@@ -439,31 +428,33 @@ export default function EventsListPage() {
                         </div>
                     </section>
                     {/* All Events Section */}
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-white text-base font-semibold">All Events</h2>
-                    </div>
-                    <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
-                        {events.length === 0 ? (
-                            <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full">
-                                We couldn’t find any events right now. Check back soon!
-                            </div>
-                        ) : (
-                            <div className="space-y-5 pb-6 w-full">
-                                {events.map((event, index) => (
-                                    <EventCard
-                                        key={`all-${event.id ?? index}`}
-                                        event={event}
-                                        href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}
-                                        fallbackImage={getEventFallbackImage(index)}
-                                        formattedDate={formatEventDate(event.startDateTime)}
-                                        isFavorite={favorites.includes(event.id)}
-                                        onToggleFavorite={toggleFavorite}
-                                        className="w-full"
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    <section className="w-full">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-white text-base font-semibold">All Events</h2>
+                        </div>
+                        <div className="w-full flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
+                            {events.length === 0 ? (
+                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full">
+                                    We couldn’t find any events right now. Check back soon!
+                                </div>
+                            ) : (
+                                <div className="space-y-5 pb-6 w-full">
+                                    {events.map((event, index) => (
+                                        <EventCard
+                                            key={`all-${event.id ?? index}`}
+                                            event={event}
+                                            href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}
+                                            fallbackImage={getEventFallbackImage(index)}
+                                            formattedDate={formatEventDate(event.startDateTime)}
+                                            isFavorite={favorites.includes(event.id)}
+                                            onToggleFavorite={toggleFavorite}
+                                            className="w-full"
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </section>
                 </div>
             </div>
         </div>
