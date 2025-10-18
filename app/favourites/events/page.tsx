@@ -69,26 +69,27 @@ export default function FavoriteEventsPage() {
             <div className="px-8 space-y-10 mt-10">
                 {favoriteEventsData.map((event) => (
 
-                    <div key={event.id} className="w-full h-[175px] relative">
+                    <div key={event.id} className="w-full h-[150px] relative">
                         {/* Main card background */}
                         <div
-                            className="w-full h-[175px] absolute left-0 top-0 rounded-[20px]"
+                            className="w-full h-[150px] absolute left-0 top-0 rounded-[20px]"
                             style={{
                                 background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)',
                                 outline: '15px #0D1F1F solid'
                             }}
                         >
-                            {/* Event image - Full height including category section */}
-                            <div className="w-[120px] h-[175px] absolute left-0 top-0 rounded-l-[20px] overflow-hidden">
+                            {/* Event image - Reduced height */}
+                            <div className="w-[120px] h-[150px] absolute left-0 top-0 rounded-tl-[20px] overflow-hidden z-30">
                                 <img
                                     src={event.image}
                                     alt={event.title}
-                                    className="w-full h-full object-cover rounded-l-[20px]"
+                                    className="w-full h-full object-cover"
                                     style={{
                                         borderWidth: '1.5px',
                                         borderStyle: 'solid',
                                         borderColor: '#28D2DB',
-                                        borderRadius: '20px'
+                                        borderRadius: '20px',
+                                        borderTopRightRadius: '0px'
                                     }}
                                 />
                             </div>
@@ -131,9 +132,9 @@ export default function FavoriteEventsPage() {
                                 <Share2 className="w-[18px] h-[18px] text-[#14FFEC]" />
                             </button>
 
-                            {/* Category bar - Width matches content area only */}
+                            {/* Category bar - Slightly extend left to cover gap */}
                             <div
-                                className="absolute left-[120px] right-0 bottom-0 h-[34px] rounded-br-[20px] border-t border-[#0FD8E2] flex justify-center items-center overflow-hidden"
+                                className="absolute left-[100px] right-0 bottom-0 h-[34px] rounded-br-[20px] border-t border-[#0FD8E2] flex justify-center items-center overflow-hidden"
                                 style={{
                                     background: 'radial-gradient(ellipse 148.20% 1115.41% at 50.00% 50.00%, #004342 0%, #00C3C1 100%)'
                                 }}
