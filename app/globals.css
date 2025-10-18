@@ -14,6 +14,48 @@
   /* Safari and Chrome */
 }
 
+/* Ticket card cutouts */
+.ticket-container {
+  position: relative;
+  /* Create a clip-path to cut out the circular areas */
+  clip-path: circle(25px at 0% 50%), circle(25px at 100% 50%);
+  /* Alternative approach using mask for better border handling */
+  mask:
+    radial-gradient(circle 25px at 0% 50%, transparent 24px, black 25px),
+    radial-gradient(circle 25px at 100% 50%, transparent 24px, black 25px);
+  mask-composite: intersect;
+}
+
+/* LEFT side circular cutout */
+.ticket-container::before {
+  content: '';
+  position: absolute;
+  left: -25px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  background: #021313;
+  /* Same as page background */
+  border-radius: 50%;
+  z-index: 10;
+}
+
+/* RIGHT side circular cutout */
+.ticket-container::after {
+  content: '';
+  position: absolute;
+  right: -25px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  background: #021313;
+  /* Same as page background */
+  border-radius: 50%;
+  z-index: 10;
+}
+
 :root {
   /* ClubViz Brand Colors - From COLOR_PALETTE_REFERENCE.md */
   --clubviz-dark-bg: #031313;
