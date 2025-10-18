@@ -4,20 +4,27 @@ import { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft } from 'lucide-react';
 import Image from 'next/image';
 
+interface InternalStory {
+    id: string;
+    image: string;
+    duration?: number; // in seconds, default 5
+}
+
 interface Story {
     id: string;
     image: string;
     title: string;
     timestamp: string;
     duration?: number; // in seconds, default 5
+    internalStories?: InternalStory[]; // Array of internal stories
 }
 
 interface StoryViewerProps {
     stories: Story[];
     initialIndex?: number;
     onClose: () => void;
-    onNext?: (index: number) => void;
-    onPrevious?: (index: number) => void;
+    onNext?: (storyIndex: number, internalIndex: number) => void;
+    onPrevious?: (storyIndex: number, internalIndex: number) => void;
 }
 
 export function StoryViewer({
@@ -27,12 +34,15 @@ export function StoryViewer({
     onNext,
     onPrevious
 }: StoryViewerProps) {
-    const [currentIndex, setCurrentIndex] = useState(initialIndex);
+    const [currentStoryIndex, setCurrentStoryIndex] = useState(initialIndex);
+    const [currentInternalIndex, setCurrentInternalIndex] = useState(0);
     const [progress, setProgress] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
 
-    const currentStory = stories[currentIndex];
-    const storyDuration = (currentStory?.duration || 5) * 1000; // Convert to milliseconds
+    const currentStory = stories[currentStoryIndex];
+    const internalStories = currentStory?.internalStories || [{ id: currentStory?.id || '', image: currentStory?.image || '', duration: currentStory?.duration }];
+    const currentInternalStory = internalStories[currentInternalIndex];
+    const storyDuration = (currentInternalStory?.duration || 5) * 1000; // Convert to milliseconds
 
     // Auto-progress through stories
     useEffect(() => {
@@ -43,15 +53,23 @@ export function StoryViewer({
                 const newProgress = prev + (100 / (storyDuration / 100));
 
                 if (newProgress >= 100) {
-                    // Story completed, move to next
-                    if (currentIndex < stories.length - 1) {
-                        setCurrentIndex(currentIndex + 1);
-                        onNext?.(currentIndex + 1);
+                    // Current internal story completed, move to next
+                    if (currentInternalIndex < internalStories.length - 1) {
+                        // Move to next internal story within the same story group
+                        setCurrentInternalIndex(currentInternalIndex + 1);
                         return 0;
                     } else {
-                        // All stories completed
-                        onClose();
-                        return 100;
+                        // All internal stories completed, move to next story group
+                        if (currentStoryIndex < stories.length - 1) {
+                            setCurrentStoryIndex(currentStoryIndex + 1);
+                            setCurrentInternalIndex(0);
+                            onNext?.(currentStoryIndex + 1, 0);
+                            return 0;
+                        } else {
+                            // All stories completed
+                            onClose();
+                            return 100;
+                        }
                     }
                 }
 
@@ -60,30 +78,61 @@ export function StoryViewer({
         }, 100);
 
         return () => clearInterval(interval);
-    }, [currentIndex, isPaused, stories.length, storyDuration, onClose, onNext]);
+    }, [currentStoryIndex, currentInternalIndex, isPaused, stories.length, internalStories.length, storyDuration, onClose, onNext]);
 
     // Reset progress when story changes
     useEffect(() => {
         setProgress(0);
-    }, [currentIndex]);
+    }, [currentStoryIndex, currentInternalIndex]);
 
     const handleNext = useCallback(() => {
-        if (currentIndex < stories.length - 1) {
-            setCurrentIndex(currentIndex + 1);
-            onNext?.(currentIndex + 1);
+        if (currentInternalIndex < internalStories.length - 1) {
+            // Move to next internal story within the same story group
+            setCurrentInternalIndex(currentInternalIndex + 1);
+            setProgress(0);
+        } else if (currentStoryIndex < stories.length - 1) {
+            // Move to next story group
+            setCurrentStoryIndex(currentStoryIndex + 1);
+            setCurrentInternalIndex(0);
+            onNext?.(currentStoryIndex + 1, 0);
             setProgress(0);
         } else {
+            // All stories completed
             onClose();
         }
-    }, [currentIndex, stories.length, onNext, onClose]);
+    }, [currentStoryIndex, currentInternalIndex, stories.length, internalStories.length, onNext, onClose]);
 
     const handlePrevious = useCallback(() => {
-        if (currentIndex > 0) {
-            setCurrentIndex(currentIndex - 1);
-            onPrevious?.(currentIndex - 1);
+        if (currentInternalIndex > 0) {
+            // Move to previous internal story within the same story group
+            setCurrentInternalIndex(currentInternalIndex - 1);
+            setProgress(0);
+        } else if (currentStoryIndex > 0) {
+            // Move to previous story group (go to last internal story of previous group)
+            const prevStory = stories[currentStoryIndex - 1];
+            const prevInternalStories = prevStory?.internalStories || [{ id: prevStory?.id || '', image: prevStory?.image || '', duration: prevStory?.duration }];
+            setCurrentStoryIndex(currentStoryIndex - 1);
+            setCurrentInternalIndex(prevInternalStories.length - 1);
+            onPrevious?.(currentStoryIndex - 1, prevInternalStories.length - 1);
             setProgress(0);
         }
-    }, [currentIndex, onPrevious]);
+    }, [currentStoryIndex, currentInternalIndex, stories, onPrevious]);
+
+    // Keyboard navigation
+    useEffect(() => {
+        const handleKeyPress = (event: KeyboardEvent) => {
+            if (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowRight') {
+                handleNext();
+            } else if (event.key === 'ArrowLeft') {
+                handlePrevious();
+            } else if (event.key === 'Escape') {
+                onClose();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [handleNext, handlePrevious, onClose]);
 
     const handleTapLeft = () => {
         handlePrevious();
@@ -101,50 +150,46 @@ export function StoryViewer({
         setIsPaused(false);
     };
 
-    if (!currentStory) return null;
+    if (!currentStory || !currentInternalStory) return null;
 
     return (
-        <div className="fixed inset-0 bg-black z-50 flex flex-col">
-            {/* Progress Bars */}
-            <div className="absolute top-4 left-4 right-4 z-10 flex gap-1">
-                {stories.map((_, index) => (
-                    <div
-                        key={index}
-                        className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden"
-                    >
-                        <div
-                            className="h-full bg-white transition-all duration-100 ease-linear"
-                            style={{
-                                width: index < currentIndex ? '100%' :
-                                    index === currentIndex ? `${progress}%` : '0%'
-                            }}
-                        />
-                    </div>
-                ))}
-            </div>
+        <div className="fixed inset-0 bg-black z-50">
+            <div className="w-full h-full relative overflow-hidden rounded-[20px]" style={{ backgroundImage: `url(${currentInternalStory.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
 
-            {/* Close Button */}
-            <button
-                onClick={onClose}
-                className="absolute top-4 right-4 z-20 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-            >
-                <X size={20} />
-            </button>
-
-            {/* Story Image */}
-            <div className="relative flex-1">
-                <Image
-                    src={currentStory.image}
-                    alt={currentStory.title}
-                    fill
-                    className="object-cover"
-                    priority
+                {/* User Profile Image from story folder */}
+                <img
+                    className="w-[37px] h-[37px] absolute left-[27px] top-[46px] rounded-full border border-[#E1CAFF] object-cover"
+                    src="/vibemeter/Screenshot_2025-05-16_192139-removebg-preview.png"
+                    alt="User"
                 />
 
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
+                {/* Progress Bars for Internal Stories */}
+                <div className="absolute left-[84px] top-[63px] flex gap-2">
+                    {internalStories.map((_, index) => (
+                        <div key={index} className="w-[96px] h-1 relative">
+                            <div className="w-full h-1 bg-white/25 rounded-[24px]"></div>
+                            <div
+                                className="h-1 absolute left-0 top-0 bg-white rounded-[24px] transition-all duration-100 ease-linear"
+                                style={{
+                                    width: index < currentInternalIndex ? '100%' :
+                                        index === currentInternalIndex ? `${progress}%` : '0%'
+                                }}
+                            ></div>
+                        </div>
+                    ))}
+                </div>
 
-                {/* Tap Areas */}
+                {/* Story Title Button */}
+                <div className="absolute left-1/2 top-[862px] transform -translate-x-1/2 flex justify-center items-start">
+                    <div className="h-[39px] px-4 py-0.5 bg-[#014A4B] rounded-[30px] border-2 border-[#0FD8E2] flex justify-center items-center gap-2.5">
+                        <div className="text-white text-xs font-bold font-['Manrope'] leading-5 tracking-[0.12px] text-center whitespace-nowrap">
+                            {currentStory.title}
+                        </div>
+                    </div>
+                </div>
+
+
+                {/* Tap Areas for navigation */}
                 <div className="absolute inset-0 flex">
                     {/* Left tap area (previous) */}
                     <div
@@ -161,36 +206,6 @@ export function StoryViewer({
                         onTouchStart={handleTouchStart}
                         onTouchEnd={handleTouchEnd}
                     />
-                </div>
-            </div>
-
-            {/* Bottom Content */}
-            <div className="absolute bottom-8 left-4 right-4 z-10">
-                <div className="bg-gradient-to-r from-primary-500 to-cyan-500 rounded-full px-6 py-3 inline-block">
-                    <h2 className="text-white font-semibold text-lg tracking-wide uppercase">
-                        {currentStory.title}
-                    </h2>
-                </div>
-
-                {/* Story Info */}
-                <div className="mt-4 text-white/80 text-sm">
-                    <p>{currentStory.timestamp}</p>
-                </div>
-            </div>
-
-            {/* Navigation Indicators (Optional) */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 flex gap-2">
-                {currentIndex > 0 && (
-                    <button
-                        onClick={handlePrevious}
-                        className="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-black/70 transition-all"
-                    >
-                        <ChevronLeft size={16} />
-                    </button>
-                )}
-
-                <div className="px-3 py-1 bg-black/50 rounded-full text-white/70 text-xs font-medium">
-                    {currentIndex + 1} / {stories.length}
                 </div>
             </div>
         </div>

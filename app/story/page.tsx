@@ -4,42 +4,64 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { StoryViewer } from '@/components/story/story-viewer';
 
-// Mock story data - Updated with gallery Frame images
+// Mock story data - Updated with story folder images and internal stories
 const mockStories = [
     {
         id: '1',
-        image: '/gallery/Frame 1000001117.jpg',
+        image: '/story/story1.png',
         title: 'CLUB AMBIENCE',
         timestamp: '2 hours ago',
         duration: 5,
+        internalStories: [
+            { id: '1-1', image: '/story/story1.png', duration: 5 },
+            { id: '1-2', image: '/story/Story2.png', duration: 5 },
+            { id: '1-3', image: '/story/story3.png', duration: 5 },
+        ],
     },
     {
         id: '2',
-        image: '/gallery/Frame 1000001119.jpg',
+        image: '/story/Story2.png',
         title: 'NIGHT VIBES',
         timestamp: '4 hours ago',
         duration: 5,
+        internalStories: [
+            { id: '2-1', image: '/story/Story2.png', duration: 5 },
+            { id: '2-2', image: '/story/story 2.png', duration: 5 },
+        ],
     },
     {
         id: '3',
-        image: '/gallery/Frame 1000001120.jpg',
+        image: '/story/story3.png',
         title: 'FOOD EXPERIENCE',
         timestamp: '6 hours ago',
         duration: 5,
+        internalStories: [
+            { id: '3-1', image: '/story/story3.png', duration: 5 },
+            { id: '3-2', image: '/story/story1.png', duration: 5 },
+            { id: '3-3', image: '/story/Story2.png', duration: 5 },
+            { id: '3-4', image: '/story/story 2.png', duration: 5 },
+        ],
     },
     {
         id: '4',
-        image: '/gallery/Frame 1000001121.jpg',
+        image: '/story/story 2.png',
         title: 'DRINKS & BAR',
         timestamp: '8 hours ago',
         duration: 5,
+        internalStories: [
+            { id: '4-1', image: '/story/story 2.png', duration: 5 },
+            { id: '4-2', image: '/story/story3.png', duration: 5 },
+        ],
     },
     {
         id: '5',
-        image: '/gallery/Frame 1000001123.jpg',
+        image: '/story/story1.png',
         title: 'INTERIOR DESIGN',
         timestamp: '10 hours ago',
         duration: 5,
+        internalStories: [
+            { id: '5-1', image: '/story/story1.png', duration: 5 },
+        ],
     },
 ];
 
@@ -55,19 +77,19 @@ function StoryContent() {
         router.back();
     };
 
-    const handleNext = (index: number) => {
+    const handleNext = (storyIndex: number, internalIndex: number) => {
         // Update URL to reflect current story
-        const newStoryId = stories[index]?.id;
+        const newStoryId = stories[storyIndex]?.id;
         if (newStoryId) {
-            router.replace(`/story?index=${index}`, { scroll: false });
+            router.replace(`/story?index=${storyIndex}&internal=${internalIndex}`, { scroll: false });
         }
     };
 
-    const handlePrevious = (index: number) => {
+    const handlePrevious = (storyIndex: number, internalIndex: number) => {
         // Update URL to reflect current story
-        const newStoryId = stories[index]?.id;
+        const newStoryId = stories[storyIndex]?.id;
         if (newStoryId) {
-            router.replace(`/story?index=${index}`, { scroll: false });
+            router.replace(`/story?index=${storyIndex}&internal=${internalIndex}`, { scroll: false });
         }
     };
 

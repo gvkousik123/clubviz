@@ -25,7 +25,7 @@ export default function NotFound() {
                 <div className="relative flex flex-col items-center">
                     <span
                         aria-hidden="true"
-                        className="text-neon-404 pointer-events-none select-none text-[168px] leading-none pl-4 text-center"
+                        className="text-neon-404 pointer-events-none select-none text-[168px] leading-none tracking-normal text-center"
                     >
                         404
                     </span>

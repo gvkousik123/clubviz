@@ -4,7 +4,7 @@ import { StoriesSection } from '@/components/story';
 
 // Example usage of the story components
 export default function ExampleHomePage() {
-    // Example story data - Updated with gallery Frame images
+    // Example story data - Updated with gallery Frame images and internal stories
     const stories = [
         {
             id: '1',
@@ -13,6 +13,11 @@ export default function ExampleHomePage() {
             timestamp: '2 hours ago',
             clubName: 'Club Gallery',
             duration: 5,
+            internalStories: [
+                { id: '1-1', image: '/gallery/Frame 1000001117.jpg', duration: 5 },
+                { id: '1-2', image: '/gallery/Frame 1000001119.jpg', duration: 5 },
+                { id: '1-3', image: '/gallery/Frame 1000001120.jpg', duration: 5 },
+            ],
         },
         {
             id: '2',
@@ -21,6 +26,10 @@ export default function ExampleHomePage() {
             timestamp: '4 hours ago',
             clubName: 'Gallery Club',
             duration: 5,
+            internalStories: [
+                { id: '2-1', image: '/gallery/Frame 1000001119.jpg', duration: 5 },
+                { id: '2-2', image: '/gallery/Frame 1000001121.jpg', duration: 5 },
+            ],
         },
         {
             id: '3',
@@ -29,6 +38,12 @@ export default function ExampleHomePage() {
             timestamp: '6 hours ago',
             clubName: 'Gallery Lounge',
             duration: 5,
+            internalStories: [
+                { id: '3-1', image: '/gallery/Frame 1000001120.jpg', duration: 5 },
+                { id: '3-2', image: '/gallery/Frame 1000001123.jpg', duration: 5 },
+                { id: '3-3', image: '/gallery/Frame 1000001117.jpg', duration: 5 },
+                { id: '3-4', image: '/gallery/Frame 1000001119.jpg', duration: 5 },
+            ],
         },
         {
             id: '4',
@@ -37,6 +52,10 @@ export default function ExampleHomePage() {
             timestamp: '8 hours ago',
             clubName: 'Gallery Bar',
             duration: 5,
+            internalStories: [
+                { id: '4-1', image: '/gallery/Frame 1000001121.jpg', duration: 5 },
+                { id: '4-2', image: '/gallery/Frame 1000001120.jpg', duration: 5 },
+            ],
         },
         {
             id: '5',
@@ -45,6 +64,9 @@ export default function ExampleHomePage() {
             timestamp: '10 hours ago',
             clubName: 'Design Club',
             duration: 5,
+            internalStories: [
+                { id: '5-1', image: '/gallery/Frame 1000001123.jpg', duration: 5 },
+            ],
         },
     ];
 

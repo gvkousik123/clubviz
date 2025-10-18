@@ -30,13 +30,13 @@ const heroSlides = [
 ];
 
 const vibeMeterFallback = [
-    { id: 'vibe1', name: 'Sarah', image: '/vibemeter/Screenshot_2025-05-16_192139-removebg-preview.png' },
-    { id: 'vibe2', name: 'Michael', image: '/vibemeter/Screenshot_2025-05-16_193232-removebg-preview.png' },
-    { id: 'vibe3', name: 'Jessica', image: '/vibemeter/Screenshot_2025-05-23_223510-removebg-preview.png' },
-    { id: 'vibe4', name: 'Alex', image: '/vibemeter/Screenshot_2025-05-24_094641-removebg-preview.png' },
-    { id: 'vibe5', name: 'Emma', image: '/vibemeter/Screenshot_2025-05-24_110818-removebg-preview.png' },
-    { id: 'vibe6', name: 'Jason', image: '/vibemeter/Screenshot_2025-05-24_115115-removebg-preview.png' },
-    { id: 'vibe7', name: 'Olivia', image: '/vibemeter/Screenshot_2025-05-31_121940-removebg-preview.png' },
+    { id: 'vibe1', title: 'CLUB AMBIENCE', image: '/gallery/Frame 1000001117.jpg' },
+    { id: 'vibe2', title: 'NIGHT VIBES', image: '/gallery/Frame 1000001119.jpg' },
+    { id: 'vibe3', title: 'FOOD EXPERIENCE', image: '/gallery/Frame 1000001120.jpg' },
+    { id: 'vibe4', title: 'DRINKS & BAR', image: '/gallery/Frame 1000001121.jpg' },
+    { id: 'vibe5', title: 'INTERIOR DESIGN', image: '/gallery/Frame 1000001123.jpg' },
+    { id: 'vibe6', title: 'TECHNO NIGHT', image: '/gallery/Frame 1000001117.jpg' },
+    { id: 'vibe7', title: 'PARTY VIBES', image: '/gallery/Frame 1000001119.jpg' },
 ];
 
 const venueFallback = [
@@ -155,7 +155,7 @@ const HomePage = () => {
                         <div className="overflow-x-auto scrollbar-hide -mx-5 px-5">
                             <div className="flex items-center gap-4 pb-3 min-w-max">
                                 {vibeMeterFallback.map((user) => (
-                                    <div key={user.id} className="flex flex-col items-center gap-2">
+                                    <Link key={user.id} href="/story" className="flex flex-col items-center gap-2">
                                         <div className="w-[72px] h-[72px] relative">
                                             <div className="w-[72px] h-[72px] absolute left-0 top-0 rounded-full border-2 border-[#14FFEC]"></div>
                                             <img
@@ -165,7 +165,7 @@ const HomePage = () => {
                                             />
                                         </div>
                                         <span className="text-xs text-white text-center">{user.name}</span>
-                                    </div>
+                                    </Link>
                                 ))}
                             </div>
                         </div>
@@ -278,8 +278,9 @@ const HomePage = () => {
                     {/* Footer */}
                     <div className="mt-8">
                         <div className="w-full h-full pt-6 pb-2 bg-gradient-to-t from-[#01413B] to-[#021313] overflow-hidden flex flex-col justify-end items-center gap-4">
-                            <div className="mt-8">
-                                <img src="/logo/CLUBWIZ.png" alt="ClubWiz Logo" className="w-24 h-auto" />
+                            <div className="mt-8 flex items-center justify-center gap-1">
+                                <img src="/logo/logo.png" alt="Glass Logo" className="w-16 h-auto" />
+                                <img src="/logo/CLUBWIZ.png" alt="ClubWiz Logo" className="w-40 h-auto" />
                             </div>
                             <div className="w-[368px] h-[59px] text-center text-white text-base font-normal leading-5 tracking-[0.5px] break-words">
                                 Dive into the ultimate party scene discover lit club nights, epic events, and non-stop vibes all in one place!
