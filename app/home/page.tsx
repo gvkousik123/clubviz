@@ -126,9 +126,11 @@ const HomePage = () => {
                                 <div className="w-[430px] h-[129px] absolute left-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent"></div>
 
                                 {/* Book Now button with exact styling */}
-                                <div className="w-[40px] h-[54px] absolute left-[390px] top-[193px]">
-                                    <div className="w-full h-full pb-2 px-[1px] transform rotate-90 origin-top-left bg-[rgba(30,98,102,0.5)] shadow-[0px_0px_10px_rgba(233.78,233.78,233.78,0.25)] rounded-bl-[25px] rounded-br-[25px] border-l border-r border-b border-white backdrop-blur-[25px] inline-flex flex-col justify-center items-center gap-[10px]">
-                                        <div className="transform -rotate-90 origin-top-left text-center justify-center flex flex-col text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">BOOK<br />NOW</div>
+                                <div className="absolute right-[10px] bottom-[30px] z-10 overflow-visible">
+                                    <div className="w-[80px] h-[45px] flex items-center bg-[rgba(30,98,102,0.5)] rounded-l-[22px] border border-r-0 border-white backdrop-blur-[25px] shadow-[0px_0px_10px_rgba(233.78,233.78,233.78,0.25)] pl-5">
+                                        <div className="text-white text-[11px] font-bold font-['Manrope'] text-left leading-tight tracking-wider whitespace-nowrap ml-[-3px]">
+                                            BOOK<br />NOW
+                                        </div>
                                     </div>
                                 </div>
 
