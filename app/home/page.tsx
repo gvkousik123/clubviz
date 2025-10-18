@@ -126,22 +126,22 @@ const HomePage = () => {
                                 <div className="w-[430px] h-[129px] absolute left-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent"></div>
 
                                 {/* Book Now button with exact styling */}
-                                <div className="w-[40px] h-[54px] absolute left-[400px] top-[193px]">
+                                <div className="w-[40px] h-[54px] absolute left-[390px] top-[193px]">
                                     <div className="w-full h-full pb-2 px-[1px] transform rotate-90 origin-top-left bg-[rgba(30,98,102,0.5)] shadow-[0px_0px_10px_rgba(233.78,233.78,233.78,0.25)] rounded-bl-[25px] rounded-br-[25px] border-l border-r border-b border-white backdrop-blur-[25px] inline-flex flex-col justify-center items-center gap-[10px]">
-                                        <div className="transform -rotate-90 origin-center text-center justify-center flex flex-col text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">BOOK<br />NOW</div>
+                                        <div className="transform -rotate-90 origin-top-left text-center justify-center flex flex-col text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">BOOK<br />NOW</div>
                                     </div>
                                 </div>
 
                                 {/* Sponsor badge with exact styling */}
-                                <div className="w-[74px] h-[30px] absolute left-[31px] top-[38px]">
-                                    <div className="w-[74px] h-[30px] absolute left-0 top-0 bg-[rgba(212.01,212.01,212.01,0.10)] rounded-[6px] border border-[rgba(255,255,255,0.50)] backdrop-blur-[17.50px]"></div>
+                                <div className="w-[102px] h-[30px] absolute left-[15px] top-[38px]">
+                                    <div className="w-full h-full absolute left-0 top-0 bg-[rgba(212.01,212.01,212.01,0.10)] rounded-[6px] border border-[rgba(255,255,255,0.50)] backdrop-blur-[17.50px]"></div>
                                     <div className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">
                                         {heroSlides[currentSlide].sponsor}
                                     </div>
                                 </div>
 
                                 {/* Pagination dots with exact styling */}
-                                <div className="w-[90px] h-[19px] absolute left-[170px] top-[225px] p-[8px] bg-[rgba(255,255,255,0.10)] rounded-[28px] border border-white backdrop-blur-[5px] inline-flex justify-center items-center gap-[5px]">
+                                <div className="w-[90px] h-[19px] absolute left-[170px] top-[225px] p-[8px] bg-[rgba(255,255,255,0.10)] rounded-[28px] backdrop-blur-[5px] inline-flex justify-center items-center gap-[5px]" style={{ outline: '1px solid white', outlineOffset: '-1px' }}>
                                     {heroSlides.slice(0, 5).map((_, index) => (
                                         <div key={index} className="w-[12px] h-[12px] relative" onClick={() => setCurrentSlide(index)}>
                                             <div className={`w-[12px] h-[12px] absolute left-0 top-0 rounded-[9999px] ${index === currentSlide ? 'bg-white' : 'border border-white'}`}></div>
