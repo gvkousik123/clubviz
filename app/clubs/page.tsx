@@ -1,205 +1,129 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, Star, Bookmark, MapPin, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ClubService } from '@/lib/services/club.service';
-import type { Club, ClubListItem } from '@/lib/services/club.service';
+import Link from 'next/link';
+import { ArrowLeft, Search, User, SlidersHorizontal } from 'lucide-react';
+import type { Club } from '@/components/clubs';
 import { useToast } from '@/hooks/use-toast';
-import { resolveLocation } from '@/lib/location';
+import { ClubCard } from '@/components/clubs/club-card';
+import { ClubListCard } from '@/components/clubs/club-list-card';
+import FilterPopup from '@/components/common/filter-popup';
+import { CLUB_FILTER_SECTIONS } from '@/lib/filter-config';
 
-type DisplayClub = Club | ClubListItem | Record<string, unknown>;
-
-const unwrapApiData = <T,>(payload: any): T => {
-    if (payload && typeof payload === 'object' && 'data' in payload) {
-        return (payload as { data: T }).data;
+// Dummy clubs data for local development
+const DUMMY_CLUBS: Club[] = [
+    {
+        id: 'club-1',
+        name: 'DABO',
+        openTime: 'Open until 1:30 am',
+        rating: 4.2,
+        image: '/venue/Screenshot 2024-12-10 195651.png',
+        address: '6, New Manish Nagar, Somalwada',
+        category: 'Nightclub'
+    },
+    {
+        id: 'club-2',
+        name: 'LORD OF THE DRINKS',
+        openTime: 'Open until 1:30 am',
+        rating: 4.2,
+        image: '/venue/Screenshot 2024-12-10 195852.png',
+        address: 'Ground Floor, Poonam mall VIP road',
+        category: 'Bar & Lounge'
+    },
+    {
+        id: 'club-3',
+        name: 'CAFE BARREL',
+        openTime: 'Open until 1:30 am',
+        rating: 4.2,
+        image: '/venue/Screenshot 2024-12-10 200154.png',
+        address: 'Mangalam complex, Dharampeth Nagpur',
+        category: 'Cafe & Bar'
+    },
+    {
+        id: 'club-4',
+        name: 'GARAGE',
+        openTime: 'Open until 2:00 am',
+        rating: 4.5,
+        image: '/venue/Screenshot 2024-12-10 195651.png',
+        address: 'Central Avenue, Nagpur',
+        category: 'Dance Club'
+    },
+    {
+        id: 'club-5',
+        name: 'ESCAPE',
+        openTime: 'Open until 12:30 am',
+        rating: 4.3,
+        image: '/venue/Screenshot 2024-12-10 195852.png',
+        address: 'Sitabuldi, Nagpur',
+        category: 'Lounge'
     }
-    return payload as T;
-};
+];
 
-const FALLBACK_CLUB_IMAGE = '/placeholder.jpg';
-
-const getClubImageSrc = (club: DisplayClub) => {
-    const data = club as any;
-    if (Array.isArray(data?.images) && data.images.length > 0) {
-        const first = data.images[0];
-        if (typeof first === 'string') {
-            return first;
-        }
-        if (first?.url) {
-            return first.url;
-        }
-    }
-
-    const directImage = data?.logoUrl ?? data?.logo ?? data?.image;
-    if (typeof directImage === 'string' && directImage.length > 0) {
-        return directImage;
-    }
-
-    return FALLBACK_CLUB_IMAGE;
-};
-
-const getClubAddressLabel = (club: DisplayClub) => {
-    const data = club as any;
-    if (typeof data?.address === 'string' && data.address.length > 0) {
-        return data.address;
-    }
-
-    if (data?.locationText) {
-        const { fullAddress, address1, city, state } = data.locationText as Record<string, string>;
-        if (typeof fullAddress === 'string' && fullAddress.length > 0) {
-            return fullAddress;
-        }
-        const parts = [address1, city, state].filter(Boolean);
-        if (parts.length > 0) {
-            return parts.join(', ');
-        }
-    }
-
-    if (typeof data?.location === 'string' && data.location.length > 0) {
-        return data.location;
-    }
-
-    return 'Address unavailable';
-};
-
-const getClubCategoryLabel = (club: DisplayClub) => {
-    const data = club as any;
-    if (Array.isArray(data?.categories) && data.categories.length > 0) {
-        return data.categories[0];
-    }
-    if (typeof data?.category === 'string' && data.category.length > 0) {
-        return data.category;
-    }
-    return undefined;
-};
-
-const getClubRatingLabel = (club: DisplayClub) => {
-    const data = club as any;
-    const rating = typeof data?.rating === 'number' ? data.rating : data?.averageRating;
-    return typeof rating === 'number' ? rating.toFixed(1) : 'N/A';
-};
-
-const getClubHoursLabel = (club: DisplayClub) => {
-    const data = club as any;
-    if (Array.isArray(data?.openingHours) && data.openingHours.length > 0) {
-        return 'View hours';
-    }
-    if (typeof data?.openTime === 'string' && data.openTime.length > 0) {
-        return data.openTime;
-    }
-    return 'Hours info unavailable';
-};
-
-const getClubId = (club: DisplayClub) => {
-    const data = club as any;
-    return String(data?.id ?? data?.clubId ?? '');
-};
-
-const getClubName = (club: DisplayClub) => {
-    const data = club as any;
-    return typeof data?.name === 'string' ? data.name : 'Unnamed Club';
-};
-
-const getClubCategories = (club: DisplayClub) => {
-    const data = club as any;
-    const categories: string[] = [];
-
-    if (Array.isArray(data?.categories)) {
-        data.categories.forEach((value: unknown) => {
-            if (typeof value === 'string' && value.trim().length > 0) {
-                categories.push(value.trim());
-            }
-        });
-    }
-
-    if (typeof data?.category === 'string' && data.category.trim().length > 0) {
-        categories.push(data.category.trim());
-    }
-
-    return Array.from(new Set(categories));
-};
-
-export default function ClubsPage() {
+export default function ClubsListPage() {
     const router = useRouter();
     const { toast } = useToast();
-    const [clubs, setClubs] = useState<DisplayClub[]>([]);
+    const [clubs, setClubs] = useState<Club[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [favorites, setFavorites] = useState<string[]>([]);
-    const [activeCategory, setActiveCategory] = useState<string>('All');
+    const [activeFilter, setActiveFilter] = useState<string>('clubs-today');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({});
+
+    // Club images for fallbacks
+    const clubImages = [
+        '/venue/Screenshot 2024-12-10 195651.png',
+        '/venue/Screenshot 2024-12-10 195852.png',
+        '/venue/Screenshot 2024-12-10 200154.png'
+    ];
+
+    const getClubFallbackImage = (index: number) => {
+        return clubImages[index % clubImages.length];
+    };
 
     const handleGoBack = () => {
         router.back();
     };
 
+    const handleSearch = () => {
+        if (searchQuery.trim()) {
+            console.log('Searching for:', searchQuery);
+        }
+    };
+
+    const handleFilterChange = (filter: string) => {
+        if (filter === 'filter') {
+            setIsFilterOpen(true);
+        } else {
+            setActiveFilter(filter);
+            console.log('Filter changed to:', filter);
+        }
+    };
+
+    const handleFilterApply = (filters: Record<string, any>) => {
+        setAppliedFilters(filters);
+        console.log('Applied filters:', filters);
+        // Here you would apply the filters to your clubs data
+        // For now, we'll just log them
+    };
+
+    const handleFilterClose = () => {
+        setIsFilterOpen(false);
+    };
+
     useEffect(() => {
-        fetchClubs();
+        loadClubs();
         loadFavorites();
     }, []);
 
-    const fetchClubs = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const location = resolveLocation();
-            const [listResult, publicResult] = await Promise.allSettled([
-                ClubService.getPublicClubsList({
-                    page: 0,
-                    size: 50,
-                    location: location.city,
-                }),
-                ClubService.getPublicClubs(),
-            ]);
-
-            let nextClubs: DisplayClub[] = [];
-
-            if (listResult.status === 'fulfilled') {
-                const listResponse = unwrapApiData<any>(listResult.value);
-                const content = Array.isArray(listResponse)
-                    ? listResponse
-                    : listResponse?.content ?? [];
-                if (Array.isArray(content) && content.length > 0) {
-                    nextClubs = content as DisplayClub[];
-                } else {
-                    console.warn('Club list request returned empty content.');
-                }
-            } else {
-                console.warn('Club list request failed:', listResult.reason);
-            }
-
-            if (!nextClubs.length) {
-                if (publicResult.status === 'fulfilled') {
-                    const publicResponse = unwrapApiData<any>(publicResult.value);
-                    const clubsData = Array.isArray(publicResponse)
-                        ? publicResponse
-                        : publicResponse?.content ?? publicResponse ?? [];
-                    if (Array.isArray(clubsData) && clubsData.length > 0) {
-                        nextClubs = clubsData as DisplayClub[];
-                    } else {
-                        console.warn('Public clubs response did not contain usable data.');
-                    }
-                } else {
-                    console.warn('Public clubs request failed:', publicResult.reason);
-                }
-            }
-
-            if (!nextClubs.length) {
-                throw new Error('No clubs data available from API');
-            }
-
-            setClubs(nextClubs);
-            if (activeCategory !== 'All') {
-                setActiveCategory('All');
-            }
-        } catch (err) {
-            console.error('Error fetching clubs:', err);
-            setError('Failed to load clubs. Please try again.');
-        } finally {
+    const loadClubs = () => {
+        setLoading(true);
+        // Simulate a short delay to preserve loading UI
+        setTimeout(() => {
+            setClubs(DUMMY_CLUBS);
             setLoading(false);
-        }
+        }, 250);
     };
 
     const loadFavorites = () => {
@@ -238,32 +162,32 @@ export default function ClubsPage() {
         }
     };
 
-    const availableCategories = useMemo(() => {
-        const unique = new Set<string>();
-        clubs.forEach((club) => {
-            getClubCategories(club).forEach((category) => {
-                if (category.length > 0) {
-                    unique.add(category);
-                }
-            });
-        });
-        return ['All', ...Array.from(unique)];
-    }, [clubs]);
+    const clubsTodayList = clubs.slice(0, 3);
+    const clubsNearbyList = clubs.slice(1, 4);
 
-    const filteredClubs = useMemo(() => {
-        if (activeCategory === 'All') {
-            return clubs;
+    // Filter clubs based on active filter
+    const getFilteredClubs = () => {
+        switch (activeFilter) {
+            case 'clubs-today':
+                return clubsTodayList;
+            case 'clubs-nearby':
+                return clubsNearbyList;
+            case 'distance':
+                return clubs;
+            case 'previously-visited':
+                return clubs;
+            case 'popularity':
+                return clubs;
+            default:
+                return clubs;
         }
-        const target = activeCategory.toLowerCase();
-        return clubs.filter((club) => {
-            const categories = getClubCategories(club).map((category) => category.toLowerCase());
-            return categories.includes(target);
-        });
-    }, [clubs, activeCategory]);
+    };
+
+    const filteredClubs = getFilteredClubs();
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#0a2e30] text-white flex items-center justify-center">
+            <div className="min-h-screen bg-[#1e2328] text-white flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-400 mx-auto"></div>
                     <p className="mt-4 text-lg">Loading clubs...</p>
@@ -272,163 +196,217 @@ export default function ClubsPage() {
         );
     }
 
-    if (error) {
-        return (
-            <div className="min-h-screen bg-[#0a2e30] text-white flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-red-400 text-lg mb-4">{error}</p>
-                    <button
-                        onClick={fetchClubs}
-                        className="bg-cyan-500 text-white px-6 py-2 rounded-lg hover:bg-cyan-600 transition-colors"
-                    >
-                        Try Again
-                    </button>
-                </div>
-            </div>
-        );
-    }
+
 
     return (
-        <div className="min-h-screen bg-[#0a2e30] text-white">
-            <div className="header-gradient rounded-b-[30px] pb-8 pt-4">
-                <div className="flex items-center justify-between px-6 pt-4 mb-6">
-                    <button
-                        onClick={handleGoBack}
-                        className="p-2 hover:bg-white/10 rounded-full transition-all duration-300"
-                    >
-                        <ArrowLeft size={24} className="text-white" />
-                    </button>
-                    <h1 className="text-lg font-bold tracking-wide text-center flex-1">
-                        CLUB LIST
-                    </h1>
-                </div>
+        <div className="min-h-screen bg-[#031313] text-white">
+            <div className="relative mx-auto max-w-[430px]">
+                {/* Header with Gradient Background - Same as Events Page */}
+                <header className="relative bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-6 pt-12 z-50">
+                    {/* Header with Back Arrow and Profile */}
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={handleGoBack}
+                                className="p-2 hover:bg-white/10 rounded-full transition-all duration-300"
+                            >
+                                <ArrowLeft size={24} className="text-white" />
+                            </button>
+                            <h1 className="text-white text-base font-bold tracking-wide">
+                                ALL CLUBS
+                            </h1>
+                        </div>
+                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <User className="w-5 h-5 text-white" />
+                        </div>
+                    </div>
 
-                <div className="horizontal-scroll-container px-6">
-                    <div className="flex gap-3 text-sm">
-                        {availableCategories.map((category) => {
-                            const isActive = activeCategory.toLowerCase() === category.toLowerCase();
-                            return (
+                    {/* Search Bar */}
+                    <div className="flex items-center gap-3">
+                        <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2">
+                            <Search className="w-[21px] h-[21px] text-white" />
+                            <input
+                                type="text"
+                                placeholder="Search"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white outline-none"
+                            />
+                        </div>
+                        <div className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center">
+                            <SlidersHorizontal className="w-[21px] h-[21px] text-white" />
+                        </div>
+                    </div>
+                </header>
+
+                {/* Filter Section */}
+                <div className="w-full">
+                    <div className="w-full py-5 flex items-center bg-gradient-to-b from-[#021313] to-transparent">
+                        {/* Filter Button - fixed at left */}
+                        <div className="flex-shrink-0 pl-5 pr-3">
+                            <button
+                                onClick={() => handleFilterChange('filter')}
+                                className="flex items-center gap-[10px] bg-[#004342] rounded-[23px] border border-[#14FFEC] px-4 py-2 hover:bg-[#005F57] transition-colors"
+                                style={{ width: 'auto', height: '40px', justifyContent: 'center', alignItems: 'center', display: 'inline-flex' }}
+                                data-filter="close"
+                            >
+                                {/* Filter SVG icon */}
+                                <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M6.5 4H16.5M0.5 12H10.5" stroke="white" strokeLinecap="round" />
+                                    <path d="M0.5 4C0.5 5.65685 1.84315 7 3.5 7C5.15685 7 6.5 5.65685 6.5 4C6.5 2.34315 5.15685 1 3.5 1C1.84315 1 0.5 2.34315 0.5 4Z" stroke="white" strokeLinecap="round" />
+                                    <path d="M10.5 12C10.5 13.6569 11.8431 15 13.5 15C15.1569 15 16.5 13.6569 16.5 12C16.5 10.3431 15.1569 9 13.5 9C11.8431 9 10.5 10.3431 10.5 12Z" stroke="white" strokeLinecap="round" />
+                                </svg>
+                                <span style={{ color: 'white', fontSize: '14px', fontFamily: 'Manrope', fontWeight: 800, lineHeight: '16px', letterSpacing: '0.5px' }}>Filter</span>
+                            </button>
+                        </div>
+                        {/* Scrollable Filter Options - scroll left, fill remaining width */}
+                        <div className="flex-1 overflow-x-auto scrollbar-hide pr-5">
+                            <div className="flex items-center gap-2 min-w-max">
                                 <button
-                                    key={category}
-                                    onClick={() => setActiveCategory(category)}
-                                    className={`rounded-full px-6 py-2 whitespace-nowrap transition-colors ${isActive
-                                        ? 'bg-cyan-500/30 text-cyan-200 font-medium'
-                                        : 'bg-white/10 text-white/80 hover:bg-white/15'
+                                    onClick={() => handleFilterChange('clubs-today')}
+                                    className={`h-10 px-4 py-2 rounded-[25px] border flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors ${activeFilter === 'clubs-today'
+                                        ? 'bg-[#14FFEC] border-[#004342] text-black font-bold'
+                                        : 'bg-[#005F57] border-[#14FFEC] text-white font-bold hover:bg-[#007A6B]'
                                         }`}
                                 >
-                                    {category}
+                                    <div className="text-sm tracking-[0.5px]">Clubs Today</div>
                                 </button>
-                            );
-                        })}
+                                <button
+                                    onClick={() => handleFilterChange('clubs-nearby')}
+                                    className={`h-10 px-4 py-2 rounded-[25px] border flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors ${activeFilter === 'clubs-nearby'
+                                        ? 'bg-[#14FFEC] border-[#004342] text-black font-bold'
+                                        : 'bg-[#004342] border-[#14FFEC] text-white font-bold hover:bg-[#005F57]'
+                                        }`}
+                                >
+                                    <div className="text-sm tracking-[0.5px]">Clubs Nearby</div>
+                                </button>
+                                <button
+                                    onClick={() => handleFilterChange('distance')}
+                                    className={`h-10 px-4 py-2 rounded-[25px] border flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors ${activeFilter === 'distance'
+                                        ? 'bg-[#14FFEC] border-[#004342] text-black font-bold'
+                                        : 'bg-[#004342] border-[#14FFEC] text-white font-bold hover:bg-[#005F57]'
+                                        }`}
+                                >
+                                    <div className="text-sm tracking-[0.5px]">Distance</div>
+                                </button>
+                                <button
+                                    onClick={() => handleFilterChange('previously-visited')}
+                                    className={`h-10 px-4 py-2 rounded-[25px] border flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors ${activeFilter === 'previously-visited'
+                                        ? 'bg-[#14FFEC] border-[#004342] text-black font-bold'
+                                        : 'bg-[#004342] border-[#14FFEC] text-white font-bold hover:bg-[#005F57]'
+                                        }`}
+                                >
+                                    <div className="text-sm tracking-[0.5px]">Previously Visited</div>
+                                </button>
+                                <button
+                                    onClick={() => handleFilterChange('popularity')}
+                                    className={`h-10 px-4 py-2 rounded-[25px] border flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors ${activeFilter === 'popularity'
+                                        ? 'bg-[#14FFEC] border-[#004342] text-black font-bold'
+                                        : 'bg-[#004342] border-[#14FFEC] text-white font-bold hover:bg-[#005F57]'
+                                        }`}
+                                >
+                                    <div className="text-sm tracking-[0.5px]">Popularity</div>
+                                </button>
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+                {/* Clubs Section Headers */}
+                <div className="w-full px-5">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-white text-base font-semibold">Clubs today</h2>
+                        <Link href="/clubs" className="text-[#14FFEC] text-base font-medium">View All</Link>
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="w-full px-5 space-y-8">
+                    {/* Clubs Today Section */}
+                    <section className="w-full">
+                        <div className="w-full flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                            {clubsTodayList.length === 0 ? (
+                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full">
+                                    No clubs available for today.
+                                </div>
+                            ) : (
+                                clubsTodayList.map((club, index) => (
+                                    <ClubListCard
+                                        key={`today-${club.id ?? index}`}
+                                        club={club}
+                                        href={`/club/${club.name.toLowerCase().replace(/\s+/g, '-')}`}
+                                        fallbackImage={getClubFallbackImage(index)}
+                                        isFavorite={favorites.includes(club.id)}
+                                        onToggleFavorite={toggleFavorite}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </section>
+
+                    {/* Clubs Nearby Section */}
+                    <section className="w-full">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-white text-base font-semibold">Clubs nearby</h2>
+                            <Link href="/clubs" className="text-[#14FFEC] text-base font-medium">View All</Link>
+                        </div>
+                        <div className="w-full flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                            {clubsNearbyList.length === 0 ? (
+                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full">
+                                    No clubs found nearby.
+                                </div>
+                            ) : (
+                                clubsNearbyList.map((club, index) => (
+                                    <ClubListCard
+                                        key={`nearby-${club.id ?? index}`}
+                                        club={club}
+                                        href={`/club/${club.name.toLowerCase().replace(/\s+/g, '-')}`}
+                                        fallbackImage={getClubFallbackImage(index + 10)}
+                                        isFavorite={favorites.includes(club.id)}
+                                        onToggleFavorite={toggleFavorite}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </section>
+
+                    {/* All Clubs Section */}
+                    <section className="w-full">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-white text-base font-semibold">All Clubs</h2>
+                        </div>
+                        <div className="w-full flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
+                            {clubs.length === 0 ? (
+                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full">
+                                    We couldn't find any clubs right now. Check back soon!
+                                </div>
+                            ) : (
+                                <div className="space-y-5 pb-6 w-full">
+                                    {clubs.map((club, index) => (
+                                        <ClubCard
+                                            key={`all-${club.id ?? index}`}
+                                            club={club}
+                                            href={`/club/${club.name.toLowerCase().replace(/\s+/g, '-')}`}
+                                            fallbackImage={getClubFallbackImage(index)}
+                                            isFavorite={favorites.includes(club.id)}
+                                            onToggleFavorite={toggleFavorite}
+                                            className="w-full"
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </section>
                 </div>
             </div>
 
-            <div className="px-6 py-6 space-y-4">
-                {filteredClubs.length === 0 ? (
-                    <div className="text-center py-12">
-                        <p className="text-white/60 text-lg">No clubs found</p>
-                    </div>
-                ) : (
-                    filteredClubs.map((club, index) => {
-                        const clubId = getClubId(club);
-                        const clubKey = clubId || `club-${index}`;
-                        const clubName = getClubName(club);
-                        const primaryCategory = getClubCategoryLabel(club);
-                        return (
-                            <Link
-                                key={clubKey}
-                                href={clubId ? `/club/${clubId}` : '#'}
-                                className="block bg-[#1a3b3e] rounded-2xl p-4 hover:bg-[#204144] transition-all duration-300"
-                            >
-                                <div className="flex gap-4">
-                                    <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0">
-                                        <img
-                                            src={getClubImageSrc(club)}
-                                            alt={clubName}
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                                const target = e.target as HTMLImageElement;
-                                                target.onerror = null;
-                                                target.src = FALLBACK_CLUB_IMAGE;
-                                            }}
-                                        />
-                                    </div>
-
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-start justify-between mb-2">
-                                            <div>
-                                                <h3 className="font-bold text-white text-lg mb-1 truncate">
-                                                    {clubName}
-                                                </h3>
-                                                <div className="flex items-start gap-1 text-white/70 text-sm mb-1">
-                                                    <MapPin size={14} />
-                                                    <p className="leading-snug text-white/70 line-clamp-2">
-                                                        {getClubAddressLabel(club)}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <button
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    if (clubId) {
-                                                        toggleFavorite(clubId);
-                                                    }
-                                                }}
-                                                className="p-2"
-                                            >
-                                                <Bookmark
-                                                    className={`w-5 h-5 ${clubId && favorites.includes(clubId)
-                                                        ? 'text-cyan-400 fill-cyan-400'
-                                                        : 'text-white/60'
-                                                        }`}
-                                                />
-                                            </button>
-                                        </div>
-
-                                        <div className="flex items-center justify-between mb-3">
-                                            <div className="flex items-center gap-1 text-white/60 text-sm">
-                                                <Clock size={14} />
-                                                <p>{getClubHoursLabel(club)}</p>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                                                <span className="text-white text-sm font-medium">
-                                                    {getClubRatingLabel(club)}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {((club as any)?.description || (club as any)?.shortDescription) && (
-                                            <p className="text-white/70 text-sm line-clamp-2">
-                                                {(club as any).description ?? (club as any).shortDescription}
-                                            </p>
-                                        )}
-
-                                        {primaryCategory && (
-                                            <div className="mt-2">
-                                                <span className="bg-cyan-500/20 text-cyan-300 px-2 py-1 rounded-full text-xs">
-                                                    {primaryCategory}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </Link>
-                        );
-                    })
-                )}
-            </div>
-
-            {/* Fixed Filter Button - Bottom Right */}
-            <Link href="/filter">
-                <button className="fixed bottom-6 right-6 bg-cyan-500 hover:bg-cyan-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 z-50">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
-                    </svg>
-                </button>
-            </Link>
+            {/* Filter Popup */}
+            <FilterPopup
+                isOpen={isFilterOpen}
+                onClose={handleFilterClose}
+                onApply={handleFilterApply}
+                sections={CLUB_FILTER_SECTIONS}
+            />
         </div>
     );
 }

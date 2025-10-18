@@ -8,6 +8,8 @@ import type { Event } from '@/lib/api-types';
 import { useToast } from '@/hooks/use-toast';
 import { EventCard } from '@/components/events/event-card';
 import { EventListCard } from '@/components/events/event-list-card';
+import FilterPopup from '@/components/common/filter-popup';
+import { EVENT_FILTER_SECTIONS } from '@/lib/filter-config';
 
 
 // Dummy events used for local development (no API calls)
@@ -103,6 +105,8 @@ export default function EventsListPage() {
     const [favorites, setFavorites] = useState<string[]>([]);
     const [activeFilter, setActiveFilter] = useState<string>('events-today');
     const [searchQuery, setSearchQuery] = useState('');
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({});
 
     // Event list images for fallbacks
     const eventImages = [
@@ -129,9 +133,22 @@ export default function EventsListPage() {
     };
 
     const handleFilterChange = (filter: string) => {
-        setActiveFilter(filter);
-        // Add filtering logic here based on the selected filter
-        console.log('Filter changed to:', filter);
+        if (filter === 'filter') {
+            setIsFilterOpen(true);
+        } else {
+            setActiveFilter(filter);
+            console.log('Filter changed to:', filter);
+        }
+    };
+
+    const handleFilterApply = (filters: Record<string, any>) => {
+        setAppliedFilters(filters);
+        console.log('Applied filters:', filters);
+        // Here you would apply the filters to your events data
+    };
+
+    const handleFilterClose = () => {
+        setIsFilterOpen(false);
     };
 
     useEffect(() => {
@@ -457,6 +474,14 @@ export default function EventsListPage() {
                     </section>
                 </div>
             </div>
+
+            {/* Filter Popup */}
+            <FilterPopup
+                isOpen={isFilterOpen}
+                onClose={handleFilterClose}
+                onApply={handleFilterApply}
+                sections={EVENT_FILTER_SECTIONS}
+            />
         </div>
     );
 }
