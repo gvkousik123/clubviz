@@ -230,35 +230,45 @@ const HomePage = () => {
                         </div>
                         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                             {eventFallback.map((event) => (
-                                <div key={event.id} className="w-[222px] h-[331px] flex-shrink-0 relative rounded-[20px] overflow-hidden" style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}>
+                                <div key={event.id} className="w-[222px] h-[305px] flex-shrink-0 relative rounded-[20px] overflow-hidden" style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}>
                                     {/* Image */}
-                                    <img
-                                        src={event.image}
-                                        alt={event.title}
-                                        className="w-full h-[150px] object-cover"
-                                    />
+                                    <div className="relative">
+                                        <img
+                                            src={event.image}
+                                            alt={event.title}
+                                            className="w-full h-[180px] object-cover"
+                                            style={{
+                                                borderWidth: '1.5px',
+                                                borderStyle: 'solid',
+                                                borderColor: '#28D2DB',
+                                                borderBottomRightRadius: '0',
+                                                borderTopLeftRadius: '20px',
+                                                borderTopRightRadius: '20px',
+                                                borderBottomLeftRadius: '20px',
+                                            }}
+                                        />
+                                    </div>
 
-                                    {/* Date Badge */}
-                                    <div className="w-[36px] h-[45px] px-[2px] py-[10px] left-[147px] top-0 absolute bg-gradient-to-b from-black to-[#00C0CA] rounded-b-[28px] border-l border-r border-b border-[#CDCDCD] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex flex-col justify-center items-center">
+                                    {/* Date Badge - positioned on the right */}
+                                    <div className="absolute right-4 top-0 w-[36px] h-[45px] px-[2px] py-[10px] bg-gradient-to-b from-black to-[#00C0CA] rounded-b-[28px] border-l border-r border-b border-[#CDCDCD] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex flex-col justify-center items-center">
                                         <div className="w-[31px] text-center text-white text-[14px] font-semibold font-['Manrope'] leading-4">APR<br />04</div>
                                     </div>
 
-                                    {/* Content */}
-                                    <div className="w-[144px] h-[68px] left-[18px] top-[217px] absolute flex flex-col justify-start items-start gap-[3px]">
-                                        <div className="self-stretch h-[42px] flex flex-col justify-center text-[#E6E6E6] text-base font-bold font-['Manrope'] leading-[22px] tracking-[0.16px] break-words">{event.title}</div>
-                                        <div className="w-[144px] h-[23px] flex flex-col justify-center text-[#C3C3C3] text-xs font-bold font-['Manrope'] leading-[17px] tracking-[0.12px] break-words">{event.venue}</div>
-                                    </div>
-
-                                    {/* Heart Icon */}
-                                    <div className="w-[23px] h-[21px] left-[175px] top-[241px] absolute">
-                                        <div className="w-[23px] h-[21px] border-2 border-[#28D2DB] rounded-sm flex items-center justify-center">
-                                            <Heart className="w-4 h-4 text-[#28D2DB]" />
+                                    {/* Content - positioned in the dark area below image */}
+                                    <div className="absolute left-[18px] right-[18px] top-[188px] flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <h3 className="text-[#E6E6E6] text-lg font-bold font-['Manrope'] leading-[22px] tracking-[0.16px] break-words mb-1">{event.title}</h3>
+                                            <p className="text-[#C3C3C3] text-xs font-bold font-['Manrope'] leading-[15px] tracking-[0.12px] break-words">{event.venue}</p>
+                                        </div>
+                                        {/* Heart Icon - positioned to the right of text and centered vertically */}
+                                        <div className="flex items-center justify-center w-[23px] h-[21px] flex-shrink-0 ml-2">
+                                            <Heart className="w-7 h-7 text-[#28D2DB]" />
                                         </div>
                                     </div>
 
                                     {/* Category Badge */}
-                                    <div className="w-[222px] h-[34px] left-0 top-[297px] absolute rounded-b-[20px] border-t border-[#0FD8E2] overflow-hidden" style={{ background: 'radial-gradient(ellipse 148.20% 1115.41% at 50.00% 50.00%, #005F57 0%, #14FFEC 100%)' }}>
-                                        <div className="w-[128px] left-[47px] top-[8px] absolute flex flex-col justify-center text-white text-[14px] font-bold font-['Manrope'] leading-[17px]">{event.category}</div>
+                                    <div className="w-[222px] h-[34px] left-0 top-[270px] absolute rounded-b-[20px] border-t border-[#0FD8E2] overflow-hidden flex items-center justify-center" style={{ background: 'radial-gradient(ellipse 148.20% 1115.41% at 50.00% 50.00%, #005F57 0%, #14FFEC 100%)' }}>
+                                        <div className="text-white text-[14px] font-bold font-['Manrope'] leading-[17px] text-center">{event.category}</div>
                                     </div>
                                 </div>
                             ))}
@@ -266,44 +276,69 @@ const HomePage = () => {
                     </section>
 
                     {/* Footer */}
-                    <footer className="bg-gradient-to-t from-[#01413B] to-[#021313] rounded-b-[20px] px-6 py-8 space-y-6">
-                        <div className="text-center">
-                            <h1 className="text-[#14FFEC] text-4xl font-normal tracking-[9px]">CLUBWIZ</h1>
-                            <p className="text-white text-base mt-4 leading-relaxed">
+                    <div className="mt-8">
+                        <div className="w-full h-full pt-6 pb-2 bg-gradient-to-t from-[#01413B] to-[#021313] overflow-hidden flex flex-col justify-end items-center gap-4">
+                            <div className="mt-8">
+                                <img src="/logo/CLUBWIZ.png" alt="ClubWiz Logo" className="w-50 h-auto" />
+                            </div>
+                            <div className="w-[368px] h-[59px] text-center text-white text-base font-normal leading-5 tracking-[0.5px] break-words">
                                 Dive into the ultimate party scene discover lit club nights, epic events, and non-stop vibes all in one place!
-                            </p>
+                            </div>
+                            <div className="w-[175px] h-[21px] flex justify-between items-center">
+                                <div className="w-6 h-6 relative overflow-hidden">
+                                    <div className="w-[18.75px] h-[18.75px] absolute left-[3px] top-[2.25px] bg-[#14FFEC]"></div>
+                                </div>
+                                <div className="w-6 h-6 relative overflow-hidden">
+                                    <div className="w-[19.50px] h-[19.50px] absolute left-[2.25px] top-[2.25px] bg-[#14FFEC]"></div>
+                                </div>
+                                <div className="w-6 h-6 relative overflow-hidden">
+                                    <div className="w-[19.50px] h-[19.50px] absolute left-[2.25px] top-[2.25px] bg-[#14FFEC]"></div>
+                                </div>
+                                <div className="w-6 h-6 relative overflow-hidden">
+                                    <div className="w-[16.50px] h-[18px] absolute left-[3.75px] top-[3px] bg-[#14FFEC]"></div>
+                                </div>
+                            </div>
+                            <div className="h-[139px] px-[57px] py-[22px] bg-gradient-to-r from-[rgba(23.13,69.51,71.11,0.20)] to-[rgba(20,255,236,0.74)] overflow-hidden flex flex-col justify-center items-start gap-[10px]">
+                                <div className="w-[316px] flex flex-col justify-center items-start gap-[14px]">
+                                    <div className="self-stretch h-[13px] flex justify-start items-center gap-[11px]">
+                                        <div className="w-[17px] h-[17px] relative overflow-hidden">
+                                            <div className="w-[13.81px] h-[10.62px] absolute left-[1.59px] top-[3.19px] bg-white"></div>
+                                        </div>
+                                        <div className="w-[231px] h-[14px] flex justify-end flex-col text-white text-base font-medium leading-4 tracking-[0.5px] break-words">
+                                            contact@clubwiz.com
+                                        </div>
+                                    </div>
+                                    <div className="w-[210px] h-[13px] flex justify-start items-center gap-[10px]">
+                                        <div className="w-[17px] h-[17px] relative overflow-hidden">
+                                            <div className="w-[11.69px] h-[14.87px] absolute left-[2.66px] top-[1.06px] bg-white"></div>
+                                        </div>
+                                        <div className="w-[190px] h-4 text-white text-base font-medium leading-4 tracking-[0.5px] break-words">
+                                            Location Details
+                                        </div>
+                                    </div>
+                                    <div className="self-stretch h-[13px] flex justify-start items-center gap-3">
+                                        <div className="w-[17px] h-[17px] relative overflow-hidden">
+                                            <div className="w-[11.69px] h-[13.81px] absolute left-[2.66px] top-[1.59px] bg-white"></div>
+                                        </div>
+                                        <div className="w-[231px] h-[18px] text-white text-base font-medium leading-4 tracking-[0.5px] break-words">
+                                            Terms & Condition
+                                        </div>
+                                    </div>
+                                    <div className="h-[14px] flex justify-center items-center gap-[11px]">
+                                        <div className="w-[17px] h-[17px] relative overflow-hidden">
+                                            <div className="w-[11.69px] h-[13.81px] absolute left-[2.66px] top-[1.59px] bg-white"></div>
+                                        </div>
+                                        <div className="w-[118px] h-[17px] text-white text-base font-medium leading-4 tracking-[0.5px] break-words">
+                                            Privacy Policy
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="w-[248px] h-[18px] text-white text-sm font-normal leading-4 tracking-[0.5px] break-words">
+                                Copy rights reserved with clubwiz.com
+                            </div>
                         </div>
-
-                        <div className="flex items-center justify-center gap-6">
-                            <Instagram className="w-6 h-6 text-[#14FFEC]" />
-                            <MessageCircle className="w-6 h-6 text-[#14FFEC]" />
-                            <Phone className="w-6 h-6 text-[#14FFEC]" />
-                            <Mail className="w-6 h-6 text-[#14FFEC]" />
-                        </div>
-
-                        <div className="bg-gradient-to-r from-[#174547]/20 to-[#14FFEC]/74 rounded-lg p-6 space-y-4">
-                            <div className="flex items-center gap-3 text-white text-base">
-                                <Mail className="w-4 h-4" />
-                                <span>contact@clubwiz.com</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-white text-base">
-                                <MapPin className="w-4 h-4" />
-                                <span>Location Details</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-white text-base">
-                                <MessageCircle className="w-4 h-4" />
-                                <span>Terms & Condition</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-white text-base">
-                                <Mail className="w-4 h-4" />
-                                <span>Privacy Policy</span>
-                            </div>
-                        </div>
-
-                        <p className="text-white/50 text-xs text-center">
-                            Copy rights reserved with clubwiz.com
-                        </p>
-                    </footer>
+                    </div>
                 </main>
             </div>
         </div>
