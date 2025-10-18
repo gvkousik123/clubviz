@@ -314,14 +314,14 @@ export default function ClubsListPage() {
 
                 {/* Clubs Section Headers */}
                 <div className="w-full px-5">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-white text-base font-semibold">Clubs today</h2>
-                        <Link href="/clubs" className="text-[#14FFEC] text-base font-medium">View All</Link>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-white text-sm font-semibold truncate">Clubs today</h2>
+                        <Link href="/clubs" className="text-[#14FFEC] text-sm font-medium whitespace-nowrap">View All</Link>
                     </div>
                 </div>
 
                 {/* Main Content */}
-                <div className="w-full px-5 space-y-8">
+                <div className="w-full px-5 space-y-6">
                     {/* Clubs Today Section */}
                     <section className="w-full">
                         <div className="w-full flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
@@ -346,9 +346,9 @@ export default function ClubsListPage() {
 
                     {/* Clubs Nearby Section */}
                     <section className="w-full">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-white text-base font-semibold">Clubs nearby</h2>
-                            <Link href="/clubs" className="text-[#14FFEC] text-base font-medium">View All</Link>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-white text-sm font-semibold truncate">Clubs nearby</h2>
+                            <Link href="/clubs" className="text-[#14FFEC] text-sm font-medium whitespace-nowrap">View All</Link>
                         </div>
                         <div className="w-full flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                             {clubsNearbyList.length === 0 ? (
@@ -372,8 +372,8 @@ export default function ClubsListPage() {
 
                     {/* All Clubs Section */}
                     <section className="w-full">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-white text-base font-semibold">All Clubs</h2>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-white text-sm font-semibold truncate">All Clubs</h2>
                         </div>
                         <div className="w-full flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
                             {clubs.length === 0 ? (

@@ -78,16 +78,16 @@ export const ClubListCard: React.FC<ClubListCardProps> = ({
                 </div>
 
                 {/* Text content */}
-                <div className="w-28 h-[45px] left-[28px] top-[125px] absolute justify-start items-center gap-6 inline-flex">
-                    <div className="w-48 flex-col justify-center items-start gap-1.5 inline-flex">
-                        <div className="self-stretch h-4 text-[#14FFEC] text-lg font-black font-['Manrope'] leading-4 tracking-[0.018em] first-letter:text-xl first-letter:leading-4">
+                <div className="w-28 h-[38px] left-[28px] top-[128px] absolute justify-start items-center gap-6 inline-flex">
+                    <div className="w-48 flex-col justify-center items-start gap-0.5 inline-flex">
+                        <div className="self-stretch h-3.5 text-[#14FFEC] text-sm font-black font-['Manrope'] leading-3.5 tracking-[0.015em] truncate">
                             {club.name}
                         </div>
-                        <div className="self-stretch h-4 text-white text-[11px] font-semibold font-['Manrope'] leading-4 tracking-[0.01em]">
+                        <div className="self-stretch h-3 text-white text-[10px] font-semibold font-['Manrope'] leading-3 tracking-[0.01em] truncate">
                             {club.openTime}
                         </div>
                         {club.address && (
-                            <div className="self-stretch text-[#C3C3C3] text-[10px] font-medium font-['Manrope'] leading-3 tracking-[0.1px]">
+                            <div className="self-stretch text-[#C3C3C3] text-[9px] font-medium font-['Manrope'] leading-2.5 tracking-[0.09px] truncate">
                                 {club.address}
                             </div>
                         )}
