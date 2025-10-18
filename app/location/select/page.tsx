@@ -2,18 +2,15 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, MapPin, Navigation, X } from 'lucide-react';
+import { MapPin, Navigation, Search } from 'lucide-react';
 import { setStoredLocation, SavedLocation, DEFAULT_LOCATION } from '@/lib/location';
 import { useToast } from '@/hooks/use-toast';
+import PageHeader from '@/components/common/page-header';
 
 export default function LocationSelectPage() {
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState('Nagpur');
     const { toast } = useToast();
-
-    const handleGoBack = () => {
-        router.back();
-    };
 
     const handleUseCurrentLocation = () => {
         if (navigator.geolocation) {
@@ -62,10 +59,6 @@ export default function LocationSelectPage() {
         router.back();
     };
 
-    const clearSearch = () => {
-        setSearchTerm('');
-    };
-
     type LocationOption = SavedLocation & { name: string; city: string };
 
     const searchResults: LocationOption[] = [
@@ -75,76 +68,76 @@ export default function LocationSelectPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-[#1e2328] text-white">
-            {/* Header with Gradient Background */}
-            <div className="header-gradient rounded-b-[30px] pb-8 pt-4">
-                <div className="flex items-center justify-center px-6 pt-4 mb-8 relative">
-                    <button
-                        onClick={handleGoBack}
-                        className="p-2 hover:bg-white/10 rounded-full transition-all duration-300 absolute left-6"
-                    >
-                        <ArrowLeft size={24} className="text-white" />
-                    </button>
-                    <h1 className="text-lg font-medium tracking-wide text-center">
-                        Enter your Location
-                    </h1>
-                </div>
-            </div>
+        <div className="min-h-screen w-full bg-[#031414] overflow-hidden">
+            <PageHeader title="Enter your Location" />
 
-            <div className="px-6 py-6">
-                <div className="relative mb-6">
-                    <div className="glassmorphism rounded-full p-4 flex items-center gap-3">
-                        <MapPin size={20} className="text-white/60" />
+            {/* Search Input */}
+            <div className="px-4 py-6">
+                <div className="w-full h-[51px] px-[15px] py-2 bg-white/20 shadow-md rounded-[23px] flex items-center justify-between">
+                    <div className="flex items-center gap-2 flex-1">
+                        <div className="w-[30px] h-[30px] relative overflow-hidden flex-shrink-0">
+                            <MapPin size={25} className="absolute left-[2.47px] top-[2.47px] text-white" />
+                        </div>
                         <input
                             type="text"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="flex-1 bg-transparent text-white placeholder-white/60 outline-none"
-                            placeholder="Search location"
+                            className="flex-1 min-w-0 h-6 text-white text-base font-['Manrope'] font-bold leading-6 tracking-[0.50px] bg-transparent outline-none placeholder-white/60"
+                            placeholder="Search location..."
                         />
-                        {searchTerm && (
-                            <button
-                                onClick={clearSearch}
-                                className="p-1 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-                            >
-                                <X size={16} className="text-white" />
-                            </button>
-                        )}
                     </div>
-                </div>
-
-                <button
-                    onClick={handleUseCurrentLocation}
-                    className="w-full flex items-center gap-3 p-4 mb-6 glassmorphism rounded-xl hover:bg-white/10 transition-colors"
-                >
-                    <Navigation size={20} className="text-cyan-400" />
-                    <span className="text-white font-medium">Use your current location</span>
-                </button>
-
-                <div className="space-y-4">
-                    <div className="flex items-center gap-4 mb-4">
-                        <h3 className="text-white/80 text-sm">Search result</h3>
-                    </div>
-
-                    <div className="space-y-3">
-                        {searchResults.map((location, index) => (
-                            <button
-                                key={index}
-                                onClick={() => handleLocationSelect(location)}
-                                className="w-full flex items-center gap-3 p-3 hover:bg-white/5 transition-colors rounded-lg"
-                            >
-                                <MapPin size={18} className="text-cyan-400" />
-                                <div className="text-left">
-                                    <p className="text-white font-medium">{location.name}</p>
-                                    <p className="text-white/60 text-sm">{location.city}</p>
-                                </div>
-                            </button>
-                        ))}
+                    <div className="w-[30px] h-[30px] relative overflow-hidden flex-shrink-0">
+                        <Search size={24.38} className="absolute left-[2.81px] top-[2.81px] text-white" />
                     </div>
                 </div>
             </div>
 
-            <div className="h-80"></div>
+            {/* Use Current Location */}
+            <div className="px-9 py-2">
+                <button
+                    onClick={handleUseCurrentLocation}
+                    className="flex items-center gap-3 hover:bg-white/5 transition-colors rounded-lg p-2"
+                >
+                    <div className="w-[30px] h-[30px] relative overflow-hidden">
+                        <Navigation size={24.37} className="absolute left-[4.70px] top-[4.69px] text-[#14FFEC]" />
+                    </div>
+                    <div className="text-white text-base font-['Manrope'] font-bold leading-4 tracking-[0.50px]">
+                        Use your current location
+                    </div>
+                </button>
+            </div>
+
+            {/* Divider Line */}
+            <div className="w-[368px] h-0 mx-auto my-4 border-[1.50px] border-[#088188]"></div>
+
+            {/* Search Results */}
+            <div className="px-9">
+                <div className="text-[#DADADA] text-sm font-['Manrope'] font-bold leading-4 tracking-[0.50px] mb-4">
+                    Search result
+                </div>
+
+                <div className="space-y-6">
+                    {searchResults.map((location, index) => (
+                        <button
+                            key={index}
+                            onClick={() => handleLocationSelect(location)}
+                            className="w-full flex items-center gap-3 hover:bg-white/5 transition-colors rounded-lg p-2"
+                        >
+                            <div className="w-5 h-5 relative overflow-hidden">
+                                <MapPin size={16.24} className="absolute left-[3.13px] top-[3.13px] text-[#14FFEC]" />
+                            </div>
+                            <div className="flex flex-col items-start gap-1">
+                                <div className="text-white text-base font-['Manrope'] font-bold leading-4 tracking-[0.50px]">
+                                    {location.name}
+                                </div>
+                                <div className="text-[#9D9C9C] text-[13px] font-['Manrope'] font-bold leading-4 tracking-[0.50px]">
+                                    {location.city}
+                                </div>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }

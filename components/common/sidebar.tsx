@@ -1,0 +1,151 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { X } from 'lucide-react';
+
+interface SidebarProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+    return (
+        <>
+            {/* Backdrop */}
+            {isOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-40"
+                    onClick={onClose}
+                />
+            )}
+
+            {/* Sidebar - 75% width from right */}
+            <div
+                className={`fixed top-0 right-0 w-[75%] h-full z-50 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'
+                    }`}
+                style={{
+                    background: '#021313',
+                    borderTopLeftRadius: '25px',
+                    borderBottomLeftRadius: '25px'
+                }}
+            >
+                {/* Close Button */}
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 left-4 w-8 h-8 bg-[#1a2332] rounded-full flex items-center justify-center z-10 cursor-pointer hover:bg-[#243040] transition-colors"
+                >
+                    <X size={16} className="text-white" />
+                </button>
+
+                {/* Profile Section */}
+                <div className="flex flex-col items-center px-6 pt-16">
+                    {/* Profile Picture with Border */}
+                    <div className="relative mb-6">
+                        <div className="w-[120px] h-[120px] rounded-full border-2 border-[#14FFEC] flex items-center justify-center mb-4">
+                            <img
+                                src="/profile/teddy-dp.png"
+                                alt="Profile"
+                                className="w-[110px] h-[110px] rounded-full object-cover"
+                            />
+                        </div>
+                    </div>
+
+                    {/* User Info */}
+                    <div className="text-center mb-12">
+                        <h2 className="text-white text-lg font-['Manrope'] font-semibold leading-tight tracking-wide mb-2">
+                            DAVID SIMON
+                        </h2>
+                        <p className="text-white text-sm font-['Manrope'] font-normal leading-tight tracking-wide">
+                            NAGPUR
+                        </p>
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="flex flex-col items-center gap-8 mb-16 w-full">
+                        <Link
+                            href="/account"
+                            onClick={onClose}
+                            className="text-white text-sm font-['Manrope'] font-medium leading-tight tracking-wide hover:text-[#14FFEC] transition-colors text-center cursor-pointer"
+                        >
+                            MY ACCOUNT
+                        </Link>
+                        <div className="w-full h-px bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
+                        <Link
+                            href="/favorites/events"
+                            onClick={onClose}
+                            className="text-white text-sm font-['Manrope'] font-medium leading-tight tracking-wide hover:text-[#14FFEC] transition-colors text-center cursor-pointer"
+                        >
+                            FAVOURITE EVENTS
+                        </Link>
+                        <div className="w-full h-px bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
+                        <Link
+                            href="/favorites/clubs"
+                            onClick={onClose}
+                            className="text-white text-sm font-['Manrope'] font-medium leading-tight tracking-wide hover:text-[#14FFEC] transition-colors text-center cursor-pointer"
+                        >
+                            FAVOURITE CLUBS
+                        </Link>
+                        <div className="w-full h-px bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
+                        <Link
+                            href="/contact"
+                            onClick={onClose}
+                            className="text-white text-sm font-['Manrope'] font-medium leading-tight tracking-wide hover:text-[#14FFEC] transition-colors text-center cursor-pointer"
+                        >
+                            CONTACT
+                        </Link>
+                    </div>
+
+                    {/* Logout Button */}
+                    <button
+                        onClick={onClose}
+                        className="px-8 py-3 bg-[#129C91] rounded-full mb-12 hover:bg-[#108a7f] transition-colors cursor-pointer"
+                    >
+                        <span className="text-white text-base font-['Manrope'] font-semibold leading-tight tracking-wide">
+                            Log Out
+                        </span>
+                    </button>
+
+                    {/* Social Media Icons */}
+                    <div className="flex items-center justify-center gap-6 mb-12">
+                        <button className="w-8 h-8 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
+                            <img
+                                src="/footer-logos/Phone.svg"
+                                alt="Phone"
+                                className="w-5 h-5"
+                                style={{ filter: 'brightness(0) saturate(100%) invert(87%) sepia(96%) saturate(6444%) hue-rotate(149deg) brightness(103%) contrast(101%)' }}
+                            />
+                        </button>
+                        <button className="w-8 h-8 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
+                            <img
+                                src="/footer-logos/whatsapp-logo-fill.svg"
+                                alt="WhatsApp"
+                                className="w-5 h-5"
+                                style={{ filter: 'brightness(0) saturate(100%) invert(87%) sepia(96%) saturate(6444%) hue-rotate(149deg) brightness(103%) contrast(101%)' }}
+                            />
+                        </button>
+                        <button className="w-8 h-8 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
+                            <img
+                                src="/footer-logos/x-logo-fill.svg"
+                                alt="X"
+                                className="w-5 h-5"
+                                style={{ filter: 'brightness(0) saturate(100%) invert(87%) sepia(96%) saturate(6444%) hue-rotate(149deg) brightness(103%) contrast(101%)' }}
+                            />
+                        </button>
+                        <button className="w-8 h-8 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
+                            <img
+                                src="/footer-logos/Envelope.svg"
+                                alt="Email"
+                                className="w-5 h-5"
+                                style={{ filter: 'brightness(0) saturate(100%) invert(87%) sepia(96%) saturate(6444%) hue-rotate(149deg) brightness(103%) contrast(101%)' }}
+                            />
+                        </button>
+                    </div>
+
+                    {/* Brand Name */}
+                    <img src="/logo/CLUBWIZ.png" alt="Brand Name" className="w-55 h-auto mb-6" />
+                </div>
+            </div>
+        </>
+    );
+}

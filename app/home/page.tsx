@@ -19,6 +19,7 @@ import {
     ChevronRight,
     Bookmark
 } from 'lucide-react';
+import Sidebar from '@/components/common/sidebar';
 
 // Dummy data
 const heroSlides = [
@@ -30,13 +31,13 @@ const heroSlides = [
 ];
 
 const vibeMeterFallback = [
-    { id: 'vibe1', title: 'CLUB AMBIENCE', image: '/gallery/Frame 1000001117.jpg' },
-    { id: 'vibe2', title: 'NIGHT VIBES', image: '/gallery/Frame 1000001119.jpg' },
-    { id: 'vibe3', title: 'FOOD EXPERIENCE', image: '/gallery/Frame 1000001120.jpg' },
-    { id: 'vibe4', title: 'DRINKS & BAR', image: '/gallery/Frame 1000001121.jpg' },
-    { id: 'vibe5', title: 'INTERIOR DESIGN', image: '/gallery/Frame 1000001123.jpg' },
-    { id: 'vibe6', title: 'TECHNO NIGHT', image: '/gallery/Frame 1000001117.jpg' },
-    { id: 'vibe7', title: 'PARTY VIBES', image: '/gallery/Frame 1000001119.jpg' },
+    { id: 'vibe1', name: 'Sarah', image: '/story/story1.png' },
+    { id: 'vibe2', name: 'Michael', image: '/story/Story2.png' },
+    { id: 'vibe3', name: 'Jessica', image: '/story/story3.png' },
+    { id: 'vibe4', name: 'Alex', image: '/story/story1.png' },
+    { id: 'vibe5', name: 'Emma', image: '/story/Story2.png' },
+    { id: 'vibe6', name: 'Jason', image: '/story/story3.png' },
+    { id: 'vibe7', name: 'Olivia', image: '/story/story1.png' },
 ];
 
 const venueFallback = [
@@ -69,6 +70,11 @@ const HomePage = () => {
         }
     };
 
+    const toggleSidebar = () => {
+        console.log('Toggling sidebar. Current state:', isSidebarOpen);
+        setIsSidebarOpen(!isSidebarOpen);
+    };
+
     return (
         <div className="min-h-screen bg-[#031313] text-white">
             <div className="relative mx-auto max-w-[430px]">
@@ -92,10 +98,13 @@ const HomePage = () => {
                             <Search className="w-[21px] h-[21px] text-white" />
                             <span className="text-white text-base font-bold tracking-[0.5px]">Search</span>
                         </div>
-                        <button className="w-10 h-10 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center relative">
-                            <div className="w-[15px] h-[2px] absolute top-[15px] left-[14px] bg-white rounded-[2px]"></div>
-                            <div className="w-[19px] h-[2px] absolute top-[21px] left-[12px] bg-white rounded-[6px]"></div>
-                            <div className="w-[15px] h-[2px] absolute top-[27px] left-[14px] bg-white rounded-[2px]"></div>
+                        <button
+                            onClick={toggleSidebar}
+                            className="w-10 h-10 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex flex-col items-center justify-center gap-[3px] cursor-pointer hover:bg-white/30 transition-colors"
+                        >
+                            <div className="w-[15px] h-[2px] bg-white rounded-[2px]"></div>
+                            <div className="w-[19px] h-[2px] bg-white rounded-[6px]"></div>
+                            <div className="w-[15px] h-[2px] bg-white rounded-[2px]"></div>
                         </button>
                     </div>
                 </header>
@@ -326,6 +335,9 @@ const HomePage = () => {
                     </div>
                 </main>
             </div>
+
+            {/* Sidebar */}
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         </div>
     );
 };

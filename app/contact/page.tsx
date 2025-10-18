@@ -2,14 +2,10 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Phone, Mail, Instagram, MessageCircle } from 'lucide-react';
+import { Phone, Mail, Instagram, MessageCircle } from 'lucide-react';
+import PageHeader from '@/components/common/page-header';
 
 export default function ContactUsPage() {
-    const router = useRouter();
-
-    const handleGoBack = () => {
-        router.back();
-    };
 
     const handleContactClick = (type: string, value: string) => {
         switch (type) {
@@ -33,21 +29,9 @@ export default function ContactUsPage() {
 
     return (
         <div className="min-h-screen w-full bg-[#031414] overflow-hidden">
-            {/* Header */}
-            <div className="w-full h-[120px] bg-gradient-to-t from-[#11B9AB] to-[#222831] rounded-b-[30px] relative">
-                {/* Header Content */}
-                <div className="flex items-center justify-between px-6 pt-6">
-                    <button
-                        onClick={handleGoBack}
-                        className="w-[35px] h-[35px] bg-white/20 overflow-hidden rounded-[18px] flex items-center justify-center"
-                    >
-                        <span className="text-white text-lg font-bold">&lt;</span>
-                    </button>
-                </div>
-                <div className="text-center px-6 pb-3 pt-2">
-                    <div className="text-white text-xl font-['Manrope'] font-bold leading-4 tracking-[0.50px]">CONTACT US</div>
-                </div>
-            </div>            {/* Description Text */}
+            <PageHeader title="CONTACT US" />
+
+            {/* Description Text */}
             <div className="px-6 py-6">
                 <div className="text-[#9D9C9C] text-[13px] font-['Manrope'] font-semibold leading-4 tracking-[0.50px]">
                     You can get in touch with us through below platform. Our team will reach out to you as soon as it would be possible.
