@@ -22,9 +22,11 @@ import {
 
 // Dummy data
 const heroSlides = [
-    { id: 1, image: '/venue/Screenshot 2024-12-10 195651.png', musicBy: 'DJ ALEXXX', hostedBy: 'DABO CLUB', sponsor: 'SPONSORED', bookingLink: '/booking' },
+    { id: 1, image: '/venue/Screenshot 2024-12-10 195651.png', musicBy: 'DJ ALEXXX', hostedBy: 'DABO CLUB', sponsor: 'SPONSERED', bookingLink: '/booking' },
     { id: 2, image: '/venue/Screenshot 2024-12-10 195852.png', musicBy: 'DJ SHADE', hostedBy: 'GARAGE CLUB', sponsor: 'TRENDING', bookingLink: '/booking' },
     { id: 3, image: '/venue/Screenshot 2024-12-10 200154.png', musicBy: 'DJ VIBE', hostedBy: 'ELITE CLUB', sponsor: 'FEATURED', bookingLink: '/booking' },
+    { id: 4, image: '/venue/Screenshot 2024-12-10 195651.png', musicBy: 'DJ MARCO', hostedBy: 'ELITE LOUNGE', sponsor: 'POPULAR', bookingLink: '/booking' },
+    { id: 5, image: '/venue/Screenshot 2024-12-10 195852.png', musicBy: 'DJ GROOVE', hostedBy: 'RHYTHM CLUB', sponsor: 'HOT', bookingLink: '/booking' },
 ];
 
 const vibeMeterFallback = [
@@ -71,7 +73,7 @@ const HomePage = () => {
         <div className="min-h-screen bg-[#031313] text-white">
             <div className="relative mx-auto max-w-[430px]">
                 {/* Header */}
-                <header className="relative bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-10 pt-12">
+                <header className="relative bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-10 pt-12 z-50">
                     {/* Location and Profile */}
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-2">
@@ -104,101 +106,71 @@ const HomePage = () => {
                 </header>
 
                 {/* Main Content */}
-                <main className="px-0 pt-8 space-y-8">
+                <main className="px-0 pt-0 space-y-8">
                     {/* Hero Carousel */}
-                    <section className="relative w-full h-[262px]">
+                    <section className="relative w-full -mt-[30px]">
                         <div data-property-1="Default" className="w-full h-full relative shadow-[0px_4px_5.6px_rgba(20,255,236,0.11)] overflow-hidden rounded-b-[30px]">
-                            {/* All carousel slides with different positions */}
-                            <div
-                                className="w-[430px] h-[262px] absolute transition-transform duration-500 ease-in-out"
-                                style={{
-                                    left: "0px",
-                                    top: "0px",
-                                    transform: currentSlide === 0 ? 'translateX(0)' : 'translateX(-9999px)'
-                                }}
-                            >
-                                <img className="w-[430px] h-[262px] absolute left-0 top-0 bg-gradient-to-b from-transparent to-black/70 border-t border-black" src={heroSlides[0].image} alt={heroSlides[0].musicBy} />
+                            {/* Visible slide */}
+                            <div className="w-[430px] h-[262px] relative">
+                                {/* Image with gradient overlays */}
+                                <img
+                                    className="w-[430px] h-[262px] absolute left-0 top-0 object-cover opacity-[0.81] border-t border-black"
+                                    src={heroSlides[currentSlide].image}
+                                    alt={heroSlides[currentSlide].musicBy}
+                                />
+
+                                {/* Top gradient overlay */}
                                 <div className="w-[430px] h-[129px] absolute left-0 top-0 bg-gradient-to-b from-black/70 to-transparent"></div>
-                                <div className="w-[40px] h-[54px] pb-2 px-[1px] absolute left-[430px] top-[193px] transform rotate-90 origin-top-left bg-[rgba(30,98,102,0.5)] shadow-[0px_0px_10px_rgba(233.78,233.78,233.78,0.25)] rounded-bl-[25px] rounded-br-[25px] border-l border-r border-b border-white backdrop-blur-sm flex flex-col justify-center items-center gap-[10px]">
-                                    <div className="transform -rotate-90 origin-top-left text-center justify-center flex flex-col text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">BOOK<br />NOW</div>
+
+                                {/* Bottom gradient overlay */}
+                                <div className="w-[430px] h-[129px] absolute left-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+
+                                {/* Book Now button with exact styling */}
+                                <div className="w-[40px] h-[54px] absolute left-[400px] top-[193px]">
+                                    <div className="w-full h-full pb-2 px-[1px] transform rotate-90 origin-top-left bg-[rgba(30,98,102,0.5)] shadow-[0px_0px_10px_rgba(233.78,233.78,233.78,0.25)] rounded-bl-[25px] rounded-br-[25px] border-l border-r border-b border-white backdrop-blur-[25px] inline-flex flex-col justify-center items-center gap-[10px]">
+                                        <div className="transform -rotate-90 origin-center text-center justify-center flex flex-col text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">BOOK<br />NOW</div>
+                                    </div>
                                 </div>
+
+                                {/* Sponsor badge with exact styling */}
                                 <div className="w-[74px] h-[30px] absolute left-[31px] top-[38px]">
-                                    <div className="w-[74px] h-[30px] absolute left-0 top-0 bg-[rgba(212.01,212.01,212.01,0.1)] rounded-[6px] border border-white/50 backdrop-blur-[17.5px]"></div>
-                                    <div className="absolute left-3 top-[7px] text-center justify-center flex flex-col text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">{heroSlides[0].sponsor}</div>
+                                    <div className="w-[74px] h-[30px] absolute left-0 top-0 bg-[rgba(212.01,212.01,212.01,0.10)] rounded-[6px] border border-[rgba(255,255,255,0.50)] backdrop-blur-[17.50px]"></div>
+                                    <div className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">
+                                        {heroSlides[currentSlide].sponsor}
+                                    </div>
+                                </div>
+
+                                {/* Pagination dots with exact styling */}
+                                <div className="w-[90px] h-[19px] absolute left-[170px] top-[225px] p-[8px] bg-[rgba(255,255,255,0.10)] rounded-[28px] border border-white backdrop-blur-[5px] inline-flex justify-center items-center gap-[5px]">
+                                    {heroSlides.slice(0, 5).map((_, index) => (
+                                        <div key={index} className="w-[12px] h-[12px] relative" onClick={() => setCurrentSlide(index)}>
+                                            <div className={`w-[12px] h-[12px] absolute left-0 top-0 rounded-[9999px] ${index === currentSlide ? 'bg-white' : 'border border-white'}`}></div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-
-                            <div
-                                className="w-[430px] h-[262px] absolute transition-transform duration-500 ease-in-out"
-                                style={{
-                                    left: "0px",
-                                    top: "0px",
-                                    transform: currentSlide === 1 ? 'translateX(0)' : 'translateX(-9999px)'
-                                }}
-                            >
-                                <img className="w-[430px] h-[262px] absolute left-0 top-0" src={heroSlides[1].image} alt={heroSlides[1].musicBy} />
-                                <div className="w-[430px] h-[129px] absolute left-0 top-0 bg-gradient-to-b from-black/70 to-transparent"></div>
-                                <div className="w-[40px] h-[54px] pb-2 px-[1px] absolute left-[430px] top-[193px] transform rotate-90 origin-top-left bg-[rgba(30,98,102,0.5)] shadow-[0px_0px_10px_rgba(233.78,233.78,233.78,0.25)] rounded-bl-[25px] rounded-br-[25px] border-l border-r border-b border-white backdrop-blur-sm flex flex-col justify-center items-center gap-[10px]">
-                                    <div className="transform -rotate-90 origin-top-left text-center justify-center flex flex-col text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">BOOK<br />NOW</div>
-                                </div>
-                                <div className="w-[74px] h-[30px] absolute left-[31px] top-[38px]">
-                                    <div className="w-[74px] h-[30px] absolute left-0 top-0 bg-[rgba(212.01,212.01,212.01,0.1)] rounded-[6px] border border-white/50 backdrop-blur-[17.5px]"></div>
-                                    <div className="absolute left-3 top-[7px] text-center justify-center flex flex-col text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">{heroSlides[1].sponsor}</div>
-                                </div>
-                            </div>
-
-                            <div
-                                className="w-[430px] h-[262px] absolute transition-transform duration-500 ease-in-out"
-                                style={{
-                                    left: "0px",
-                                    top: "0px",
-                                    transform: currentSlide === 2 ? 'translateX(0)' : 'translateX(-9999px)'
-                                }}
-                            >
-                                <img className="w-[430px] h-[262px] absolute left-0 top-0" src={heroSlides[2].image} alt={heroSlides[2].musicBy} />
-                                <div className="w-[430px] h-[129px] absolute left-0 top-0 bg-gradient-to-b from-black/70 to-transparent"></div>
-                                <div className="w-[40px] h-[54px] pb-2 px-[1px] absolute left-[430px] top-[193px] transform rotate-90 origin-top-left bg-[rgba(30,98,102,0.5)] shadow-[0px_0px_10px_rgba(233.78,233.78,233.78,0.25)] rounded-bl-[25px] rounded-br-[25px] border-l border-r border-b border-white backdrop-blur-sm flex flex-col justify-center items-center gap-[10px]">
-                                    <div className="transform -rotate-90 origin-top-left text-center justify-center flex flex-col text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">BOOK<br />NOW</div>
-                                </div>
-                                <div className="w-[74px] h-[30px] absolute left-[31px] top-[38px]">
-                                    <div className="w-[74px] h-[30px] absolute left-0 top-0 bg-[rgba(212.01,212.01,212.01,0.1)] rounded-[6px] border border-white/50 backdrop-blur-[17.5px]"></div>
-                                    <div className="absolute left-3 top-[7px] text-center justify-center flex flex-col text-white text-xs font-bold font-['Manrope'] leading-[15px] break-words">{heroSlides[2].sponsor}</div>
-                                </div>
-                            </div>
-
-                            {/* Pagination Dots */}
-                            <div className="w-[90px] h-[19px] p-2 absolute left-[170px] top-[225px] bg-white/10 rounded-[28px] border border-white backdrop-blur-[5px] flex justify-center items-center gap-[5px]">
-                                {heroSlides.map((_, index) => (
-                                    <div key={index} className="w-[12px] h-[12px] relative">
-                                        <div
-                                            className={`w-[12px] h-[12px] absolute left-0 top-0 rounded-full ${index === currentSlide ? 'bg-white' : 'border border-white'}`}
-                                            onClick={() => setCurrentSlide(index)}
-                                        ></div>
+                        </div>
+                    </section>                    {/* Vibe Meter */}
+                    <section className="px-5 pt-2">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-white text-lg font-medium">Vibe Meter</h2>
+                        </div>
+                        <div className="overflow-x-auto scrollbar-hide -mx-5 px-5">
+                            <div className="flex items-center gap-4 pb-3 min-w-max">
+                                {vibeMeterFallback.map((user) => (
+                                    <div key={user.id} className="flex flex-col items-center gap-2">
+                                        <div className="w-[72px] h-[72px] relative">
+                                            <div className="w-[72px] h-[72px] absolute left-0 top-0 rounded-full border-2 border-[#14FFEC]"></div>
+                                            <img
+                                                src={user.image}
+                                                alt={user.name}
+                                                className="w-[64px] h-[64px] absolute left-[4px] top-[4px] rounded-full border border-white object-cover"
+                                            />
+                                        </div>
+                                        <span className="text-xs text-white text-center">{user.name}</span>
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                    </section>
-
-                    {/* Vibe Meter */}
-                    <section className="px-5">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-white text-base font-semibold">Vibe Meter</h2>
-                        </div>
-                        <div className="pl-4 pr-4 overflow-x-auto flex items-center justify-start gap-4">
-                            {vibeMeterFallback.map((user) => (
-                                <div key={user.id} className="flex flex-col items-center gap-2">
-                                    <div className="w-[72px] h-[72px] relative">
-                                        <div className="w-[72px] h-[72px] absolute left-0 top-0 rounded-full border-2 border-[#14FFEC]"></div>
-                                        <img
-                                            src={user.image}
-                                            alt={user.name}
-                                            className="w-[64px] h-[64px] absolute left-1 top-1 rounded-full border border-white"
-                                        />
-                                    </div>
-                                    <span className="text-xs text-white/80">{user.name}</span>
-                                </div>
-                            ))}
                         </div>
                     </section>
 
@@ -252,6 +224,13 @@ const HomePage = () => {
                         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                             {eventFallback.map((event) => (
                                 <div key={event.id} className="w-[222px] h-[332px] flex-shrink-0 relative rounded-[20px] overflow-hidden" style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}>
+                                    {/* Image */}
+                                    <img
+                                        src={event.image}
+                                        alt={event.title}
+                                        className="w-full h-[150px] object-cover"
+                                    />
+
                                     {/* Date Badge */}
                                     <div className="absolute right-4 top-0 w-9 px-2 py-3 bg-gradient-to-b from-black to-[#00C0CA] rounded-b-[28px] border-l border-r border-b border-[#CDCDCD] text-center">
                                         <div className="text-white text-sm font-semibold">APR<br />04</div>
