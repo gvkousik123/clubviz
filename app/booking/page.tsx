@@ -202,7 +202,7 @@ export default function BookingPage() {
                                                         className="w-full h-full"
                                                     />
                                                 </div>
-                                                <span className="text-white text-[0.8125rem] font-semibold font-['Manrope'] leading-5">
+                                                <span className="text-white text-xs font-semibold font-['Manrope'] leading-4">
                                                     Ticket Price - {booking.price}
                                                 </span>
                                             </div>
