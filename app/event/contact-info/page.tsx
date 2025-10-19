@@ -49,7 +49,7 @@ export default function ContactInfoPage() {
     });
 
     const handleNext = () => {
-        router.push('/events/mobile'); // Adjust this route as needed
+        router.push('/event/mobile'); // Adjust this route as needed
     };
 
     return (

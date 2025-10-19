@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, MapPin, Calendar, Mail, Phone, Plus, Minus } from 'lucide-react';
+import { MapPin, Calendar, Mail, Phone, Plus, Minus } from 'lucide-react';
+import PageHeader from '@/components/common/page-header';
 
 // Add custom CSS for hiding scrollbar while keeping functionality
 const scrollbarHideStyle = `
@@ -31,9 +32,7 @@ export default function ReviewBookingPage() {
         };
     }, []);
 
-    const handleBack = () => {
-        router.back();
-    };
+    // Note: The PageHeader component handles the back navigation internally
 
     const handlePayment = () => {
         // Navigate to payment page
@@ -42,29 +41,16 @@ export default function ReviewBookingPage() {
 
     return (
         <div className="min-h-screen w-full bg-[#021313] relative">
-            {/* Fixed Header with Back Button */}
-            <div className="fixed top-0 left-0 right-0 z-30 bg-gradient-to-b from-[#005E5D] to-transparent pt-6 pb-14">
-                <div className="flex items-center justify-center relative px-4 pt-2">
-                    <button
-                        onClick={handleBack}
-                        className="absolute left-4 p-2 bg-[#005D5C]/60 backdrop-blur-sm rounded-full hover:bg-[#005D5C]/80 transition-all duration-300"
-                    >
-                        <ChevronLeft size={20} className="text-[#14FFEC]" />
-                    </button>
-                    <h1 className="text-white text-xl font-['Anton'] tracking-wider">
-                        REVIEW EVENT BOOKING
-                    </h1>
-                </div>
-            </div>
+            <PageHeader title="REVIEW EVENT BOOKING" />
 
             {/* Main Content - Scrollable */}
-            <div className="pt-24 pb-24 h-screen overflow-y-auto scrollbar-hide">
+            <div className="pt-[20vh] pb-24 h-screen overflow-y-auto scrollbar-hide">
                 {/* Club Details Section */}
                 <div className="px-4 mb-6">
-                    <h2 className="text-white font-['Manrope'] font-semibold text-lg mb-4">
-                        Club Details
-                    </h2>
-                    <div className="h-[1px] bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent opacity-60 mb-4"></div>
+                    <div className="flex items-center gap-4 mb-4">
+                        <h2 className="text-white font-['Manrope'] font-semibold text-lg whitespace-nowrap">Club Details</h2>
+                        <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
+                    </div>
 
                     <div className="bg-[#0D1F1F] rounded-xl p-5 space-y-4">
                         <div className="flex items-center gap-3">
@@ -97,10 +83,10 @@ export default function ReviewBookingPage() {
 
                 {/* Send Details To Section */}
                 <div className="px-4 mb-6">
-                    <h2 className="text-white font-['Manrope'] font-semibold text-lg mb-4">
-                        Send Details to
-                    </h2>
-                    <div className="h-[1px] bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent opacity-60 mb-4"></div>
+                    <div className="flex items-center gap-4 mb-4">
+                        <h2 className="text-white font-['Manrope'] font-semibold text-lg whitespace-nowrap">Send Details to</h2>
+                        <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
+                    </div>
 
                     <div className="bg-[#0D1F1F] rounded-xl p-5 space-y-4">
                         <div className="flex items-center gap-3">
@@ -117,10 +103,10 @@ export default function ReviewBookingPage() {
 
                 {/* Selected Ticket Section */}
                 <div className="px-4 mb-6">
-                    <h2 className="text-white font-['Manrope'] font-semibold text-lg mb-4">
-                        Selected Ticket
-                    </h2>
-                    <div className="h-[1px] bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent opacity-60 mb-4"></div>
+                    <div className="flex items-center gap-4 mb-4">
+                        <h2 className="text-white font-['Manrope'] font-semibold text-lg whitespace-nowrap">Selected Ticket</h2>
+                        <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
+                    </div>
 
                     <div className="bg-[#0D1F1F] rounded-xl p-5">
                         {/* Early bird male pass */}
@@ -193,10 +179,10 @@ export default function ReviewBookingPage() {
 
                 {/* Details Section */}
                 <div className="px-4 mb-28">
-                    <h2 className="text-white font-['Manrope'] font-semibold text-lg mb-4">
-                        Details
-                    </h2>
-                    <div className="h-[1px] bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent opacity-60 mb-4"></div>
+                    <div className="flex items-center gap-4 mb-4">
+                        <h2 className="text-white font-['Manrope'] font-semibold text-lg whitespace-nowrap">Details</h2>
+                        <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
+                    </div>
 
                     <div className="bg-[#0D1F1F] rounded-xl p-5">
                         <p className="text-white font-['Manrope'] text-sm opacity-80">

@@ -30,7 +30,7 @@ export default function OtpPage() {
 
     const handleVerifyOtp = () => {
         // Verify OTP logic would go here
-        router.push('/payment/options'); // Adjust navigation as needed
+        router.push('/event/review-booking'); // Adjust navigation as needed
     };
 
     const handleResendOtp = () => {
