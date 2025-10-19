@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
 import PageHeader from '@/components/common/page-header';
 import { MapPin, Calendar } from 'lucide-react';
+import TableComponent from '@/components/booking/TableComponent';
 
 export default function TableSelectionPage() {
     const router = useRouter();
@@ -35,11 +36,16 @@ export default function TableSelectionPage() {
 
     // Table status mapping
     const getTableStatus = (tableId: string) => {
-        const reservedTables = ['TG-06', 'TG-07', 'TG-05'];
-        const availableTables = ['TG-01', 'TG-02', 'TG-03'];
+        const tableIdNormalized = tableId.replace(/\s+/g, '').replace(/-/g, ''); // Remove spaces and hyphens for consistent comparison
 
-        if (tableId === selectedTable) return 'selected';
-        if (reservedTables.includes(tableId)) return 'reserved';
+        // Normalized table IDs
+        const reservedTableIds = ['TG06', 'TG07', 'TG08'];
+        const availableTableIds = ['TG01', 'TG02', 'TG03', 'TG05', 'TG04'];
+
+        const selectedTableNormalized = selectedTable.replace(/\s+/g, '').replace(/-/g, '');
+
+        if (tableIdNormalized === selectedTableNormalized) return 'selected';
+        if (reservedTableIds.includes(tableIdNormalized)) return 'reserved';
         return 'available';
     };
 
@@ -65,191 +71,198 @@ export default function TableSelectionPage() {
     };
 
     return (
-        <div className="w-full h-screen relative bg-gradient-to-b from-transparent to-black overflow-hidden">
+        <div className="w-full min-h-screen relative bg-gradient-to-b from-transparent to-black pl-5 pr-5">
             <PageHeader title="DABO CLUB & KITCHEN" />
 
-
-            {/* Club location info */}
-            <div className="absolute top-[1.56rem] left-[2.44rem] flex items-center gap-[0.75rem] pl-[2rem]">
-                <div className="w-[1.125rem] h-[1.125rem] relative overflow-hidden">
-                    <MapPin className="w-[0.774rem] h-[0.984rem] absolute left-[0.176rem] top-[0.07rem] text-[#14FFEC]" />
+            <div className="absolute top-[20vh]">
+                <div className="flex items-center gap-[0.5rem] z-10">
+                    <div className="w-[1.125rem] h-[1.125rem] relative overflow-hidden">
+                        <MapPin className="w-[0.774rem] h-[0.984rem] absolute left-[0.176rem] top-[0.07rem] text-[#14FFEC]" />
+                    </div>
+                    <div className="text-white text-base font-['Manrope'] font-bold leading-[1.3125rem]">
+                        Dabo club & kitchen, Nagpur
+                    </div>
                 </div>
-                <div className="text-white text-base font-['Manrope'] font-medium leading-5 tracking-[0.01rem]">
-                    Dabo club & kitchen, Nagpur
+
+                {/* Date and time info - Outside the main box */}
+                <div className="flex items-center gap-[0.5rem] z-10">
+                    <div className="w-[1.125rem] h-[1.125rem] relative overflow-hidden">
+                        <Calendar className="w-[0.844rem] h-[0.914rem] absolute left-[0.141rem] top-[0.07rem] text-[#14FFEC]" />
+                    </div>
+                    <div className="text-white text-base font-['Manrope'] font-bold leading-[1.3125rem]">
+                        24 Dec | 7:00 pm
+                    </div>
                 </div>
             </div>
 
-            {/* Date and time info */}
-            <div className="absolute top-[3.5rem] left-[2.44rem] flex items-center gap-[0.81rem] pl-[2rem]">
-                <div className="w-[1.125rem] h-[1.125rem] relative overflow-hidden">
-                    <Calendar className="w-[0.844rem] h-[0.914rem] absolute left-[0.141rem] top-[0.07rem] text-[#14FFEC]" />
-                </div>
-                <div className="text-white text-sm font-['Manrope'] font-bold leading-5 tracking-[0.009rem]">
-                    24 Dec | 7:00 pm
-                </div>
-            </div>
 
             {/* Main Content Container */}
-            <div className="absolute top-[6.31rem] left-0 w-full h-[43.875rem] bg-gradient-to-b from-[rgba(17.52,124.23,115.6,0.82)] to-[rgba(0,0,0,0.82)] overflow-hidden rounded-t-[3.75rem]">
+            <div className="absolute top-[27vh] left-0 w-full min-h-[75vh] bg-gradient-to-b from-[rgba(17.52,124.23,115.6,0.82)] to-[rgba(0,0,0,0.82)] overflow-y-auto overflow-x-hidden scrollbar-hide rounded-t-[3.75rem]">
 
                 {/* Floor Selection Tabs */}
-                <div className="absolute top-[0.9375rem] left-[1rem] w-[24.875rem] h-[3.125rem] overflow-hidden">
+                <div className="absolute top-[1rem] left-[1rem] right-[1rem] h-[3.125rem] flex">
                     {floors.map((floor, index) => (
-                        <div key={floor} className="absolute overflow-hidden" style={{
-                            width: '8.29rem',
-                            height: '3.125rem',
-                            left: `${index * 8.29}rem`,
-                            top: 0
-                        }}>
+                        <div key={floor} className="flex-1 relative overflow-hidden">
                             <div
-                                className={`absolute w-full rounded-t-[0.5rem] ${floor === selectedFloor ? 'bg-[#14FFEC] h-[0.4375rem] top-[2.6875rem]' : 'bg-[#D9D9D9] h-[0.0625rem] top-[3.0625rem]'
+                                className={`absolute w-full rounded-t-[0.5rem] ${floor === selectedFloor ? 'bg-[#14FFEC] h-[0.4375rem] bottom-0' : 'bg-[#D9D9D9] h-[0.0625rem] bottom-0'
                                     }`}
                             ></div>
                             <button
                                 onClick={() => handleFloorSelect(floor)}
-                                className="absolute top-[0.9375rem] left-1/2 transform -translate-x-1/2 text-center text-white text-base font-['Manrope'] font-bold leading-[1.3125rem]"
+                                className="absolute inset-0 flex items-center justify-center text-white text-base font-['Manrope'] font-bold leading-[1.3125rem]"
                             >
                                 {floor}
                             </button>
                         </div>
                     ))}
                 </div>                {/* Legend */}
-                <div className="absolute top-[5.25rem] left-[1.6875rem] flex items-center gap-[0.5rem]">
-                    <div className="w-[1.125rem] h-[1.125rem] relative overflow-hidden">
-                        <div className="w-[0.91438rem] h-[0.91438rem] absolute left-[0.10563rem] top-[0.10563rem] bg-[#FF4B4B]"></div>
+                <div className="absolute top-[4.75rem] left-[1rem] right-[1rem] flex items-center justify-between px-2 mb-4">
+                    <div className="flex items-center gap-[0.5rem]">
+                        <div className="w-[1.125rem] h-[1.125rem] relative overflow-hidden">
+                            <div className="w-[0.91438rem] h-[0.91438rem] absolute left-[0.10563rem] top-[0.10563rem] bg-[#FF4B4B] rounded-full"></div>
+                        </div>
+                        <div className="text-white text-base font-['Manrope'] font-bold leading-[1.3125rem]">Reserved</div>
                     </div>
-                    <div className="text-center text-white text-base font-['Manrope'] font-bold leading-[1.3125rem]">Reserved</div>
-                </div>
 
-                <div className="absolute top-[5.25rem] left-[10.1875rem] flex items-center gap-[0.5rem]">
-                    <div className="w-[1.125rem] h-[1.125rem] relative overflow-hidden">
-                        <div className="w-[0.91438rem] h-[0.91438rem] absolute left-[0.10563rem] top-[0.10563rem] bg-white"></div>
+                    <div className="flex items-center gap-[0.5rem]">
+                        <div className="w-[1.125rem] h-[1.125rem] relative overflow-hidden">
+                            <div className="w-[0.91438rem] h-[0.91438rem] absolute left-[0.10563rem] top-[0.10563rem] bg-white rounded-full"></div>
+                        </div>
+                        <div className="text-white text-base font-['Manrope'] font-bold leading-[1.3125rem]">Available</div>
                     </div>
-                    <div className="text-center text-white text-base font-['Manrope'] font-bold leading-[1.3125rem]">Available</div>
-                </div>
 
-                <div className="absolute top-[5.25rem] left-[18.6875rem] flex items-center gap-[0.5rem]">
-                    <div className="w-[1.125rem] h-[1.125rem] relative overflow-hidden">
-                        <div className="w-[0.91438rem] h-[0.91438rem] absolute left-[0.10563rem] top-[0.10563rem] bg-[#14FFEC]"></div>
+                    <div className="flex items-center gap-[0.5rem]">
+                        <div className="w-[1.125rem] h-[1.125rem] relative overflow-hidden">
+                            <div className="w-[0.91438rem] h-[0.91438rem] absolute left-[0.10563rem] top-[0.10563rem] bg-[#14FFEC] rounded-full"></div>
+                        </div>
+                        <div className="text-white text-base font-['Manrope'] font-bold leading-[1.3125rem]">Selected</div>
                     </div>
-                    <div className="text-center text-white text-base font-['Manrope'] font-bold leading-[1.3125rem]">Selected</div>
                 </div>
 
                 {/* Table Layout Container */}
-                <div className="absolute top-[7.75rem] left-0 w-full h-[32.5rem] bg-[rgba(255,255,255,0.09)] overflow-hidden rounded-t-[3.75rem]">
+                <div className="absolute top-[7.5rem] left-0 w-full min-h-[48rem] bg-[rgba(255,255,255,0.09)] overflow-y-auto overflow-x-hidden scrollbar-hide rounded-t-[3.75rem] px-2 pb-32">
+                    <div className="relative w-full min-h-[45rem] pt-[3rem]">
+                        {/* Top tables row */}
+                        <div className="w-full flex justify-between px-4 mb-4">
+                            <div className="relative" style={{ width: '6.6875rem', height: '3.125rem' }}>
+                                <TableComponent
+                                    tableId="TG - 03"
+                                    status={getTableStatus('TG-03')}
+                                    onClick={() => handleTableSelect('TG-03')}
+                                    width="w-[6.6875rem]"
+                                    height="h-[3.125rem]"
+                                    chairPositions={['top', 'bottom']}
+                                />
+                            </div>
 
-                    {/* Main center table TG-01 */}
-                    <button
-                        onClick={() => handleTableSelect('TG-01')}
-                        className={`absolute top-[9.6875rem] left-[9.5rem] w-[7.9375rem] h-[10rem] ${getTableBgColor('TG-01')} rounded-[0.9375rem] border ${getTableBorderColor('TG-01')} transition-all duration-300 cursor-pointer`}
-                    >
-                        <div className={`absolute top-[3.5rem] left-[3.75rem] text-center ${getTableTextColor('TG-01')} text-[0.8125rem] font-['Manrope'] font-bold leading-[1.3125rem]`}>TG - 01</div>
-                    </button>
+                            <div className="relative" style={{ width: '6.6875rem', height: '3.125rem' }}>
+                                <TableComponent
+                                    tableId="TG - 04"
+                                    status={getTableStatus('TG-04')}
+                                    onClick={() => handleTableSelect('TG-04')}
+                                    width="w-[6.6875rem]"
+                                    height="h-[3.125rem]"
+                                    chairPositions={['top', 'bottom']}
+                                />
+                            </div>
+                        </div>
 
-                    {/* Bottom center table TG-02 */}
-                    <button
-                        onClick={() => handleTableSelect('TG-02')}
-                        className={`absolute top-[25.0625rem] left-[9.5rem] w-[7.9375rem] h-[11rem] ${getTableBgColor('TG-02')} rounded-[0.9375rem] border ${getTableBorderColor('TG-02')} transition-all duration-300 cursor-pointer`}
-                    >
-                        <div className={`absolute top-[4.8125rem] left-[3.6875rem] text-center ${getTableTextColor('TG-02')} text-[0.8125rem] font-['Manrope'] font-bold leading-[1.3125rem]`}>TG - 02</div>
-                    </button>
+                        {/* Middle section with side tables and main table */}
+                        <div className="w-full flex justify-between px-4 mb-6 mt-12">
+                            {/* Left side table */}
+                            <div className="relative mt-2" style={{ width: '3.125rem', height: '3.125rem' }}>
+                                <TableComponent
+                                    tableId="TG 06"
+                                    status={getTableStatus('TG-06')}
+                                    onClick={() => handleTableSelect('TG-06')}
+                                    width="w-[3.125rem]"
+                                    height="h-[3.125rem]"
+                                    chairPositions={['top', 'right', 'bottom']}
+                                    chairCount={{ top: 1, right: 1, bottom: 1 }}
+                                />
+                            </div>
 
-                    {/* Top left table TG-03 */}
-                    <button
-                        onClick={() => handleTableSelect('TG-03')}
-                        className={`absolute top-[2.4375rem] left-[5.375rem] w-[6.6875rem] h-[3.125rem] ${getTableBgColor('TG-03')} rounded-[0.9375rem] border ${getTableBorderColor('TG-03')} transition-all duration-300 cursor-pointer`}
-                    >
-                        <div className={`absolute top-[1rem] left-[2.125rem] text-center ${getTableTextColor('TG-03')} text-[0.8125rem] font-['Manrope'] font-bold leading-[1.3125rem]`}>TG - 03</div>
-                    </button>
+                            {/* Center main table */}
+                            <div className="relative mx-auto" style={{ width: '8rem', height: '10rem' }}>
+                                <TableComponent
+                                    tableId="TG - 01"
+                                    status={getTableStatus('TG-01')}
+                                    onClick={() => handleTableSelect('TG-01')}
+                                    width="w-[8rem]"
+                                    height="h-[10rem]"
+                                    chairPositions={['top', 'left', 'right', 'bottom']}
+                                    chairCount={{ top: 2, left: 3, right: 3, bottom: 2 }}
+                                />
+                            </div>
 
-                    {/* Top right table TG-04 */}
-                    <button
-                        onClick={() => handleTableSelect('TG-04')}
-                        className={`absolute top-[2.4375rem] left-[14.9375rem] w-[6.6875rem] h-[3.125rem] ${getTableBgColor('TG-04')} rounded-[0.9375rem] border ${getTableBorderColor('TG-04')} transition-all duration-300 cursor-pointer`}
-                    >
-                        <div className={`absolute top-[1rem] left-[2.125rem] text-center ${getTableTextColor('TG-04')} text-[0.8125rem] font-['Manrope'] font-bold leading-[1.3125rem]`}>TG - 04</div>
-                    </button>
+                            {/* Right side table */}
+                            <div className="relative mt-2" style={{ width: '3.125rem', height: '3.125rem' }}>
+                                <TableComponent
+                                    tableId="TG 05"
+                                    status={getTableStatus('TG-05')}
+                                    onClick={() => handleTableSelect('TG-05')}
+                                    width="w-[3.125rem]"
+                                    height="h-[3.125rem]"
+                                    chairPositions={['top', 'left', 'bottom']}
+                                    chairCount={{ top: 1, left: 1, bottom: 1 }}
+                                />
+                            </div>
+                        </div>
 
-                    {/* Right side tables */}
-                    <button
-                        onClick={() => handleTableSelect('TG-05')}
-                        disabled={getTableStatus('TG-05') === 'reserved'}
-                        className={`absolute top-[8.4375rem] left-[21.625rem] w-[3.125rem] h-[3.125rem] ${getTableBgColor('TG-05')} rounded-[0.9375rem] border ${getTableBorderColor('TG-05')} transition-all duration-300 ${getTableStatus('TG-05') === 'reserved' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                    >
-                        <div className={`absolute top-[0.75rem] left-[0.5rem] text-center ${getTableTextColor('TG-05')} text-[0.8125rem] font-['Manrope'] font-bold leading-[1rem]`}>TG<br />05</div>
-                    </button>
+                        {/* Bottom section with side tables */}
+                        <div className="w-full flex justify-between px-4 mb-10 mt-12">
+                            {/* Left bottom table */}
+                            <div className="relative" style={{ width: '3.125rem', height: '3.125rem' }}>
+                                <TableComponent
+                                    tableId="TG 07"
+                                    status={getTableStatus('TG-07')}
+                                    onClick={() => handleTableSelect('TG-07')}
+                                    width="w-[3.125rem]"
+                                    height="h-[3.125rem]"
+                                    chairPositions={['top', 'right', 'bottom']}
+                                    chairCount={{ top: 1, right: 1, bottom: 1 }}
+                                />
+                            </div>
 
-                    {/* Left side tables */}
-                    <button
-                        onClick={() => handleTableSelect('TG-06')}
-                        disabled={getTableStatus('TG-06') === 'reserved'}
-                        className={`absolute top-[8.4375rem] left-[2.25rem] w-[3.125rem] h-[3.125rem] ${getTableBgColor('TG-06')} rounded-[0.9375rem] border ${getTableBorderColor('TG-06')} transition-all duration-300 ${getTableStatus('TG-06') === 'reserved' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                    >
-                        <div className={`absolute top-[0.75rem] left-[0.375rem] text-center ${getTableTextColor('TG-06')} text-[0.8125rem] font-['Manrope'] font-bold leading-[1rem]`}>TG<br />06</div>
-                    </button>
+                            {/* Right bottom table */}
+                            <div className="relative" style={{ width: '3.125rem', height: '3.125rem' }}>
+                                <TableComponent
+                                    tableId="TG 08"
+                                    status={getTableStatus('TG-08')}
+                                    onClick={() => handleTableSelect('TG-08')}
+                                    width="w-[3.125rem]"
+                                    height="h-[3.125rem]"
+                                    chairPositions={['top', 'left', 'bottom']}
+                                    chairCount={{ top: 1, left: 1, bottom: 1 }}
+                                />
+                            </div>
+                        </div>
 
-                    <button
-                        onClick={() => handleTableSelect('TG-07')}
-                        disabled={getTableStatus('TG-07') === 'reserved'}
-                        className={`absolute top-[19.5rem] left-[2.25rem] w-[3.125rem] h-[3.125rem] ${getTableBgColor('TG-07')} rounded-[0.9375rem] border ${getTableBorderColor('TG-07')} transition-all duration-300 ${getTableStatus('TG-07') === 'reserved' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                    >
-                        <div className={`absolute top-[0.75rem] left-[0.375rem] text-center ${getTableTextColor('TG-07')} text-[0.8125rem] font-['Manrope'] font-bold leading-[1rem]`}>TG<br />07</div>
-                    </button>
-
-                    {/* Small chair elements around tables */}
-                    <div className="absolute top-[1.1875rem] left-[6.5rem] flex gap-[1.0625rem]">
-                        <div className={`w-[1.6875rem] h-[0.75rem] ${getTableBgColor('TG-03')} rounded-[0.9375rem] border ${getTableBorderColor('TG-03')}`}></div>
-                        <div className={`w-[1.6875rem] h-[0.75rem] ${getTableBgColor('TG-03')} rounded-[0.9375rem] border ${getTableBorderColor('TG-03')}`}></div>
-                    </div>
-
-                    <div className="absolute top-[1.1875rem] left-[16.0625rem] flex gap-[1.0625rem]">
-                        <div className={`w-[1.6875rem] h-[0.75rem] ${getTableBgColor('TG-04')} rounded-[0.9375rem] border ${getTableBorderColor('TG-04')}`}></div>
-                        <div className={`w-[1.6875rem] h-[0.75rem] ${getTableBgColor('TG-04')} rounded-[0.9375rem] border ${getTableBorderColor('TG-04')}`}></div>
-                    </div>
-
-                    {/* Side chair elements */}
-                    <div className="absolute top-[11.25rem] left-[8.25rem] flex flex-col gap-[0.875rem]">
-                        <div className={`w-[0.75rem] h-[0.75rem] ${getTableBgColor('TG-01')} rounded-[0.9375rem] border ${getTableBorderColor('TG-01')}`}></div>
-                        <div className={`w-[0.75rem] h-[0.75rem] ${getTableBgColor('TG-01')} rounded-[0.9375rem] border ${getTableBorderColor('TG-01')}`}></div>
-                        <div className={`w-[0.75rem] h-[0.75rem] ${getTableBgColor('TG-01')} rounded-[0.9375rem] border ${getTableBorderColor('TG-01')}`}></div>
-                    </div>
-
-                    <div className="absolute top-[11.25rem] left-[17.9375rem] flex flex-col gap-[0.875rem]">
-                        <div className={`w-[0.75rem] h-[0.75rem] ${getTableBgColor('TG-01')} rounded-[0.9375rem] border ${getTableBorderColor('TG-01')}`}></div>
-                        <div className={`w-[0.75rem] h-[0.75rem] ${getTableBgColor('TG-01')} rounded-[0.9375rem] border ${getTableBorderColor('TG-01')}`}></div>
-                        <div className={`w-[0.75rem] h-[0.75rem] ${getTableBgColor('TG-01')} rounded-[0.9375rem] border ${getTableBorderColor('TG-01')}`}></div>
-                    </div>
-
-                    {/* More chair elements around bottom table */}
-                    <div className="absolute top-[26.5625rem] left-[8.1875rem] flex flex-col gap-[0.875rem]">
-                        <div className={`w-[0.75rem] h-[0.75rem] ${getTableBgColor('TG-02')} rounded-[0.9375rem] border ${getTableBorderColor('TG-02')}`}></div>
-                        <div className={`w-[0.75rem] h-[0.75rem] ${getTableBgColor('TG-02')} rounded-[0.9375rem] border ${getTableBorderColor('TG-02')}`}></div>
-                        <div className={`w-[0.75rem] h-[0.75rem] ${getTableBgColor('TG-02')} rounded-[0.9375rem] border ${getTableBorderColor('TG-02')}`}></div>
-                    </div>
-
-                    <div className="absolute top-[26.5625rem] left-[17.9375rem] flex flex-col gap-[0.875rem]">
-                        <div className={`w-[0.75rem] h-[0.75rem] ${getTableBgColor('TG-02')} rounded-[0.9375rem] border ${getTableBorderColor('TG-02')}`}></div>
-                        <div className={`w-[0.75rem] h-[0.75rem] ${getTableBgColor('TG-02')} rounded-[0.9375rem] border ${getTableBorderColor('TG-02')}`}></div>
-                        <div className={`w-[0.75rem] h-[0.75rem] ${getTableBgColor('TG-02')} rounded-[0.9375rem] border ${getTableBorderColor('TG-02')}`}></div>
+                        {/* Bottom main table */}
+                        <div className="w-full flex justify-center px-4 mb-20">
+                            <div className="relative mx-auto" style={{ width: '8rem', height: '9rem' }}>
+                                <TableComponent
+                                    tableId="TG - 02"
+                                    status={getTableStatus('TG-02')}
+                                    onClick={() => handleTableSelect('TG-02')}
+                                    width="w-[8rem]"
+                                    height="h-[9rem]"
+                                    chairPositions={['left', 'right', 'bottom']}
+                                    chairCount={{ left: 3, right: 3, bottom: 2 }}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
             </div>
 
-            {/* Fixed Bottom Button */}
-            <div className="fixed bottom-0 left-0 w-full h-[4.8125rem] bg-gradient-to-t from-black to-transparent overflow-hidden">
-                <div className="absolute bottom-0 left-0 w-full h-[3.5rem] overflow-hidden rounded-t-[2.8125rem]"
-                    style={{
-                        background: 'radial-gradient(ellipse 70.81% 149.79% at 50.00% 100.00%, #01655C 0%, #008076 100%)'
-                    }}>
-                    <button
-                        onClick={handleContinue}
-                        disabled={!selectedTable || getTableStatus(selectedTable) === 'reserved'}
-                        className="absolute top-[0.75rem] left-1/2 transform -translate-x-1/2 w-[11.5625rem] h-[2rem] text-center text-white text-[1.5rem] font-['Manrope'] font-bold leading-[1.3125rem] disabled:opacity-50"
-                    >
-                        Reserve Table
-                    </button>
-                </div>
+            <div className="fixed bottom-0 left-0 right-0 z-50">
+                <BottomContinueButton
+                    text="Reserve Table"
+                    onClick={handleContinue}
+                    disabled={!selectedTable || getTableStatus(selectedTable) === 'reserved'}
+                />
             </div>
         </div>
     );
