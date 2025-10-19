@@ -14,6 +14,8 @@ const config = {
       fontFamily: {
         sans: [designSystem.typography.fontFamily.primary, ...designSystem.typography.fontFamily.fallback.split(', ')],
         primary: designSystem.typography.fontFamily.primary,
+        'manrope': ['Manrope', 'sans-serif'],
+        'anton': ['Anton SC', 'sans-serif'],
       },
       
       // Font Sizes from design system
@@ -82,6 +84,8 @@ const config = {
         'gradient-button': designSystem.colors.gradients.button,
         'gradient-hero': designSystem.colors.gradients.primaryHeader,
         'gradient-card-overlay': designSystem.colors.gradients.cardOverlay,
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-radial-ellipse': 'radial-gradient(ellipse var(--tw-gradient-stops))',
       },
     },
   },
@@ -144,6 +148,12 @@ const config = {
           'background': designSystem.colors.background.glass,
           'backdrop-filter': 'blur(20px)',
           'border-top': '1px solid rgba(255, 255, 255, 0.08)',
+        },
+        '.bg-gradient-radial': {
+          'background': 'radial-gradient(var(--tw-gradient-stops))',
+        },
+        '.bg-gradient-radial-ellipse': {
+          'background': 'radial-gradient(ellipse var(--tw-gradient-stops))',
         },
       })
     }

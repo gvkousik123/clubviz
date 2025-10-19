@@ -1,48 +1,55 @@
 ﻿'use client';
 
-import React, { useState } from 'react';
-import Link from 'next/link';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
     ArrowLeft,
     Share,
     Heart,
     MapPin,
-    Star,
-    Phone,
     Clock,
-    Users,
-    Wifi,
-    Car,
-    Wine,
-    Music,
-    Utensils,
     Calendar,
-    Camera,
-    ShieldCheck,
-    Ticket,
-    ChevronRight,
+    Wine,
     Sparkles,
+    Users,
+    Car,
+    Wifi,
+    ShieldCheck,
+    Utensils,
+    Music,
+    Camera,
+    ChevronLeft,
+    ChevronRight,
+    Star,
+    Play,
+    Pause,
+    Phone,
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
-type Offer = {
-    icon: LucideIcon;
+// Types
+interface VenueInfo {
+    name: string;
+    address: string;
+    rating: number;
+}
+
+interface OfferCard {
     title: string;
-    description: string;
-    accent?: 'teal' | 'purple';
-};
+    isActive?: boolean;
+}
 
-type EntryOption = {
+interface EntryTab {
     label: string;
     price: string;
     cover: string;
-    note: string;
-};
+    isActive?: boolean;
+}
 
-type UpcomingEvent = {
+interface EventCard {
     id: number;
     title: string;
     venue: string;
@@ -50,192 +57,146 @@ type UpcomingEvent = {
     month: string;
     category: string;
     image: string;
-    slug: string;
-};
+}
 
-type Review = {
+interface FacilityChip {
+    icon: string;
+    label: string;
+}
+
+interface AmenitySection {
+    title: string;
+    items: string[];
+}
+
+interface ReviewCard {
     name: string;
     initial: string;
     rating: number;
     comment: string;
     timeAgo: string;
+}
+
+// Data
+const venueInfo: VenueInfo = {
+    name: 'DABO CLUB & KITCHEN',
+    address: 'House 1913/B/1, Yogesham CHS, Wardha Road, Nagpur',
+    rating: 4.2,
 };
 
-type AmenityGroup = {
-    title: string;
-    icon: LucideIcon;
-    items: string[];
-};
-
-type FacilityChip = {
-    icon: LucideIcon;
-    label: string;
-};
-
-type QuickFact = {
-    icon: LucideIcon;
-    label: string;
-};
-
-const quickFacts: QuickFact[] = [
-    { icon: MapPin, label: 'DABO Club & Kitchen • Airport Road' },
-    { icon: Calendar, label: 'Friday • 04 Apr 2025' },
-    { icon: Clock, label: '8:00 PM onwards' },
+const offers: OfferCard[] = [
+    { title: 'Buy 1 get 1 on IFML Drinks', isActive: true },
+    { title: 'Free Entry for all before 09:00 PM', isActive: true },
 ];
 
-const vibeTags = ['Techno & Bollytech', 'Afrohouse Grooves', 'Live Percussion'];
-
-const offers: Offer[] = [
-    {
-        icon: Wine,
-        title: 'Buy 1 get 1 on premium IMFL',
-        description: 'Available till 10:30 PM',
-        accent: 'teal',
-    },
-    {
-        icon: Clock,
-        title: 'Free entry before 09:30 PM',
-        description: 'Redeemable cover worth ₹1,000',
-        accent: 'teal',
-    },
-    {
-        icon: Sparkles,
-        title: 'Ladies night perks',
-        description: 'Complimentary welcome shots for first 50 guests',
-        accent: 'purple',
-    },
+const entryTabs: EntryTab[] = [
+    { label: 'Couple & Group\nEntry', price: 'Rs 1500 (Cover - 1000)', cover: 'Redeem cover before 12:00 AM', isActive: true },
+    { label: 'Male stag\n Entry', price: '', cover: '', isActive: false },
+    { label: 'Female stag\n Entry', price: '', cover: '', isActive: false },
 ];
 
-const entryOptions: EntryOption[] = [
-    {
-        label: 'Couple + group entry',
-        price: '₹3,500',
-        cover: 'Includes ₹2,000 cover',
-        note: 'Redeem before 11:30 PM',
-    },
-    {
-        label: 'Male stag entry',
-        price: '₹2,200',
-        cover: 'Includes ₹1,200 cover',
-        note: 'Subject to profiling at door',
-    },
-    {
-        label: 'Female stag entry',
-        price: '₹1,200',
-        cover: 'Complimentary welcome drink',
-        note: 'Limited slots available',
-    },
-];
-
-const upcomingEvents: UpcomingEvent[] = [
+const upcomingEvents: EventCard[] = [
     {
         id: 1,
-        title: 'Freaky Friday with DJ Alexxx',
-        venue: 'DABO, Airport Road',
+        title: 'Freaky Friday \nwith DJ Alexxx',
+        venue: 'DABO , Airport Road',
         date: '04',
         month: 'APR',
         category: 'Techno & Bollytech',
         image: '/event list/Rectangle 12249.jpg',
-        slug: 'freaky-friday-with-dj-alexxx',
     },
     {
         id: 2,
-        title: 'Wow Wednesday with DJ Shade',
-        venue: 'DABO, Airport Road',
-        date: '06',
+        title: 'Freaky Friday \nwith DJ Alexxx',
+        venue: 'DABO , Airport Road',
+        date: '04',
         month: 'APR',
-        category: 'Bollywood & Bollytech',
+        category: 'Deep house & Mellow Tech',
         image: '/event list/Rectangle 1.jpg',
-        slug: 'wow-wednesday-with-dj-shade',
     },
     {
         id: 3,
-        title: 'Sunset Sunday Rooftop',
-        venue: 'DABO Terrace',
-        date: '07',
+        title: 'Freaky Friday \nwith DJ Alexxx',
+        venue: 'DABO , Airport Road',
+        date: '04',
         month: 'APR',
-        category: 'Deep House & Chill',
+        category: 'Techno & Bollytech',
         image: '/gallery/Frame 1000001128.jpg',
-        slug: 'sunset-sunday-rooftop',
     },
 ];
 
 const galleryImages: string[] = [
-    '/dabo ambience main dabo page/Media.jpg',
-    '/dabo ambience main dabo page/Media-1.jpg',
-    '/dabo ambience main dabo page/Media-2.jpg',
-    '/dabo ambience main dabo page/Media-3.jpg',
-    '/event list/Rectangle 12249.jpg',
-    '/event list/Rectangle 1.jpg',
+    'https://placehold.co/178x178',
+    'https://placehold.co/175x178',
+    'https://placehold.co/112x112',
+    'https://placehold.co/115x112',
+    'https://placehold.co/114x112',
 ];
 
-const facilityChips: FacilityChip[] = [
-    { icon: Wifi, label: 'Wi-Fi enabled' },
-    { icon: Car, label: 'Valet parking' },
-    { icon: Users, label: 'Private lounge' },
-    { icon: ShieldCheck, label: 'Security check' },
+const facilities: FacilityChip[] = [
+    { icon: '🕐', label: 'Open till midnight' },
+    { icon: '♿', label: 'Disabled Access' },
+    { icon: '🚗', label: 'Car Parking' },
+    { icon: '🏠', label: 'Private dining space' },
+    { icon: '🪑', label: 'Indoor Seating' },
+    { icon: '📋', label: 'Table booking' },
 ];
 
-const amenityGroups: AmenityGroup[] = [
+const amenities: AmenitySection[] = [
     {
         title: 'Food',
-        icon: Utensils,
-        items: ['Asian fusion', 'Italian classics', 'North Indian staples', 'Gourmet bar snacks'],
+        items: ['Gluten free options', 'Bar Snacks', 'Asian', 'Continental', 'North Indian'],
     },
     {
         title: 'Music',
-        icon: Music,
-        items: ['DJ Martin live set', 'Techno & Bollytech mashups', 'Karaoke afterhours', 'Surprise guest acts'],
+        items: ['DJ Martin live set', 'Techno & Bollytech', 'Karaoke afterhours'],
     },
     {
         title: 'Bar',
-        icon: Wine,
-        items: ['Signature cocktails', 'Premium spirits', 'Wine cellar', 'Craft beers'],
+        items: ['Craft beers', 'Wine cellar', 'Cocktails', 'Premium spirits'],
     },
 ];
 
-const reviews: Review[] = [
+const reviews: ReviewCard[] = [
     {
         name: 'Anjali Sharma',
         initial: 'A',
         rating: 5,
-        comment:
-            'Loved the energy! The lighting, music, and service were all on point. Highly recommend booking a table in advance.',
+        comment: 'Loved the energy! The lighting, music, and service were all on point. Highly recommend booking a table in advance.',
         timeAgo: '2 days ago',
     },
     {
         name: 'Rahul Verma',
         initial: 'R',
         rating: 4,
-        comment:
-            'Great vibe and crowd. Drinks menu is extensive and the DJ kept everyone on the floor all night.',
+        comment: 'Great vibe and crowd. Drinks menu is extensive and the DJ kept everyone on the floor all night.',
         timeAgo: '1 week ago',
     },
 ];
 
-const eventTitle = 'Freaky Friday ft. DJ Martin';
-const eventVenue = 'DABO Club & Kitchen';
-const eventLocation = 'Dharampeth, Nagpur';
-const heroImage = '/dabo ambience main dabo page/Media.jpg';
+const heroImages = [
+    '/dabo ambience main dabo page/Media.jpg',
+    '/dabo ambience main dabo page/Media-1.jpg',
+    '/dabo ambience main dabo page/Media-2.jpg',
+    '/dabo ambience main dabo page/Media-3.jpg',
+];
 
 export default function DaboEventPage() {
     const router = useRouter();
+    const { toast } = useToast();
     const [isLiked, setIsLiked] = useState(false);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const handleGoBack = () => {
         router.back();
     };
 
     const handleShare = async () => {
-        if (typeof window === 'undefined' || typeof navigator === 'undefined') {
-            return;
-        }
-
         try {
-            if (navigator.share) {
+            if (navigator?.share) {
                 await navigator.share({
-                    title: eventTitle,
-                    text: `Join ${eventTitle} at ${eventVenue}.`,
+                    title: 'DABO Club & Kitchen',
+                    text: 'Check out this amazing club!',
                     url: window.location.href,
                 });
                 return;
@@ -248,11 +209,6 @@ export default function DaboEventPage() {
             });
         } catch (error) {
             console.error('Share failed', error);
-            toast({
-                title: 'Unable to share automatically',
-                description: 'Copy the link from your browser address bar instead.',
-                variant: 'destructive',
-            });
         }
     };
 
@@ -260,458 +216,379 @@ export default function DaboEventPage() {
         setIsLiked((prev) => !prev);
     };
 
-    const iconButtonClasses =
-        'h-11 w-11 rounded-full border border-white/15 bg-black/40 backdrop-blur-md hover:bg-black/60';
+    const nextImage = () => {
+        setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+    };
+
+    const prevImage = () => {
+        setCurrentImageIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length);
+    };
 
     return (
-        <div className="min-h-screen bg-[#031313] text-white">
-            <div className="relative mx-auto max-w-[428px] pb-28">
-                <div
-                    className="pointer-events-none absolute -top-48 right-[-180px] h-[360px] w-[360px] rounded-full bg-[#0891b2]/25 blur-[140px]"
-                    aria-hidden
-                />
-                <div
-                    className="pointer-events-none absolute top-[420px] left-[-220px] h-[320px] w-[320px] rounded-full bg-[#14b8a6]/20 blur-[140px]"
-                    aria-hidden
-                />
+        <div className="min-h-screen bg-[rgba(255,255,255,0.07)] relative w-full max-w-[430px] mx-auto rounded-[20px]">
+            {/* Hero Image Carousel */}
+            <div className="relative w-full h-[391px] overflow-hidden">
+                <div className="absolute inset-0 flex">
+                    {heroImages.map((image, index) => (
+                        <img
+                            key={index}
+                            className="min-w-full h-full object-cover p-2.5 transition-transform duration-300"
+                            src={image}
+                            alt={`Hero ${index + 1}`}
+                            style={{
+                                transform: `translateX(${(index - currentImageIndex) * 100}%)`,
+                            }}
+                        />
+                    ))}
+                </div>
 
-                <section className="relative overflow-hidden rounded-b-[40px]">
-                    <div className="relative h-[360px]">
-                        <img src={heroImage} alt={eventTitle} className="h-full w-full object-cover" />
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/45 to-[#031313]/95" />
+                {/* Navigation arrows */}
+                <div className="absolute left-3.5 top-1/2 transform -translate-y-1/2 flex justify-between items-center w-[402px]">
+                    <button
+                        onClick={prevImage}
+                        className="w-[30px] h-[30px] bg-white rounded-full flex items-center justify-center overflow-hidden"
+                    >
+                        <div className="w-[24.38px] h-[24.38px] bg-white flex items-center justify-center">
+                            <ChevronLeft className="w-4 h-4 text-black" />
+                        </div>
+                    </button>
+                    <button
+                        onClick={nextImage}
+                        className="w-[30px] h-[30px] bg-white rounded-full flex items-center justify-center overflow-hidden"
+                    >
+                        <div className="w-[24.38px] h-[24.38px] bg-white flex items-center justify-center">
+                            <ChevronRight className="w-4 h-4 text-black" />
+                        </div>
+                    </button>
+                </div>
 
-                        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-5 pt-6">
-                            <Button
-                                variant="secondary"
-                                size="icon"
-                                className={iconButtonClasses}
-                                onClick={handleGoBack}
-                                aria-label="Go back"
-                            >
-                                <ArrowLeft className="h-5 w-5 text-white" />
-                            </Button>
-                            <div className="flex items-center gap-3">
-                                <Button
-                                    variant="secondary"
-                                    size="icon"
-                                    className={iconButtonClasses}
-                                    onClick={handleShare}
-                                    aria-label="Share event"
-                                >
-                                    <Share className="h-5 w-5 text-white" />
-                                </Button>
-                                <Button
-                                    variant="secondary"
-                                    size="icon"
-                                    className={iconButtonClasses}
-                                    onClick={handleToggleLike}
-                                    aria-pressed={isLiked}
-                                    aria-label="Add to favourites"
-                                >
-                                    <Heart
-                                        className="h-5 w-5 text-white"
-                                        fill={isLiked ? 'currentColor' : 'none'}
-                                    />
-                                </Button>
+                {/* Header overlay */}
+                <div className="absolute top-0 left-0 w-full h-[194px] bg-gradient-to-b from-black to-transparent rounded-t-[20px] overflow-hidden">
+                    {/* Status bar */}
+                    <div className="flex justify-between items-center w-[355px] mx-auto pt-[18px]">
+                        <div className="text-[#FFFCFC] text-[15px] font-manrope font-semibold leading-[21px]">9:41</div>
+                        <div className="flex items-start gap-0.5">
+                            <div className="w-5 h-4"></div>
+                            <div className="w-4 h-4"></div>
+                            <div className="w-[25px] h-4 relative overflow-hidden">
+                                <div className="w-[22px] h-[11.33px] absolute top-0.5 left-0.25 opacity-35 rounded-[2.67px] border border-white"></div>
+                                <div className="w-[1.33px] h-1 absolute top-[5.67px] left-6 opacity-40 bg-white"></div>
+                                <div className="w-[18px] h-[7.33px] absolute top-1 left-[3px] bg-white rounded-[1.33px]"></div>
                             </div>
                         </div>
+                    </div>
 
-                        <div className="absolute bottom-8 left-5 right-5 space-y-4">
-                            <div className="flex items-center justify-between gap-4">
-                                <span className="badge-tag text-[10px] uppercase tracking-[0.35em]">Tonight</span>
-                                <span className="rounded-full bg-white/15 px-4 py-1 text-[11px] uppercase tracking-[0.3em] text-white/80">
-                                    Featured Event
-                                </span>
-                            </div>
-                            <div className="space-y-2">
-                                <h1 className="text-[32px] font-extrabold leading-[1.1]">{eventTitle}</h1>
-                                <p className="text-sm uppercase tracking-[0.35em] text-white/70">Hosted by {eventVenue}</p>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-3 text-sm text-white/75">
-                                <div className="flex items-center gap-2">
-                                    <MapPin className="h-4 w-4" />
-                                    <span>{eventLocation}</span>
+                    {/* Back button */}
+                    <button
+                        onClick={handleGoBack}
+                        className="absolute left-4 top-24 w-[35px] h-[35px] bg-white/20 rounded-[18px] flex items-center justify-center transform -rotate-90 overflow-hidden"
+                    >
+                        <div className="w-4 h-2 transform rotate-90 border-2 border-white outline-white outline-[-1px]"></div>
+                    </button>
+                </div>
+            </div>
+
+            {/* Main content */}
+            <div className="absolute top-[359px] left-0 w-full bg-[#021313] rounded-t-[40px] rounded-b-[20px] overflow-hidden min-h-[2703px]">
+                {/* Header section with venue info */}
+                <div className="absolute top-0 left-0 w-full h-[253px] px-[29px] pt-3 pb-[18px] bg-gradient-to-b from-[#021313] to-transparent rounded-t-[40px] overflow-hidden flex flex-col justify-end items-center gap-[25px]">
+                    <h1 className="text-white text-[36px] font-anton text-center leading-5 tracking-[0.36px] h-[35px] flex items-center">
+                        {venueInfo.name}
+                    </h1>
+
+                    <div className="w-[398px] flex flex-col items-center gap-2">
+                        {/* Social buttons */}
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={handleShare}
+                                className="w-10 h-10 px-6 py-[11px] bg-gradient-to-br from-[#01756C] to-[#08C2B3] rounded-[25px] flex items-center justify-center gap-2.5 overflow-hidden"
+                            >
+                                <Share className="w-6 h-6 text-[#14FFEC]" />
+                            </button>
+                            <button
+                                onClick={handleToggleLike}
+                                className="w-10 h-10 px-6 py-[11px] bg-gradient-to-br from-[#01756C] to-[#08C2B3] rounded-[25px] flex items-center justify-center gap-2.5 overflow-hidden"
+                            >
+                                <Heart className="w-6 h-6 text-[#14FFEC]" fill={isLiked ? '#14FFEC' : 'none'} />
+                            </button>
+                            <button className="w-10 h-10 px-6 py-[11px] bg-gradient-to-br from-[#01756C] to-[#08C2B3] rounded-[25px] flex items-center justify-center gap-2.5 overflow-hidden">
+                                <MapPin className="w-6 h-6 text-[#14FFEC]" />
+                            </button>
+                            <button className="w-10 h-10 px-6 py-[11px] bg-gradient-to-br from-[#01756C] to-[#08C2B3] rounded-[25px] flex items-center justify-center gap-2.5 overflow-hidden">
+                                <Phone className="w-6 h-6 text-[#14FFEC]" />
+                            </button>
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="w-full flex justify-center items-center gap-[7px]">
+                            <button className="w-48 px-6 py-[11px] bg-gradient-to-br from-[#01756C] to-[#08C2B3] rounded-[25px] flex items-center justify-center gap-2.5 overflow-hidden">
+                                <span className="text-white text-base font-bold leading-4 tracking-[0.5px]">Reserve your spot</span>
+                            </button>
+                            <button className="w-36 px-6 py-[11px] bg-gradient-to-br from-[#01756C] to-[#08C2B3] rounded-[25px] flex items-center justify-center gap-2.5 overflow-hidden">
+                                <span className="text-white text-base font-bold leading-4 tracking-[0.5px]">Book offline</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Content sections */}
+                <div className="absolute top-[262px] left-0 w-full min-h-[2438px] overflow-hidden flex flex-col items-center justify-start gap-4 flex-wrap">
+                    {/* Now Playing Section */}
+                    <div className="w-[398px] px-[17px] py-[15px] bg-[rgba(40,60,61,0.30)] rounded-[15px] flex flex-col items-center gap-[11px] overflow-hidden">
+                        <div className="w-full flex flex-col gap-4">
+                            <div className="w-full flex flex-col gap-3">
+                                <div className="w-full flex items-center gap-2.5">
+                                    <h3 className="text-[#FFFEFF] text-base font-semibold leading-4 tracking-[0.5px]">Now Playing</h3>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Clock className="h-4 w-4" />
-                                    <span>8:00 PM onwards</span>
+                            </div>
+
+                            {/* Music player */}
+                            <div className="w-[349px] h-[93px] relative">
+                                <div className="absolute left-20 top-[34px] text-white text-[13px] font-normal leading-[15.6px]">Now playing</div>
+                                <div className="absolute left-[60px] top-[7px] text-white text-[13px] font-normal leading-[15.6px]">Club Music</div>
+                                <div className="absolute left-[39px] top-1 w-[110px] h-5 bg-gradient-to-t from-transparent to-[rgba(20,255,236,0.31)] rounded-t-[15px]"></div>
+
+                                {/* Music tags */}
+                                <div className="absolute left-20 top-14 px-2.5 py-[5px] bg-[rgba(32,43,43,0.6)] rounded-[25px] border border-[#28D2DB] flex items-center justify-center gap-1">
+                                    <span className="text-white text-[13px] font-normal leading-[15.6px]">Chill House Mix</span>
+                                    <div className="w-[7px] h-[7px] bg-[#C50000] rounded-full"></div>
+                                </div>
+
+                                <div className="absolute left-[211px] top-14 px-2.5 py-[5px] bg-[rgba(32,43,43,0.6)] rounded-[25px] border border-[#28D2DB] flex items-center justify-center gap-1.5">
+                                    <span className="text-white text-[13px] font-normal leading-[15.6px]">Techno Vibes</span>
+                                    <div className="w-[7px] h-[7px] bg-[#C50000] rounded-full"></div>
+                                </div>
+                            </div>
+
+                            {/* Today's Offers */}
+                            <div className="w-full flex flex-col gap-3">
+                                <div className="w-full flex items-center gap-2.5">
+                                    <h3 className="text-[#FFFEFF] text-base font-semibold leading-4 tracking-[0.5px]">Today's Offers</h3>
+                                </div>
+                                <div className="w-full h-[123px] bg-[rgba(31.93,42.75,43.32,0.6)] rounded-[15px] p-2.5 space-y-2 overflow-hidden relative">
+                                    {offers.map((offer, index) => (
+                                        <div key={index} className="w-[344px] h-[45px] bg-[#263438] rounded-[10px] border border-[#14FFEC] relative overflow-hidden">
+                                            <div className={`absolute ${index === 0 ? 'right-[70px] top-[-23px] w-[86.81px] h-[86.47px]' : 'right-[66px] top-[-23px] w-[88.45px] h-[86.39px]'} bg-[#1B726B] transform rotate-[8deg]`}></div>
+                                            <div className={`absolute ${index === 0 ? 'left-[19px] top-[15px] w-[172.5px]' : 'left-[19px] top-[15px] w-[233px]'} text-white text-[13px] font-extrabold leading-4 tracking-[0.5px]`}>
+                                                {offer.title}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Entry/Booking */}
+                            <div className="w-[364px] flex flex-col gap-3">
+                                <div className="w-full flex items-center gap-2.5">
+                                    <h3 className="text-[#FFFEFF] text-base font-semibold leading-4 tracking-[0.5px]">Entry/Booking</h3>
+                                </div>
+                                <div className="w-full h-[134px] bg-[rgba(31.93,42.75,43.32,0.6)] rounded-[15px] p-2.5 relative overflow-hidden">
+                                    <div className="w-[344px] h-[114px] bg-[#263438] rounded-[15px] flex flex-wrap items-start justify-center overflow-hidden">
+                                        {entryTabs.map((tab, index) => (
+                                            <div key={index} className={`${index === 0 ? 'w-36' : 'w-[100px]'} h-[57px] bg-[#263438] flex flex-col justify-end items-center gap-[5px]`}>
+                                                <div className={`${index === 0 ? 'w-full' : 'w-[62px]'} text-center text-white text-[13px] font-semibold leading-5 tracking-[0.13px] whitespace-pre-line`}>
+                                                    {tab.label}
+                                                </div>
+                                                <div className={`w-full h-1 ${index === 0 ? 'bg-[#1AFFEC] rounded-tl-[6px] rounded-tr-[7px]' : 'bg-[#5F5F5F]'}`}></div>
+                                            </div>
+                                        ))}
+                                        {/* Entry details */}
+                                        <div className="w-[269px] h-[27px] flex items-center justify-center">
+                                            <div className="text-center">
+                                                <span className="text-[#14FFEC] text-base font-medium leading-5 tracking-[0.16px]">Rs 1500 (Cover - 1000)</span>
+                                                <br />
+                                                <span className="text-[#D9D9D9] text-[13px] font-medium leading-5 tracking-[0.13px]">Redeem cover before 12:00 AM</span>
+                                            </div>
+                                        </div>
+                                        <div className="w-[30px] h-[30px] pt-2 pb-2 bg-[#0D7377] rounded-[18px] flex flex-col items-center justify-center gap-2.5 transform -rotate-90">
+                                            <div className="w-[15px] h-[11.95px] bg-[#14FFEC] rounded-[1px] transform -rotate-90"></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </section>
 
-                <main className="relative z-10 space-y-10 px-5 pt-12">
-                    <section className="-mt-16">
-                        <div className="surface-card rounded-[32px] border border-white/10 px-6 pb-8 pt-10 shadow-[0px_32px_80px_rgba(6,182,212,0.18)]">
-                            <div className="space-y-6 text-center">
-                                <div>
-                                    <h2 className="text-[24px] font-semibold leading-tight">Experience the neon pulse</h2>
-                                    <p className="mt-2 text-sm text-white/65">
-                                        Dive into Nagpur&apos;s premium nightlife with curated beats, luxe ambiance, and signature cocktails.
-                                    </p>
+                    {/* Events in Dabo */}
+                    <div className="w-[362px] flex items-center gap-[15px]">
+                        <h3 className="text-[#FFFEFF] text-base font-semibold leading-4 tracking-[0.5px]">Events in Dabo</h3>
+                    </div>
+
+                    <div className="w-full h-[331px] relative overflow-hidden">
+                        <div className="flex gap-4 px-4 overflow-x-auto">
+                            {upcomingEvents.map((event) => (
+                                <div key={event.id} className="min-w-[222px] h-[321px] relative flex-shrink-0">
+                                    <div className="w-[222px] h-[331px] bg-gradient-radial from-black at-22% to-[#014A4B] at-70% rounded-[20px] absolute top-0 left-0"></div>
+
+                                    {/* Date badge */}
+                                    <div className="absolute right-[37px] top-0 w-9 h-[45px] px-0.5 pt-2.5 pb-[11px] bg-gradient-to-b from-black to-[#00C0CA] rounded-b-[28px] border-l border-r border-b border-[#CDCDCD] flex flex-col items-center justify-center gap-2.5 shadow-md overflow-hidden">
+                                        <div className="w-[31px] text-white text-[14px] font-semibold leading-4 text-center">
+                                            {event.month} {event.date}
+                                        </div>
+                                    </div>
+
+                                    {/* Event details */}
+                                    <div className="absolute left-[18px] top-[217px] w-36 h-[68px] flex flex-col gap-[3px]">
+                                        <h4 className="text-[#E6E6E6] text-base font-bold leading-[22px] tracking-[0.16px] whitespace-pre-line h-[42px] flex items-center">
+                                            {event.title}
+                                        </h4>
+                                        <p className="w-36 text-[#C3C3C3] text-[12px] font-bold leading-[17px] tracking-[0.12px] h-[23px] flex items-center">
+                                            {event.venue}
+                                        </p>
+                                    </div>
+
+                                    {/* Category badge */}
+                                    <div className="absolute bottom-0 left-0 w-[222px] h-[34px] bg-gradient-radial from-[#005F57] at-0% to-[#14FFEC] at-100% rounded-b-[20px] border-t border-[#0FD8E2] flex items-center justify-center overflow-hidden">
+                                        <span className="text-white text-[14px] font-bold leading-[17px] text-center">
+                                            {event.category}
+                                        </span>
+                                    </div>
+
+                                    {/* Heart icon */}
+                                    <div className="absolute right-[24px] top-[241px] w-[23px] h-[21px] border-2 border-[#28D2DB]"></div>
                                 </div>
-                                <div className="flex flex-wrap justify-center gap-3 text-sm text-white/75">
-                                    {quickFacts.map((fact) => (
-                                        <div
-                                            key={fact.label}
-                                            className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2"
-                                        >
-                                            <fact.icon className="h-4 w-4 text-cyan-300" />
-                                            <span>{fact.label}</span>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Photos Section */}
+                    <div className="w-[362px] flex items-center gap-[15px]">
+                        <h3 className="text-[#FFFEFF] text-base font-semibold leading-4 tracking-[0.5px]">Photos</h3>
+                    </div>
+
+                    <div className="w-[398px] px-[7px] py-4 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex flex-wrap justify-center items-center gap-[14px]">
+                        {galleryImages.map((image, index) => (
+                            <div key={index} className="relative">
+                                {index === galleryImages.length - 1 ? (
+                                    <div
+                                        className="w-[114px] h-[112px] rounded-[15px] relative overflow-hidden bg-cover bg-center"
+                                        style={{
+                                            backgroundImage: `linear-gradient(0deg, rgba(0, 0, 0, 0.43) 0%, rgba(0, 0, 0, 0.43) 100%), url(${image})`
+                                        }}
+                                    >
+                                        <div className="absolute top-9 left-[37.5px] w-10 h-10 bg-[rgba(1,49,48,0.75)] rounded-[10px] border border-[#14FFEC] flex items-center justify-center">
+                                            <span className="w-[23px] text-white text-xl font-extrabold leading-[21px] text-center">+7</span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <img
+                                        className={`${index < 2 ? (index === 0 ? 'w-[178px] h-[178px]' : 'w-[175px] h-[178px]') : 'w-[112px] h-[112px]'} rounded-[15px] object-cover relative`}
+                                        src={image}
+                                        alt={`Gallery ${index + 1}`}
+                                    />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Location Section */}
+                    <div className="w-[362px] flex items-center gap-[15px]">
+                        <h3 className="text-[#FFFEFF] text-base font-semibold leading-4 tracking-[0.5px]">Location</h3>
+                    </div>
+
+                    <div className="w-[398px] px-4 pt-[15px] pb-[18px] bg-[rgba(40,60,61,0.30)] rounded-[15px] flex flex-col justify-start items-start gap-[9px] overflow-hidden">
+                        <div className="flex-1 flex flex-col gap-[13px]">
+                            <div className="flex items-center gap-[9px]">
+                                <div className="w-[22px] h-[22px] relative overflow-hidden">
+                                    <MapPin className="w-[14.67px] h-[18.71px] absolute left-[3.67px] top-[1.83px] text-[#C80000]" />
+                                </div>
+                                <p className="w-[285px] text-white text-[14px] font-medium leading-5 tracking-[0.14px] flex items-center">
+                                    {venueInfo.address}
+                                </p>
+                            </div>
+                            <img className="w-full h-[103px] rounded-[9px]" src="https://placehold.co/366x103" alt="Location map" />
+                        </div>
+                    </div>
+
+                    {/* Facilities Section */}
+                    <div className="w-[362px] flex items-center gap-[15px]">
+                        <h3 className="text-[#FFFEFF] text-base font-semibold leading-4 tracking-[0.5px]">Facilities</h3>
+                    </div>
+
+                    <div className="w-[398px] px-[14px] py-[15px] bg-[rgba(40,60,61,0.30)] rounded-[15px] flex flex-col justify-start items-start gap-[9px] overflow-hidden">
+                        <div className="w-full flex flex-wrap gap-2">
+                            {facilities.map((facility, index) => (
+                                <div key={index} className="h-10 px-[15px] py-2.5 bg-white/10 rounded-[30px] flex items-center gap-1 overflow-hidden">
+                                    <span className="text-xl">{facility.icon}</span>
+                                    <span className="text-white text-base font-normal leading-[19.2px] text-center">{facility.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Amenities Sections */}
+                    {amenities.map((section, sectionIndex) => (
+                        <div key={sectionIndex} className="w-full flex flex-col gap-4">
+                            <div className="w-[362px] flex items-center gap-[15px]">
+                                <h3 className="text-[#FFFEFF] text-base font-semibold leading-4 tracking-[0.5px]">{section.title}</h3>
+                            </div>
+
+                            <div className="w-[398px] px-[14px] py-[15px] bg-[rgba(40,60,61,0.30)] rounded-[15px] flex flex-col justify-start items-start gap-[9px] overflow-hidden">
+                                <div className="w-full flex flex-wrap gap-[5px]">
+                                    {section.items.map((item, index) => (
+                                        <div key={index} className="px-[15px] py-2.5 bg-white/10 rounded-[30px] flex items-center gap-1 overflow-hidden">
+                                            <span className="text-white text-base font-normal leading-[19.2px] text-center">{item}</span>
                                         </div>
                                     ))}
                                 </div>
-                                <div className="flex flex-wrap items-center justify-center gap-3">
-                                    <div className="flex items-center gap-2 rounded-2xl bg-white/10 px-4 py-2">
-                                        <Star className="h-4 w-4 text-amber-300" fill="currentColor" />
-                                        <span className="text-sm font-semibold">4.2 · 2.4k reviews</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 rounded-2xl bg-[#14b8a6]/15 px-4 py-2 text-sm text-[#5eead4]">
-                                        <Users className="h-4 w-4" />
-                                        <span>Premium crowd</span>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col gap-3">
-                                    <Button
-                                        variant="primary"
-                                        className="h-14 rounded-full text-sm uppercase tracking-[0.3em]"
-                                    >
-                                        Reserve your spot
-                                    </Button>
-                                    <Button
-                                        variant="secondary"
-                                        className="h-14 rounded-full border border-white/20 bg-white/10 text-sm uppercase tracking-[0.3em]"
-                                    >
-                                        Book offline
-                                    </Button>
-                                </div>
-                                <div className="mt-2 flex items-center justify-center gap-4">
-                                    <a
-                                        href="tel:+919876543210"
-                                        className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
-                                        aria-label="Call the venue"
-                                    >
-                                        <Phone className="h-5 w-5" />
-                                    </a>
-                                    <a
-                                        href="https://maps.app.goo.gl/3xg4X7gY1pL5xpHq7"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
-                                        aria-label="Open directions"
-                                    >
-                                        <MapPin className="h-5 w-5" />
-                                    </a>
-                                    <button
-                                        type="button"
-                                        onClick={handleShare}
-                                        className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
-                                        aria-label="Share event link"
-                                    >
-                                        <Share className="h-5 w-5" />
-                                    </button>
-                                </div>
                             </div>
                         </div>
-                    </section>
+                    ))}
 
-                    <section className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <h3 className="text-lg font-semibold tracking-wide">Now playing</h3>
-                                <div className="divider-line w-16" />
-                            </div>
-                            <span className="text-xs uppercase tracking-[0.3em] text-white/60">Live tonight</span>
+                    {/* Reviews Section */}
+                    <div className="w-[362px] flex justify-between items-center">
+                        <h3 className="text-[#FFFEFF] text-base font-semibold leading-4 tracking-[0.5px]">Reviews</h3>
+                        <div className="w-[61px] h-5 relative">
+                            <button className="text-[#14FFEC] text-xs font-semibold uppercase tracking-[0.3em]">View all</button>
                         </div>
-                        <div className="surface-panel space-y-5 rounded-[28px] border border-white/10 px-6 py-6">
-                            <div className="flex items-center gap-4">
-                                <div className="relative">
-                                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl header-gradient">
-                                        <Music className="h-8 w-8 text-white" />
-                                    </div>
-                                    <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#1db584]">
-                                        <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
-                                    </div>
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-[11px] uppercase tracking-[0.4em] text-white/60">Headliner</p>
-                                    <h4 className="text-xl font-semibold">DJ Martin Live</h4>
-                                    <p className="mt-1 text-sm text-white/70">Spinning techno, bollytech, and afro beats all night.</p>
-                                </div>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                {vibeTags.map((tag) => (
-                                    <span key={tag} className="badge-tag" data-variant="primary">
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
-                            <div>
-                                <div className="progress-track">
-                                    <div className="progress-fill w-[68%]" />
-                                </div>
-                                <div className="mt-2 flex items-center justify-between text-xs text-white/55">
-                                    <span>Energy meter</span>
-                                    <span>68% capacity</span>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
+                    </div>
 
-                    <section className="space-y-4">
-                        <div className="flex items-center gap-3">
-                            <h3 className="text-lg font-semibold tracking-wide">Today&apos;s offers</h3>
-                            <div className="divider-line w-16" />
-                        </div>
-                        <div className="space-y-3">
-                            {offers.map((offer) => (
-                                <div
-                                    key={offer.title}
-                                    className={`flex items-center justify-between gap-4 rounded-[24px] border border-white/10 px-5 py-4 backdrop-blur-md ${offer.accent === 'purple'
-                                        ? 'bg-gradient-to-r from-[#8b5cf6]/20 via-[#ec4899]/15 to-transparent'
-                                        : 'bg-gradient-to-r from-[#14b8a6]/20 via-[#0f766e]/10 to-transparent'
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
-                                            <offer.icon className="h-5 w-5 text-white" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-white">{offer.title}</p>
-                                            <p className="mt-1 text-xs text-white/70">{offer.description}</p>
-                                        </div>
-                                    </div>
-                                    <ChevronRight className="h-5 w-5 text-white/60" />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-
-                    <section className="space-y-4">
-                        <div className="flex items-center gap-3">
-                            <h3 className="text-lg font-semibold tracking-wide">Entry · booking</h3>
-                            <div className="divider-line w-16" />
-                        </div>
-                        <div className="space-y-3">
-                            {entryOptions.map((option) => (
-                                <div
-                                    key={option.label}
-                                    className="surface-panel rounded-[24px] border border-white/10 px-5 py-4 text-left"
-                                >
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div>
-                                            <h4 className="text-sm font-semibold uppercase tracking-[0.25em] text-white/80">
-                                                {option.label}
-                                            </h4>
-                                            <p className="mt-2 text-[22px] font-bold text-[#5eead4]">{option.price}</p>
-                                            <p className="text-xs text-white/65">{option.cover}</p>
-                                        </div>
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5">
-                                            <Ticket className="h-4 w-4 text-white/80" />
-                                        </div>
-                                    </div>
-                                    <p className="mt-4 text-xs text-white/55">{option.note}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-
-                    <section className="space-y-5">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <h3 className="text-lg font-semibold tracking-wide">Upcoming at DABO</h3>
-                                <div className="divider-line w-16" />
-                            </div>
-                            <Link
-                                href="/events"
-                                className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300"
-                            >
-                                View all
-                            </Link>
-                        </div>
-                        <div className="scrollbar-hide overflow-x-auto pb-1">
-                            <div className="flex gap-5 pr-4" style={{ width: 'max-content' }}>
-                                {upcomingEvents.map((event) => (
-                                    <Link key={event.id} href={`/event/${event.slug}`}>
-                                        <article
-                                            className="relative w-[220px] overflow-hidden rounded-[26px] border border-white/10"
-                                            style={{
-                                                clipPath:
-                                                    'polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%)',
-                                                background: 'rgba(14, 31, 31, 0.65)',
-                                            }}
-                                        >
-                                            <div className="relative h-[200px] overflow-hidden">
-                                                <img
-                                                    src={event.image}
-                                                    alt={event.title}
-                                                    className="h-full w-full object-cover"
-                                                />
-                                                <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/35 to-[#031313]/95" />
-                                                <div className="absolute right-4 top-4 rounded-xl bg-gradient-to-b from-[#14b8a6] to-[#0891b2] px-3 py-2 text-center text-xs font-bold text-white">
-                                                    <div className="text-[10px] uppercase tracking-[0.3em] opacity-70">{event.month}</div>
-                                                    <div className="text-base leading-none">{event.date}</div>
-                                                </div>
-                                            </div>
-                                            <div className="space-y-3 px-4 pb-5 pt-4">
-                                                <div>
-                                                    <h4 className="text-sm font-semibold leading-tight text-white">{event.title}</h4>
-                                                    <p className="mt-2 text-xs text-white/60">{event.venue}</p>
-                                                </div>
-                                                <div className="badge-tag" data-variant="primary">
-                                                    {event.category}
-                                                </div>
-                                            </div>
-                                        </article>
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-                    </section>
-
-                    <section className="space-y-5">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <h3 className="text-lg font-semibold tracking-wide">Photo gallery</h3>
-                                <div className="divider-line w-16" />
-                            </div>
-                            <button className="flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300">
-                                <Camera className="h-4 w-4" />
-                                +7
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2">
-                            {galleryImages.map((image, index) => (
-                                <div key={`${image}-${index}`} className="relative aspect-square overflow-hidden rounded-xl">
-                                    <img src={image} alt={`Gallery ${index + 1}`} className="h-full w-full object-cover" />
-                                    {index === galleryImages.length - 1 && (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                                            <Camera className="h-6 w-6 text-white" />
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-
-                    <section className="space-y-5">
-                        <div className="flex items-center gap-3">
-                            <h3 className="text-lg font-semibold tracking-wide">Location</h3>
-                            <div className="divider-line w-16" />
-                        </div>
-                        <div className="surface-panel space-y-4 rounded-[24px] border border-white/10 p-5">
-                            <div className="flex items-start gap-3">
-                                <MapPin className="mt-1 h-5 w-5 text-cyan-300" />
-                                <p className="text-sm text-white/80">
-                                    House 10/156/1, Yogeshwari CHS, Wardha Road, Nagpur — opposite Airport Metro station.
-                                </p>
-                            </div>
-                            <div className="overflow-hidden rounded-[20px] border border-white/10">
-                                <div className="h-36 bg-gradient-to-br from-[#14b8a6]/30 to-[#0ea5e9]/20">
-                                    <div className="flex h-full items-center justify-center">
-                                        <MapPin className="h-8 w-8 text-white" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section className="space-y-5">
-                        <div className="flex items-center gap-3">
-                            <h3 className="text-lg font-semibold tracking-wide">Facilities</h3>
-                            <div className="divider-line w-16" />
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {facilityChips.map((item) => (
-                                <span
-                                    key={item.label}
-                                    className="glassmorphism-light flex items-center gap-2 rounded-full px-4 py-2 text-sm"
-                                >
-                                    <item.icon className="h-4 w-4 text-cyan-300" />
-                                    {item.label}
-                                </span>
-                            ))}
-                        </div>
-                    </section>
-
-                    <section className="space-y-5">
-                        <div className="flex items-center gap-3">
-                            <h3 className="text-lg font-semibold tracking-wide">Experience zones</h3>
-                            <div className="divider-line w-16" />
-                        </div>
-                        <div className="space-y-3">
-                            {amenityGroups.map((group) => (
-                                <div key={group.title} className="surface-panel rounded-[24px] border border-white/10 p-5">
+                    <div className="w-full px-4 overflow-x-auto">
+                        <div className="flex gap-2.5">
+                            {reviews.map((review, index) => (
+                                <div key={index} className="min-w-[329px] h-[195px] bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4 flex flex-col gap-3 relative overflow-hidden">
                                     <div className="flex items-center gap-3">
-                                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10">
-                                            <group.icon className="h-5 w-5 text-white" />
+                                        <div className="w-10 h-10 bg-[#14FFEC] rounded-full flex items-center justify-center">
+                                            <span className="text-black font-bold">{review.initial}</span>
                                         </div>
-                                        <h4 className="text-sm font-semibold uppercase tracking-[0.3em] text-white/75">
-                                            {group.title}
-                                        </h4>
-                                    </div>
-                                    <ul className="mt-4 space-y-2 text-sm text-white/70">
-                                        {group.items.map((item) => (
-                                            <li key={item} className="flex items-start gap-2">
-                                                <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[#5eead4]" aria-hidden />
-                                                <span>{item}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-
-                    <section className="space-y-5 pb-8">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <h3 className="text-lg font-semibold tracking-wide">Reviews</h3>
-                                <div className="divider-line w-16" />
-                            </div>
-                            <button className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300">
-                                View all
-                            </button>
-                        </div>
-                        <div className="space-y-4">
-                            {reviews.map((review) => (
-                                <div key={review.name} className="surface-panel rounded-[24px] border border-white/10 p-5">
-                                    <div className="flex items-start gap-3">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#8b5cf6] to-[#ec4899] text-lg font-bold">
-                                            {review.initial}
-                                        </div>
-                                        <div className="flex-1 space-y-2">
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <span className="text-sm font-semibold text-white">{review.name}</span>
-                                                <span className="text-xs uppercase tracking-[0.3em] text-white/45">{review.timeAgo}</span>
-                                            </div>
+                                        <div>
+                                            <h4 className="text-white text-sm font-semibold">{review.name}</h4>
                                             <div className="flex items-center gap-1">
-                                                {Array.from({ length: 5 }).map((_, index) => (
+                                                {[...Array(5)].map((_, i) => (
                                                     <Star
-                                                        key={index}
-                                                        className="h-3.5 w-3.5"
-                                                        fill={index < review.rating ? 'currentColor' : 'none'}
-                                                        color={index < review.rating ? '#facc15' : 'rgba(255,255,255,0.2)'}
+                                                        key={i}
+                                                        className={`w-3 h-3 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-600'}`}
                                                     />
                                                 ))}
                                             </div>
-                                            <p className="text-sm text-white/75">{review.comment}</p>
                                         </div>
                                     </div>
+                                    <p className="text-white/80 text-sm leading-relaxed">{review.comment}</p>
+                                    <span className="text-white/60 text-xs">{review.timeAgo}</span>
                                 </div>
                             ))}
                         </div>
-                        <div className="flex justify-center">
-                            <Button
-                                variant="secondary"
-                                className="h-12 rounded-full border border-white/20 bg-white/10 px-8 text-xs font-semibold uppercase tracking-[0.35em]"
-                            >
-                                Leave a review
-                            </Button>
+                    </div>
+
+                    {/* Leave Review Button */}
+                    <div className="w-[398px] px-4 bg-[rgba(40,60,61,0.30)] rounded-[16px] flex items-center gap-[98px] overflow-hidden">
+                        <div className="w-[18px] h-[18px] relative overflow-hidden transform rotate-180">
+                            <ArrowLeft className="w-full h-full text-white" />
                         </div>
-                    </section>
-                </main>
+                        <div className="w-[130px] h-12 text-white text-base font-medium leading-[21px] flex items-center justify-center">Leave a review</div>
+                        <div className="w-6 h-6 relative overflow-hidden">
+                            <div className="w-[19.5px] h-[19.5px] absolute left-[2.25px] top-[2.25px] bg-[#14FFEC]"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Floating rating badge */}
+            <div className="absolute left-[179px] top-[323px] p-1 rounded-[36px] border-2 border-[#0C898B] border-opacity-100 flex items-center gap-2.5">
+                <img className="w-16 h-16 rounded-[45px] relative" src="https://placehold.co/64x64" alt="Venue" />
+                <div className="w-[38px] h-[38px] absolute left-[17px] top-[60px] bg-[#005D5C] rounded-[30px]">
+                    <div className="w-[42px] h-5 absolute left-[-2px] top-[9px] text-[#FFF4F4] text-base font-bold leading-[21px] text-center">{venueInfo.rating}</div>
+                </div>
             </div>
         </div>
     );

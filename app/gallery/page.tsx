@@ -1,16 +1,14 @@
 ﻿'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 export default function GalleryPage() {
     const router = useRouter();
     const [activeCategory, setActiveCategory] = useState('All');
-
-    const handleGoBack = () => {
-        router.back();
-    };
+    const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const categories = ['All', 'Food', 'Drinks', 'Ambience'];
 
@@ -49,131 +47,221 @@ export default function GalleryPage() {
         {
             id: 6,
             image: '/gallery/Frame 1000001124.jpg',
-            category: 'Drinks',
-            alt: 'Club bar and beverages'
+            category: 'Food',
+            alt: 'Delicious club food'
         },
         {
             id: 7,
             image: '/gallery/Frame 1000001126.jpg',
-            category: 'Food',
-            alt: 'Club dining and food experience'
+            category: 'Drinks',
+            alt: 'Cocktails and beverages'
         },
         {
             id: 8,
             image: '/gallery/Frame 1000001127.jpg',
             category: 'Ambience',
-            alt: 'Club atmosphere and vibes'
+            alt: 'Club vibe and atmosphere'
         },
         {
             id: 9,
             image: '/gallery/Frame 1000001128.jpg',
-            category: 'Drinks',
-            alt: 'Bar setup and cocktails'
+            category: 'Food',
+            alt: 'Gourmet club dining'
         },
         {
             id: 10,
             image: '/gallery/Frame 1000001129.jpg',
-            category: 'Ambience',
-            alt: 'Club dance floor and lighting'
+            category: 'Drinks',
+            alt: 'Premium beverages'
         },
         {
             id: 11,
             image: '/gallery/Frame 1000001131.jpg',
-            category: 'Food',
-            alt: 'Club cuisine and dining'
+            category: 'Ambience',
+            alt: 'Club entertainment area'
         },
         {
             id: 12,
             image: '/gallery/Frame 1000001132.jpg',
-            category: 'Ambience',
-            alt: 'Club interior and seating'
+            category: 'Food',
+            alt: 'Fine dining experience'
         },
         {
             id: 13,
             image: '/gallery/Frame 1000001133.jpg',
-            category: 'Drinks',
-            alt: 'Premium bar experience'
+            category: 'Ambience',
+            alt: 'Club social space'
         }
     ];
 
+    // Filter gallery items based on active category
     const filteredItems = activeCategory === 'All'
         ? galleryItems
         : galleryItems.filter(item => item.category === activeCategory);
 
+    // Modal functions
+    const openModal = (index: number) => {
+        setSelectedImageIndex(index);
+        setIsModalOpen(true);
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedImageIndex(null);
+        document.body.style.overflow = 'unset'; // Restore scrolling
+    };
+
+    const nextImage = () => {
+        if (selectedImageIndex !== null) {
+            setSelectedImageIndex((selectedImageIndex + 1) % filteredItems.length);
+        }
+    };
+
+    const prevImage = () => {
+        if (selectedImageIndex !== null) {
+            setSelectedImageIndex((selectedImageIndex - 1 + filteredItems.length) % filteredItems.length);
+        }
+    };
+
+    // Handle keyboard navigation
+    useEffect(() => {
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if (!isModalOpen) return;
+
+            if (e.key === 'Escape') {
+                closeModal();
+            } else if (e.key === 'ArrowRight') {
+                nextImage();
+            } else if (e.key === 'ArrowLeft') {
+                prevImage();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [isModalOpen, selectedImageIndex, filteredItems.length]);
+
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#0d7377] to-[#222831] text-white">
-            {/* Header with Gradient Background */}
-            <div className="header-gradient rounded-b-[30px] pb-8 pt-4">
-                <div className="flex items-center justify-between px-6 pt-4 mb-6">
+        <div className="min-h-screen w-full bg-[#031414] overflow-hidden">
+            {/* Custom Header with Photos section */}
+            <div className="w-full h-auto bg-gradient-to-t from-[#11B9AB] to-[#222831] rounded-b-[30px] relative">
+                {/* Header Content */}
+                <div className="flex items-center justify-between px-6 pt-6">
                     <button
-                        onClick={handleGoBack}
-                        className="p-2 hover:bg-white/10 rounded-full transition-all duration-300"
+                        onClick={() => router.back()}
+                        className="w-[35px] h-[35px] bg-white/20 overflow-hidden rounded-[18px] flex items-center justify-center"
                     >
-                        <ArrowLeft size={24} className="text-white" />
+                        <span className="text-white text-lg font-bold">&lt;</span>
                     </button>
-                    <h1 className="text-lg font-bold tracking-wide text-center flex-1 mr-10">
-                        DABO CLUB & KITCHEN
-                    </h1>
+                </div>
+                <div className="text-center px-6 pb-2 pt-2">
+                    <div className="text-white text-xl font-['Manrope'] font-bold leading-6 tracking-[0.50px] break-words">DABO CLUB & KITCHEN</div>
                 </div>
 
-                {/* Photos Label */}
-                <div className="px-6 mb-6">
-                    <h2 className="text-white font-bold text-xl text-center">Photos</h2>
+                {/* Photos Section within header */}
+                <div className="px-6 pb-6 pt-4">
+                    <h2 className="text-white text-lg font-['Manrope'] font-semibold leading-6 tracking-[0.50px]">Photos</h2>
                 </div>
+            </div>
 
-                {/* Category Filters */}
-                <div className="px-6">
-                    <div className="flex gap-3 justify-start">
-                        {categories.map((category) => (
-                            <button
-                                key={category}
-                                onClick={() => setActiveCategory(category)}
-                                className={`px-4 py-2 rounded-[20px] font-medium text-sm transition-all duration-300 ${activeCategory === category
-                                    ? 'bg-white text-[#0d7377]'
-                                    : 'bg-white/20 text-white hover:bg-white/30'
-                                    }`}
-                            >
-                                {category}
-                            </button>
-                        ))}
-                    </div>
+            {/* Filter Section - Inspired by Events Page */}
+            <div className="w-full px-6 pb-6 pt-4">
+                <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+                    {categories.map((category) => (
+                        <button
+                            key={category}
+                            onClick={() => setActiveCategory(category)}
+                            className={`h-8 px-3 py-1 rounded-[20px] border flex items-center justify-center gap-1 whitespace-nowrap transition-colors ${activeCategory === category
+                                ? 'bg-[#14FFEC] border-[#004342] text-black font-semibold'
+                                : 'bg-[#004342] border-[#14FFEC] text-white font-medium hover:bg-[#005F57]'
+                                }`}
+                        >
+                            <div className="text-xs tracking-[0.5px]">{category}</div>
+                        </button>
+                    ))}
                 </div>
             </div>
 
             {/* Gallery Grid */}
-            <div className="px-6 py-6">
-                <div className="grid grid-cols-2 gap-3">
-                    {filteredItems.map((item) => (
+            <div className="px-6 pb-6">
+                <div className="grid grid-cols-2 gap-4">
+                    {filteredItems.map((item, index) => (
                         <div
                             key={item.id}
-                            className="relative aspect-square rounded-lg overflow-hidden bg-gray-800"
+                            onClick={() => openModal(index)}
+                            className={`
+                                ${index % 3 === 0 ? 'col-span-2 h-48' : 'h-32'}
+                                relative overflow-hidden rounded-[15px] cursor-pointer
+                                transition-transform duration-300 hover:scale-105
+                            `}
                         >
                             <img
                                 src={item.image}
                                 alt={item.alt}
-                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
+                            {/* Overlay gradient for better text visibility */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+
+                            {/* Category label - only show when "All" is selected */}
+                            {activeCategory === 'All' && (
+                                <div className="absolute bottom-2 left-2">
+                                    <span className="bg-[#14FFEC]/20 backdrop-blur-sm text-[#14FFEC] text-xs font-semibold px-2 py-1 rounded-full border border-[#14FFEC]/30">
+                                        {item.category}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
+            </div>
 
-                {/* Load More or No Results */}
-                {filteredItems.length === 0 && (
-                    <div className="text-center py-12">
-                        <p className="text-white/70 text-lg">No photos in this category</p>
-                        <p className="text-white/50 text-sm mt-2">Try selecting a different category</p>
-                    </div>
-                )}
-
-                {filteredItems.length > 0 && filteredItems.length >= 8 && (
-                    <div className="text-center pt-6">
-                        <button className="bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-6 rounded-[20px] transition-all duration-300">
-                            Load More Photos
+            {/* Image Viewer Modal */}
+            {isModalOpen && selectedImageIndex !== null && (
+                <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+                    {/* Modal Header */}
+                    <div className="absolute top-0 left-0 w-full flex justify-between items-center p-6 z-10">
+                        <h2 className="text-white text-lg font-semibold">All Photos</h2>
+                        <button
+                            onClick={closeModal}
+                            className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+                        >
+                            <X className="w-6 h-6 text-white" />
                         </button>
                     </div>
-                )}
-            </div>
+
+                    {/* Navigation Arrows */}
+                    <button
+                        onClick={prevImage}
+                        className="absolute left-6 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors z-10"
+                    >
+                        <ChevronLeft className="w-6 h-6 text-white" />
+                    </button>
+
+                    <button
+                        onClick={nextImage}
+                        className="absolute right-6 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors z-10"
+                    >
+                        <ChevronRight className="w-6 h-6 text-white" />
+                    </button>
+
+                    {/* Main Image */}
+                    <div className="relative max-w-4xl max-h-[80vh] mx-6">
+                        <img
+                            src={filteredItems[selectedImageIndex].image}
+                            alt={filteredItems[selectedImageIndex].alt}
+                            className="max-w-full max-h-full object-contain rounded-lg"
+                        />
+                    </div>
+
+                    {/* Click outside to close */}
+                    <div
+                        className="absolute inset-0 -z-10"
+                        onClick={closeModal}
+                    />
+                </div>
+            )}
         </div>
     );
 }
