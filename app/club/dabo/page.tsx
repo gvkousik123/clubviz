@@ -5,9 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
     ArrowLeft,
-    Share,
-    Heart,
-    MapPin,
     Clock,
     Calendar,
     Wine,
@@ -24,10 +21,9 @@ import {
     Star,
     Play,
     Pause,
-    Phone,
-} from 'lucide-react';
-
-import { useToast } from '@/hooks/use-toast';
+    Heart,
+    MapPin,
+} from 'lucide-react'; import { useToast } from '@/hooks/use-toast';
 
 // Types
 interface VenueInfo {
@@ -200,6 +196,24 @@ export default function ClubDaboPage() {
 
     const handleToggleLike = () => {
         setIsLiked((prev) => !prev);
+        toast({
+            title: isLiked ? 'Removed from favorites' : 'Added to favorites',
+            description: isLiked ? 'Club removed from your favorites' : 'Club added to your favorites',
+        });
+    };
+
+    const handleLike = () => {
+        toast({
+            title: 'Thanks for the feedback!',
+            description: 'You liked this club',
+        });
+    };
+
+    const handleDislike = () => {
+        toast({
+            title: 'Thanks for the feedback!',
+            description: 'You disliked this club',
+        });
     };
 
     const nextImage = () => {
@@ -255,7 +269,7 @@ export default function ClubDaboPage() {
 
             {/* Floating rating badge */}
             <div className="absolute left-1/2 top-[370px] transform -translate-x-1/2 flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-[#005D5C] border-2 border-[#14FFEC] flex items-center justify-center shadow-lg z-10">
+                <div className="w-16 h-16 rounded-full bg-gradient-radial from-[#08C2B3] via-[#08C2B3] to-[#01756C] flex items-center justify-center shadow-lg z-10">
                     <div className="text-white text-2xl font-bold">{venueInfo.rating}</div>
                 </div>
             </div>
@@ -264,97 +278,156 @@ export default function ClubDaboPage() {
             <div className="bg-[#021313] mt-[-60px] rounded-t-[40px] relative z-0 pt-16 px-4">
                 <div className="flex flex-col items-center gap-6">
                     {/* Title */}
-                    <h1 className="text-white text-[28px] font-bold tracking-wide text-center">
+                    <h1 className="text-white text-[28px] font-bold tracking-normal text-center">
                         {venueInfo.name}
                     </h1>
 
-                    {/* Social buttons */}
-                    <div className="flex items-center justify-center gap-5 w-full">
-                        <button
-                            onClick={handleShare}
-                            className="w-10 h-10 rounded-full bg-gradient-to-br from-[#01756C] to-[#08C2B3] flex items-center justify-center"
-                        >
-                            <Share className="w-5 h-5 text-[#14FFEC]" />
-                        </button>
-                        <button
-                            onClick={handleToggleLike}
-                            className="w-10 h-10 rounded-full bg-gradient-to-br from-[#01756C] to-[#08C2B3] flex items-center justify-center"
-                        >
-                            <Heart className="w-5 h-5 text-[#14FFEC]" fill={isLiked ? '#14FFEC' : 'none'} />
-                        </button>
-                        <Link href="#" className="w-10 h-10 rounded-full bg-gradient-to-br from-[#01756C] to-[#08C2B3] flex items-center justify-center">
-                            <MapPin className="w-5 h-5 text-[#14FFEC]" />
-                        </Link>
-                        <Link href="tel:+919XXXXXXXXX" className="w-10 h-10 rounded-full bg-gradient-to-br from-[#01756C] to-[#08C2B3] flex items-center justify-center">
-                            <Phone className="w-5 h-5 text-[#14FFEC]" />
-                        </Link>
+                    {/* Social buttons and Action buttons */}
+                    <div style={{ width: "100%", height: "100%", justifyContent: "center", alignItems: "flex-end", gap: "8px", display: "inline-flex", flexWrap: "wrap", alignContent: "flex-end" }}>
+                        <div style={{ justifyContent: "flex-start", alignItems: "center", gap: "12px", display: "flex" }}>
+                            <div
+                                style={{ width: "40px", height: "40px", paddingLeft: "8px", paddingRight: "8px", paddingTop: "8px", paddingBottom: "8px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex" }}
+                                onClick={handleLike}
+                                role="button"
+                                tabIndex={0}
+                            >
+                                <img src="/club/ThumbsUp (1).svg" alt="Like" style={{ width: "20px", height: "20px" }} />
+                            </div>
+                            <div
+                                style={{ width: "40px", height: "40px", paddingLeft: "8px", paddingRight: "8px", paddingTop: "8px", paddingBottom: "8px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex" }}
+                                onClick={handleDislike}
+                                role="button"
+                                tabIndex={0}
+                            >
+                                <img src="/club/ThumbsDown (1).svg" alt="Dislike" style={{ width: "20px", height: "20px" }} />
+                            </div>
+                            <div
+                                style={{ width: "40px", height: "40px", paddingLeft: "8px", paddingRight: "8px", paddingTop: "8px", paddingBottom: "8px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex" }}
+                                onClick={handleShare}
+                                role="button"
+                                tabIndex={0}
+                            >
+                                <img src="/club/ShareNetwork (1).svg" alt="Share" style={{ width: "20px", height: "20px" }} />
+                            </div>
+                            <div
+                                style={{ width: "40px", height: "40px", paddingLeft: "8px", paddingRight: "8px", paddingTop: "8px", paddingBottom: "8px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex" }}
+                                onClick={handleToggleLike}
+                                role="button"
+                                tabIndex={0}
+                            >
+                                <img src="/club/BookmarkSimple (1).svg" alt="Bookmark" style={{ width: "20px", height: "20px" }} />
+                            </div>
+                        </div>
+                        <div style={{ width: "100%", justifyContent: "center", alignItems: "center", gap: "12px", display: "flex", marginTop: "8px" }}>
+                            <Link
+                                href="/booking/form"
+                                style={{ minWidth: "160px", paddingLeft: "20px", paddingRight: "20px", paddingTop: "12px", paddingBottom: "12px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex", textDecoration: "none", flexShrink: 0 }}
+                            >
+                                <div style={{ color: "white", fontSize: "14px", fontFamily: "Manrope", fontWeight: "700", lineHeight: "16px", letterSpacing: "0.30px", wordWrap: "break-word", textAlign: "center", whiteSpace: "nowrap" }}>Reserve your spot</div>
+                            </Link>
+                            <Link
+                                href="/booking/form"
+                                style={{ minWidth: "120px", paddingLeft: "20px", paddingRight: "20px", paddingTop: "12px", paddingBottom: "12px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex", textDecoration: "none", flexShrink: 0 }}
+                            >
+                                <div style={{ color: "white", fontSize: "14px", fontFamily: "Manrope", fontWeight: "700", lineHeight: "16px", letterSpacing: "0.30px", wordWrap: "break-word", textAlign: "center", whiteSpace: "nowrap" }}>Book offline</div>
+                            </Link>
+                        </div>
                     </div>
 
-                    {/* Action buttons */}
-                    <div className="flex justify-between items-center gap-4 w-full">
-                        <Link href="/booking/form" className="flex-1 px-4 py-3 bg-gradient-to-br from-[#01756C] to-[#08C2B3] rounded-[25px] flex items-center justify-center text-white font-bold">
-                            Reserve your spot
-                        </Link>
-                        <Link href="/booking/form" className="flex-1 px-4 py-3 bg-gradient-to-br from-[#01756C] to-[#08C2B3] rounded-[25px] flex items-center justify-center text-white font-bold">
-                            Book offline
-                        </Link>
-                    </div>
+                    {/* Main Content Container */}
+                    <div className="w-full p-[15px] bg-[rgba(40,60,61,0.30)] rounded-[15px] flex flex-col gap-[11px]">
+                        {/* Now Playing Section */}
+                        <div className="flex flex-col gap-[16px]">
+                            <div className="flex flex-col gap-[12px]">
+                                <div className="flex items-center gap-[10px]">
+                                    <h3 className="text-[#FFFEFF] text-[16px] font-[600] leading-[16px] tracking-[0.5px]">Now Playing</h3>
+                                </div>
+                            </div>
 
-                    {/* Now Playing Section */}
-                    <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4">
-                        <h3 className="text-white text-base font-semibold mb-4">Now Playing</h3>
-
-                        <div className="flex items-center gap-2 mb-4">
-                            <div className="flex-1">
-                                <p className="text-[#14FFEC] font-medium">{nowPlaying.title}</p>
-                                <p className="text-white/70 text-sm">Now playing</p>
+                            <div className="relative h-[93px] w-full">
+                                <div className="absolute left-[60px] top-[7px] text-white text-[13px] font-[400] leading-[15.6px]">
+                                    Club Music
+                                </div>
+                                <div className="w-[110px] h-[20px] absolute left-[39px] top-[4px] bg-gradient-to-b from-[rgba(20,255,236,0.31)] to-[rgba(217,217,217,0)] rounded-t-[15px]"></div>
+                                <div className="absolute left-[81px] top-[34px] text-white text-[13px] font-[400] leading-[15.6px]">
+                                    Now playing
+                                </div>
+                                <div className="absolute left-[81px] top-[56px] px-[10px] py-[5px] bg-[rgba(32,43,43,0.60)] rounded-[25px] border border-[#28D2DB] flex items-center gap-[4px]">
+                                    <span className="text-white text-[13px] font-[400] leading-[15.6px]">Chill House Mix</span>
+                                    <div className="w-[7px] h-[7px] bg-[#C50000] rounded-full"></div>
+                                </div>
+                                <div className="absolute left-[211px] top-[56px] px-[10px] py-[5px] bg-[rgba(32,43,43,0.60)] rounded-[25px] border border-[#28D2DB] flex items-center gap-[6px]">
+                                    <span className="text-white text-[13px] font-[400] leading-[15.6px]">Techno Vibes</span>
+                                    <div className="w-[7px] h-[7px] bg-[#C50000] rounded-full"></div>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-2">
-                            {nowPlaying.genres.map((genre, idx) => (
-                                <div key={idx} className="px-3 py-1 bg-[rgba(32,43,43,0.6)] rounded-[25px] border border-[#28D2DB] inline-flex items-center">
-                                    <span className="text-white text-sm">{genre}</span>
-                                    <div className="w-[7px] h-[7px] bg-[#C50000] rounded-full ml-2"></div>
-                                </div>
-                            ))}
-                        </div>
-
                         {/* Today's Offers */}
-                        <div className="mt-6">
-                            <h3 className="text-white text-base font-semibold mb-3">Today's Offers</h3>
-                            <div className="space-y-2">
-                                {offers.map((offer, index) => (
-                                    <div key={index} className="relative h-[45px] bg-[#263438] rounded-[10px] border border-[#14FFEC] overflow-hidden">
-                                        <div className="absolute right-16 top-[-23px] w-[86px] h-[86px] bg-[#1B726B] transform rotate-[8deg]"></div>
-                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-sm font-bold">
-                                            {offer.title}
-                                        </div>
+                        <div className="flex flex-col gap-[12px]">
+                            <h3 className="text-[#FFFEFF] text-[16px] font-[600] leading-[16px] tracking-[0.5px]">Today's Offers</h3>
+
+                            <div className="relative h-[123px] bg-[rgba(31.93,42.75,43.32,0.60)] rounded-[15px] overflow-hidden">
+                                <div className="absolute left-[10px] top-[10px] w-[344px] h-[45px] bg-[#263438] rounded-[10px] border border-[#14FFEC] overflow-hidden">
+                                    <div className="absolute right-[45px] top-[-23px] w-[86.81px] h-[86.47px] bg-[#1B726B] transform rotate-[8deg]"></div>
+                                    <div className="absolute left-[19.06px] top-[15px] text-white text-[13px] font-[800] leading-[16px] tracking-[0.5px]">
+                                        Buy 1 get 1 on IFML Drinks
                                     </div>
-                                ))}
+                                </div>
+
+                                <div className="absolute left-[10px] top-[68px] w-[344px] h-[45px] bg-[#263438] rounded-[10px] border border-[#14FFEC] overflow-hidden">
+                                    <div className="absolute right-[45px] top-[-23px] w-[88.45px] h-[86.39px] bg-[#1B726B] transform rotate-[8deg]"></div>
+                                    <div className="absolute left-[19.34px] top-[15px] text-white text-[13px] font-[800] leading-[16px] tracking-[0.5px]">
+                                        Free Entry for all before 09:00 PM
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         {/* Entry/Booking */}
-                        <div className="mt-6">
-                            <h3 className="text-white text-base font-semibold mb-3">Entry/Booking</h3>
-                            <div className="bg-[#263438] rounded-[15px] overflow-hidden">
-                                <div className="flex border-b border-[#5F5F5F]">
-                                    {entryTabs.map((tab, index) => (
-                                        <div
-                                            key={index}
-                                            className={`flex-1 py-3 text-center text-white text-sm font-medium ${index === 0 ? 'border-b-2 border-[#14FFEC]' : ''}`}
-                                        >
-                                            {tab.label.replace('\\n', ' ')}
+                        <div className="flex flex-col gap-[12px]">
+                            <h3 className="text-[#FFFEFF] text-[16px] font-[600] leading-[16px] tracking-[0.5px]">Entry/Booking</h3>
+
+                            <div className="relative h-[134px] bg-[rgba(31.93,42.75,43.32,0.60)] rounded-[15px] overflow-hidden">
+                                <div className="absolute left-[10px] top-[10px] w-[344px] h-[114px] bg-[#263438] rounded-[15px] flex flex-wrap items-start justify-center">
+                                    {/* Tab 1 - Couple & Group Entry */}
+                                    <div className="w-[144px] h-[57px] flex flex-col justify-end items-center gap-[5px]">
+                                        <div className="text-white text-[13px] font-[600] leading-[20px] tracking-[0.13px] text-center">
+                                            Couple & Group<br />Entry
                                         </div>
-                                    ))}
-                                </div>
-                                <div className="p-4 text-center">
-                                    <p className="text-[#14FFEC] text-base font-medium">Rs 1500 (Cover - 1000)</p>
-                                    <p className="text-[#D9D9D9] text-xs font-medium">Redeem cover before 12:00 AM</p>
-                                </div>
-                                <div className="absolute right-6 bottom-6 w-[30px] h-[30px] bg-[#0D7377] rounded-full flex items-center justify-center">
-                                    <ChevronRight className="w-5 h-5 text-[#14FFEC]" />
+                                        <div className="w-[144px] h-[4px] bg-[#1AFFEC] rounded-t-[6px]"></div>
+                                    </div>
+
+                                    {/* Tab 2 - Male stag Entry */}
+                                    <div className="w-[100px] h-[57px] flex flex-col justify-end items-center gap-[5px]">
+                                        <div className="text-white text-[13px] font-[600] leading-[20px] tracking-[0.13px] text-center">
+                                            Male stag<br />Entry
+                                        </div>
+                                        <div className="w-[100px] h-[1px] bg-[#5F5F5F]"></div>
+                                    </div>
+
+                                    {/* Tab 3 - Female stag Entry */}
+                                    <div className="w-[100px] h-[57px] flex flex-col justify-end items-center gap-[5px]">
+                                        <div className="text-white text-[13px] font-[600] leading-[20px] tracking-[0.13px] text-center">
+                                            Female stag<br />Entry
+                                        </div>
+                                        <div className="w-[100px] h-[1px] bg-[#5F5F5F]"></div>
+                                    </div>
+
+                                    {/* Price & Cover */}
+                                    <div className="w-[269px] h-[27px] text-center">
+                                        <span className="text-[#14FFEC] text-[16px] font-[500] leading-[20px] tracking-[0.16px]">
+                                            Rs 1500 (Cover - 1000)
+                                        </span><br />
+                                        <span className="text-[#D9D9D9] text-[13px] font-[500] leading-[20px] tracking-[0.13px]">
+                                            Redeem cover before 12:00 AM
+                                        </span>
+                                    </div>
+
+                                    {/* Right Arrow Button */}
+                                    <div className="absolute right-[10px] bottom-[10px] w-[30px] h-[30px] bg-[#0D7377] rounded-[18px] flex items-center justify-center">
+                                        <ChevronRight className="w-[15px] h-[15px] text-[#14FFEC]" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -362,7 +435,7 @@ export default function ClubDaboPage() {
 
                     {/* Events in Dabo */}
                     <div className="w-full">
-                        <h3 className="text-white text-base font-semibold mb-4">Events in Dabo</h3>
+                        <h3 className="text-[#FFFEFF] text-[16px] font-[600] leading-[16px] tracking-[0.5px] mb-4">Events in Dabo</h3>
                         <div className="flex overflow-x-auto gap-4 pb-2 scrollbar-hide">
                             {upcomingEvents.map((event) => (
                                 <Link

@@ -48,6 +48,11 @@ const config = {
       // Spacing from design system
       spacing: designSystem.spacing,
       
+      // Background image gradients
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+      },
+      
       // Border Radius from design system
       borderRadius: designSystem.borderRadius,
       
