@@ -59,29 +59,24 @@ export default function TicketPage() {
             {/* Main Ticket Content */}
             <div className="px-4 pt-6 pb-4">
                 {/* Ticket Card with Event Image */}
-                <div className="w-full bg-[#0D1F1F] rounded-[20px] border border-[#14FFEC] overflow-hidden">
+                <div className="w-full bg-[#0D1F1F] rounded-[20px] border border-[#14FFEC] overflow-visible relative">
                     {/* Event Image Section */}
-                    <div className="relative w-full h-[200px] overflow-hidden border-b border-[#14FFEC]">
+                    <div className="relative w-full h-[200px] overflow-hidden">
                         <Image
-                            src="/event list/Rectangle 1.jpg"
+                            src="/event list/Rectangle 3.jpg"
                             alt="Event"
                             layout="fill"
                             objectFit="cover"
-                            className="w-full h-full"
+                            className="w-full h-full  rounded-[20px]"
+                            priority
                         />
-                        {/* Event Title Overlay */}
-                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                            <h2 className="text-white text-2xl font-['Manrope'] font-bold text-center px-4">
-                                TIMELESS TUESDAYS FT. DJ XPENSIVE
-                            </h2>
-                        </div>
                     </div>
 
-                    {/* Dotted separator line with ticket cuts */}
+                    {/* Dashed separator line with ticket cuts */}
                     <div className="relative w-full flex items-center justify-center py-[1px]">
                         <div className="w-full border-t-2 border-dashed border-[#14FFEC]"></div>
-                        <div className="absolute top-[-15px] -left-[15px] w-12 h-12 bg-[#021313] rounded-full"></div>
-                        <div className="absolute top-[-15px] -right-[15px] w-12 h-12 bg-[#021313] rounded-full"></div>
+                        <div className="absolute -top-6 -left-6 w-12 h-12 bg-[#021313] rounded-full z-10"></div>
+                        <div className="absolute -top-6 -right-6 w-12 h-12 bg-[#021313] rounded-full z-10"></div>
                     </div>
 
                     {/* Ticket Details */}
@@ -126,11 +121,11 @@ export default function TicketPage() {
                         </div>
                     </div>
 
-                    {/* Dotted separator line with ticket cuts */}
+                    {/* Dashed separator line with ticket cuts */}
                     <div className="relative w-full flex items-center justify-center py-[1px]">
                         <div className="w-full border-t-2 border-dashed border-[#14FFEC]"></div>
-                        <div className="absolute top-[-15px] -left-[15px] w-12 h-12 bg-[#021313] rounded-full"></div>
-                        <div className="absolute top-[-15px] -right-[15px] w-12 h-12 bg-[#021313] rounded-full"></div>
+                        <div className="absolute -top-6 -left-6 w-12 h-12 bg-[#021313] rounded-full z-10"></div>
+                        <div className="absolute -top-6 -right-6 w-12 h-12 bg-[#021313] rounded-full z-10"></div>
                     </div>
 
                     {/* QR Code Section */}
