@@ -28,7 +28,7 @@ export default function TimelessTuesdayPage() {
     };
 
     const handleBookNow = () => {
-        router.push('/booking/form');
+        router.push('/event/tickets');
     };
 
     return (
@@ -101,8 +101,8 @@ export default function TimelessTuesdayPage() {
                 </div>
 
                 {/* Separator Line */}
-                <div className="flex justify-center my-4">
-                    <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
+                <div className="flex justify-center my-6">
+                    <div className="w-5/6 h-[1px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent opacity-80"></div>
                 </div>
 
                 {/* Music Categories */}
