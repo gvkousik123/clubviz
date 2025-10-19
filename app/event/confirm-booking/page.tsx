@@ -49,8 +49,11 @@ export default function BookingConfirmPage() {
                 </div>
 
                 {/* Success Message */}
-                <h1 className="text-white text-2xl font-['Manrope'] font-semibold mb-2 text-center">
-                    Booking Complete
+                <h1 className="text-white text-2xl font-['Manrope'] font-semibold mb-2 text-center flex items-center justify-center gap-2">
+                    <span>Booking Complete</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 12L10 17L20 7" stroke="#14FFEC" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                 </h1>
 
                 {/* Subtitle */}
