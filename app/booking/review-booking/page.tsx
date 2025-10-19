@@ -12,7 +12,7 @@ export default function ReviewEventBookingPage() {
 
 
     const handleContinue = () => {
-        router.push('/booking/review-event-booking');
+        router.push('/booking/review-pre-booking');
     };
     return (
         <div className="w-full min-h-screen relative bg-[#021313]">

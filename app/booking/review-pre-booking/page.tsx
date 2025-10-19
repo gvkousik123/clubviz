@@ -3,16 +3,18 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Calendar, MapPin, ArrowUpRight, ChevronRight } from 'lucide-react';
+import { Calendar, MapPin, ArrowUpRight, ChevronRight, X } from 'lucide-react';
 import PageHeader from '@/components/common/page-header';
-import BottomContinueButton from '@/components/common/bottom-continue-button';
 
 export default function ReviewEventBookingPage() {
     const router = useRouter();
 
+    const handleViewTicket = () => {
+        router.push('/ticket/view');
+    };
 
-    const handleContinue = () => {
-        router.push('/booking/review-event-booking');
+    const handleCancelBooking = () => {
+        router.push('/booking/cancel');
     };
     return (
         <div className="w-full min-h-screen relative bg-[#021313]">
@@ -21,107 +23,93 @@ export default function ReviewEventBookingPage() {
             {/* Main Content Container */}
             <div className="absolute top-[10rem] left-0 right-0 bottom-0 bg-[#021313] overflow-y-auto scrollbar-hide">
                 <div className="flex flex-col gap-4 px-4 pb-8">
-                    {/* Info message */}
-                    <div className="mx-auto w-full px-3 py-2.5 bg-[#003935] rounded-[1.25rem]">
-                        <p className="text-center text-white text-[0.8125rem] font-['Manrope'] font-medium leading-4 tracking-[0.13px]">
-                            Please arrive at the venue at least 10 minutes prior to your scheduled booking to ensure a smooth and hassle free experience
+                    {/* Success State */}
+                    <div className="flex flex-col items-center justify-center py-8">
+                        {/* Loading Circle with Angular Gradient */}
+                        <div className="w-20 h-20 relative mb-6">
+                            <div className="w-20 h-20 rounded-full border-4 border-[#0D1F1F]"></div>
+                            <div className="absolute top-0 left-0 w-20 h-20 rounded-full border-4 border-r-transparent animate-spin border-[#14FFEC]"></div>
+                        </div>
+
+                        {/* Success Message */}
+                        <h2 className="text-white text-[1.5rem] font-['Manrope'] font-bold leading-8 text-center mb-2">
+                            Successfully Booked your Table
+                        </h2>
+
+                        {/* Reservation ID */}
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="text-[#B6B6B6] text-[0.875rem] font-['Manrope'] font-medium">Reservation ID:</span>
+                            <span className="text-[#14FFEC] text-[0.875rem] font-['Manrope'] font-bold">BO-290</span>
+                        </div>
+
+                        {/* Instruction */}
+                        <p className="text-[#B6B6B6] text-[0.875rem] font-['Manrope'] font-medium text-center mb-8">
+                            Reach the venue before 15 mins of your booking
                         </p>
-                    </div>
-
-                    {/* Venue details card */}
-                    <div className="w-full h-[12.3125rem] bg-[#0D1F1F] rounded-[1.25rem] relative">
-                        <div className="">
-                            <div className="absolute left-6 top-6 w-20 h-20 rounded-full border border-[#14FFEC] overflow-hidden flex items-center justify-center">
-                                <Image
-                                    src="/vibemeter/Screenshot_2025-05-23_223510-removebg-preview.png"
-                                    alt="Dabo Club"
-                                    width={80}
-                                    height={80}
-                                    className="object-cover w-full h-full"
-                                    onError={(e) => {
-                                        e.currentTarget.src = "https://placehold.co/80x80";
-                                    }}
-                                />
-                            </div>
-                        </div>
-                        <div className="absolute left-[7.3125rem] top-[1.625rem] w-[15.5rem] h-6">
-                            <h2 className="text-white text-base font-['Manrope'] font-bold leading-5 tracking-[0.16px]">Dabo club & Kitchen</h2>
-                        </div>
-
-                        <div className="absolute left-[7.3125rem] top-[3.8125rem] flex items-center gap-2">
-                            <div className="w-4 h-4 relative overflow-hidden">
-                                <Image
-                                    src="/booking/review-event-booking/Clock.svg"
-                                    alt="Clock"
-                                    width={16}
-                                    height={16}
-                                    className="text-[#14FFEC]"
-                                />
-                            </div>
-                            <p className="text-white text-[0.875rem] font-['Manrope'] font-bold leading-5 tracking-[0.14px]">24 Dec | 7:00 pm</p>
-                        </div>
-
-                        <div className="absolute left-[7.3125rem] top-[5.625rem] flex items-start gap-2 w-[15.5rem]">
-                            <div className="w-4 h-4 relative overflow-hidden flex-shrink-0">
-                                <Image
-                                    src="/booking/review-event-booking/MapPin.svg"
-                                    alt="Location"
-                                    width={16}
-                                    height={16}
-                                    className="text-[#14FFEC]"
-                                />
-                            </div>
-                            <p className="text-white text-[0.875rem] font-['Manrope'] font-bold leading-5 tracking-[0.14px]">
-                                6, New Manish Nagar, Somalwada, Nagpur
-                            </p>
-                        </div>
-
-                        <div className="absolute left-[7.5rem] top-[9rem]">
-                            <button className="flex items-center gap-2 bg-[#00534C] text-white rounded-[1.8125rem] py-[0.4375rem] px-3 text-[0.875rem] font-['Manrope'] font-medium leading-5 tracking-[0.14px]">
-                                <Image
-                                    src="/booking/review-event-booking/ArrowBendUpRight.svg"
-                                    alt="Direction"
-                                    width={20}
-                                    height={20}
-                                />
-                                Get direction
-                            </button>
-                        </div>
                     </div>
 
 
                     {/* Booking details card */}
-                    <div className="w-full h-[26.5rem] bg-[#0D1F1F] rounded-[1.25rem] relative">
-                        <div className="absolute left-6 top-6 right-6 flex flex-col">
-                            <div className="pb-3 border-b border-[#FFFFFF30]">
-                                <p className="text-[#B6B6B6] text-[0.75rem] font-['Manrope'] font-medium leading-4 tracking-[0.12px]">Booking date</p>
-                                <p className="text-white text-[0.875rem] font-['Manrope'] font-bold leading-5 tracking-[0.14px] mt-1">04 Apr | 4:00 pm</p>
+                    <div className="w-full bg-[#0D1F1F] rounded-[1.25rem] relative">
+                        <div className="p-6 flex flex-col gap-4">
+                            {/* Two column layout for main details */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-[#B6B6B6] text-[0.75rem] font-['Manrope'] font-medium leading-4 tracking-[0.12px]">Booking date</p>
+                                    <p className="text-white text-[0.875rem] font-['Manrope'] font-bold leading-5 tracking-[0.14px] mt-1">04 Apr | 4:00 pm</p>
+                                </div>
+                                <div>
+                                    <p className="text-[#B6B6B6] text-[0.75rem] font-['Manrope'] font-medium leading-4 tracking-[0.12px]">Number of Guest(s)</p>
+                                    <p className="text-white text-[0.875rem] font-['Manrope'] font-bold leading-5 tracking-[0.14px] mt-1">2 Guests</p>
+                                </div>
                             </div>
 
-                            <div className="pt-3 pb-3 border-b border-[#FFFFFF30]">
-                                <p className="text-[#B6B6B6] text-[0.75rem] font-['Manrope'] font-medium leading-4 tracking-[0.12px]">Number of Guest(s)</p>
-                                <p className="text-white text-[0.875rem] font-['Manrope'] font-bold leading-5 tracking-[0.14px] mt-1">2 Guests</p>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-[#B6B6B6] text-[0.75rem] font-['Manrope'] font-medium leading-4 tracking-[0.12px]">Table Number</p>
+                                    <p className="text-white text-[0.875rem] font-['Manrope'] font-bold leading-5 tracking-[0.14px] mt-1">TG-03</p>
+                                </div>
+                                <div>
+                                    <p className="text-[#B6B6B6] text-[0.75rem] font-['Manrope'] font-medium leading-4 tracking-[0.12px]">Notes</p>
+                                    <p className="text-white text-[0.875rem] font-['Manrope'] font-bold leading-5 tracking-[0.14px] mt-1">Birthday</p>
+                                </div>
                             </div>
 
-                            <div className="pt-3 pb-3 border-b border-[#FFFFFF30]">
-                                <p className="text-[#B6B6B6] text-[0.75rem] font-['Manrope'] font-medium leading-4 tracking-[0.12px]">Table Number</p>
-                                <p className="text-white text-[0.875rem] font-['Manrope'] font-bold leading-5 tracking-[0.14px] mt-1">TG-03</p>
+                            {/* Location */}
+                            <div className="border-t border-[#FFFFFF30] pt-4">
+                                <p className="text-[#B6B6B6] text-[0.75rem] font-['Manrope'] font-medium leading-4 tracking-[0.12px]">Location</p>
+                                <div className="flex items-start gap-2 mt-1">
+                                    <p className="text-white text-[0.875rem] font-['Manrope'] font-bold leading-5 tracking-[0.14px]">
+                                        6, New Manish Nagar, Somalwada, Nagpur
+                                    </p>
+                                    <button className="w-5 h-5 flex-shrink-0 mt-0.5">
+                                        <Image
+                                            src="/booking/review-event-booking/ArrowBendUpRight.svg"
+                                            alt="Direction"
+                                            width={20}
+                                            height={20}
+                                            className="text-[#14FFEC]"
+                                        />
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="pt-3 pb-3 border-b border-[#FFFFFF30]">
-                                <p className="text-[#B6B6B6] text-[0.75rem] font-['Manrope'] font-medium leading-4 tracking-[0.12px]">Floor Number</p>
-                                <p className="text-white text-[0.875rem] font-['Manrope'] font-bold leading-5 tracking-[0.14px] mt-1">Ground Floor</p>
-                            </div>
-
-                            <div className="pt-3 pb-3 border-b border-[#FFFFFF30]">
-                                <p className="text-[#B6B6B6] text-[0.75rem] font-['Manrope'] font-medium leading-4 tracking-[0.12px]">Notes</p>
-                                <p className="text-white text-[0.875rem] font-['Manrope'] font-bold leading-5 tracking-[0.14px] mt-1">Birthday</p>
-                            </div>
-
-                            <div className="pt-3">
+                            {/* Benefits */}
+                            <div className="border-t border-[#FFFFFF30] pt-4">
                                 <p className="text-[#14FFEC] text-[0.75rem] font-['Manrope'] font-medium leading-4 tracking-[0.12px]">Benefits</p>
                                 <p className="text-white text-[0.875rem] font-['Manrope'] font-bold leading-5 tracking-[0.14px] mt-1">Flat 30% OFF</p>
                                 <p className="text-[#B6B6B6] text-[0.75rem] font-['Manrope'] font-medium leading-4 tracking-[0.12px] mt-1">Pay your bill between 7:00 PM to 11 PM</p>
+                            </div>
+
+                            {/* Cancel Booking Button */}
+                            <div className="border-t border-[#FFFFFF30] pt-4 flex justify-center">
+                                <button
+                                    onClick={handleCancelBooking}
+                                    className="flex items-center gap-2 text-white text-[0.875rem] font-['Manrope'] font-medium"
+                                >
+                                    <X className="w-5 h-5" />
+                                    Cancel Booking
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -163,12 +151,22 @@ export default function ReviewEventBookingPage() {
                 </div>
             </div>
 
-            {/* Bottom confirm button */}
+            {/* Bottom View Ticket Button */}
             <div className="fixed bottom-0 left-0 right-0 z-50">
-                <BottomContinueButton
-                    text="Confirm Booking"
-                    onClick={handleContinue}
-                />
+                <div className="w-full h-[100px] relative bg-[#0D1F1F] shadow-[0px_30px_30px_-40px_#00968A_inset] overflow-hidden rounded-t-[40px] border-t-2 border-[#14FFEC]">
+                    <div className="flex justify-center w-full">
+                        <div className="w-[90%] max-w-[396px] h-[55px] mt-[20px] bg-[#0F6861] rounded-[30px] flex justify-center items-center">
+                            <button
+                                onClick={handleViewTicket}
+                                className="w-full h-full flex justify-center items-center"
+                            >
+                                <span className="text-center text-white text-[20px] font-['Manrope'] font-bold tracking-[0.05px]">
+                                    View Ticket
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
