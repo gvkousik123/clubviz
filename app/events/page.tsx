@@ -408,7 +408,7 @@ export default function EventsListPage() {
                                     <EventListCard
                                         key={`today-${event.id ?? index}`}
                                         event={event}
-                                        href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}
+                                        href="/event/timeless-tuesday"
                                         fallbackImage={getEventFallbackImage(index)}
                                         formattedDate={formatEventDate(event.startDateTime)}
                                         isFavorite={favorites.includes(event.id)}
@@ -434,7 +434,7 @@ export default function EventsListPage() {
                                     <EventListCard
                                         key={`week-${event.id ?? index}`}
                                         event={event}
-                                        href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}
+                                        href="/event/timeless-tuesday"
                                         fallbackImage={getEventFallbackImage(index + 10)}
                                         formattedDate={formatEventDate(event.startDateTime)}
                                         isFavorite={favorites.includes(event.id)}

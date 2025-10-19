@@ -8,7 +8,7 @@ export default function BookingConfirmPage() {
     const router = useRouter();
 
     const handleViewTicket = () => {
-        router.push('/event/tickets');
+        router.push('/event/ticket');
     };
 
     const handleShareTicket = () => {
