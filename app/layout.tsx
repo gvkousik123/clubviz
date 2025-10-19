@@ -27,6 +27,8 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Zen+Tokyo+Zoo&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet" />
+        <link rel="manifest" href="/favicon/site.webmanifest" />
+        <link rel="icon" href="/favicon/favicon.ico" sizes="any" />
       </head>
       <body className="antialiased bg-background-primary text-text-primary dark">
         <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
