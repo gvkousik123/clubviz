@@ -53,9 +53,9 @@ export default function ContactInfoPage() {
     };
 
     return (
-        <div className="min-h-screen w-full relative">
+        <div className="min-h-screen w-full relative bg-black">
             {/* Hero Section with Event Image */}
-            <div className="relative h-[320px] w-full">
+            <div className="relative h-[300px] w-full">
                 <img
                     src="/event list/Rectangle 1.jpg"
                     alt="Event Banner"
@@ -85,7 +85,7 @@ export default function ContactInfoPage() {
             </div>
 
             {/* Event Info Card */}
-            <div className="w-full bg-gradient-to-b from-[#0D696D] to-[#000000] rounded-t-[40px] -mt-20 relative z-10 pt-4 pb-10">
+            <div className="w-full bg-gradient-to-b from-[#0D696D] to-[#000000] rounded-t-[40px] -mt-20 relative z-10 pt-4 pb-16">
                 <h1 className="text-center text-white text-2xl font-['Anton'] tracking-[2.4px] leading-8">
                     Timeless Tuesdays Ft. DJ Xpensive
                 </h1>
@@ -96,7 +96,7 @@ export default function ContactInfoPage() {
                 </div>
 
                 {/* Event Details */}
-                <div className="px-9 flex flex-col gap-6 mt-2">
+                <div className="px-9 flex flex-col gap-4 mt-4">
                     <div className="flex items-center gap-3">
                         <svg className="text-[#14FFEC]" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 12.75C13.6569 12.75 15 11.4069 15 9.75C15 8.09315 13.6569 6.75 12 6.75C10.3431 6.75 9 8.09315 9 9.75C9 11.4069 10.3431 12.75 12 12.75Z" stroke="#14FFEC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -106,23 +106,23 @@ export default function ContactInfoPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <svg className="text-[#14FFEC]" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="text-[#14FFEC] shrink-0" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M8 2V5" stroke="#14FFEC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             <path d="M16 2V5" stroke="#14FFEC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             <path d="M3 8H21" stroke="#14FFEC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             <rect x="3" y="4" width="18" height="18" rx="2" stroke="#14FFEC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        <div className="bg-white/10 px-6 py-2 rounded-full">
+                        <div className="bg-[#0D4444] border border-[#14FFEC]/40 px-6 py-2 rounded-full">
                             <p className="text-white font-['Manrope'] font-bold">24 Dec | 7:00 pm</p>
                         </div>
                     </div>
                 </div>
-                <div className="mt-2"></div>
+                <div className="mt-8"></div>
             </div>
 
             {/* Contact Info Section */}
-            <div className="w-full absolute bottom-0 rounded-t-[60px] bg-gradient-to-b from-[#021313] to-black border-t border-[#0C898B] min-h-[50%] z-20 mt-4">
-                <div className="px-6 pt-10 overflow-y-auto h-[calc(100vh-400px)] pb-24 scrollbar-hide">
+            <div className="w-full absolute bottom-0 rounded-t-[60px] bg-gradient-to-b from-[#021313] to-black border-t border-[#0C898B] min-h-[42%] z-20">
+                <div className="px-6 pt-10 overflow-y-auto h-[calc(100vh-460px)] pb-24 scrollbar-hide">
                     <h2 className="text-white text-center text-base font-['Anton'] font-normal tracking-wide mb-8">
                         # TICKET INFORMATION
                     </h2>
