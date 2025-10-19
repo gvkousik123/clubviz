@@ -66,7 +66,7 @@ export default function FavoriteEventsPage() {
             <PageHeader title="FAVOURITE EVENTS" />
 
             {/* Event Cards */}
-            <div className="px-8 space-y-10 mt-10">
+            <div className="px-8 space-y-10 pt-[20vh]">
                 {favoriteEventsData.map((event) => (
 
                     <div key={event.id} className="w-full h-[150px] relative">

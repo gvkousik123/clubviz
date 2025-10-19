@@ -71,7 +71,7 @@ export default function BookingPage() {
             <PageHeader title="MY BOOKINGS" />
 
             {/* Tab Navigation */}
-            <div className="px-4 py-6">
+            <div className="px-4 py-6 pt-[20vh]">
                 <div className="w-full h-14 relative">
                     <div className="w-full h-14 relative bg-[#0D1F1F] rounded-[1.875rem] overflow-hidden">
                         <button

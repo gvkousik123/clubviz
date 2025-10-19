@@ -52,7 +52,7 @@ export default function FavoriteClubsPage() {
             <PageHeader title="FAVOURITE CLUBS" />
 
             {/* Club Cards */}
-            <div className="px-6 space-y-4 mt-8">
+            <div className="px-6 space-y-4 pt-[20vh]">
                 {favoriteClubsData.map((club) => (
                     <div key={club.id} className="w-full">
                         {/* Main club card structure */}

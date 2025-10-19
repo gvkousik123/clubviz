@@ -72,7 +72,7 @@ export default function LocationSelectPage() {
             <PageHeader title="Enter your Location" />
 
             {/* Search Input */}
-            <div className="px-4 py-6">
+            <div className="px-4 py-6 pt-[20vh]">
                 <div className="w-full h-[51px] px-[15px] py-2 bg-white/20 shadow-md rounded-[23px] flex items-center justify-between">
                     <div className="flex items-center gap-2 flex-1">
                         <div className="w-[30px] h-[30px] relative overflow-hidden flex-shrink-0">
