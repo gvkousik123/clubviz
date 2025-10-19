@@ -26,7 +26,7 @@ export default function BottomContinueButton({
                     disabled={disabled}
                     className="w-full h-full relative transition-opacity duration-200"
                 >
-                    <div className={`absolute left-1/2 top-2 transform -translate-x-1/2 w-[8.9375rem] h-6 flex items-center justify-center text-lg font-['Manrope'] font-bold leading-5 ${disabled ? 'text-white/50' : 'text-white'
+                    <div className={`absolute left-1/2 top-2 transform -translate-x-1/2 px-4 h-6 flex items-center justify-center text-lg font-['Manrope'] font-bold leading-5 whitespace-nowrap ${disabled ? 'text-white/50' : 'text-white'
                         }`}>
                         {text}
                     </div>
