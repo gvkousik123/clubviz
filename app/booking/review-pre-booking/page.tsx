@@ -10,7 +10,7 @@ export default function ReviewEventBookingPage() {
     const router = useRouter();
 
     const handleViewTicket = () => {
-        router.push('/ticket/view');
+        router.push('/booking/confirmation');
     };
 
     const handleCancelBooking = () => {
