@@ -192,7 +192,7 @@ const HomePage = () => {
                     <section className="px-5">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-white text-base font-semibold">Venue List</h2>
-                            <Link href="/venues" className="text-[#14FFEC] text-base font-medium">View All</Link>
+                            <Link href="/clubs" className="text-[#14FFEC] text-base font-medium">View All</Link>
                         </div>
                         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                             {venueFallback.map((club) => (
