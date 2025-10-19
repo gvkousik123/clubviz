@@ -460,66 +460,206 @@ export default function ClubDaboPage() {
                     {/* Facilities Section */}
                     <div className="w-full">
                         <h3 className="text-white text-base font-semibold mb-4">Facilities</h3>
-                        <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4">
-                            <div className="flex flex-wrap gap-2">
-                                {facilities.map((facility, index) => (
-                                    <div key={index} className="px-3 py-2 bg-white/10 rounded-full flex items-center gap-2">
-                                        <span className="text-lg">{facility.icon}</span>
-                                        <span className="text-white text-sm">{facility.label}</span>
-                                    </div>
-                                ))}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-[#02A1A1]/30 flex items-center justify-center">
+                                    <span className="text-[#14FFEC]">🕐</span>
+                                </div>
+                                <span className="text-white text-sm">Open till midnight</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-[#02A1A1]/30 flex items-center justify-center">
+                                    <span className="text-[#14FFEC]">♿</span>
+                                </div>
+                                <span className="text-white text-sm">Disabled Access</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-[#02A1A1]/30 flex items-center justify-center">
+                                    <span className="text-[#14FFEC]">🚗</span>
+                                </div>
+                                <span className="text-white text-sm">Car Parking</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-[#02A1A1]/30 flex items-center justify-center">
+                                    <span className="text-[#14FFEC]">🍽️</span>
+                                </div>
+                                <span className="text-white text-sm">Private dining space</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-[#02A1A1]/30 flex items-center justify-center">
+                                    <span className="text-[#14FFEC]">🪑</span>
+                                </div>
+                                <span className="text-white text-sm">Indoor Seating</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-[#02A1A1]/30 flex items-center justify-center">
+                                    <span className="text-[#14FFEC]">📋</span>
+                                </div>
+                                <span className="text-white text-sm">Table booking</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Amenities Sections */}
-                    {amenities.map((section, sectionIndex) => (
-                        <div key={sectionIndex} className="w-full">
-                            <h3 className="text-white text-base font-semibold mb-4">{section.title}</h3>
-                            <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4">
-                                <div className="flex flex-wrap gap-2">
-                                    {section.items.map((item, index) => (
-                                        <div key={index} className="px-3 py-2 bg-white/10 rounded-full">
-                                            <span className="text-white text-sm">{item}</span>
-                                        </div>
-                                    ))}
-                                </div>
+                    {/* Food Section */}
+                    <div className="w-full">
+                        <h3 className="text-white text-base font-semibold mb-4">Food</h3>
+                        <div className="flex flex-wrap gap-3">
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
+                                <span className="text-[#14FFEC]">🥗</span>
+                                <span className="text-white text-sm">Gluten free options</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
+                                <span className="text-[#14FFEC]">🍸</span>
+                                <span className="text-white text-sm">Bar Snacks</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
+                                <span className="text-[#14FFEC]">🥢</span>
+                                <span className="text-white text-sm">Asian</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
+                                <span className="text-[#14FFEC]">🍕</span>
+                                <span className="text-white text-sm">Italian</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
+                                <span className="text-[#14FFEC]">🌎</span>
+                                <span className="text-white text-sm">Continental</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
+                                <span className="text-[#14FFEC]">🍲</span>
+                                <span className="text-white text-sm">North Indian</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
+                                <span className="text-[#14FFEC]">🍔</span>
+                                <span className="text-white text-sm">Burgers & Sandwich</span>
                             </div>
                         </div>
-                    ))}
+                    </div>
+
+                    {/* Music Section */}
+                    <div className="w-full">
+                        <h3 className="text-white text-base font-semibold mb-4">Music</h3>
+                        <div className="flex flex-wrap gap-3">
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
+                                <span className="text-[#14FFEC]">🎤</span>
+                                <span className="text-white text-sm">Karaoke</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
+                                <span className="text-[#14FFEC]">🎧</span>
+                                <span className="text-white text-sm">DJs</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
+                                <span className="text-[#14FFEC]">🎵</span>
+                                <span className="text-white text-sm">Live Music</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bar Section */}
+                    <div className="w-full">
+                        <h3 className="text-white text-base font-semibold mb-4">Bar</h3>
+                        <div className="flex flex-wrap gap-3">
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
+                                <span className="text-[#14FFEC]">🥃</span>
+                                <span className="text-white text-sm">Spirits</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
+                                <span className="text-[#14FFEC]">🍷</span>
+                                <span className="text-white text-sm">Wine</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
+                                <span className="text-[#14FFEC]">🍺</span>
+                                <span className="text-white text-sm">Draught</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
+                                <span className="text-[#14FFEC]">🍹</span>
+                                <span className="text-white text-sm">Cocktail</span>
+                            </div>
+                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
+                                <span className="text-[#14FFEC]">🧃</span>
+                                <span className="text-white text-sm">Non Alcoholic</span>
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Reviews Section */}
                     <div className="w-full flex justify-between items-center">
                         <h3 className="text-white text-base font-semibold">Reviews</h3>
-                        <Link href="#" className="text-[#14FFEC] text-xs font-semibold uppercase tracking-[0.2em]">
-                            View all
+                        <Link href="/review/page" className="text-[#14FFEC] text-xs font-semibold">
+                            View All
                         </Link>
                     </div>
 
                     <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
                         <div className="flex gap-4">
-                            {reviews.map((review, index) => (
-                                <div key={index} className="min-w-[300px] bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4 flex flex-col gap-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-[#14FFEC] rounded-full flex items-center justify-center">
-                                            <span className="text-black font-bold">{review.initial}</span>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-white text-sm font-semibold">{review.name}</h4>
-                                            <div className="flex items-center gap-1">
+                            <div className="min-w-[300px] bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <img
+                                        src="/profile/profile-1.jpg"
+                                        alt="Anjali Sharma"
+                                        className="w-12 h-12 rounded-full object-cover"
+                                    />
+                                    <div>
+                                        <h4 className="text-white text-base font-medium">Anjali Sharma</h4>
+                                        <div className="flex items-center gap-1 mt-0.5">
+                                            <span className="text-[#14FFEC] text-sm font-medium">4.5</span>
+                                            <div className="flex">
                                                 {[...Array(5)].map((_, i) => (
                                                     <Star
                                                         key={i}
-                                                        className={`w-3 h-3 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-600'}`}
+                                                        size={14}
+                                                        className={`${i < 4 ? 'text-[#14FFEC] fill-[#14FFEC]' :
+                                                            i === 4 ? 'text-[#14FFEC]' : 'text-gray-600'}`}
                                                     />
                                                 ))}
                                             </div>
                                         </div>
                                     </div>
-                                    <p className="text-white/80 text-sm">{review.comment}</p>
-                                    <span className="text-white/60 text-xs">{review.timeAgo}</span>
+                                    <div className="ml-auto text-right">
+                                        <span className="text-white/70 text-sm">25/07/2024</span>
+                                    </div>
                                 </div>
-                            ))}
+                                <p className="text-white/80 text-sm leading-relaxed mb-2">
+                                    I recently ate at Dabo and had a great time. The food tasted good, and Rakesh's suggestions were perfect. The service was excellent. I'm very happy with my visit. Decor and interiors can be improved a bit.
+                                </p>
+                                <div className="text-right">
+                                    <span className="text-white/50 text-xs">3 Days ago</span>
+                                </div>
+                            </div>
+
+                            <div className="min-w-[300px] bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <img
+                                        src="/profile/profile-2.jpg"
+                                        alt="Ankit Trivedi"
+                                        className="w-12 h-12 rounded-full object-cover"
+                                    />
+                                    <div>
+                                        <h4 className="text-white text-base font-medium">Ankit Trivedi</h4>
+                                        <div className="flex items-center gap-1 mt-0.5">
+                                            <span className="text-[#14FFEC] text-sm font-medium">4.5</span>
+                                            <div className="flex">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <Star
+                                                        key={i}
+                                                        size={14}
+                                                        className={`${i < 4 ? 'text-[#14FFEC] fill-[#14FFEC]' :
+                                                            i === 4 ? 'text-[#14FFEC]' : 'text-gray-600'}`}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="ml-auto text-right">
+                                        <span className="text-white/70 text-sm">02/07/2024</span>
+                                    </div>
+                                </div>
+                                <p className="text-white/80 text-sm leading-relaxed mb-2">
+                                    Generally any pub strikes one of the two cords, ambiance or tasty food. The food here is simply amazing and combine it with the perfect and soothing ambiance you will have a time of your life.
+                                </p>
+                                <div className="text-right">
+                                    <span className="text-white/50 text-xs">6 Days ago</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
