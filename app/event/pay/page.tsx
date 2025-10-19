@@ -361,8 +361,8 @@ export default function PaymentPage() {
                                         </div>                                        {option.actions.map((action, index) => (
                                             <div
                                                 key={index}
-                                                className="flex items-center justify-between border border-[#0C898B] rounded-xl py-3 px-5 bg-[#021313] mb-3"
-                                                onClick={() => action.actionType === 'select' && handleSelectPaymentMethod(option.id)}
+                                                className="flex items-center justify-between border border-[#0C898B] rounded-xl py-3 px-5 bg-[#021313] mb-3 cursor-pointer"
+                                                onClick={() => router.push('/event/confirm-booking')}
                                             >
                                                 <div className="flex items-center">
                                                     <img src={option.icon} alt={option.title} width="24" height="24" className="mr-4" />
