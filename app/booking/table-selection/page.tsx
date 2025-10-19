@@ -28,7 +28,7 @@ export default function TableSelectionPage() {
     };
 
     const handleContinue = () => {
-        router.push('/booking/review');
+        router.push('/booking/review-booking');
     };
 
     // Floor options
