@@ -73,7 +73,7 @@ export default function SlotPage() {
 
     const handleContinue = () => {
         // Navigate to next step in booking flow
-        router.push('/booking/form');
+        router.push('/booking/table-selection');
     };
 
     const displayedTimeSlots = showAllSlots ? timeSlots : timeSlots.slice(0, 8);
@@ -213,7 +213,7 @@ export default function SlotPage() {
                                 View all slots
                             </div>
                             <ChevronDown
-                                size={7}
+                                size={20}
                                 className={`text-white transition-transform ${showAllSlots ? 'rotate-180' : ''}`}
                             />
                         </button>
