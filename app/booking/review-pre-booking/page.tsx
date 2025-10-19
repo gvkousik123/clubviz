@@ -33,8 +33,10 @@ export default function ReviewEventBookingPage() {
 
                         {/* Success Message */}
                         <h2 className="text-white text-[1.5rem] font-['Manrope'] font-bold leading-8 text-center mb-2 flex items-center justify-center gap-2">
-                            <span>Successfully Booked your Table <span></span></span>
-
+                            <span>Successfully Booked your Table</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#14FFEC]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
                         </h2>
 
                         {/* Reservation ID */}

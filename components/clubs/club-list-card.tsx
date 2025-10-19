@@ -37,7 +37,7 @@ export const ClubListCard: React.FC<ClubListCardProps> = ({
     const imageUrl = club.image || fallbackImage || '/venue/Screenshot 2024-12-10 195651.png';
 
     return (
-        <Link href={href} className={`block ${className}`}>
+        <Link href="/club/dabo" className={`block ${className} cursor-pointer`}>
             <div className="w-[280px] h-[180px] relative flex-shrink-0 mr-3">
                 {/* Main image container */}
                 <div className="w-[280px] h-[148px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[12px] border-[#14FFEC] overflow-hidden">

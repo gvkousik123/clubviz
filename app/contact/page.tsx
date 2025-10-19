@@ -41,9 +41,9 @@ export default function ContactUsPage() {
             {/* Customer Support Section */}
             <div className="px-6 py-4">
                 {/* Section Header */}
-                <div className="w-full justify-center items-center gap-[10px] inline-flex mb-4">
-                    <div className="text-[#FFFEFF] text-base font-['Manrope'] font-semibold leading-4 tracking-[0.50px]">Customer Support</div>
-                    <div className="flex-1 h-0 border-[1.50px] border-[#0FD8E2]"></div>
+                <div className="flex items-center gap-4 mb-4">
+                    <h3 className="text-[#FFFEFF] text-base font-['Manrope'] font-semibold leading-4 tracking-[0.50px] whitespace-nowrap">Customer Support</h3>
+                    <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
                 </div>
 
                 {/* Contact Items */}
@@ -81,9 +81,9 @@ export default function ContactUsPage() {
             {/* My Preferences Section */}
             <div className="px-6 py-4">
                 {/* Section Header */}
-                <div className="w-full justify-center items-center gap-[10px] inline-flex mb-4">
-                    <div className="text-[#FFFEFF] text-base font-['Manrope'] font-semibold leading-4 tracking-[0.50px]">My Preferences</div>
-                    <div className="flex-1 h-0 border-[1.50px] border-[#0FD8E2]"></div>
+                <div className="flex items-center gap-4 mb-4">
+                    <h3 className="text-[#FFFEFF] text-base font-['Manrope'] font-semibold leading-4 tracking-[0.50px] whitespace-nowrap">My Preferences</h3>
+                    <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
                 </div>
 
                 {/* Social Media Items */}

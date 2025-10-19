@@ -78,21 +78,21 @@ export default function MyAccountPage() {
                 {/* Main Content */}
                 <div className="px-6 py-6 space-y-6">
                     {/* My Bookings */}
-                    <div className="bg-[#0D1F1F] rounded-xl p-4 flex items-center justify-between hover:bg-[#1a2d2d] transition-colors">
+                    <Link href="/booking" className="bg-[#0D1F1F] rounded-xl p-4 flex items-center justify-between hover:bg-[#1a2d2d] transition-colors cursor-pointer">
                         <span className="text-white font-medium text-sm">My Bookings</span>
                         <ChevronRight className="w-5 h-5 text-[#14FFEC]" />
-                    </div>
+                    </Link>
 
                     {/* Favourite Clubs Section */}
                     <div className="space-y-4">
-                        <div className="flex items-center gap-4">
+                        <Link href="/favourites/clubs" className="flex items-center gap-4 cursor-pointer">
                             <h3 className="text-white font-semibold text-sm whitespace-nowrap">Favourite Clubs</h3>
                             <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
-                        </div>
+                        </Link>
 
                         <div className="space-y-3">
                             {/* Dabo Club */}
-                            <Link href="/event/dabo" className="bg-[#0D1F1F] rounded-xl p-4 flex items-center justify-between hover:bg-[#1a2d2d] transition-colors">
+                            <Link href="/favourites/clubs" className="bg-[#0D1F1F] rounded-xl p-4 flex items-center justify-between hover:bg-[#1a2d2d] transition-colors cursor-pointer">
                                 <div className="flex items-center gap-3">
                                     <img
                                         className="w-10 h-10 rounded-full object-cover"
@@ -111,7 +111,7 @@ export default function MyAccountPage() {
                             </Link>
 
                             {/* Raasta Club */}
-                            <Link href="/event/raasta" className="bg-[#0D1F1F] rounded-xl p-4 flex items-center justify-between hover:bg-[#1a2d2d] transition-colors">
+                            <Link href="/favourites/clubs" className="bg-[#0D1F1F] rounded-xl p-4 flex items-center justify-between hover:bg-[#1a2d2d] transition-colors cursor-pointer">
                                 <div className="flex items-center gap-3">
                                     <img
                                         className="w-10 h-10 rounded-full object-cover border-2 border-[#14FFEC]"
@@ -133,10 +133,10 @@ export default function MyAccountPage() {
 
                     {/* Favourite Events Section */}
                     <div className="space-y-4">
-                        <div className="flex items-center gap-4">
+                        <Link href="/favourites/events" className="flex items-center gap-4 cursor-pointer">
                             <h3 className="text-white font-semibold text-sm whitespace-nowrap">Favourite Events</h3>
                             <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
-                        </div>
+                        </Link>
 
                         <div className="space-y-3">
                             {/* Tipsy Tuesday Event - Special Styling */}

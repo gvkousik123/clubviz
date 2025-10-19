@@ -88,7 +88,7 @@ export function EventCard({
     };
 
     return (
-        <Link href={href} className={cn("group block w-full", className)}>
+        <Link href="/event/timeless-tuesday" className={cn("group block w-full cursor-pointer", className)}>
             <article className="relative w-full">
                 <div
                     className="absolute inset-0 rounded-[28px] opacity-60 blur-[26px] transition duration-500 group-hover:opacity-100"
