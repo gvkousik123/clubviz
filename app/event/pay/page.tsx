@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Calendar, Mail, Phone, Plus, Minus } from 'lucide-react';
+import { MapPin, Calendar, Mail, Phone, Plus, Minus, X, Check } from 'lucide-react';
 import PageHeader from '@/components/common/page-header';
 
 // Add custom CSS for hiding scrollbar while keeping functionality
@@ -16,11 +16,21 @@ const scrollbarHideStyle = `
   }
 `;
 
-export default function ReviewBookingPage() {
+export default function PaymentPage() {
     const router = useRouter();
+    const [showCouponPopup, setShowCouponPopup] = useState(true);
+    const [couponCode, setCouponCode] = useState('');
+    const [selectedCoupon, setSelectedCoupon] = useState<number | null>(null);
+    const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+
+    // Available coupons data
+    const availableCoupons = [
+        { id: 1, code: 'FLAT150', discount: '₹150', description: 'Save upto ₹150 with this code' },
+        { id: 2, code: 'FLAT150', discount: '₹150', description: 'Save upto ₹150 with this code' }
+    ];
 
     // Apply the scrollbar-hide style
-    React.useEffect(() => {
+    useEffect(() => {
         // Create style element and append to head
         const style = document.createElement('style');
         style.innerHTML = scrollbarHideStyle;
@@ -32,27 +42,113 @@ export default function ReviewBookingPage() {
         };
     }, []);
 
-    // Note: The PageHeader component handles the back navigation internally
+    const handleCloseCouponPopup = () => {
+        setShowCouponPopup(false);
+    };
+
+    const handleSelectCoupon = (id: number) => {
+        setSelectedCoupon(id === selectedCoupon ? null : id);
+    };
+
+    const handleApplyCoupon = () => {
+        if (selectedCoupon) {
+            const coupon = availableCoupons.find(c => c.id === selectedCoupon);
+            if (coupon) {
+                setAppliedCoupon(coupon.code);
+                setShowCouponPopup(false);
+            }
+        } else if (couponCode) {
+            setAppliedCoupon(couponCode);
+            setShowCouponPopup(false);
+        }
+    };
 
     const handlePayment = () => {
-        // Navigate to payment page
-        router.push('/event/pay');
+        // Navigate to payment confirmation
+        router.push('/event/tickets');
     };
 
     return (
         <div className="min-h-screen w-full bg-[#021313] relative">
-            <PageHeader title="REVIEW EVENT BOOKING" />
+            <PageHeader title="PAYMENT" />
 
             {/* Main Content - Scrollable */}
             <div className="pt-[20vh] pb-24 h-screen overflow-y-auto scrollbar-hide">
-                {/* Club Details Section */}
+                {/* Coupon Code Section */}
                 <div className="px-4 mb-6">
                     <div className="flex items-center gap-4 mb-4">
-                        <h2 className="text-white font-['Manrope'] font-semibold text-lg whitespace-nowrap">Club Details</h2>
+                        <h2 className="text-white font-['Manrope'] font-semibold text-lg whitespace-nowrap">Apply Coupon</h2>
                         <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
                     </div>
 
-                    <div className="bg-[#0D1F1F] rounded-xl p-5 space-y-4">
+                    <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-xl p-5">
+                        <div className="flex items-center gap-3">
+                            {appliedCoupon ? (
+                                <>
+                                    <div className="flex-1 flex items-center gap-2">
+                                        <img src="/common/Tag.svg" alt="Coupon" width="24" height="24" />
+                                        <p className="text-white font-['Manrope'] font-medium">{appliedCoupon}</p>
+                                    </div>
+                                    <span className="text-[#14FFEC] text-sm">Applied</span>
+                                    <Check size={20} className="text-[#14FFEC]" />
+                                </>
+                            ) : (
+                                <button
+                                    onClick={() => setShowCouponPopup(true)}
+                                    className="w-full h-12 flex items-center gap-2 text-[#14FFEC] font-['Manrope']"
+                                >
+                                    <img src="/common/Tag.svg" alt="Coupon" width="24" height="24" />
+                                    <span>Add Coupon Code</span>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Payment Summary Section */}
+                <div className="px-4 mb-6">
+                    <div className="flex items-center gap-4 mb-4">
+                        <h2 className="text-white font-['Manrope'] font-semibold text-lg whitespace-nowrap">Payment Summary</h2>
+                        <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
+                    </div>
+
+                    <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-xl p-5">
+                        <div className="space-y-3">
+                            <div className="flex justify-between">
+                                <span className="text-[#B6B6B6] font-['Manrope'] text-sm">Ticket Price (2)</span>
+                                <span className="text-white font-['Manrope'] font-medium">₹3,500</span>
+                            </div>
+
+                            <div className="flex justify-between">
+                                <span className="text-[#B6B6B6] font-['Manrope'] text-sm">Convenience Fee</span>
+                                <span className="text-white font-['Manrope'] font-medium">₹150</span>
+                            </div>
+
+                            {appliedCoupon && (
+                                <div className="flex justify-between text-[#14FFEC]">
+                                    <span className="font-['Manrope'] text-sm">Coupon Discount</span>
+                                    <span className="font-['Manrope'] font-medium">- ₹150</span>
+                                </div>
+                            )}
+
+                            <div className="pt-3 border-t border-[#14FFEC]/20 flex justify-between">
+                                <span className="text-white font-['Manrope'] font-medium">Total Amount</span>
+                                <span className="text-white font-['Manrope'] font-bold text-lg">
+                                    ₹{appliedCoupon ? '3,500' : '3,650'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Event Details Section */}
+                <div className="px-4 mb-6">
+                    <div className="flex items-center gap-4 mb-4">
+                        <h2 className="text-white font-['Manrope'] font-semibold text-lg whitespace-nowrap">Event Details</h2>
+                        <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
+                    </div>
+
+                    <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-xl p-5 space-y-4">
                         <div className="flex items-center gap-3">
                             <img src="/common/MaskHappy.svg" alt="Event" width="24" height="24" />
                             <p className="text-white font-['Manrope'] font-medium">Timeless Tuesdays Ft. DJ Xpensive</p>
@@ -66,31 +162,6 @@ export default function ReviewBookingPage() {
                         <div className="flex items-center gap-3">
                             <Calendar size={20} className="text-[#14FFEC]" />
                             <p className="text-white font-['Manrope'] font-medium">24 Dec | 7:00 pm</p>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <img src="/common/TShirt.svg" alt="Dress Code" width="24" height="24" />
-                            <p className="text-white font-['Manrope'] font-medium">Dress Code - Funky Pop</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Send Details To Section */}
-                <div className="px-4 mb-6">
-                    <div className="flex items-center gap-4 mb-4">
-                        <h2 className="text-white font-['Manrope'] font-semibold text-lg whitespace-nowrap">Send Details to</h2>
-                        <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
-                    </div>
-
-                    <div className="bg-[#0D1F1F] rounded-xl p-5 space-y-4">
-                        <div className="flex items-center gap-3">
-                            <Mail size={20} className="text-[#14FFEC]" />
-                            <p className="text-white font-['Manrope'] font-medium">test@gmail.com</p>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <Phone size={20} className="text-[#14FFEC]" />
-                            <p className="text-white font-['Manrope'] font-medium">+91 9XXXX9XXXXX</p>
                         </div>
                     </div>
                 </div>
