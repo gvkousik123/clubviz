@@ -387,7 +387,7 @@ export default function EventsListPage() {
                 </div>
 
                 {/* Events Section Headers */}
-                <div className="w-full px-5 pt-[22vh]">
+                <div className="w-full px-5 pt-[24vh]">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-white text-base font-semibold">Events today</h2>
                         <Link href="/events" className="text-[#14FFEC] text-base font-medium">View All</Link>

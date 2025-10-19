@@ -221,40 +221,47 @@ export default function GalleryPage() {
 
             {/* Image Viewer Modal */}
             {isModalOpen && selectedImageIndex !== null && (
-                <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
-                    {/* Modal Header */}
-                    <div className="absolute top-0 left-0 w-full flex justify-between items-center p-6 z-10">
-                        <h2 className="text-white text-lg font-semibold">All Photos</h2>
-                        <button
-                            onClick={closeModal}
-                            className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
-                        >
-                            <X className="w-6 h-6 text-white" />
-                        </button>
-                    </div>
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center"
+                    style={{ backgroundColor: 'rgba(13, 31, 31, 0.8)' }}
+                >
+                    {/* Modal Container */}
+                    <div className="relative w-[90vw] max-w-[400px] h-[55vh] bg-[#0D1F1F] rounded-[20px] overflow-hidden flex flex-col shadow-[0_0_20px_rgba(20,255,236,0.3)]">
+                        {/* Modal Header */}
+                        <div className="flex justify-between items-center p-4 bg-gradient-to-b from-black/20 to-transparent">
+                            <h2 className="text-white text-lg font-semibold">All Photos</h2>
+                            <button
+                                onClick={closeModal}
+                                className="w-10 h-10 flex items-center justify-center hover:opacity-80 transition-opacity"
+                            >
+                                <img src="/common/Close.svg" alt="Close" className="w-6 h-6" />
+                            </button>
+                        </div>
 
-                    {/* Navigation Arrows */}
-                    <button
-                        onClick={prevImage}
-                        className="absolute left-6 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors z-10"
-                    >
-                        <ChevronLeft className="w-6 h-6 text-white" />
-                    </button>
+                        {/* Main Image Container */}
+                        <div className="flex-1 relative flex items-center justify-center p-4">
+                            {/* Navigation Arrows */}
+                            <button
+                                onClick={prevImage}
+                                className="absolute left-4 w-10 h-10 flex items-center justify-center hover:opacity-80 transition-opacity z-10"
+                            >
+                                <img src="/common/CaretCircleLeft.svg" alt="Previous" className="w-8 h-8" />
+                            </button>
 
-                    <button
-                        onClick={nextImage}
-                        className="absolute right-6 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors z-10"
-                    >
-                        <ChevronRight className="w-6 h-6 text-white" />
-                    </button>
+                            <button
+                                onClick={nextImage}
+                                className="absolute right-4 w-10 h-10 flex items-center justify-center hover:opacity-80 transition-opacity z-10"
+                            >
+                                <img src="/common/CaretCircleRight.svg" alt="Next" className="w-8 h-8" />
+                            </button>
 
-                    {/* Main Image */}
-                    <div className="relative max-w-4xl max-h-[80vh] mx-6">
-                        <img
-                            src={filteredItems[selectedImageIndex].image}
-                            alt={filteredItems[selectedImageIndex].alt}
-                            className="max-w-full max-h-full object-contain rounded-lg"
-                        />
+                            {/* Main Image */}
+                            <img
+                                src={filteredItems[selectedImageIndex].image}
+                                alt={filteredItems[selectedImageIndex].alt}
+                                className="max-w-full max-h-full object-contain rounded-lg"
+                            />
+                        </div>
                     </div>
 
                     {/* Click outside to close */}
