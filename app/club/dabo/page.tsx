@@ -363,7 +363,7 @@ export default function ClubDaboPage() {
                     {/* Events in Dabo */}
                     <div className="w-full">
                         <h3 className="text-white text-base font-semibold mb-4">Events in Dabo</h3>
-                        <div className="flex overflow-x-auto gap-4 pb-2">
+                        <div className="flex overflow-x-auto gap-4 pb-2 scrollbar-hide">
                             {upcomingEvents.map((event) => (
                                 <Link
                                     href="/event/timeless-tuesday"
@@ -496,7 +496,7 @@ export default function ClubDaboPage() {
                         </Link>
                     </div>
 
-                    <div className="w-full overflow-x-auto pb-2">
+                    <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
                         <div className="flex gap-4">
                             {reviews.map((review, index) => (
                                 <div key={index} className="min-w-[300px] bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4 flex flex-col gap-3">

@@ -29,6 +29,8 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet" />
         <link rel="manifest" href="/favicon/site.webmanifest" />
         <link rel="icon" href="/favicon/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/logo/logo.png" />
+        <meta name="theme-color" content="#021313" />
       </head>
       <body className="antialiased bg-background-primary text-text-primary dark">
         <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
