@@ -32,7 +32,7 @@ export default function ContactUsPage() {
             <PageHeader title="CONTACT US" />
 
             {/* Description Text */}
-            <div className="px-6 py-6">
+            <div className="px-6 py-6 pt-[20vh]">
                 <div className="text-[#9D9C9C] text-[13px] font-['Manrope'] font-semibold leading-4 tracking-[0.50px]">
                     You can get in touch with us through below platform. Our team will reach out to you as soon as it would be possible.
                 </div>

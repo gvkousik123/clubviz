@@ -21,10 +21,10 @@ export default function PageHeader({ title, onBack }: PageHeaderProps) {
 
     return (
         <>
-            {/* Header */}
-            <div className="w-full h-[120px] bg-gradient-to-t from-[#11B9AB] to-[#222831] rounded-b-[30px] relative">
+            {/* Fixed Header */}
+            <div className="fixed top-0 left-0 w-full h-[16vh] bg-gradient-to-t from-[#11B9AB] to-[#222831] rounded-b-[30px] z-40 flex flex-col justify-between">
                 {/* Header Content */}
-                <div className="flex items-center justify-between px-6 pt-6">
+                <div className="flex items-center justify-between px-6 pt-4">
                     <button
                         onClick={handleGoBack}
                         className="w-[35px] h-[35px] bg-white/20 overflow-hidden rounded-[18px] flex items-center justify-center"
@@ -32,7 +32,7 @@ export default function PageHeader({ title, onBack }: PageHeaderProps) {
                         <span className="text-white text-lg font-bold">&lt;</span>
                     </button>
                 </div>
-                <div className="text-center px-6 pb-4 pt-2">
+                <div className="text-center px-6 flex-1 flex flex-col justify-center">
                     <div className="text-white text-xl font-['Manrope'] font-bold leading-6 tracking-[0.50px] break-words">{title}</div>
                 </div>
             </div>

@@ -19,7 +19,7 @@ import {
     ChevronRight,
     Bookmark
 } from 'lucide-react';
-import Sidebar from '@/components/common/sidebar.tsx';
+import Sidebar from '@/components/common/sidebar';
 
 // Dummy data
 const heroSlides = [
@@ -78,10 +78,10 @@ const HomePage = () => {
     return (
         <div className="min-h-screen bg-[#031313] text-white">
             <div className="relative mx-auto max-w-[430px]">
-                {/* Header */}
-                <header className="relative bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-6 pt-12 z-50">
+                {/* Fixed Header */}
+                <header className="fixed top-0 left-0 w-full max-w-[430px] mx-auto h-[16vh] bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-6 pt-4 z-50 flex flex-col justify-between">
                     {/* Location and Profile */}
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <MapPin className="w-6 h-6 text-[#14FFEC]" />
                             <div className="text-white text-base font-bold tracking-wide">Dharampeth</div>
@@ -110,9 +110,9 @@ const HomePage = () => {
                 </header>
 
                 {/* Main Content */}
-                <main className="px-0 pt-0 space-y-6">
+                <main className="pt-[16vh] px-0 space-y-6">
                     {/* Hero Carousel */}
-                    <section className="relative w-full -mt-[30px]">
+                    <section className="relative w-full">
                         <div data-property-1="Default" className="w-full h-full relative shadow-[0px_4px_5.6px_rgba(20,255,236,0.11)] overflow-hidden rounded-b-[30px]">
                             {/* Visible slide */}
                             <div className="w-[430px] h-[262px] relative">

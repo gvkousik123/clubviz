@@ -143,11 +143,11 @@ export default function GalleryPage() {
     }, [isModalOpen, selectedImageIndex, filteredItems.length]);
 
     return (
-        <div className="min-h-screen w-full bg-[#031414] overflow-hidden">
-            {/* Custom Header with Photos section */}
-            <div className="w-full h-auto bg-gradient-to-t from-[#11B9AB] to-[#222831] rounded-b-[30px] relative">
+        <div className="min-h-screen w-full bg-[#031414] relative">
+            {/* Fixed Header with Photos section */}
+            <div className="fixed top-0 left-0 w-full h-[16vh] bg-gradient-to-t from-[#11B9AB] to-[#222831] rounded-b-[30px] z-40 flex flex-col justify-between">
                 {/* Header Content */}
-                <div className="flex items-center justify-between px-6 pt-6">
+                <div className="flex items-center justify-between px-6 pt-4">
                     <button
                         onClick={() => router.back()}
                         className="w-[35px] h-[35px] bg-white/20 overflow-hidden rounded-[18px] flex items-center justify-center"
@@ -155,18 +155,14 @@ export default function GalleryPage() {
                         <span className="text-white text-lg font-bold">&lt;</span>
                     </button>
                 </div>
-                <div className="text-center px-6 pb-2 pt-2">
-                    <div className="text-white text-xl font-['Manrope'] font-bold leading-6 tracking-[0.50px] break-words">DABO CLUB & KITCHEN</div>
-                </div>
-
-                {/* Photos Section within header */}
-                <div className="px-6 pb-6 pt-4">
-                    <h2 className="text-white text-lg font-['Manrope'] font-semibold leading-6 tracking-[0.50px]">Photos</h2>
+                <div className="text-center px-6 flex-1 flex flex-col justify-center">
+                    <div className="text-white text-xl font-['Manrope'] font-bold leading-6 tracking-[0.50px] break-words -mt-2">DABO CLUB & KITCHEN</div>
+                    <h2 className="text-white text-lg font-['Manrope'] font-semibold leading-6 tracking-[0.50px] mt-4">Photos</h2>
                 </div>
             </div>
 
-            {/* Filter Section - Inspired by Events Page */}
-            <div className="w-full px-6 pb-6 pt-4">
+            {/* Fixed Filter Section - positioned right below header */}
+            <div className="fixed top-[16vh] left-0 w-full h-[6vh] px-6 bg-[#031414] z-30 flex items-center">
                 <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
                     {categories.map((category) => (
                         <button
@@ -183,37 +179,43 @@ export default function GalleryPage() {
                 </div>
             </div>
 
-            {/* Gallery Grid */}
-            <div className="px-6 pb-6">
+            {/* Gallery Grid starting right below fixed sections */}
+            <div className="pt-[22vh] px-6 pb-6">
                 <div className="grid grid-cols-2 gap-4">
-                    {filteredItems.map((item, index) => (
-                        <div
-                            key={item.id}
-                            onClick={() => openModal(index)}
-                            className={`
-                                ${index % 3 === 0 ? 'col-span-2 h-48' : 'h-32'}
-                                relative overflow-hidden rounded-[15px] cursor-pointer
-                                transition-transform duration-300 hover:scale-105
-                            `}
-                        >
-                            <img
-                                src={item.image}
-                                alt={item.alt}
-                                className="w-full h-full object-cover"
-                            />
-                            {/* Overlay gradient for better text visibility */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    {filteredItems.map((item, index) => {
+                        // Pattern: full (0), half (1,2), half (3,4), full (5), half (6,7), half (8,9), full (10), etc.
+                        // Every 5th item starting from 0 is full width: 0, 5, 10, 15...
+                        const isFullWidth = index % 5 === 0;
 
-                            {/* Category label - only show when "All" is selected */}
-                            {activeCategory === 'All' && (
-                                <div className="absolute bottom-2 left-2">
-                                    <span className="bg-[#14FFEC]/20 backdrop-blur-sm text-[#14FFEC] text-xs font-semibold px-2 py-1 rounded-full border border-[#14FFEC]/30">
-                                        {item.category}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-                    ))}
+                        return (
+                            <div
+                                key={item.id}
+                                onClick={() => openModal(index)}
+                                className={`
+                                    ${isFullWidth ? 'col-span-2 h-48' : 'h-32'}
+                                    relative overflow-hidden rounded-[15px] cursor-pointer
+                                    transition-transform duration-300 hover:scale-105
+                                `}
+                            >
+                                <img
+                                    src={item.image}
+                                    alt={item.alt}
+                                    className="w-full h-full object-cover"
+                                />
+                                {/* Overlay gradient for better text visibility */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+
+                                {/* Category label - only show when "All" is selected */}
+                                {activeCategory === 'All' && (
+                                    <div className="absolute bottom-2 left-2">
+                                        <span className="bg-[#14FFEC]/20 backdrop-blur-sm text-[#14FFEC] text-xs font-semibold px-2 py-1 rounded-full border border-[#14FFEC]/30">
+                                            {item.category}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
 

@@ -275,10 +275,10 @@ export default function EventsListPage() {
     return (
         <div className="min-h-screen bg-[#031313] text-white">
             <div className="relative mx-auto max-w-[430px]">
-                {/* Header with Gradient Background - Same as Home Page */}
-                <header className="relative bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-6 pt-12 z-50">
+                {/* Fixed Header with Gradient Background */}
+                <header className="fixed top-0 left-0 w-full max-w-[430px] mx-auto h-[16vh] bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-6 pt-4 z-50 flex flex-col justify-between">
                     {/* Header with Back Arrow and Profile */}
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={handleGoBack}
@@ -314,7 +314,7 @@ export default function EventsListPage() {
                 </header>
 
                 {/* Filter Section */}
-                <div className="w-full">
+                <div className="fixed top-[16vh] left-0 w-full max-w-[430px] mx-auto h-[6vh] bg-[#031313] z-30">
                     <div className="w-full py-5 flex items-center bg-gradient-to-b from-[#021313] to-transparent">
                         {/* Filter Button - fixed at left */}
                         <div className="flex-shrink-0 pl-5 pr-3">
@@ -387,7 +387,7 @@ export default function EventsListPage() {
                 </div>
 
                 {/* Events Section Headers */}
-                <div className="w-full px-5">
+                <div className="w-full px-5 pt-[22vh]">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-white text-base font-semibold">Events today</h2>
                         <Link href="/events" className="text-[#14FFEC] text-base font-medium">View All</Link>
