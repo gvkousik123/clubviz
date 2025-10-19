@@ -36,7 +36,7 @@ export default function PaymentPage() {
         { id: 'cards', title: 'Cards', icon: '/pay/CreditCard.svg', actions: [{ label: 'Add credit or debit cards', actionType: 'add' }] },
         { id: 'upi', title: 'Pay by UPI apps', icon: '/pay/upi.png', actions: [{ label: 'Choose payment options', actionType: 'select' }, { label: 'Add new UPI ID', actionType: 'add' }] },
         { id: 'netbanking', title: 'Internet Banking', icon: '/pay/Bank.svg', actions: [{ label: 'Netbanking', actionType: 'add' }] },
-        { id: 'venue', title: 'pay at the venue', icon: '/pay/Money.svg', actions: [{ label: 'pay at the club Entry', actionType: 'select' }] }
+        { id: 'venue', title: 'Pay at the venue', icon: '/pay/Money.svg', actions: [{ label: 'pay at the club Entry', actionType: 'select' }] }
     ];
 
     // Apply the scrollbar-hide style
