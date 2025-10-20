@@ -159,6 +159,15 @@ const heroImages = [
     '/dabo ambience main dabo page/Media-3.jpg',
 ];
 
+// Tag Component for reusability
+const TagComponent = ({ icon, label, iconPath }: { icon?: React.ReactNode, label: string, iconPath?: string }) => (
+    <div className="px-3 py-2 bg-[rgba(40,60,61,0.30)] rounded-full flex items-center gap-2">
+        {iconPath && <img src={iconPath} alt={label} className="w-4 h-4" />}
+        {icon && icon}
+        <span className="text-white text-xs">{label}</span>
+    </div>
+);
+
 export default function ClubDaboPage() {
     const router = useRouter();
     const { toast } = useToast();
@@ -227,7 +236,7 @@ export default function ClubDaboPage() {
     return (
         <div className="min-h-screen bg-[#021313] relative w-full max-w-[430px] mx-auto">
             {/* Hero Image Carousel */}
-            <div className="relative w-full h-[391px] overflow-hidden">
+            <div className="relative w-full h-[40vh] overflow-hidden">
                 <div className="absolute inset-0 flex">
                     {heroImages.map((image, index) => (
                         <img
@@ -267,18 +276,32 @@ export default function ClubDaboPage() {
                 </button>
             </div>
 
-            {/* Floating rating badge */}
-            <div className="absolute left-1/2 top-[370px] transform -translate-x-1/2 flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-gradient-radial from-[#08C2B3] via-[#08C2B3] to-[#01756C] flex items-center justify-center shadow-lg z-10">
-                    <div className="text-white text-2xl font-bold">{venueInfo.rating}</div>
+            {/* Profile picture - positioned exactly at the border */}
+            <div className="absolute left-1/2 transform -translate-x-1/2 z-20" style={{ top: 'calc(35vh - 42.5px)' }}>
+                {/* Profile Picture */}
+                <div className="w-[85px] h-[85px] rounded-full border-4 border-[#08C2B3] overflow-hidden shadow-xl">
+                    <img
+                        src="/dabo ambience main dabo page/Media.jpg"
+                        alt="Club Profile"
+                        className="w-full h-full object-cover"
+                    />
+                </div>
+            </div>
+
+            {/* Rating Circle - positioned independently */}
+            <div className="absolute left-1/2 transform -translate-x-1/2 z-20" style={{ top: 'calc(35vh + 15px)' }}>
+                <div className="w-[40px] h-[40px] relative">
+                    <div style={{ width: "100%", height: "100%", left: "0px", top: "0px", position: "absolute", background: "#005D5C", borderRadius: "30px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <div style={{ color: "#FFF4F4", fontSize: "16px", fontFamily: "Manrope", fontWeight: "700", lineHeight: "21px", wordWrap: "break-word" }}>4.2</div>
+                    </div>
                 </div>
             </div>
 
             {/* Main content */}
-            <div className="bg-[#021313] mt-[-60px] rounded-t-[40px] relative z-0 pt-16 px-4">
-                <div className="flex flex-col items-center gap-6">
+            <div className="bg-gradient-to-b from-[#021313] to-[rgba(2,19,19,0)] mt-[-5vh] rounded-t-[40px] relative z-0 pt-[10vh] px-4 pb-[18px] flex flex-col items-center gap-[25px] w-full">
+                <div className="flex flex-col items-center w-full">
                     {/* Title */}
-                    <h1 className="text-white text-[28px] font-bold tracking-normal text-center">
+                    <h1 className="text-white text-[36px] tracking-[0.36px] text-center h-[35px] font-normal leading-[20px]" style={{ fontFamily: "'Anton', sans-serif" }}>
                         {venueInfo.name}
                     </h1>
 
@@ -286,6 +309,7 @@ export default function ClubDaboPage() {
                     <div style={{ width: "100%", height: "100%", justifyContent: "center", alignItems: "flex-end", gap: "8px", display: "inline-flex", flexWrap: "wrap", alignContent: "flex-end" }}>
                         <div style={{ justifyContent: "flex-start", alignItems: "center", gap: "12px", display: "flex" }}>
                             <div
+                                className="transition-transform hover:scale-110 active:scale-95"
                                 style={{ width: "40px", height: "40px", paddingLeft: "8px", paddingRight: "8px", paddingTop: "8px", paddingBottom: "8px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex" }}
                                 onClick={handleLike}
                                 role="button"
@@ -294,6 +318,7 @@ export default function ClubDaboPage() {
                                 <img src="/club/ThumbsUp (1).svg" alt="Like" style={{ width: "20px", height: "20px" }} />
                             </div>
                             <div
+                                className="transition-transform hover:scale-110 active:scale-95"
                                 style={{ width: "40px", height: "40px", paddingLeft: "8px", paddingRight: "8px", paddingTop: "8px", paddingBottom: "8px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex" }}
                                 onClick={handleDislike}
                                 role="button"
@@ -302,6 +327,7 @@ export default function ClubDaboPage() {
                                 <img src="/club/ThumbsDown (1).svg" alt="Dislike" style={{ width: "20px", height: "20px" }} />
                             </div>
                             <div
+                                className="transition-transform hover:scale-110 active:scale-95"
                                 style={{ width: "40px", height: "40px", paddingLeft: "8px", paddingRight: "8px", paddingTop: "8px", paddingBottom: "8px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex" }}
                                 onClick={handleShare}
                                 role="button"
@@ -310,6 +336,7 @@ export default function ClubDaboPage() {
                                 <img src="/club/ShareNetwork (1).svg" alt="Share" style={{ width: "20px", height: "20px" }} />
                             </div>
                             <div
+                                className="transition-transform hover:scale-110 active:scale-95"
                                 style={{ width: "40px", height: "40px", paddingLeft: "8px", paddingRight: "8px", paddingTop: "8px", paddingBottom: "8px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex" }}
                                 onClick={handleToggleLike}
                                 role="button"
@@ -318,15 +345,17 @@ export default function ClubDaboPage() {
                                 <img src="/club/BookmarkSimple (1).svg" alt="Bookmark" style={{ width: "20px", height: "20px" }} />
                             </div>
                         </div>
-                        <div style={{ width: "100%", justifyContent: "center", alignItems: "center", gap: "12px", display: "flex", marginTop: "8px" }}>
+                        <div style={{ width: "100%", justifyContent: "center", alignItems: "center", gap: "12px", display: "flex", marginTop: "8px", marginBottom: "20px" }}>
                             <Link
                                 href="/booking/form"
+                                className="transition-all hover:brightness-110 hover:shadow-lg active:brightness-90 active:scale-95"
                                 style={{ minWidth: "160px", paddingLeft: "20px", paddingRight: "20px", paddingTop: "12px", paddingBottom: "12px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex", textDecoration: "none", flexShrink: 0 }}
                             >
                                 <div style={{ color: "white", fontSize: "14px", fontFamily: "Manrope", fontWeight: "700", lineHeight: "16px", letterSpacing: "0.30px", wordWrap: "break-word", textAlign: "center", whiteSpace: "nowrap" }}>Reserve your spot</div>
                             </Link>
                             <Link
                                 href="/booking/form"
+                                className="transition-all hover:brightness-110 hover:shadow-lg active:brightness-90 active:scale-95"
                                 style={{ minWidth: "120px", paddingLeft: "20px", paddingRight: "20px", paddingTop: "12px", paddingBottom: "12px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex", textDecoration: "none", flexShrink: 0 }}
                             >
                                 <div style={{ color: "white", fontSize: "14px", fontFamily: "Manrope", fontWeight: "700", lineHeight: "16px", letterSpacing: "0.30px", wordWrap: "break-word", textAlign: "center", whiteSpace: "nowrap" }}>Book offline</div>
@@ -335,98 +364,115 @@ export default function ClubDaboPage() {
                     </div>
 
                     {/* Main Content Container */}
-                    <div className="w-full p-[15px] bg-[rgba(40,60,61,0.30)] rounded-[15px] flex flex-col gap-[11px]">
+                    <div className="w-full px-4 py-3 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex flex-col gap-[8px]">
                         {/* Now Playing Section */}
-                        <div className="flex flex-col gap-[16px]">
-                            <div className="flex flex-col gap-[12px]">
-                                <div className="flex items-center gap-[10px]">
-                                    <h3 className="text-[#FFFEFF] text-[16px] font-[600] leading-[16px] tracking-[0.5px]">Now Playing</h3>
-                                </div>
-                            </div>
+                        <div className="flex flex-col gap-[8px] mt-2">
+                            <h3 className="text-[#FFFEFF] text-lg font-semibold mb-1 px-1">Now Playing</h3>
 
-                            <div className="relative h-[93px] w-full">
-                                <div className="absolute left-[60px] top-[7px] text-white text-[13px] font-[400] leading-[15.6px]">
-                                    Club Music
+                            <div className="relative w-full h-[110px] bg-[#202B2B60] rounded-[15px] overflow-hidden">
+                                <div className="absolute left-4 top-[25px] w-[50px] h-[50px] rounded-full flex items-center justify-center bg-[#03867B]">
+                                    <img src="/club/dj.gif" alt="Music Visualization" className="w-[48px] h-[48px] object-cover rounded-full" />
                                 </div>
-                                <div className="w-[110px] h-[20px] absolute left-[39px] top-[4px] bg-gradient-to-b from-[rgba(20,255,236,0.31)] to-[rgba(217,217,217,0)] rounded-t-[15px]"></div>
-                                <div className="absolute left-[81px] top-[34px] text-white text-[13px] font-[400] leading-[15.6px]">
-                                    Now playing
-                                </div>
-                                <div className="absolute left-[81px] top-[56px] px-[10px] py-[5px] bg-[rgba(32,43,43,0.60)] rounded-[25px] border border-[#28D2DB] flex items-center gap-[4px]">
-                                    <span className="text-white text-[13px] font-[400] leading-[15.6px]">Chill House Mix</span>
-                                    <div className="w-[7px] h-[7px] bg-[#C50000] rounded-full"></div>
-                                </div>
-                                <div className="absolute left-[211px] top-[56px] px-[10px] py-[5px] bg-[rgba(32,43,43,0.60)] rounded-[25px] border border-[#28D2DB] flex items-center gap-[6px]">
-                                    <span className="text-white text-[13px] font-[400] leading-[15.6px]">Techno Vibes</span>
-                                    <div className="w-[7px] h-[7px] bg-[#C50000] rounded-full"></div>
+
+                                <div className="absolute left-[75px] right-[15px]">
+                                    <div className="mt-[15px] text-white text-[14px] font-medium">Club Music</div>
+                                    <div className="mt-[5px] text-white text-[12px] font-normal opacity-80">Now playing</div>
+
+                                    <div className="flex mt-[12px] gap-3">
+                                        <div className="px-[10px] py-[3px] bg-[#202B2B99] rounded-full border border-[#28D2DB] flex items-center gap-[4px]">
+                                            <span className="text-white text-[12px]">Chill House Mix</span>
+                                            <div className="w-[5px] h-[5px] bg-[#C50000] rounded-full"></div>
+                                        </div>
+
+                                        <div className="px-[10px] py-[3px] bg-[#202B2B99] rounded-full border border-[#28D2DB] flex items-center gap-[4px]">
+                                            <span className="text-white text-[12px]">Techno Vibes</span>
+                                            <div className="w-[5px] h-[5px] bg-[#C50000] rounded-full"></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Today's Offers */}
-                        <div className="flex flex-col gap-[12px]">
-                            <h3 className="text-[#FFFEFF] text-[16px] font-[600] leading-[16px] tracking-[0.5px]">Today's Offers</h3>
+                        <div className="flex flex-col gap-[8px] mt-4">
+                            <h3 className="text-[#FFFEFF] text-lg font-semibold mb-1 px-1">Today's Offers</h3>
 
-                            <div className="relative h-[123px] bg-[rgba(31.93,42.75,43.32,0.60)] rounded-[15px] overflow-hidden">
-                                <div className="absolute left-[10px] top-[10px] w-[344px] h-[45px] bg-[#263438] rounded-[10px] border border-[#14FFEC] overflow-hidden">
-                                    <div className="absolute right-[45px] top-[-23px] w-[86.81px] h-[86.47px] bg-[#1B726B] transform rotate-[8deg]"></div>
-                                    <div className="absolute left-[19.06px] top-[15px] text-white text-[13px] font-[800] leading-[16px] tracking-[0.5px]">
+                            <div className="bg-[rgba(31.93,42.75,43.32,0.60)] rounded-[15px] overflow-hidden p-3">
+                                <div className="bg-[#263438] rounded-[10px] border border-dashed border-[#14FFEC] p-2 flex items-center justify-between mb-3">
+                                    <div className="text-white text-[14px] font-[700]">
                                         Buy 1 get 1 on IFML Drinks
+                                    </div>
+                                    <div className="w-[30px] h-[30px] opacity-35">
+                                        <img
+                                            src="/common/discount.png"
+                                            alt="Discount"
+                                            className="w-full h-full object-contain"
+                                        />
                                     </div>
                                 </div>
 
-                                <div className="absolute left-[10px] top-[68px] w-[344px] h-[45px] bg-[#263438] rounded-[10px] border border-[#14FFEC] overflow-hidden">
-                                    <div className="absolute right-[45px] top-[-23px] w-[88.45px] h-[86.39px] bg-[#1B726B] transform rotate-[8deg]"></div>
-                                    <div className="absolute left-[19.34px] top-[15px] text-white text-[13px] font-[800] leading-[16px] tracking-[0.5px]">
+                                <div className="bg-[#263438] rounded-[10px] border border-dashed border-[#14FFEC] p-2 flex items-center justify-between">
+                                    <div className="text-white text-[14px] font-[700]">
                                         Free Entry for all before 09:00 PM
+                                    </div>
+                                    <div className="w-[30px] h-[30px] opacity-35">
+                                        <img
+                                            src="/common/discount.png"
+                                            alt="Discount"
+                                            className="w-full h-full object-contain"
+                                        />
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Entry/Booking */}
-                        <div className="flex flex-col gap-[12px]">
-                            <h3 className="text-[#FFFEFF] text-[16px] font-[600] leading-[16px] tracking-[0.5px]">Entry/Booking</h3>
+                        <div className="flex flex-col gap-[8px] mt-3">
+                            <h3 className="text-[#FFFEFF] text-lg font-semibold mb-1 px-1">Entry/Booking</h3>
 
-                            <div className="relative h-[134px] bg-[rgba(31.93,42.75,43.32,0.60)] rounded-[15px] overflow-hidden">
-                                <div className="absolute left-[10px] top-[10px] w-[344px] h-[114px] bg-[#263438] rounded-[15px] flex flex-wrap items-start justify-center">
-                                    {/* Tab 1 - Couple & Group Entry */}
-                                    <div className="w-[144px] h-[57px] flex flex-col justify-end items-center gap-[5px]">
-                                        <div className="text-white text-[13px] font-[600] leading-[20px] tracking-[0.13px] text-center">
-                                            Couple & Group<br />Entry
+                            <div className="relative bg-[rgba(31.93,42.75,43.32,0.60)] rounded-[15px] overflow-hidden">
+                                <div className="bg-[#263438] rounded-[15px] p-3 pb-5">
+                                    {/* Tabs Row */}
+                                    <div className="flex w-full border-b border-gray-700">
+                                        {/* Tab 1 - Couple & Group Entry */}
+                                        <div className="flex-1 text-center pb-2 relative">
+                                            <div className="text-white text-[12px] font-[600]">
+                                                Couple & Group<br />Entry
+                                            </div>
+                                            <div className="absolute bottom-[-2px] left-0 right-0 h-[3px] bg-[#14FFEC] rounded-t-[4px]"></div>
                                         </div>
-                                        <div className="w-[144px] h-[4px] bg-[#1AFFEC] rounded-t-[6px]"></div>
-                                    </div>
 
-                                    {/* Tab 2 - Male stag Entry */}
-                                    <div className="w-[100px] h-[57px] flex flex-col justify-end items-center gap-[5px]">
-                                        <div className="text-white text-[13px] font-[600] leading-[20px] tracking-[0.13px] text-center">
-                                            Male stag<br />Entry
+                                        {/* Tab 2 - Male stag Entry */}
+                                        <div className="flex-1 text-center pb-2">
+                                            <div className="text-white text-[12px] font-[600] opacity-70">
+                                                Male stag<br />Entry
+                                            </div>
                                         </div>
-                                        <div className="w-[100px] h-[1px] bg-[#5F5F5F]"></div>
-                                    </div>
 
-                                    {/* Tab 3 - Female stag Entry */}
-                                    <div className="w-[100px] h-[57px] flex flex-col justify-end items-center gap-[5px]">
-                                        <div className="text-white text-[13px] font-[600] leading-[20px] tracking-[0.13px] text-center">
-                                            Female stag<br />Entry
+                                        {/* Tab 3 - Female stag Entry */}
+                                        <div className="flex-1 text-center pb-2">
+                                            <div className="text-white text-[12px] font-[600] opacity-70">
+                                                Female stag<br />Entry
+                                            </div>
                                         </div>
-                                        <div className="w-[100px] h-[1px] bg-[#5F5F5F]"></div>
                                     </div>
 
-                                    {/* Price & Cover */}
-                                    <div className="w-[269px] h-[27px] text-center">
-                                        <span className="text-[#14FFEC] text-[16px] font-[500] leading-[20px] tracking-[0.16px]">
-                                            Rs 1500 (Cover - 1000)
-                                        </span><br />
-                                        <span className="text-[#D9D9D9] text-[13px] font-[500] leading-[20px] tracking-[0.13px]">
-                                            Redeem cover before 12:00 AM
-                                        </span>
-                                    </div>
+                                    {/* Content Row */}
+                                    <div className="pt-4 pb-2 relative">
+                                        {/* Price & Cover */}
+                                        <div className="text-center">
+                                            <div className="text-[#14FFEC] text-[15px] font-[500] mb-1">
+                                                Rs 1500 (Cover - 1000)
+                                            </div>
+                                            <div className="text-[#D9D9D9] text-[12px] font-[500]">
+                                                Redeem cover before 12:00 AM
+                                            </div>
+                                        </div>
 
-                                    {/* Right Arrow Button */}
-                                    <div className="absolute right-[10px] bottom-[10px] w-[30px] h-[30px] bg-[#0D7377] rounded-[18px] flex items-center justify-center">
-                                        <ChevronRight className="w-[15px] h-[15px] text-[#14FFEC]" />
+                                        {/* Right Arrow Button */}
+                                        <div className="absolute right-[8px] bottom-0 w-[30px] h-[30px] bg-[#0D7377] rounded-full flex items-center justify-center">
+                                            <ChevronRight className="w-5 h-5 text-[#14FFEC]" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -434,9 +480,9 @@ export default function ClubDaboPage() {
                     </div>
 
                     {/* Events in Dabo */}
-                    <div className="w-full">
-                        <h3 className="text-[#FFFEFF] text-[16px] font-[600] leading-[16px] tracking-[0.5px] mb-4">Events in Dabo</h3>
-                        <div className="flex overflow-x-auto gap-4 pb-2 scrollbar-hide">
+                    <div className="w-full mt-5 mb-5">
+                        <h3 className="text-[#FFFEFF] text-xl font-semibold mb-4">Events in Dabo</h3>
+                        <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide">
                             {upcomingEvents.map((event) => (
                                 <Link
                                     href="/event/timeless-tuesday"
@@ -513,156 +559,151 @@ export default function ClubDaboPage() {
                     </div>
 
                     {/* Location Section */}
-                    <div className="w-full">
-                        <h3 className="text-white text-base font-semibold mb-4">Location</h3>
-                        <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4">
+                    <div className="w-full mt-5 mb-5">
+                        <h3 className="text-white text-xl font-semibold mb-4">Location</h3>
+                        <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[20px] p-4">
                             <div className="flex items-start gap-3 mb-4">
-                                <MapPin className="w-5 h-5 text-red-600 flex-shrink-0 mt-1" />
+                                <div className="w-8 h-8 rounded-full bg-[#FF3B3B]/20 flex items-center justify-center mt-1">
+                                    <MapPin className="w-5 h-5 text-[#FF3B3B] flex-shrink-0" />
+                                </div>
                                 <p className="text-white text-sm">{venueInfo.address}</p>
                             </div>
-                            <div className="w-full h-[100px] bg-gray-700 rounded-[10px]">
-                                <img
-                                    src="https://maps.googleapis.com/maps/api/staticmap?center=Nagpur,India&zoom=13&size=400x100&key=YOUR_API_KEY"
-                                    alt="Location map"
-                                    className="w-full h-full object-cover rounded-[10px]"
+                            <div className="w-full h-[150px] rounded-[15px] overflow-hidden">
+                                <iframe
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d59398.187240769305!2d78.96056867424174!3d21.14914597223921!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bd4c0a5a31faf13%3A0x19b37d06d0bb3e2b!2sNagpur%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1698233719734!5m2!1sen!2sin"
+                                    width="100%"
+                                    height="100%"
+                                    style={{ border: 0 }}
+                                    loading="lazy"
+                                    referrerPolicy="no-referrer-when-downgrade"
+                                    title="Club Location"
+                                    className="w-full h-full object-cover"
                                 />
                             </div>
                         </div>
                     </div>
 
                     {/* Facilities Section */}
-                    <div className="w-full">
-                        <h3 className="text-white text-base font-semibold mb-4">Facilities</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-[#02A1A1]/30 flex items-center justify-center">
-                                    <span className="text-[#14FFEC]">🕐</span>
-                                </div>
-                                <span className="text-white text-sm">Open till midnight</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-[#02A1A1]/30 flex items-center justify-center">
-                                    <span className="text-[#14FFEC]">♿</span>
-                                </div>
-                                <span className="text-white text-sm">Disabled Access</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-[#02A1A1]/30 flex items-center justify-center">
-                                    <span className="text-[#14FFEC]">🚗</span>
-                                </div>
-                                <span className="text-white text-sm">Car Parking</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-[#02A1A1]/30 flex items-center justify-center">
-                                    <span className="text-[#14FFEC]">🍽️</span>
-                                </div>
-                                <span className="text-white text-sm">Private dining space</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-[#02A1A1]/30 flex items-center justify-center">
-                                    <span className="text-[#14FFEC]">🪑</span>
-                                </div>
-                                <span className="text-white text-sm">Indoor Seating</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-[#02A1A1]/30 flex items-center justify-center">
-                                    <span className="text-[#14FFEC]">📋</span>
-                                </div>
-                                <span className="text-white text-sm">Table booking</span>
-                            </div>
+                    <div className="w-full mt-5 mb-5">
+                        <h3 className="text-white text-xl font-semibold mb-4">Facilities</h3>
+                        <div className="grid grid-cols-2 gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
+                            <TagComponent
+                                iconPath="/club/facilities/Clock (1).svg"
+                                label="Open till midnight"
+                            />
+                            <TagComponent
+                                iconPath="/club/facilities/Wheelchair.svg"
+                                label="Disabled Access"
+                            />
+                            <TagComponent
+                                iconPath="/club/facilities/LetterCircleP.svg"
+                                label="Car Parking"
+                            />
+                            <TagComponent
+                                iconPath="/club/facilities/ForkKnife.svg"
+                                label="Private dining space"
+                            />
+                            <TagComponent
+                                iconPath="/club/facilities/Armchair.svg"
+                                label="Indoor Seating"
+                            />
+                            <TagComponent
+                                iconPath="/club/facilities/PicnicTable.svg"
+                                label="Table booking"
+                            />
                         </div>
                     </div>
 
                     {/* Food Section */}
-                    <div className="w-full">
-                        <h3 className="text-white text-base font-semibold mb-4">Food</h3>
-                        <div className="flex flex-wrap gap-3">
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
-                                <span className="text-[#14FFEC]">🥗</span>
-                                <span className="text-white text-sm">Gluten free options</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
-                                <span className="text-[#14FFEC]">🍸</span>
-                                <span className="text-white text-sm">Bar Snacks</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
-                                <span className="text-[#14FFEC]">🥢</span>
-                                <span className="text-white text-sm">Asian</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
-                                <span className="text-[#14FFEC]">🍕</span>
-                                <span className="text-white text-sm">Italian</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
-                                <span className="text-[#14FFEC]">🌎</span>
-                                <span className="text-white text-sm">Continental</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
-                                <span className="text-[#14FFEC]">🍲</span>
-                                <span className="text-white text-sm">North Indian</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
-                                <span className="text-[#14FFEC]">🍔</span>
-                                <span className="text-white text-sm">Burgers & Sandwich</span>
-                            </div>
+                    <div className="w-full mt-5 mb-5">
+                        <h3 className="text-white text-xl font-semibold mb-4">Food</h3>
+                        <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
+                            <TagComponent
+                                iconPath="/club/food/BowlFood (1).svg"
+                                label="Gluten free options"
+                            />
+                            <TagComponent
+                                iconPath="/club/food/Popcorn (1).svg"
+                                label="Bar Snacks"
+                            />
+                            <TagComponent
+                                iconPath="/club/food/FishSimple.svg"
+                                label="Asian"
+                            />
+                            <TagComponent
+                                iconPath="/club/food/Pizza (1).svg"
+                                label="Italian"
+                            />
+                            <TagComponent
+                                iconPath="/club/food/BowlFood (1).svg"
+                                label="Continental"
+                            />
+                            <TagComponent
+                                iconPath="/club/food/CookingPot (1).svg"
+                                label="North Indian"
+                            />
+                            <TagComponent
+                                iconPath="/club/food/Hamburger (1).svg"
+                                label="Burgers & Sandwich"
+                            />
                         </div>
                     </div>
 
                     {/* Music Section */}
-                    <div className="w-full">
-                        <h3 className="text-white text-base font-semibold mb-4">Music</h3>
-                        <div className="flex flex-wrap gap-3">
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
-                                <span className="text-[#14FFEC]">🎤</span>
-                                <span className="text-white text-sm">Karaoke</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
-                                <span className="text-[#14FFEC]">🎧</span>
-                                <span className="text-white text-sm">DJs</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
-                                <span className="text-[#14FFEC]">🎵</span>
-                                <span className="text-white text-sm">Live Music</span>
-                            </div>
+                    <div className="w-full mt-5 mb-5">
+                        <h3 className="text-white text-xl font-semibold mb-4">Music</h3>
+                        <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
+                            <TagComponent
+                                iconPath="/club/music/MicrophoneStage.svg"
+                                label="Karaoke"
+                            />
+                            <TagComponent
+                                iconPath="/club/music/Equalizer.svg"
+                                label="DJs"
+                            />
+                            <TagComponent
+                                iconPath="/club/music/Guitar.svg"
+                                label="Live Music"
+                            />
                         </div>
                     </div>
 
                     {/* Bar Section */}
-                    <div className="w-full">
-                        <h3 className="text-white text-base font-semibold mb-4">Bar</h3>
-                        <div className="flex flex-wrap gap-3">
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
-                                <span className="text-[#14FFEC]">🥃</span>
-                                <span className="text-white text-sm">Spirits</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
-                                <span className="text-[#14FFEC]">🍷</span>
-                                <span className="text-white text-sm">Wine</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
-                                <span className="text-[#14FFEC]">🍺</span>
-                                <span className="text-white text-sm">Draught</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
-                                <span className="text-[#14FFEC]">🍹</span>
-                                <span className="text-white text-sm">Cocktail</span>
-                            </div>
-                            <div className="px-4 py-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] flex items-center gap-2">
-                                <span className="text-[#14FFEC]">🧃</span>
-                                <span className="text-white text-sm">Non Alcoholic</span>
-                            </div>
+                    <div className="w-full mt-5 mb-5">
+                        <h3 className="text-white text-xl font-semibold mb-4">Bar</h3>
+                        <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
+                            <TagComponent
+                                iconPath="/club/bar/Brandy (1).svg"
+                                label="Spirits"
+                            />
+                            <TagComponent
+                                iconPath="/club/bar/Wine (1).svg"
+                                label="Wine"
+                            />
+                            <TagComponent
+                                iconPath="/club/bar/BeerStein (1).svg"
+                                label="Draught"
+                            />
+                            <TagComponent
+                                iconPath="/club/bar/Martini (1).svg"
+                                label="Cocktail"
+                            />
+                            <TagComponent
+                                iconPath="/club/bar/PintGlass (1).svg"
+                                label="Non Alcoholic"
+                            />
                         </div>
                     </div>
 
                     {/* Reviews Section */}
-                    <div className="w-full flex justify-between items-center">
-                        <h3 className="text-white text-base font-semibold">Reviews</h3>
-                        <Link href="/review/page" className="text-[#14FFEC] text-xs font-semibold">
+                    <div className="w-full mt-5 mb-3 flex justify-between items-center">
+                        <h3 className="text-white text-xl font-semibold">Reviews</h3>
+                        <Link href="/review/page" className="text-[#14FFEC] text-sm font-semibold">
                             View All
                         </Link>
                     </div>
 
-                    <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
+                    <div className="w-full overflow-x-auto pb-4 scrollbar-hide">
                         <div className="flex gap-4">
                             <div className="min-w-[300px] bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4">
                                 <div className="flex items-center gap-3 mb-2">
@@ -737,10 +778,10 @@ export default function ClubDaboPage() {
                     </div>
 
                     {/* Leave Review Button */}
-                    <Link href="/review/write" className="w-full bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4 flex items-center justify-between mb-16">
+                    <Link href="/review/write" className="w-full bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4 flex items-center justify-between mb-16 transition-all hover:bg-[rgba(50,75,75,0.40)] active:bg-[rgba(30,45,45,0.50)] hover:shadow-md active:shadow-inner">
                         <ArrowLeft className="w-5 h-5 text-white rotate-180" />
                         <span className="text-white text-base">Leave a review</span>
-                        <div className="w-5 h-5 bg-[#14FFEC]"></div>
+                        <div className="w-5 h-5 bg-[#14FFEC] transition-transform hover:scale-110 active:scale-95"></div>
                     </Link>
                 </div>
             </div>
