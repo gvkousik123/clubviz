@@ -14,13 +14,26 @@ const statusIndicators = [
 export default function IntroScreen() {
     const router = useRouter();
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            router.push("/auth/login");
-        }, 3000);
+    const handleGuestLogin = () => {
+        router.push("/home");
+    };
 
-        return () => clearTimeout(timer);
-    }, [router]);
+    const handleMobileLogin = () => {
+        router.push("/auth/mobile");
+    };
+
+    const handleEmailLogin = () => {
+        router.push("/auth/login");
+    };
+
+    const handleGoogleLogin = () => {
+        // Handle Google login
+        console.log("Google login");
+    };
+
+    const handleRegister = () => {
+        router.push("/auth/signup");
+    };
 
     return (
         <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#031313] text-white">
@@ -73,6 +86,16 @@ export default function IntroScreen() {
             </div>
 
 
+
+            {/* Guest Login Button at top */}
+            <div className="relative z-10 flex justify-end px-6 pt-16">
+                <button
+                    onClick={handleGuestLogin}
+                    className="px-6 py-2 rounded-full border border-[#14FFEC] text-white text-sm font-medium hover:bg-[#14FFEC]/10 transition-colors"
+                >
+                    Guest Login
+                </button>
+            </div>
 
             <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 pb-28 pt-10">
                 <div className="mb-16 drop-shadow-[0_18px_45px_rgba(0,0,0,0.55)]">
