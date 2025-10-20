@@ -140,14 +140,14 @@ export default function AddLocationPage() {
                     </div>
                 </div>
             ) : (
-                <div className="fixed bottom-0 left-0 right-0 z-40 w-full pt-[28px] pb-[37px] px-[14px] bg-[#021313] overflow-hidden rounded-t-[40px] rounded-b-[20px] border-t-2 border-[#14FFEC] flex flex-col items-center gap-[44px]">
-                    <div className="flex flex-col items-center gap-[27px]">
+                <div className="fixed bottom-0 left-0 right-0 z-40 w-full pt-[28px] pb-[37px] px-[24px] bg-[#021313] overflow-hidden rounded-t-[40px] rounded-b-[20px] border-t-2 border-[#14FFEC] flex flex-col items-center gap-[44px]">
+                    <div className="flex flex-col items-center gap-[27px] w-full max-w-[360px]">
                         <div className="text-center text-[#14FFEC] text-[16px] font-semibold leading-[21px] tracking-[0.16px]">
                             Enter location manually
                         </div>
 
-                        <div className="w-full max-w-[402px] flex flex-col items-start gap-[16px]">
-                            <div className="w-full px-[20px] flex justify-center items-center gap-[10px]">
+                        <div className="w-full flex flex-col items-start gap-[16px]">
+                            <div className="w-full px-[10px] flex justify-start items-center mb-2">
                                 <div className="flex-1 flex flex-col justify-center text-white text-[20px] font-semibold leading-[16px] tracking-[0.5px]">
                                     Address info
                                 </div>
@@ -155,12 +155,12 @@ export default function AddLocationPage() {
 
                             <div className="w-full flex flex-col items-start gap-[11px]">
                                 {/* Address 1 */}
-                                <div className="w-full px-[20px] flex justify-center items-center gap-[10px]">
+                                <div className="w-full px-[10px] flex justify-start items-center">
                                     <div className="flex-1 flex flex-col justify-center text-[#14FFEC] text-[16px] font-semibold leading-[16px] tracking-[0.5px]">
                                         Address 1 *
                                     </div>
                                 </div>
-                                <div className="w-full h-[55px] px-[20px] py-[10px] bg-[#0D1F1F] rounded-[30px] outline outline-[#0C898B] flex items-center gap-[20px]">
+                                <div className="w-full h-[50px] px-[15px] py-[8px] bg-[#0D1F1F] rounded-[30px] outline outline-[#0C898B] flex items-center">
                                     <input
                                         type="text"
                                         value={address.address1}
@@ -171,12 +171,12 @@ export default function AddLocationPage() {
                                 </div>
 
                                 {/* Address 2 */}
-                                <div className="w-full px-[20px] flex justify-center items-center gap-[10px]">
+                                <div className="w-full px-[10px] flex justify-start items-center">
                                     <div className="flex-1 flex flex-col justify-center text-[#14FFEC] text-[16px] font-semibold leading-[16px] tracking-[0.5px]">
                                         Address 2 (Optional)
                                     </div>
                                 </div>
-                                <div className="w-full h-[55px] px-[20px] py-[10px] bg-[#0D1F1F] rounded-[30px] outline outline-[#0C898B] flex items-center gap-[20px]">
+                                <div className="w-full h-[50px] px-[15px] py-[8px] bg-[#0D1F1F] rounded-[30px] outline outline-[#0C898B] flex items-center">
                                     <input
                                         type="text"
                                         value={address.address2}
@@ -188,13 +188,13 @@ export default function AddLocationPage() {
 
                                 {/* City and State in one row */}
                                 <div className="w-full flex justify-between items-center">
-                                    <div className="w-[191px] flex flex-col items-start gap-[11px]">
-                                        <div className="w-full px-[20px] flex justify-center items-center gap-[10px]">
+                                    <div className="w-[48%] flex flex-col items-start gap-[11px]">
+                                        <div className="w-full px-[10px] flex justify-start items-center">
                                             <div className="flex-1 flex flex-col justify-center text-[#14FFEC] text-[16px] font-semibold leading-[16px] tracking-[0.5px]">
                                                 City *
                                             </div>
                                         </div>
-                                        <div className="w-full h-[55px] px-[20px] py-[10px] bg-[#0D1F1F] rounded-[30px] outline outline-[#0C898B] flex items-center gap-[20px]">
+                                        <div className="w-full h-[50px] px-[15px] py-[8px] bg-[#0D1F1F] rounded-[30px] outline outline-[#0C898B] flex items-center">
                                             <input
                                                 type="text"
                                                 value={address.city}
@@ -205,27 +205,27 @@ export default function AddLocationPage() {
                                         </div>
                                     </div>
 
-                                    <div className="w-[191px] flex flex-col items-start gap-[11px]">
-                                        <div className="w-full px-[20px] flex justify-center items-center gap-[10px]">
-                                            <div className="w-[171px] flex flex-col justify-center text-[#14FFEC] text-[16px] font-semibold leading-[16px] tracking-[0.5px]">
+                                    <div className="w-[48%] flex flex-col items-start gap-[11px]">
+                                        <div className="w-full px-[10px] flex justify-start items-center">
+                                            <div className="flex-1 flex flex-col justify-center text-[#14FFEC] text-[16px] font-semibold leading-[16px] tracking-[0.5px]">
                                                 State *
                                             </div>
                                         </div>
-                                        <div className="w-full h-[55px] px-[20px] py-[10px] bg-[#0D1F1F] rounded-[30px] outline outline-[#0C898B] flex items-center gap-[20px]">
-                                            <div className="w-full flex justify-between items-center">
-                                                <select
-                                                    value={address.state}
-                                                    onChange={(e) => handleAddressChange('state', e.target.value)}
-                                                    className="w-full bg-transparent text-[#9D9C9C] text-[16px] font-semibold leading-[16px] tracking-[0.5px] outline-none appearance-none"
-                                                >
-                                                    <option value="">Enter City</option>
-                                                    <option value="Maharashtra">Maharashtra</option>
-                                                    <option value="Karnataka">Karnataka</option>
-                                                    <option value="Delhi">Delhi</option>
-                                                </select>
-                                                <div className="w-[18px] h-[18px] relative overflow-hidden rotate-180">
-                                                    <div className="w-[12.94px] h-[7.32px] absolute left-[2.53px] top-[5.90px] bg-[#14FFEC]"></div>
-                                                </div>
+                                        <div className="w-full h-[50px] px-[15px] py-[8px] bg-[#0D1F1F] rounded-[30px] outline outline-[#0C898B] flex items-center relative">
+                                            <select
+                                                value={address.state}
+                                                onChange={(e) => handleAddressChange('state', e.target.value)}
+                                                className="w-full bg-transparent text-[#9D9C9C] text-[16px] font-semibold leading-[16px] tracking-[0.5px] outline-none appearance-none"
+                                            >
+                                                <option value="">Select State</option>
+                                                <option value="Maharashtra">Maharashtra</option>
+                                                <option value="Karnataka">Karnataka</option>
+                                                <option value="Delhi">Delhi</option>
+                                            </select>
+                                            <div className="absolute right-4 pointer-events-none">
+                                                <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M1 1.5L6 6.5L11 1.5" stroke="#14FFEC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg>
                                             </div>
                                         </div>
                                     </div>
@@ -233,13 +233,13 @@ export default function AddLocationPage() {
 
                                 {/* Country and Pincode in one row */}
                                 <div className="w-full flex justify-between items-center">
-                                    <div className="w-[191px] flex flex-col items-start gap-[11px]">
-                                        <div className="w-full px-[20px] flex justify-center items-center gap-[10px]">
+                                    <div className="w-[48%] flex flex-col items-start gap-[11px]">
+                                        <div className="w-full px-[10px] flex justify-start items-center">
                                             <div className="flex-1 flex flex-col justify-center text-[#14FFEC] text-[16px] font-semibold leading-[16px] tracking-[0.5px]">
                                                 Country
                                             </div>
                                         </div>
-                                        <div className="w-full h-[55px] px-[20px] py-[10px] bg-[#0D1F1F] rounded-[30px] outline outline-[#0C898B] flex items-center gap-[20px]">
+                                        <div className="w-full h-[50px] px-[15px] py-[8px] bg-[#0D1F1F] rounded-[30px] outline outline-[#0C898B] flex items-center">
                                             <input
                                                 type="text"
                                                 value={address.country}
@@ -250,13 +250,13 @@ export default function AddLocationPage() {
                                         </div>
                                     </div>
 
-                                    <div className="w-[191px] flex flex-col items-start gap-[11px]">
-                                        <div className="w-full px-[20px] flex justify-center items-center gap-[10px]">
-                                            <div className="w-[171px] flex flex-col justify-center text-[#14FFEC] text-[16px] font-semibold leading-[16px] tracking-[0.5px]">
+                                    <div className="w-[48%] flex flex-col items-start gap-[11px]">
+                                        <div className="w-full px-[10px] flex justify-start items-center">
+                                            <div className="flex-1 flex flex-col justify-center text-[#14FFEC] text-[16px] font-semibold leading-[16px] tracking-[0.5px]">
                                                 Pincode
                                             </div>
                                         </div>
-                                        <div className="w-full h-[55px] px-[20px] py-[10px] bg-[#0D1F1F] rounded-[30px] outline outline-[#0C898B] flex items-center gap-[20px]">
+                                        <div className="w-full h-[50px] px-[15px] py-[8px] bg-[#0D1F1F] rounded-[30px] outline outline-[#0C898B] flex items-center">
                                             <input
                                                 type="text"
                                                 value={address.pincode}
@@ -274,12 +274,10 @@ export default function AddLocationPage() {
                     {/* Save Details Button */}
                     <button
                         onClick={handleSaveDetails}
-                        className="w-[396px] h-[55px] bg-[#0F6861] rounded-[30px] flex justify-center items-start"
+                        className="w-[220px] h-[45px] bg-[#0F6861] rounded-[30px] flex justify-center items-center mx-auto"
                     >
-                        <div className="w-[375px] h-[55px] flex justify-center items-center gap-[16px]">
-                            <div className="text-center text-white text-[24px] font-bold tracking-[0.08px]">
-                                Save Details
-                            </div>
+                        <div className="text-center text-white text-[18px] font-bold tracking-[0.08px]">
+                            Save Details
                         </div>
                     </button>
                 </div>
