@@ -370,7 +370,7 @@ export default function ClubDaboPage() {
                         <div className="flex flex-col gap-[8px] mt-2">
                             <h3 className="text-[#FFFEFF] text-lg font-semibold mb-1 px-1">Now Playing</h3>
 
-                            <div className="relative w-full h-[110px] bg-[#202B2B60] rounded-[15px] overflow-hidden">
+                            <div className="relative w-full h-[110px] bg-[#4A6365] rounded-[15px] overflow-hidden">
                                 <div className="absolute left-4 top-[25px] w-[50px] h-[50px] rounded-full flex items-center justify-center bg-[#03867B]">
                                     <img src="/club/dj.gif" alt="Music Visualization" className="w-[48px] h-[48px] object-cover rounded-full" />
                                 </div>

@@ -216,9 +216,7 @@ export default function ClubsListPage() {
                                 ALL CLUBS
                             </h1>
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                            <User className="w-5 h-5 text-white" />
-                        </div>
+
                     </div>
 
                     {/* Search Bar */}
@@ -313,16 +311,16 @@ export default function ClubsListPage() {
                 </div>
 
                 {/* Main Content */}
-                <div className="w-full px-5 space-y-6 pt-[24vh]">
+                <div className="w-full space-y-6 pt-[24vh]">
                     {/* Clubs Nearby Section */}
                     <section className="w-full">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-4 px-5">
                             <h2 className="text-white text-sm font-semibold truncate">Clubs nearby</h2>
                             <Link href="/clubs" className="text-[#14FFEC] text-sm font-medium whitespace-nowrap">View All</Link>
                         </div>
-                        <div className="w-full flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                        <div className="w-full flex flex-col items-center gap-4 pb-2">
                             {clubsNearbyList.length === 0 ? (
-                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full">
+                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full max-w-sm mx-auto">
                                     No clubs found nearby.
                                 </div>
                             ) : (
@@ -342,16 +340,16 @@ export default function ClubsListPage() {
 
                     {/* All Clubs Section */}
                     <section className="w-full">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-4 px-5">
                             <h2 className="text-white text-sm font-semibold truncate">All Clubs</h2>
                         </div>
-                        <div className="w-full flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
+                        <div className="w-full flex flex-col items-center pb-6">
                             {clubs.length === 0 ? (
-                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full">
+                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full max-w-sm mx-auto">
                                     We couldn't find any clubs right now. Check back soon!
                                 </div>
                             ) : (
-                                <div className="space-y-5 pb-6 w-full">
+                                <div className="space-y-5 pb-6 w-full max-w-sm mx-auto px-5">
                                     {clubs.map((club, index) => (
                                         <ClubCard
                                             key={`all-${club.id ?? index}`}

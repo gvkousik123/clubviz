@@ -56,13 +56,70 @@ const HomePage = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isDragging, setIsDragging] = useState(false);
+    const [startX, setStartX] = useState(0);
+    const [dragThreshold] = useState(50);
+
+    // Venue list drag state
+    const [isVenueDragging, setIsVenueDragging] = useState(false);
+    const [venueStartX, setVenueStartX] = useState(0);
+    const [venueStartScrollLeft, setVenueStartScrollLeft] = useState(0);
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+            if (!isDragging) {
+                setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+            }
         }, 4500);
         return () => clearInterval(interval);
-    }, []);
+    }, [isDragging]);
+
+    const handleDragStart = (clientX: number) => {
+        setIsDragging(true);
+        setStartX(clientX);
+    };
+
+    const handleDragEnd = (clientX: number) => {
+        if (!isDragging) return;
+
+        const deltaX = clientX - startX;
+
+        if (Math.abs(deltaX) > dragThreshold) {
+            if (deltaX > 0) {
+                // Drag right - previous slide
+                setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+            } else {
+                // Drag left - next slide
+                setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+            }
+        }
+
+        setIsDragging(false);
+        setStartX(0);
+    };
+
+    // Venue drag handlers
+    const handleVenueDragStart = (e: React.MouseEvent | React.TouchEvent, container: HTMLElement) => {
+        setIsVenueDragging(true);
+        const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+        setVenueStartX(clientX);
+        setVenueStartScrollLeft(container.scrollLeft);
+        e.preventDefault();
+    };
+
+    const handleVenueDragMove = (e: React.MouseEvent | React.TouchEvent, container: HTMLElement) => {
+        if (!isVenueDragging) return;
+        const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+        const deltaX = clientX - venueStartX;
+        container.scrollLeft = venueStartScrollLeft - deltaX;
+        e.preventDefault();
+    };
+
+    const handleVenueDragEnd = () => {
+        setIsVenueDragging(false);
+        setVenueStartX(0);
+        setVenueStartScrollLeft(0);
+    };
 
     const handleSearch = () => {
         if (searchQuery.trim()) {
@@ -115,7 +172,13 @@ const HomePage = () => {
                     <section className="relative w-full">
                         <div data-property-1="Default" className="w-full h-full relative shadow-[0px_4px_5.6px_rgba(20,255,236,0.11)] overflow-hidden rounded-b-[30px]">
                             {/* Visible slide */}
-                            <div className="w-[430px] h-[262px] relative">
+                            <div
+                                className="w-[430px] h-[262px] relative cursor-grab active:cursor-grabbing"
+                                onMouseDown={(e) => handleDragStart(e.clientX)}
+                                onMouseUp={(e) => handleDragEnd(e.clientX)}
+                                onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
+                                onTouchEnd={(e) => handleDragEnd(e.changedTouches[0].clientX)}
+                            >
                                 {/* Image with gradient overlays */}
                                 <img
                                     className="w-[430px] h-[262px] absolute left-0 top-0 object-cover opacity-[0.81] border-t border-black"
@@ -189,12 +252,44 @@ const HomePage = () => {
                     </section>
 
                     {/* Venue List */}
-                    <section className="px-5">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-white text-base font-semibold">Venue List</h2>
+                    <section>
+                        <div className="flex items-center gap-4 mb-6 px-5">
+                            <h2 className="text-white text-base font-semibold whitespace-nowrap">Venue List</h2>
+                            <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
                             <Link href="/clubs" className="text-[#14FFEC] text-base font-medium">View All</Link>
                         </div>
-                        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                        <div
+                            className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide cursor-grab select-none pl-5"
+                            style={{ overflowY: 'hidden', touchAction: 'pan-x' }}
+                            onMouseDown={(e) => {
+                                const container = e.currentTarget;
+                                handleVenueDragStart(e, container);
+                                container.style.cursor = 'grabbing';
+                            }}
+                            onMouseMove={(e) => {
+                                const container = e.currentTarget;
+                                handleVenueDragMove(e, container);
+                            }}
+                            onMouseUp={(e) => {
+                                handleVenueDragEnd();
+                                const container = e.currentTarget;
+                                container.style.cursor = 'grab';
+                            }}
+                            onMouseLeave={(e) => {
+                                handleVenueDragEnd();
+                                const container = e.currentTarget;
+                                container.style.cursor = 'grab';
+                            }}
+                            onTouchStart={(e) => {
+                                const container = e.currentTarget;
+                                handleVenueDragStart(e, container);
+                            }}
+                            onTouchMove={(e) => {
+                                const container = e.currentTarget;
+                                handleVenueDragMove(e, container);
+                            }}
+                            onTouchEnd={handleVenueDragEnd}
+                        >
                             {venueFallback.map((club) => (
                                 <div key={club.id} className="w-[336px] h-[201px] relative flex-shrink-0 mr-1">
                                     {/* Main image container with rounded top */}
@@ -240,12 +335,13 @@ const HomePage = () => {
                     </section>
 
                     {/* Event List */}
-                    <section className="px-5">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-white text-base font-semibold">Event List</h2>
+                    <section>
+                        <div className="flex items-center gap-4 mb-6 px-5">
+                            <h2 className="text-white text-base font-semibold whitespace-nowrap">Event List</h2>
+                            <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
                             <Link href="/events" className="text-[#14FFEC] text-base font-medium">View All</Link>
                         </div>
-                        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
                             {eventFallback.map((event) => (
                                 <div key={event.id} className="w-[222px] h-[305px] flex-shrink-0 relative rounded-[20px] overflow-hidden" style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}>
                                     {/* Image */}

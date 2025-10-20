@@ -3,7 +3,6 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Star, ThumbsUp, ThumbsDown, Share, Bookmark } from 'lucide-react';
-import PageHeader from '@/components/common/page-header';
 
 export default function ReviewPage() {
     const router = useRouter();
@@ -47,18 +46,33 @@ export default function ReviewPage() {
 
     return (
         <div className="min-h-screen bg-[#021313] text-white">
-            {/* Page Header Component */}
-            <PageHeader title="Review" />
+            {/* Custom Header */}
+            <div className="h-[200px] bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] relative">
+                {/* Back Arrow */}
+                <button
+                    onClick={() => router.back()}
+                    className="absolute top-12 left-6 p-2 hover:bg-white/10 rounded-full transition-all duration-300"
+                >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 12H5M12 19L5 12L12 5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                </button>
 
-            {/* Club Name Header - positioned right below the header */}
-            <div className="px-6 pt-[8vh] pb-6">
-                <h2 className="text-white text-3xl font-extrabold text-center">DABO CLUB & KITCHEN</h2>
+                {/* Review Title */}
+                <div className="absolute top-12 left-1/2 transform -translate-x-1/2">
+                    <h1 className="text-white text-xl font-bold">Review</h1>
+                </div>
+
+                {/* Club Name - positioned inside the header */}
+                <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center">
+                    <h2 className="text-white text-2xl font-extrabold">DABO CLUB & KITCHEN</h2>
+                </div>
             </div>
 
             {/* Main Content */}
-            <div className="px-6 pb-6 space-y-6">
+            <div className="px-6 pb-6 space-y-6 pt-4">
                 {/* Club Rating Info */}
-                <div className="text-center space-y-2">
+                <div className="text-center space-y-2 mt-6">
                     <div className="flex flex-col items-center">
                         <div className="text-4xl font-bold mb-2">4.2</div>
                         <div className="flex items-center gap-1 mb-1">

@@ -122,14 +122,14 @@ export default function IntroScreen() {
                             WebkitTextFillColor: "transparent",
                             WebkitTextStrokeWidth: "1px",
                             WebkitTextStrokeColor: "#029694",
-                            fontWeight: 600,
+                            fontWeight: 700,
                             fontStyle: "normal",
                             textShadow: "0 0 10px rgba(127, 249, 255, 0.5)"
                         }}
                     >
                         IGNITE
                         <br />
-                        THE
+                        THE <span style={{ fontWeight: 900 }}>NIGHT</span>
                     </h2>
                     {/* Closing Double Quotes SVG */}
                     <div className="absolute -bottom-10 -right-14 flex space-x-2">
