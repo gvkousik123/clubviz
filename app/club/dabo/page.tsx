@@ -298,67 +298,68 @@ export default function ClubDaboPage() {
             </div>
 
             {/* Main content */}
-            <div className="bg-gradient-to-b from-[#021313] to-[rgba(2,19,19,0)] mt-[-5vh] rounded-t-[40px] relative z-0 pt-[10vh] px-4 pb-[18px] flex flex-col items-center gap-[25px] w-full">
-                <div className="flex flex-col items-center w-full">
+            <div className="bg-gradient-to-b from-[#021313] to-[rgba(2,19,19,0)] mt-[-5vh] rounded-t-[40px] relative z-0 px-4 pb-[18px] w-full">
+                {/* Fixed positioning container for title and buttons */}
+                <div className="flex flex-col items-center w-full" style={{ paddingTop: 'calc(6vh + 30px)' }}>
                     {/* Title */}
-                    <h1 className="text-white text-[36px] tracking-[0.36px] text-center h-[35px] font-normal leading-[20px]" style={{ fontFamily: "'Anton', sans-serif" }}>
+                    <h1 className="text-white text-[36px] tracking-[0.36px] text-center font-normal leading-[35px] mb-3" style={{ fontFamily: "'Anton', sans-serif" }}>
                         {venueInfo.name}
                     </h1>
 
                     {/* Social buttons and Action buttons */}
-                    <div style={{ width: "100%", height: "100%", justifyContent: "center", alignItems: "flex-end", gap: "8px", display: "inline-flex", flexWrap: "wrap", alignContent: "flex-end" }}>
-                        <div style={{ justifyContent: "flex-start", alignItems: "center", gap: "12px", display: "flex" }}>
+                    <div className="w-full flex flex-col items-center gap-3 mb-4">
+                        <div className="flex justify-center items-center gap-3">
                             <div
-                                className="transition-transform hover:scale-110 active:scale-95"
-                                style={{ width: "40px", height: "40px", paddingLeft: "8px", paddingRight: "8px", paddingTop: "8px", paddingBottom: "8px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex" }}
+                                className="transition-transform hover:scale-110 active:scale-95 w-10 h-10 rounded-full flex items-center justify-center"
+                                style={{ background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)" }}
                                 onClick={handleLike}
                                 role="button"
                                 tabIndex={0}
                             >
-                                <img src="/club/ThumbsUp (1).svg" alt="Like" style={{ width: "20px", height: "20px" }} />
+                                <img src="/club/ThumbsUp (1).svg" alt="Like" className="w-5 h-5" />
                             </div>
                             <div
-                                className="transition-transform hover:scale-110 active:scale-95"
-                                style={{ width: "40px", height: "40px", paddingLeft: "8px", paddingRight: "8px", paddingTop: "8px", paddingBottom: "8px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex" }}
+                                className="transition-transform hover:scale-110 active:scale-95 w-10 h-10 rounded-full flex items-center justify-center"
+                                style={{ background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)" }}
                                 onClick={handleDislike}
                                 role="button"
                                 tabIndex={0}
                             >
-                                <img src="/club/ThumbsDown (1).svg" alt="Dislike" style={{ width: "20px", height: "20px" }} />
+                                <img src="/club/ThumbsDown (1).svg" alt="Dislike" className="w-5 h-5" />
                             </div>
                             <div
-                                className="transition-transform hover:scale-110 active:scale-95"
-                                style={{ width: "40px", height: "40px", paddingLeft: "8px", paddingRight: "8px", paddingTop: "8px", paddingBottom: "8px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex" }}
+                                className="transition-transform hover:scale-110 active:scale-95 w-10 h-10 rounded-full flex items-center justify-center"
+                                style={{ background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)" }}
                                 onClick={handleShare}
                                 role="button"
                                 tabIndex={0}
                             >
-                                <img src="/club/ShareNetwork (1).svg" alt="Share" style={{ width: "20px", height: "20px" }} />
+                                <img src="/club/ShareNetwork (1).svg" alt="Share" className="w-5 h-5" />
                             </div>
                             <div
-                                className="transition-transform hover:scale-110 active:scale-95"
-                                style={{ width: "40px", height: "40px", paddingLeft: "8px", paddingRight: "8px", paddingTop: "8px", paddingBottom: "8px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex" }}
+                                className="transition-transform hover:scale-110 active:scale-95 w-10 h-10 rounded-full flex items-center justify-center"
+                                style={{ background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)" }}
                                 onClick={handleToggleLike}
                                 role="button"
                                 tabIndex={0}
                             >
-                                <img src="/club/BookmarkSimple (1).svg" alt="Bookmark" style={{ width: "20px", height: "20px" }} />
+                                <img src="/club/BookmarkSimple (1).svg" alt="Bookmark" className="w-5 h-5" />
                             </div>
                         </div>
-                        <div style={{ width: "100%", justifyContent: "center", alignItems: "center", gap: "12px", display: "flex", marginTop: "8px", marginBottom: "20px" }}>
+                        <div className="w-full flex justify-center items-center gap-3">
                             <Link
                                 href="/booking/form"
-                                className="transition-all hover:brightness-110 hover:shadow-lg active:brightness-90 active:scale-95"
-                                style={{ minWidth: "160px", paddingLeft: "20px", paddingRight: "20px", paddingTop: "12px", paddingBottom: "12px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex", textDecoration: "none", flexShrink: 0 }}
+                                className="transition-all hover:brightness-110 hover:shadow-lg active:brightness-90 active:scale-95 px-5 py-3 rounded-full flex items-center justify-center text-white text-sm font-bold tracking-wide"
+                                style={{ background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", minWidth: "160px" }}
                             >
-                                <div style={{ color: "white", fontSize: "14px", fontFamily: "Manrope", fontWeight: "700", lineHeight: "16px", letterSpacing: "0.30px", wordWrap: "break-word", textAlign: "center", whiteSpace: "nowrap" }}>Reserve your spot</div>
+                                Reserve your spot
                             </Link>
                             <Link
                                 href="/booking/form"
-                                className="transition-all hover:brightness-110 hover:shadow-lg active:brightness-90 active:scale-95"
-                                style={{ minWidth: "120px", paddingLeft: "20px", paddingRight: "20px", paddingTop: "12px", paddingBottom: "12px", background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", overflow: "hidden", borderRadius: "25px", justifyContent: "center", alignItems: "center", gap: "10px", display: "flex", textDecoration: "none", flexShrink: 0 }}
+                                className="transition-all hover:brightness-110 hover:shadow-lg active:brightness-90 active:scale-95 px-5 py-3 rounded-full flex items-center justify-center text-white text-sm font-bold tracking-wide"
+                                style={{ background: "radial-gradient(ellipse 122.14% 367.06% at 47.50% 51.28%, #01756C 0%, #08C2B3 100%)", minWidth: "120px" }}
                             >
-                                <div style={{ color: "white", fontSize: "14px", fontFamily: "Manrope", fontWeight: "700", lineHeight: "16px", letterSpacing: "0.30px", wordWrap: "break-word", textAlign: "center", whiteSpace: "nowrap" }}>Book offline</div>
+                                Book offline
                             </Link>
                         </div>
                     </div>
@@ -708,7 +709,7 @@ export default function ClubDaboPage() {
                             <div className="min-w-[300px] bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4">
                                 <div className="flex items-center gap-3 mb-2">
                                     <img
-                                        src="/profile/profile-1.jpg"
+                                        src="/vibemeter/Screenshot_2025-05-16_192139-removebg-preview.png"
                                         alt="Anjali Sharma"
                                         className="w-12 h-12 rounded-full object-cover"
                                     />
@@ -743,7 +744,7 @@ export default function ClubDaboPage() {
                             <div className="min-w-[300px] bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4">
                                 <div className="flex items-center gap-3 mb-2">
                                     <img
-                                        src="/profile/profile-2.jpg"
+                                        src="/vibemeter/Screenshot_2025-05-16_193232-removebg-preview.png"
                                         alt="Ankit Trivedi"
                                         className="w-12 h-12 rounded-full object-cover"
                                     />
@@ -776,13 +777,6 @@ export default function ClubDaboPage() {
                             </div>
                         </div>
                     </div>
-
-                    {/* Leave Review Button */}
-                    <Link href="/review/write" className="w-full bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4 flex items-center justify-between mb-16 transition-all hover:bg-[rgba(50,75,75,0.40)] active:bg-[rgba(30,45,45,0.50)] hover:shadow-md active:shadow-inner">
-                        <ArrowLeft className="w-5 h-5 text-white rotate-180" />
-                        <span className="text-white text-base">Leave a review</span>
-                        <div className="w-5 h-5 bg-[#14FFEC] transition-transform hover:scale-110 active:scale-95"></div>
-                    </Link>
                 </div>
             </div>
         </div>
