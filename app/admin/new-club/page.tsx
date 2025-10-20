@@ -44,7 +44,11 @@ export default function NewClubPage() {
 
     const handleNavigate = (path: string) => {
         // Navigate to specific sections
-        console.log(`Navigating to ${path}`);
+        if (path === '/location') {
+            router.push('/admin/add-location');
+        } else {
+            console.log(`Navigating to ${path}`);
+        }
     };
 
     return (
