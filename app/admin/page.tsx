@@ -48,21 +48,6 @@ export default function AdminDashboard() {
             <div className="fixed top-0 left-0 right-0 z-30 flex flex-col pt-8 bg-gradient-to-b from-[#11B9AB] to-[#222831] h-[140px] w-full">
                 <div className="px-6">
                     <h2 className="text-lg font-medium">Welcome back,</h2>
-                    <div className="flex items-center justify-between mt-4">
-                        <h1 className="text-4xl font-bold tracking-wide uppercase">DABO</h1>
-                        {/* Club Logo */}
-                        <div className="w-16 h-16 bg-black rounded-full border-2 border-[#14FFEC] flex items-center justify-center relative overflow-hidden">
-                            <div className="bg-black rounded-full w-14 h-14 flex items-center justify-center text-xs text-center text-[#14FFEC] p-1">
-                                <div className="flex flex-col items-center justify-center">
-                                    <span className="uppercase font-semibold text-xs">LOGO</span>
-                                    <span className="block text-[8px]">+ DRINKS</span>
-                                </div>
-                            </div>
-                            <div className="absolute -bottom-1 -right-1 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow-md">
-                                <Plus className="w-4 h-4 text-black" />
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -70,6 +55,25 @@ export default function AdminDashboard() {
             <div className="px-0 relative mt-[100px] z-40">
                 {/* Main Container with rounded corners */}
                 <div className="w-full bg-[#021313] rounded-t-[40px] flex flex-col">
+                    {/* Club name and logo header section */}
+                    <div className="px-6 pt-6 pb-2">
+                        <div className="flex items-center justify-between">
+                            <h1 className="text-4xl font-bold tracking-wide uppercase">DABO</h1>
+                            {/* Club Logo */}
+                            <div className="w-16 h-16 bg-black rounded-full border-2 border-[#14FFEC] flex items-center justify-center relative">
+                                <div className="relative w-14 h-14 flex items-center justify-center text-xs text-center text-[#14FFEC]">
+                                    <div className="flex flex-col items-center justify-center">
+                                        <span className="uppercase font-semibold text-xs">LOGO</span>
+                                        <span className="block text-[8px]">+ DRINKS</span>
+                                    </div>
+                                    <div className="absolute right-0 bottom-0 bg-white rounded-full w-5 h-5 flex items-center justify-center z-50">
+                                        <Plus className="w-3 h-3 text-black" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Content wrapper with padding */}
                     <div className="px-6 py-4">
                         {/* Create New Event Button */}
@@ -130,7 +134,7 @@ export default function AdminDashboard() {
 
                                 {/* Check Event bookings */}
                                 <div
-                                    onClick={() => handleNavigation('/admin/event-analytics')}
+                                    onClick={() => handleNavigation('/admin/new-club')}
                                     className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-3 flex flex-col items-center justify-between cursor-pointer"
                                 >
                                     <p className="text-center text-white text-xs mb-2">Check Event bookings</p>
@@ -141,10 +145,10 @@ export default function AdminDashboard() {
 
                                 {/* Update Event Details */}
                                 <div
-                                    onClick={() => handleNavigation('/admin/update-event')}
+                                    onClick={() => handleNavigation('/admin/update-live-details')}
                                     className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-3 flex flex-col items-center justify-between cursor-pointer"
                                 >
-                                    <p className="text-center text-white text-xs mb-2">Update Event Details</p>
+                                    <p className="text-center text-white text-xs mb-2">Update Club Details</p>
                                     <div className="bg-[#14FFEC] w-8 h-8 rounded-md flex items-center justify-center">
                                         <Edit className="w-5 h-5 text-black" />
                                     </div>
@@ -177,6 +181,17 @@ export default function AdminDashboard() {
                                         <path d="m9 18 6-6-6-6" />
                                     </svg>
                                 </div>
+
+                                {/* Add Story */}
+                                <div
+                                    onClick={() => handleNavigation('/admin/add-story')}
+                                    className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4 flex items-center justify-between cursor-pointer"
+                                >
+                                    <p className="text-white font-medium">Add Club Story</p>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#14FFEC]">
+                                        <path d="m9 18 6-6-6-6" />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
 
@@ -188,7 +203,7 @@ export default function AdminDashboard() {
                             <div className="flex gap-2 mb-4">
                                 <button
                                     onClick={() => handleTabChange('past')}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === 'past'
+                                    className={`px-4 py-2 rounded-full text-xs font-medium ${activeTab === 'past'
                                         ? 'bg-[#14FFEC] text-black'
                                         : 'bg-[#0D1F1F] text-white'
                                         }`}
@@ -197,7 +212,7 @@ export default function AdminDashboard() {
                                 </button>
                                 <button
                                     onClick={() => handleTabChange('active')}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === 'active'
+                                    className={`px-4 py-2 rounded-full text-xs font-medium ${activeTab === 'active'
                                         ? 'bg-[#14FFEC] text-black'
                                         : 'bg-[#0D1F1F] text-white'
                                         }`}
@@ -206,7 +221,7 @@ export default function AdminDashboard() {
                                 </button>
                                 <button
                                     onClick={() => handleTabChange('upcoming')}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === 'upcoming'
+                                    className={`px-4 py-2 rounded-full text-xs font-medium ${activeTab === 'upcoming'
                                         ? 'bg-[#14FFEC] text-black'
                                         : 'bg-[#0D1F1F] text-white'
                                         }`}
@@ -245,9 +260,11 @@ export default function AdminDashboard() {
                                             </div>
                                         </div>
                                         <div className="w-20 h-28 bg-[#0D1F1F] rounded-md overflow-hidden ml-4 border border-[#14FFEC]/40">
-                                            <div className="w-full h-full bg-[#1A2E2E] flex items-center justify-center text-xs text-center p-1">
-                                                <span className="text-[#14FFEC]/80 text-[10px]">EVENT POSTER</span>
-                                            </div>
+                                            <img
+                                                src="/event list/Rectangle 1.jpg"
+                                                alt="Event Poster"
+                                                className="w-full h-full object-cover"
+                                            />
                                         </div>
                                     </div>
                                 ))}
