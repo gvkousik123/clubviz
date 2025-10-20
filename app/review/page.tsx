@@ -88,7 +88,7 @@ export default function ReviewPage() {
                 {/* Reviews List */}
                 <div className="space-y-4 mt-4">
                     {reviews.map((review) => (
-                        <div key={review.id} className="bg-[#222831]/70 rounded-2xl p-4">
+                        <div key={review.id} className="bg-[rgba(40,60,61,0.30)] rounded-2xl p-4">
                             <div className="flex items-center gap-3">
                                 <img
                                     src={review.avatar}
