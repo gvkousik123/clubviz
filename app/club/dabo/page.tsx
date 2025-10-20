@@ -699,7 +699,7 @@ export default function ClubDaboPage() {
                     {/* Reviews Section */}
                     <div className="w-full mt-5 mb-3 flex justify-between items-center">
                         <h3 className="text-white text-xl font-semibold">Reviews</h3>
-                        <Link href="/review/page" className="text-[#14FFEC] text-sm font-semibold">
+                        <Link href="/review" className="text-[#14FFEC] text-sm font-semibold">
                             View All
                         </Link>
                     </div>
