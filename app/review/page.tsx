@@ -16,7 +16,7 @@ export default function ReviewPage() {
         {
             id: 1,
             name: 'Anjali Sharma',
-            avatar: '/profile/profile-1.jpg',
+            avatar: '/vibemeter/Screenshot_2025-05-16_192139-removebg-preview.png',
             rating: 4.5,
             date: '25/07/2024',
             review: 'I recently ate at Dabo and had a great time. The food tasted good, and Rakesh\'s suggestions were perfect. The service was excellent. I\'m very happy with my visit. Decor and interiors can be improved a bit.',
@@ -26,7 +26,7 @@ export default function ReviewPage() {
         {
             id: 2,
             name: 'Ankit Trivedi',
-            avatar: '/profile/profile-2.jpg',
+            avatar: '/vibemeter/Screenshot_2025-05-16_193232-removebg-preview.png',
             rating: 4.5,
             date: '02/07/2024',
             review: 'Generally any pub strikes one of the two cords, ambiance or tasty food. The food here is simply amazing and combine it with the perfect and soothing ambiance you will have a time of your life.',
@@ -36,7 +36,7 @@ export default function ReviewPage() {
         {
             id: 3,
             name: 'Nikhil Jadhav',
-            avatar: '/profile/profile-3.jpg',
+            avatar: '/vibemeter/Screenshot_2025-05-23_223510-removebg-preview.png',
             rating: 4.0,
             date: '17/06/2024',
             review: 'Excellent atmosphere and wonderful drinks selection. The DJ set was perfect for the evening.',
@@ -46,9 +46,9 @@ export default function ReviewPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#0d7377] to-[#222831] text-white">
+        <div className="min-h-screen bg-[#021313] text-white">
             {/* Page Header Component */}
-            <PageHeader title="REVIEWS" />
+            <PageHeader title="Review" />
 
             {/* Main Content */}
             <div className="px-6 pt-[16vh] pb-6 space-y-6">
@@ -71,7 +71,7 @@ export default function ReviewPage() {
                 </div>
 
                 {/* Rating Distribution */}
-                <div className="bg-[#222831]/70 p-4 rounded-2xl space-y-3">
+                <div className="bg-[rgba(40,60,61,0.30)] p-4 rounded-2xl space-y-3">
                     {['Excellent', 'Good', 'Average', 'Below Average', 'Rate'].map((label, index) => (
                         <div key={index} className="flex items-center gap-3">
                             <div className="w-28 text-sm">{label}</div>
