@@ -82,7 +82,7 @@ export default function NewEventPage() {
                         onClick={handleGoBack}
                         className="w-10 h-10 flex items-center justify-center bg-black/20 hover:bg-black/30 rounded-full transition-all duration-300"
                     >
-                        <ArrowLeft size={24} className="text-white" />
+                        <span className="text-white text-xl font-bold">&lt;</span>
                     </button>
                 </div>
                 <div className="mt-2 text-center">
@@ -106,7 +106,7 @@ export default function NewEventPage() {
                         </div>
 
                         {/* Tab Navigation - horizontal tabs starting from left */}
-                        <div className="pl-6 pr-4 py-2 overflow-x-scroll scrollbar-hide bg-[#021313]">
+                        <div className="pl-6 pr-4 pt-1 pb-3 overflow-x-scroll scrollbar-hide bg-[#021313]">
                             <div className="flex items-center gap-4 min-w-max">
                                 {tabs.map((tab) => (
                                     <button
@@ -180,70 +180,58 @@ export default function NewEventPage() {
                                     <div className="px-5">
                                         <label className="text-[#14FFEC] font-semibold text-base">Event Artist Social Handle</label>
                                     </div>
-                                    <div className="flex gap-4">
-                                        <div className="flex-1 bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
-                                            <div className="flex items-center gap-3">
-                                                <Instagram size={20} className="text-[#14FFEC]" />
-                                                <input
-                                                    type="text"
-                                                    value={formData.instagramHandle}
-                                                    onChange={(e) => handleInputChange('instagramHandle', e.target.value)}
-                                                    className="flex-1 bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
-                                                    placeholder="Instagram Handle"
-                                                />
-                                            </div>
+                                    <div className="flex gap-4 w-full">
+                                        <div className="w-1/2 bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                            <input
+                                                type="text"
+                                                value={formData.instagramHandle}
+                                                onChange={(e) => handleInputChange('instagramHandle', e.target.value)}
+                                                className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                                placeholder="Instagram Handle"
+                                            />
                                         </div>
 
-                                        <div className="flex-1 bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
-                                            <div className="flex items-center gap-3">
-                                                <Music2 size={20} className="text-[#14FFEC]" />
-                                                <input
-                                                    type="text"
-                                                    value={formData.spotifyHandle}
-                                                    onChange={(e) => handleInputChange('spotifyHandle', e.target.value)}
-                                                    className="flex-1 bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
-                                                    placeholder="Spotify Handle"
-                                                />
-                                            </div>
+                                        <div className="w-1/2 bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                            <input
+                                                type="text"
+                                                value={formData.spotifyHandle}
+                                                onChange={(e) => handleInputChange('spotifyHandle', e.target.value)}
+                                                className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                                placeholder="Spotify Handle"
+                                            />
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Date and Time - in one row */}
-                                <div className="flex gap-4">
-                                    <div className="flex-1 space-y-3">
+                                <div className="flex gap-4 w-full">
+                                    <div className="w-1/2 space-y-3">
                                         <div className="px-5">
                                             <label className="text-[#14FFEC] font-semibold text-base">Event Date *</label>
                                         </div>
                                         <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
-                                            <div className="flex items-center gap-3">
-                                                <Calendar size={20} className="text-[#14FFEC]" />
-                                                <input
-                                                    type="text"
-                                                    value={formData.eventDate}
-                                                    onChange={(e) => handleInputChange('eventDate', e.target.value)}
-                                                    className="flex-1 bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
-                                                    placeholder="DD/MM/YYYY"
-                                                />
-                                            </div>
+                                            <input
+                                                type="text"
+                                                value={formData.eventDate}
+                                                onChange={(e) => handleInputChange('eventDate', e.target.value)}
+                                                className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                                placeholder="DD/MM/YYYY"
+                                            />
                                         </div>
                                     </div>
 
-                                    <div className="flex-1 space-y-3">
+                                    <div className="w-1/2 space-y-3">
                                         <div className="px-5">
-                                            <label className="text-[#14FFEC] font-semibold text-base">Event Starting Time *</label>
+                                            <label className="text-[#14FFEC] font-semibold text-base">Start Time *</label>
                                         </div>
                                         <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
-                                            <div className="flex items-center gap-3">
-                                                <Clock size={20} className="text-[#14FFEC]" />
-                                                <input
-                                                    type="text"
-                                                    value={formData.eventTime}
-                                                    onChange={(e) => handleInputChange('eventTime', e.target.value)}
-                                                    className="flex-1 bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
-                                                    placeholder="00:00"
-                                                />
-                                            </div>
+                                            <input
+                                                type="text"
+                                                value={formData.eventTime}
+                                                onChange={(e) => handleInputChange('eventTime', e.target.value)}
+                                                className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                                placeholder="00:00"
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -310,7 +298,13 @@ export default function NewEventPage() {
                                         onClick={() => handleFileUpload(fileInputRef)}
                                         className="w-[120px] h-[120px] bg-[#0D1F1F] border border-[#14FFEC] rounded-[15px] flex flex-col items-center justify-center p-2 cursor-pointer"
                                     >
-                                        <Upload size={36} className="text-[#14FFEC] mb-2" />
+                                        <img
+                                            src="/admin/upload.svg"
+                                            alt="Upload"
+                                            width={30}
+                                            height={30}
+                                            className="mb-2"
+                                        />
                                         <p className="text-white text-center text-base font-semibold">Upload logo here</p>
                                     </div>
                                     <input
@@ -451,7 +445,7 @@ export default function NewEventPage() {
                 <div className="fixed bottom-0 left-0 right-0 z-50">
                     <div className="w-full h-[80px] relative bg-[#0D1F1F] shadow-[0px_30px_30px_-40px_#00968A_inset] overflow-hidden rounded-t-[40px] border-t-2 border-[#14FFEC]">
                         <div className="flex justify-center items-center px-8 h-full">
-                            <div className="w-[160px] h-[45px] bg-[#0F6861] rounded-[30px] flex justify-center items-center">
+                            <div className="w-[220px] h-[45px] bg-[#0F6861] rounded-[30px] flex justify-center items-center">
                                 <button
                                     onClick={handleSaveEvent}
                                     className="w-full h-full flex justify-center items-center"
