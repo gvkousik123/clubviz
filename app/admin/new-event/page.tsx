@@ -4,13 +4,19 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, Calendar, Clock, Music, User, Building2, Instagram, Music2, ImageIcon, VideoIcon } from 'lucide-react';
 import { useState, useRef } from 'react';
 import './styles.css';
+import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
 
 export default function NewEventPage() {
     const router = useRouter();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const posterInputRef = useRef<HTMLInputElement>(null);
     const reelInputRef = useRef<HTMLInputElement>(null);
+    const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
     const [activeTab, setActiveTab] = useState('details');
+    const [selectedRestriction, setSelectedRestriction] = useState<string | null>(null);
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
+    const [dialogStage, setDialogStage] = useState<'confirm' | 'creating'>('confirm');
     const [formData, setFormData] = useState({
         eventName: '',
         artistName: '',
@@ -61,13 +67,29 @@ export default function NewEventPage() {
     };
 
     const handleSaveEvent = () => {
-        // Handle event creation logic here
-        console.log('Creating event:', formData);
-        // For now, just go back or navigate to success page
-        router.push('/admin');
+        // Show confirmation dialog
+        setShowConfirmDialog(true);
     };
 
-    const tabs = [
+    const handleConfirmCreate = () => {
+        // Change to creating stage
+        setDialogStage('creating');
+
+        // Simulate API call with timeout
+        setTimeout(() => {
+            // Handle event creation logic here
+            console.log('Creating event:', formData);
+            // Close the dialog and navigate
+            setShowConfirmDialog(false);
+            setDialogStage('confirm'); // Reset for next time
+            router.push('/admin/event-preview');
+        }, 2000);
+    };
+
+    const handlePreviewEvent = () => {
+        // Navigate to the preview event page
+        router.push('/admin/event-preview');
+    }; const tabs = [
         { id: 'details', label: 'Event Details' },
         { id: 'creatives', label: 'Event Creatives' },
         { id: 'tickets', label: 'Event Tickets' }
@@ -459,6 +481,105 @@ export default function NewEventPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Confirmation Dialog */}
+            <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+                <DialogOverlay />
+                <DialogContent className="p-0 border-none bg-transparent max-w-[420px]" showCloseButton={false}>
+                    <div className="w-full p-[20px_21px_20px_22px] bg-[#0D1F1F] overflow-hidden rounded-[17px] flex flex-col items-center gap-[26px]">
+                        {/* Close button in the top-right corner */}
+                        <div className="absolute right-3 top-3">
+                            <button
+                                onClick={() => {
+                                    setShowConfirmDialog(false);
+                                    setDialogStage('confirm'); // Reset to confirm stage when closing
+                                }}
+                                className="w-8 h-8 flex items-center justify-center text-white bg-transparent rounded-full"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {dialogStage === 'confirm' ? (
+                            <>
+                                <div className="w-[133px] h-[102px] relative overflow-hidden flex items-center justify-center">
+                                    <img
+                                        src="/admin/confirm1.png"
+                                        alt="Confirmation"
+                                        width={133}
+                                        height={102}
+                                    />
+                                </div>
+
+                                <div className="flex flex-col items-center gap-[12px]">
+                                    <div className="text-[#F9F9F9] text-[20px] font-semibold font-['Manrope']">
+                                        Proceed to create event
+                                    </div>
+                                    <div className="text-center text-[#9D9C9C] text-[16px] font-['Manrope'] leading-[19.20px]">
+                                        You are about to create a new event
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-[14px]">
+                                    <button
+                                        onClick={handleConfirmCreate}
+                                        className="w-[154px] h-[38px] bg-[#007877] rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-[#008c8c] transition-all duration-300"
+                                    >
+                                        <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px]">
+                                            Create event
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => setShowConfirmDialog(false)}
+                                        className="w-[154px] h-[38px] border border-[#007877] rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-[#012e2e] transition-all duration-300"
+                                    >
+                                        <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px]">
+                                            Go back
+                                        </div>
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                {/* Loading animation from booking page */}
+                                <div className="w-20 h-20 relative mb-2">
+                                    <div className="absolute top-0 left-0 w-20 h-20 rounded-full border-4 border-r-transparent animate-spin border-[#14FFEC]"></div>
+                                </div>
+
+                                <div className="flex flex-col items-center gap-[12px]">
+                                    <div className="text-[#F9F9F9] text-[20px] font-semibold font-['Manrope']">
+                                        Creating your event
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-[14px]">
+                                    <button
+                                        onClick={handlePreviewEvent}
+                                        className="w-[154px] h-[38px] bg-[#007877] rounded-[30px] flex justify-center items-center"
+                                    >
+                                        <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px]">
+                                            Preview event
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => {
+                                            setShowConfirmDialog(false);
+                                            setDialogStage('confirm');
+                                        }}
+                                        className="w-[154px] h-[38px] border border-[#007877] rounded-[30px] flex justify-center items-center"
+                                    >
+                                        <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px]">
+                                            Go back
+                                        </div>
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

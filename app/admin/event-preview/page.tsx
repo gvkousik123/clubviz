@@ -57,6 +57,16 @@ export default function TimelessTuesdayPage() {
                         />
                     </button>
                 </div>
+
+                {/* Edit Event Details Button - Fixed and centered */}
+                <div className="absolute top-4 left-0 right-0 flex justify-center items-center">
+                    <button
+                        onClick={() => router.push('/admin/new-event')}
+                        className="bg-[#005D5C] text-white py-2 px-6 rounded-full font-bold text-sm cursor-pointer hover:bg-[#007875] transition-all duration-300"
+                    >
+                        Edit Event Details
+                    </button>
+                </div>
             </div>
 
             {/* Event Details Section */}
