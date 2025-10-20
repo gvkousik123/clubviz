@@ -50,11 +50,15 @@ export default function ReviewPage() {
             {/* Page Header Component */}
             <PageHeader title="Review" />
 
+            {/* Club Name Header */}
+            <div className="px-6 pt-[12vh] pb-4">
+                <h2 className="text-white text-3xl font-extrabold text-center">DABO CLUB & KITCHEN</h2>
+            </div>
+
             {/* Main Content */}
-            <div className="px-6 pt-[16vh] pb-6 space-y-6">
-                {/* Club Info */}
+            <div className="px-6 pb-6 space-y-6">
+                {/* Club Rating Info */}
                 <div className="text-center space-y-2">
-                    <h2 className="text-white text-3xl font-extrabold">DABO CLUB & KITCHEN</h2>
                     <div className="flex flex-col items-center">
                         <div className="text-4xl font-bold mb-2">4.2</div>
                         <div className="flex items-center gap-1 mb-1">
