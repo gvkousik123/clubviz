@@ -318,7 +318,7 @@ export default function ClubsListPage() {
                             <h2 className="text-white text-sm font-semibold truncate">Clubs nearby</h2>
                             <Link href="/clubs" className="text-[#14FFEC] text-sm font-medium whitespace-nowrap">View All</Link>
                         </div>
-                        <div className="w-full flex flex-col items-center gap-4 pb-2">
+                        <div className="w-full flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
                             {clubsNearbyList.length === 0 ? (
                                 <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full max-w-sm mx-auto">
                                     No clubs found nearby.

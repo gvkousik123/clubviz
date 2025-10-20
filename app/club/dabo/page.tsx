@@ -370,8 +370,8 @@ export default function ClubDaboPage() {
                         <div className="flex flex-col gap-[8px] mt-2">
                             <h3 className="text-[#FFFEFF] text-lg font-semibold mb-1 px-1">Now Playing</h3>
 
-                            <div className="relative w-full h-[110px] bg-[#4A6365] rounded-[15px] overflow-hidden">
-                                <div className="absolute left-4 top-[25px] w-[50px] h-[50px] rounded-full flex items-center justify-center bg-[#03867B]">
+                            <div className="relative w-full h-[110px] bg-[rgba(31.93,42.75,43.32,0.60)] rounded-[15px] overflow-hidden">
+                                <div className="absolute left-4 top-[25px] w-[50px] h-[50px] rounded-full flex items-center justify-center bg-white/10 backdrop-blur-[10px] border border-white/20">
                                     <img src="/club/dj.gif" alt="Music Visualization" className="w-[48px] h-[48px] object-cover rounded-full" />
                                 </div>
 
@@ -380,14 +380,14 @@ export default function ClubDaboPage() {
                                     <div className="mt-[5px] text-white text-[12px] font-normal opacity-80">Now playing</div>
 
                                     <div className="flex mt-[12px] gap-3">
-                                        <div className="px-[10px] py-[3px] bg-[#202B2B99] rounded-full border border-[#28D2DB] flex items-center gap-[4px]">
-                                            <span className="text-white text-[12px]">Chill House Mix</span>
-                                            <div className="w-[5px] h-[5px] bg-[#C50000] rounded-full"></div>
+                                        <div className="px-[8px] py-[2px] bg-[#202B2B99] rounded-full border border-[#28D2DB] flex items-center gap-[3px]">
+                                            <span className="text-white text-[10px]">Chill House Mix</span>
+                                            <div className="w-[4px] h-[4px] bg-[#C50000] rounded-full"></div>
                                         </div>
 
-                                        <div className="px-[10px] py-[3px] bg-[#202B2B99] rounded-full border border-[#28D2DB] flex items-center gap-[4px]">
-                                            <span className="text-white text-[12px]">Techno Vibes</span>
-                                            <div className="w-[5px] h-[5px] bg-[#C50000] rounded-full"></div>
+                                        <div className="px-[8px] py-[2px] bg-[#202B2B99] rounded-full border border-[#28D2DB] flex items-center gap-[3px]">
+                                            <span className="text-white text-[10px]">Techno Vibes</span>
+                                            <div className="w-[4px] h-[4px] bg-[#C50000] rounded-full"></div>
                                         </div>
                                     </div>
                                 </div>
