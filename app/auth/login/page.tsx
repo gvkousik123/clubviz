@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { ClubVizLogo } from '@/components/auth/logo';
 import GoogleIcon from '@/components/auth/google-icon';
+import { useToast } from '@/hooks/use-toast';
 
 const statusIndicators = [
     { id: 'signal', icon: Signal },
@@ -22,18 +23,38 @@ const statusIndicators = [
 
 export default function LoginPage(): JSX.Element {
     const router = useRouter();
+    const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleGoogleLogin = () => {
+    const handleGoogleLogin = async () => {
         if (isLoading) {
             return;
         }
 
         setIsLoading(true);
 
-        setTimeout(() => {
-            router.push('/home');
-        }, 1000);
+        try {
+            // TODO: Implement Google OAuth integration
+            // For now, showing a message that it's not implemented
+            toast({
+                title: "Coming Soon",
+                description: "Google login will be available soon!",
+            });
+
+            // Temporary: Redirect after 1 second for demo
+            setTimeout(() => {
+                setIsLoading(false);
+                // router.push('/home'); // Uncomment when ready
+            }, 1000);
+        } catch (error: any) {
+            console.error("Google login error:", error);
+            toast({
+                title: "Login failed",
+                description: error.message || "Failed to login with Google",
+                variant: "destructive",
+            });
+            setIsLoading(false);
+        }
     };
 
     return (

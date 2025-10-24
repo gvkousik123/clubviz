@@ -10,19 +10,32 @@ import {
 } from '../api-types';
 import { STORAGE_KEYS } from '../constants/storage';
 
-const storeAuthSession = (data: Partial<AuthResponse>) => {
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+const storeAuthSession = (data: any) => {
   if (typeof window === 'undefined') return;
 
-  if (data?.token) {
-    localStorage.setItem(STORAGE_KEYS.accessToken, data.token);
+  // Handle the actual API response structure
+  const accessToken = data?.accessToken || data?.token;
+  const refreshToken = data?.refreshToken;
+  const user = data?.user || {
+    username: data?.username,
+    email: data?.email,
+    roles: data?.roles
+  };
+
+  if (accessToken) {
+    localStorage.setItem(STORAGE_KEYS.accessToken, accessToken);
   }
 
-  if (data?.refreshToken) {
-    localStorage.setItem(STORAGE_KEYS.refreshToken, data.refreshToken);
+  if (refreshToken) {
+    localStorage.setItem(STORAGE_KEYS.refreshToken, refreshToken);
   }
 
-  if (data?.user) {
-    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(data.user));
+  if (user) {
+    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
   }
 };
 
@@ -34,38 +47,244 @@ const clearAuthSession = () => {
   localStorage.removeItem(STORAGE_KEYS.user);
 };
 
-const normalizeAuthResult = (payload: any, fallbackMessage: string): ApiResponse<AuthResponse> => {
-  const rawData = payload?.data ?? payload;
-  const token = rawData?.token ?? rawData?.accessToken ?? payload?.token ?? payload?.accessToken;
-  const refreshToken = rawData?.refreshToken ?? rawData?.refresh_token ?? payload?.refreshToken ?? payload?.refresh_token;
-  const user = rawData?.user ?? payload?.user;
-  const expiresIn = rawData?.expiresIn ?? payload?.expiresIn;
-
-  const hasToken = typeof token === 'string' && token.length > 0;
-  const declaredSuccess = typeof payload?.success === 'boolean' ? payload.success : undefined;
-  const success = declaredSuccess !== undefined ? declaredSuccess && hasToken : hasToken;
-  const message = payload?.message ?? (success ? 'Login successful' : fallbackMessage);
-
-  const data: AuthResponse = {
-    token: token ?? '',
-    refreshToken: refreshToken ?? '',
-    expiresIn,
-    user,
-    raw: rawData,
-  };
-
-  return {
-    success,
-    message,
-    data,
-    errors: payload?.errors,
-  } as ApiResponse<AuthResponse>;
-};
+// ============================================================================
+// AUTH SERVICE
+// ============================================================================
 
 export class AuthService {
+  
+  // --------------------------------------------------------------------------
+  // 1. SIGN IN (Login with Email/Username & Password)
+  // Endpoint: POST /auth/signin
+  // --------------------------------------------------------------------------
+  static async signIn(usernameOrEmail: string, password: string): Promise<any> {
+    try {
+      const response = await api.post('/auth/signin', {
+        usernameOrEmail,
+        password
+      });
+
+      const data = handleApiResponse(response);
+      
+      // Store tokens and user data
+      storeAuthSession(data);
+
+      return {
+        success: true,
+        data,
+        message: 'Login successful'
+      };
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // 2. SIGN UP (Register new user)
+  // Endpoint: POST /auth/signup
+  // --------------------------------------------------------------------------
+  static async signUp(fullName: string, email: string, password: string, phoneNumber: string): Promise<any> {
+    try {
+      const response = await api.post('/auth/signup', {
+        fullName,
+        email,
+        password,
+        phoneNumber
+      });
+
+      const data = handleApiResponse(response);
+
+      return {
+        success: true,
+        data,
+        message: data?.message || 'User registered successfully!'
+      };
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // 3. REFRESH TOKEN
+  // Endpoint: POST /auth/refresh
+  // --------------------------------------------------------------------------
+  static async refreshToken(refreshToken: string): Promise<any> {
+    try {
+      const response = await api.post('/auth/refresh', {
+        refreshToken
+      });
+
+      const data = handleApiResponse(response);
+      
+      // Store new tokens
+      storeAuthSession(data);
+
+      return {
+        success: true,
+        data,
+        message: 'Token refreshed successfully'
+      };
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // 4. LOGOUT
+  // Endpoint: POST /auth/logout
+  // --------------------------------------------------------------------------
+  static async logout(): Promise<any> {
+    try {
+      const response = await api.post('/auth/logout');
+      const data = handleApiResponse(response);
+
+      // Clear local storage
+      clearAuthSession();
+
+      return {
+        success: true,
+        data,
+        message: data?.message || 'User logged out successfully!'
+      };
+    } catch (error: any) {
+      // Clear session even if API call fails
+      clearAuthSession();
+      throw error;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // 5. GET USER ROLES
+  // Endpoint: GET /auth/users/{username}/roles
+  // --------------------------------------------------------------------------
+  static async getUserRoles(username: string): Promise<any> {
+    try {
+      const response = await api.get(`/auth/users/${username}/roles`);
+      const data = handleApiResponse(response);
+
+      return {
+        success: true,
+        data,
+        message: 'Roles fetched successfully'
+      };
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // 6. GET ACTIVE SESSIONS
+  // Endpoint: GET /auth/sessions
+  // --------------------------------------------------------------------------
+  static async getActiveSessions(): Promise<any> {
+    try {
+      const response = await api.get('/auth/sessions');
+      const data = handleApiResponse(response);
+
+      return {
+        success: true,
+        data,
+        message: 'Sessions fetched successfully'
+      };
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // 7. REVOKE ALL SESSIONS (Logout from all devices)
+  // Endpoint: DELETE /auth/sessions
+  // --------------------------------------------------------------------------
+  static async revokeAllSessions(): Promise<any> {
+    try {
+      const response = await api.delete('/auth/sessions');
+      const data = handleApiResponse(response);
+
+      // Clear local storage
+      clearAuthSession();
+
+      return {
+        success: true,
+        data,
+        message: data?.message || 'All sessions revoked'
+      };
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // 8. REVOKE SESSION BY ID
+  // Endpoint: DELETE /auth/sessions/{id}
+  // --------------------------------------------------------------------------
+  static async revokeSession(sessionId: string): Promise<any> {
+    try {
+      const response = await api.delete(`/auth/sessions/${sessionId}`);
+      const data = handleApiResponse(response);
+
+      return {
+        success: true,
+        data,
+        message: 'Session revoked successfully'
+      };
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // LEGACY/BACKWARD COMPATIBILITY METHODS
+  // --------------------------------------------------------------------------
+
   /**
-   * Send OTP for login/register/forgot password
+   * @deprecated Use signIn instead
    */
+  static async login(data: LoginRequest): Promise<ApiResponse<AuthResponse>> {
+    try {
+      const usernameOrEmail = data.usernameOrEmail || data.email || data.phone || '';
+      const password = data.password || '';
+
+      const result = await this.signIn(usernameOrEmail, password);
+      
+      return {
+        success: result.success,
+        message: result.message,
+        data: {
+          token: result.data?.accessToken || '',
+          refreshToken: result.data?.refreshToken || '',
+          expiresIn: result.data?.expiresIn,
+          user: result.data?.user,
+          raw: result.data
+        }
+      } as ApiResponse<AuthResponse>;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * @deprecated Use signUp instead
+   */
+  static async register(data: RegisterRequest): Promise<ApiResponse<any>> {
+    try {
+      const result = await this.signUp(
+        data.fullName,
+        data.email,
+        data.password,
+        data.phoneNumber
+      );
+
+      return {
+        success: result.success,
+        message: result.message,
+        data: result.data
+      } as ApiResponse<any>;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // OTP methods - keeping as is since they're not in the API documentation
   static async sendOTP(data: OTPRequest): Promise<ApiResponse<{ otpSent: boolean; message: string }>> {
     try {
       const response = await api.post<ApiResponse<{ otpSent: boolean; message: string }>>(
@@ -78,9 +297,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Verify OTP
-   */
   static async verifyOTP(data: OTPVerifyRequest): Promise<ApiResponse<{ verified: boolean; token?: string }>> {
     try {
       const response = await api.post<ApiResponse<{ verified: boolean; token?: string }>>(
@@ -93,119 +309,46 @@ export class AuthService {
     }
   }
 
-  /**
-   * Login user with username/email and password
-   */
-  static async login(data: LoginRequest): Promise<ApiResponse<AuthResponse>> {
-    try {
-      const payload: any = {
-        usernameOrEmail: data.usernameOrEmail || data.email || data.phone,
-        password: data.password
-      };
-
-      if (!payload.usernameOrEmail) {
-        throw new Error('Username, email or phone is required for login');
-      }
-
-      if (!payload.password) {
-        throw new Error('Password is required for login');
-      }
-
-      const response = await api.post<ApiResponse<AuthResponse>>('/auth/signin', payload);
-      const result = normalizeAuthResult(handleApiResponse(response), 'Login failed. Please try again.');
-
-      if (result.success) {
-        storeAuthSession(result.data);
-      }
-
-      return result;
-    } catch (error) {
-      throw new Error(handleApiError(error));
-    }
-  }
-
-  /**
-   * Login user with OTP
-   */
   static async loginWithOTP(data: LoginRequest): Promise<ApiResponse<AuthResponse>> {
     try {
       const response = await api.post<ApiResponse<AuthResponse>>('/auth/login-otp', data);
-      const result = normalizeAuthResult(handleApiResponse(response), 'OTP login failed. Please try again.');
-
-      if (result.success) {
-        storeAuthSession(result.data);
-      }
-
-      return result;
-    } catch (error) {
-      throw new Error(handleApiError(error));
-    }
-  }
-
-  /**
-   * Register new user
-   */
-  static async register(data: RegisterRequest): Promise<ApiResponse<any>> {
-    try {
-      const response = await api.post<ApiResponse<any>>('/auth/signup', data);
       const result = handleApiResponse(response);
-      
-      // Registration doesn't return token - user needs to login after signup
-      // Tokens are only stored after successful login
-      
-      return result;
+
+      if (result) {
+        storeAuthSession(result);
+      }
+
+      return {
+        success: true,
+        message: 'OTP login successful',
+        data: result as any
+      } as ApiResponse<AuthResponse>;
     } catch (error) {
       throw new Error(handleApiError(error));
     }
   }
 
+  // --------------------------------------------------------------------------
+  // UTILITY METHODS
+  // --------------------------------------------------------------------------
+
   /**
-   * Logout user
+   * Check if user is authenticated
    */
-  static async logout(): Promise<ApiResponse<{ message: string }>> {
-    try {
-      const response = await api.post<ApiResponse<{ message: string }>>('/auth/logout');
-
-      clearAuthSession();
-
-      return handleApiResponse(response);
-    } catch (error) {
-      clearAuthSession();
-
-      throw new Error(handleApiError(error));
-    }
+  static isAuthenticated(): boolean {
+    if (typeof window === 'undefined') return false;
+    
+    const token = localStorage.getItem(STORAGE_KEYS.accessToken);
+    return !!token;
   }
 
   /**
-   * Refresh authentication token
+   * Get stored auth token
    */
-  static async refreshToken(): Promise<ApiResponse<AuthResponse>> {
-    try {
-      const refreshToken = localStorage.getItem(STORAGE_KEYS.refreshToken);
-      
-      if (!refreshToken) {
-        throw new Error('No refresh token available');
-      }
-
-      const response = await api.post<ApiResponse<AuthResponse>>(
-        '/auth/refresh',
-        { refreshToken }
-      );
-      
-      const result = normalizeAuthResult(handleApiResponse(response), 'Token refresh failed. Please login again.');
-
-      if (result.success) {
-        storeAuthSession(result.data);
-      } else {
-        clearAuthSession();
-      }
-      
-      return result;
-    } catch (error) {
-      clearAuthSession();
-
-      throw new Error(handleApiError(error));
-    }
+  static getStoredToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    
+    return localStorage.getItem(STORAGE_KEYS.accessToken);
   }
 
   /**
@@ -346,15 +489,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Check if user is authenticated
-   */
-  static isAuthenticated(): boolean {
-    if (typeof window === 'undefined') return false;
-    
-    const token = localStorage.getItem(STORAGE_KEYS.accessToken);
-    return !!token;
-  }
 
   /**
    * Get stored user data
@@ -373,14 +507,6 @@ export class AuthService {
     return null;
   }
 
-  /**
-   * Get stored auth token
-   */
-  static getStoredToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    
-  return localStorage.getItem(STORAGE_KEYS.accessToken);
-  }
 
   /**
    * Verify phone number exists
@@ -454,26 +580,6 @@ export class AuthService {
     try {
       const response = await api.post<ApiResponse<any>>(
         `/auth/roles/${username}/remove/${role}`
-      );
-      return handleApiResponse(response);
-    } catch (error) {
-      throw new Error(handleApiError(error));
-    }
-  }
-
-  /**
-   * Get user roles
-   * GET /auth/users/{username}/roles
-   * 
-   * Retrieves all roles assigned to a specific user
-   * 
-   * @param username - The username of the user
-   * @returns Array of role strings
-   */
-  static async getUserRoles(username: string): Promise<ApiResponse<string[]>> {
-    try {
-      const response = await api.get<ApiResponse<string[]>>(
-        `/auth/users/${username}/roles`
       );
       return handleApiResponse(response);
     } catch (error) {

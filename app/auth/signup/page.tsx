@@ -34,23 +34,41 @@ export default function RegisterScreen() {
         const trimmedEmail = formData.email.trim();
         const trimmedPassword = formData.password.trim();
         const trimmedConfirmPassword = formData.confirmPassword.trim();
-        const sanitizedPhoneNumber = formData.phoneNumber.replace(/[^0-9]/g, '');
+        const sanitizedPhoneNumber = formData.phoneNumber.replace(/[^0-9+]/g, '');
 
         // Basic validation
         if (!trimmedFullName || !trimmedEmail || !sanitizedPhoneNumber || !trimmedPassword) {
-            setError('Please fill in all required fields');
+            const errorMsg = 'Please fill in all required fields';
+            setError(errorMsg);
+            toast({
+                title: "Validation Error",
+                description: errorMsg,
+                variant: "destructive",
+            });
             setIsLoading(false);
             return;
         }
 
         if (trimmedPassword !== trimmedConfirmPassword) {
-            setError('Passwords do not match');
+            const errorMsg = 'Passwords do not match';
+            setError(errorMsg);
+            toast({
+                title: "Validation Error",
+                description: errorMsg,
+                variant: "destructive",
+            });
             setIsLoading(false);
             return;
         }
 
         if (trimmedPassword.length < 6) {
-            setError('Password must be at least 6 characters long');
+            const errorMsg = 'Password must be at least 6 characters long';
+            setError(errorMsg);
+            toast({
+                title: "Validation Error",
+                description: errorMsg,
+                variant: "destructive",
+            });
             setIsLoading(false);
             return;
         }
@@ -58,33 +76,52 @@ export default function RegisterScreen() {
         // Email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(trimmedEmail)) {
-            setError('Please enter a valid email address');
+            const errorMsg = 'Please enter a valid email address';
+            setError(errorMsg);
+            toast({
+                title: "Validation Error",
+                description: errorMsg,
+                variant: "destructive",
+            });
             setIsLoading(false);
             return;
         }
 
         try {
-            const response = await AuthService.register({
-                fullName: trimmedFullName,
-                email: trimmedEmail.toLowerCase(),
-                phoneNumber: sanitizedPhoneNumber,
-                password: trimmedPassword
-            });
+            // Use the new signUp method with correct parameter order
+            const response = await AuthService.signUp(
+                trimmedFullName,
+                trimmedEmail.toLowerCase(),
+                trimmedPassword,
+                sanitizedPhoneNumber
+            );
 
-            // Store phone number for OTP verification if needed
-            localStorage.setItem(STORAGE_KEYS.pendingPhone, sanitizedPhoneNumber);
-            localStorage.setItem('pending_email', trimmedEmail.toLowerCase());
+            if (response.success) {
+                // Store data for potential future use
+                localStorage.setItem(STORAGE_KEYS.pendingPhone, sanitizedPhoneNumber);
+                localStorage.setItem('pending_email', trimmedEmail.toLowerCase());
 
-            toast({
-                title: "Registration successful",
-                description: "User registered successfully!",
-            });
+                toast({
+                    title: "Registration successful",
+                    description: response.message || "User registered successfully!",
+                });
 
-            // Navigate to login page after successful registration
-            router.push('/auth/login');
+                // Navigate to login page after successful registration
+                setTimeout(() => {
+                    router.push('/auth/login');
+                }, 1000);
+            }
+
         } catch (err: any) {
             console.error("Registration error:", err);
-            const errorMessage = err.response?.data?.message || err.message || 'Registration failed. Please try again.';
+
+            // Extract error message from response
+            const errorMessage =
+                err.response?.data?.message ||
+                err.response?.data?.error ||
+                err.message ||
+                'Registration failed. Please try again.';
+
             setError(errorMessage);
 
             toast({

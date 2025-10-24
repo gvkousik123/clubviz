@@ -26,6 +26,11 @@ export default function EmailLoginScreen() {
         // Basic validation
         if (!email || !password) {
             setError('Please fill in all fields');
+            toast({
+                title: "Validation Error",
+                description: "Please fill in all fields",
+                variant: "destructive",
+            });
             setIsLoading(false);
             return;
         }
@@ -34,10 +39,8 @@ export default function EmailLoginScreen() {
             const trimmedEmail = email.trim().toLowerCase();
             const trimmedPassword = password.trim();
 
-            const response = await AuthService.login({
-                usernameOrEmail: trimmedEmail,
-                password: trimmedPassword,
-            });
+            // Use the new signIn method
+            const response = await AuthService.signIn(trimmedEmail, trimmedPassword);
 
             if (response.success) {
                 toast({
@@ -45,22 +48,20 @@ export default function EmailLoginScreen() {
                     description: "Welcome back to ClubViz!",
                 });
 
+                // Redirect to home or location page
                 router.push('/location/allow');
-                return;
             }
-
-            const message = response.message || 'Login failed. Please try again.';
-            setError(message);
-
-            toast({
-                title: "Login failed",
-                description: message,
-                variant: "destructive",
-            });
 
         } catch (err: any) {
             console.error("Login error:", err);
-            const errorMessage = err.response?.data?.message || err.message || 'Login failed. Please try again.';
+
+            // Extract error message from response
+            const errorMessage =
+                err.response?.data?.message ||
+                err.response?.data?.error ||
+                err.message ||
+                'Login failed. Please check your credentials.';
+
             setError(errorMessage);
 
             toast({

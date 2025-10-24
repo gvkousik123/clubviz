@@ -87,16 +87,6 @@ export default function IntroScreen() {
 
 
 
-            {/* Guest Login Button at top */}
-            <div className="relative z-10 flex justify-end px-6 pt-16">
-                <button
-                    onClick={handleGuestLogin}
-                    className="px-6 py-2 rounded-full border border-[#14FFEC] text-white text-sm font-medium hover:bg-[#14FFEC]/10 transition-colors"
-                >
-                    Guest Login
-                </button>
-            </div>
-
             <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 pb-28 pt-10">
                 <div className="mb-16 drop-shadow-[0_18px_45px_rgba(0,0,0,0.55)]">
                     <ClubVizLogo size="lg" variant="full" />
