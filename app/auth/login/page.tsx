@@ -170,13 +170,21 @@ export default function LoginPage(): JSX.Element {
 
                     {/* Register Button */}
                     <div className="relative w-full -mt-[22px] rounded-t-[30px] overflow-visible bg-gradient-to-b from-[#00DCE5] to-[#00B0B3] z-40 border-t border-white">
-                        <Link
-                            href="/auth/signup"
-                            className="flex w-full items-center justify-center gap-3 h-[35px] pb-[0px] text-black"
-                        >
-                            <span className="text-[16px] font-bold font-['Manrope'] leading-[21px]">Don't have an account ?</span>
-                            <span className="text-[16px] font-bold font-['Manrope'] leading-[21px]">Register</span>
-                        </Link>
+                        <div className="flex flex-col items-center justify-center gap-2 h-[55px] pb-[0px] text-black">
+                            <Link
+                                href="/auth/signup"
+                                className="flex items-center justify-center gap-3"
+                            >
+                                <span className="text-[16px] font-bold font-['Manrope'] leading-[21px]">Don't have an account ?</span>
+                                <span className="text-[16px] font-bold font-['Manrope'] leading-[21px]">Register</span>
+                            </Link>
+                            <Link
+                                href="/auth/forgot-password"
+                                className="text-[14px] font-medium font-['Manrope'] leading-[16px] text-black/80 hover:text-black underline"
+                            >
+                                Forgot Password?
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>

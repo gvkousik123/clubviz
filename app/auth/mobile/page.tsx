@@ -179,6 +179,16 @@ export default function MobileVerificationScreen() {
                             Current number: {phoneNumber}
                         </div>
 
+                        {/* Forgot Password Link */}
+                        <div className="text-center py-2">
+                            <AuthLink
+                                href="/auth/forgot-password"
+                                className="text-[#0095FF] font-medium text-[14px] underline"
+                            >
+                                Forgot Password?
+                            </AuthLink>
+                        </div>
+
                         {/* Terms and Conditions */}
                         <div className="mt-auto pt-4">
                             <div className="text-center">

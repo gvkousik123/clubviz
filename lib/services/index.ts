@@ -9,6 +9,7 @@ export { UserService, ReviewService } from './user.service';
 export { MediaService, StoryService, GalleryService, NotificationService, ContentService } from './media.service';
 export { SearchService } from './search.service';
 export { ProfileService } from './profile.service';
+export { PasswordService } from './password.service';
 export { LookupService } from './lookup.service';
 
 // Export API client and utilities

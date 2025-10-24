@@ -195,10 +195,15 @@ export default function EmailLoginScreen() {
                                 </button>
 
                                 {/* Register Link */}
-                                <div className="text-center pb-2">
+                                <div className="text-center pb-2 space-y-2">
                                     <div className="flex justify-center items-center">
                                         <span className="text-[#2C1945] font-bold text-[15px]">Don't have an account ? </span>
                                         <AuthLink href="/auth/signup" className="text-[#0095FF] font-bold text-[15px] pl-1">Register</AuthLink>
+                                    </div>
+                                    <div className="flex justify-center items-center">
+                                        <AuthLink href="/auth/forgot-password" className="text-[#0095FF] font-medium text-[14px] underline">
+                                            Forgot Password?
+                                        </AuthLink>
                                     </div>
                                 </div>
                             </div>
