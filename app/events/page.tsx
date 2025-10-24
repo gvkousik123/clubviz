@@ -3,13 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Search, User, SlidersHorizontal } from 'lucide-react';
+import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Loader2 } from 'lucide-react';
 import type { Event } from '@/lib/api-types';
 import { useToast } from '@/hooks/use-toast';
 import { EventCard } from '@/components/events/event-card';
 import { EventListCard } from '@/components/events/event-list-card';
 import FilterPopup from '@/components/common/filter-popup';
 import { EVENT_FILTER_SECTIONS } from '@/lib/filter-config';
+import { useSearch } from '@/hooks/use-search';
 
 
 // Dummy events used for local development (no API calls)
@@ -108,6 +109,21 @@ export default function EventsListPage() {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({});
 
+    // Search functionality
+    const {
+        isSearching,
+        isLoadingNearby,
+        events: searchEvents,
+        nearbyResults,
+        currentLocation,
+        locationError,
+        searchEvents: performEventSearch,
+        searchNearby,
+        getCurrentLocation,
+        clearResults,
+        clearError,
+    } = useSearch();
+
     // Event list images for fallbacks
     const eventImages = [
         '/event list/Rectangle 1.jpg',
@@ -126,9 +142,78 @@ export default function EventsListPage() {
         router.back();
     };
 
-    const handleSearch = () => {
+    const handleSearch = async () => {
         if (searchQuery.trim()) {
             console.log('Searching for:', searchQuery);
+            try {
+                await performEventSearch(searchQuery.trim());
+                // Update the local events state with search results
+                if (searchEvents.length > 0) {
+                    // Convert NearbyEvent[] to Event[] format for compatibility
+                    const convertedEvents: Event[] = searchEvents.map((event, index) => ({
+                        id: event.id,
+                        title: event.title,
+                        description: event.description || '',
+                        clubId: event.clubId || '',
+                        coverImage: event.image || getEventFallbackImage(index),
+                        imageUrl: event.image || getEventFallbackImage(index),
+                        images: [event.image || getEventFallbackImage(index)],
+                        location: event.location || '',
+                        startDateTime: event.startDateTime,
+                        endDateTime: event.endDateTime,
+                        isPublic: true,
+                        requiresApproval: false,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                    }));
+                    setEvents(convertedEvents);
+                    setLoading(false);
+                }
+            } catch (error) {
+                console.error('Search failed:', error);
+                toast({
+                    title: 'Search Failed',
+                    description: 'Unable to search events. Please try again.',
+                    variant: 'destructive',
+                });
+            }
+        }
+    };
+
+    const handleNearbySearch = async () => {
+        try {
+            setLoading(true);
+            await searchNearby();
+
+            if (nearbyResults?.events && nearbyResults.events.length > 0) {
+                // Convert nearby events to Event[] format
+                const convertedEvents: Event[] = nearbyResults.events.map((event, index) => ({
+                    id: event.id,
+                    title: event.title,
+                    description: event.description || '',
+                    clubId: event.clubId || '',
+                    coverImage: event.image || getEventFallbackImage(index),
+                    imageUrl: event.image || getEventFallbackImage(index),
+                    images: [event.image || getEventFallbackImage(index)],
+                    location: event.location || '',
+                    startDateTime: event.startDateTime,
+                    endDateTime: event.endDateTime,
+                    isPublic: true,
+                    requiresApproval: false,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                }));
+                setEvents(convertedEvents);
+            }
+        } catch (error) {
+            console.error('Nearby search failed:', error);
+            toast({
+                title: 'Nearby Search Failed',
+                description: 'Unable to find nearby events. Please try again.',
+                variant: 'destructive',
+            });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -296,22 +381,66 @@ export default function EventsListPage() {
                     </div>
 
                     {/* Search Bar */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                         <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2">
-                            <Search className="w-[21px] h-[21px] text-white" />
+                            <button
+                                onClick={handleSearch}
+                                disabled={isSearching || !searchQuery.trim()}
+                                className="disabled:opacity-50"
+                            >
+                                {isSearching ? (
+                                    <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
+                                ) : (
+                                    <Search className="w-[21px] h-[21px] text-white" />
+                                )}
+                            </button>
                             <input
                                 type="text"
-                                placeholder="Search"
+                                placeholder="Search events..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                        handleSearch();
+                                    }
+                                }}
                                 className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white outline-none"
+                                disabled={isSearching}
                             />
                         </div>
+                        <button
+                            onClick={handleNearbySearch}
+                            disabled={isLoadingNearby}
+                            className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center disabled:opacity-50"
+                            title="Find nearby events"
+                        >
+                            {isLoadingNearby ? (
+                                <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
+                            ) : (
+                                <MapPin className="w-[21px] h-[21px] text-white" />
+                            )}
+                        </button>
                         <div className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center">
                             <SlidersHorizontal className="w-[21px] h-[21px] text-white" />
                         </div>
                     </div>
                 </header>
+
+                {/* Location & Error Information */}
+                {(currentLocation || locationError) && (
+                    <div className="fixed top-[15vh] left-0 w-full max-w-[430px] mx-auto z-40 px-5">
+                        {currentLocation && (
+                            <div className="text-xs text-white/70 text-center mb-1">
+                                📍 {currentLocation.label || currentLocation.city || `${currentLocation.latitude.toFixed(2)}, ${currentLocation.longitude.toFixed(2)}`}
+                            </div>
+                        )}
+                        {locationError && (
+                            <div className="text-xs text-yellow-300 text-center mb-1">
+                                ⚠️ {locationError}
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Filter Section */}
                 <div className="fixed top-[16vh] left-0 w-full max-w-[430px] mx-auto h-[6vh] bg-[#031313] z-30">

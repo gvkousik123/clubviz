@@ -3,13 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Search, User, SlidersHorizontal } from 'lucide-react';
+import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Loader2 } from 'lucide-react';
 import type { Club } from '@/components/clubs';
 import { useToast } from '@/hooks/use-toast';
 import { ClubCard } from '@/components/clubs/club-card';
 import { ClubListCard } from '@/components/clubs/club-list-card';
 import FilterPopup from '@/components/common/filter-popup';
 import { CLUB_FILTER_SECTIONS } from '@/lib/filter-config';
+import { useSearch } from '@/hooks/use-search';
 
 // Dummy clubs data for local development
 const DUMMY_CLUBS: Club[] = [
@@ -71,6 +72,21 @@ export default function ClubsListPage() {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({});
 
+    // Search functionality
+    const {
+        isSearching,
+        isLoadingNearby,
+        clubs: searchClubs,
+        nearbyResults,
+        currentLocation,
+        locationError,
+        searchClubs: performClubSearch,
+        searchNearby,
+        getCurrentLocation,
+        clearResults,
+        clearError,
+    } = useSearch();
+
     // Club images for fallbacks
     const clubImages = [
         '/venue/Screenshot 2024-12-10 195651.png',
@@ -86,9 +102,64 @@ export default function ClubsListPage() {
         router.back();
     };
 
-    const handleSearch = () => {
+    const handleSearch = async () => {
         if (searchQuery.trim()) {
             console.log('Searching for:', searchQuery);
+            try {
+                await performClubSearch(searchQuery.trim());
+                // Update the local clubs state with search results
+                if (searchClubs.length > 0) {
+                    // Convert NearbyClub[] to Club[] format for compatibility
+                    const convertedClubs: Club[] = searchClubs.map((club, index) => ({
+                        id: club.id,
+                        name: club.name,
+                        openTime: 'Open until 1:30 am', // Default since API doesn't provide this
+                        rating: club.rating || 4.0,
+                        image: club.images?.[0] || getClubFallbackImage(index),
+                        address: club.fullAddress || club.address || club.location,
+                        category: club.type || 'Club'
+                    }));
+                    setClubs(convertedClubs);
+                    setLoading(false);
+                }
+            } catch (error) {
+                console.error('Search failed:', error);
+                toast({
+                    title: 'Search Failed',
+                    description: 'Unable to search clubs. Please try again.',
+                    variant: 'destructive',
+                });
+            }
+        }
+    };
+
+    const handleNearbySearch = async () => {
+        try {
+            setLoading(true);
+            await searchNearby();
+
+            if (nearbyResults?.clubs && nearbyResults.clubs.length > 0) {
+                // Convert nearby clubs to Club[] format
+                const convertedClubs: Club[] = nearbyResults.clubs.map((club, index) => ({
+                    id: club.id,
+                    name: club.name,
+                    openTime: 'Open until 1:30 am', // Default since API doesn't provide this
+                    rating: club.rating || 4.0,
+                    image: club.images?.[0] || getClubFallbackImage(index),
+                    address: club.fullAddress || club.address || club.location,
+                    category: club.type || 'Club'
+                }));
+                setClubs(convertedClubs);
+            }
+        } catch (error) {
+            console.error('Nearby search failed:', error);
+            toast({
+                title: 'Nearby Search Failed',
+                description: 'Unable to find nearby clubs. Please try again.',
+                variant: 'destructive',
+            });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -220,22 +291,66 @@ export default function ClubsListPage() {
                     </div>
 
                     {/* Search Bar */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                         <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2">
-                            <Search className="w-[21px] h-[21px] text-white" />
+                            <button
+                                onClick={handleSearch}
+                                disabled={isSearching || !searchQuery.trim()}
+                                className="disabled:opacity-50"
+                            >
+                                {isSearching ? (
+                                    <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
+                                ) : (
+                                    <Search className="w-[21px] h-[21px] text-white" />
+                                )}
+                            </button>
                             <input
                                 type="text"
-                                placeholder="Search"
+                                placeholder="Search clubs..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                        handleSearch();
+                                    }
+                                }}
                                 className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white outline-none"
+                                disabled={isSearching}
                             />
                         </div>
+                        <button
+                            onClick={handleNearbySearch}
+                            disabled={isLoadingNearby}
+                            className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center disabled:opacity-50"
+                            title="Find nearby clubs"
+                        >
+                            {isLoadingNearby ? (
+                                <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
+                            ) : (
+                                <MapPin className="w-[21px] h-[21px] text-white" />
+                            )}
+                        </button>
                         <div className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center">
                             <SlidersHorizontal className="w-[21px] h-[21px] text-white" />
                         </div>
                     </div>
                 </header>
+
+                {/* Location & Error Information */}
+                {(currentLocation || locationError) && (
+                    <div className="fixed top-[15vh] left-0 w-full max-w-[430px] mx-auto z-40 px-5">
+                        {currentLocation && (
+                            <div className="text-xs text-white/70 text-center mb-1">
+                                📍 {currentLocation.label || currentLocation.city || `${currentLocation.latitude.toFixed(2)}, ${currentLocation.longitude.toFixed(2)}`}
+                            </div>
+                        )}
+                        {locationError && (
+                            <div className="text-xs text-yellow-300 text-center mb-1">
+                                ⚠️ {locationError}
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Filter Section */}
                 <div className="fixed top-[16vh] left-0 w-full max-w-[430px] mx-auto h-[6vh] bg-[#031313] z-30">

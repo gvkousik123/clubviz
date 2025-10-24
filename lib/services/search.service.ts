@@ -310,4 +310,19 @@ export class SearchService {
       throw new Error(handleApiError(error));
     }
   }
+
+  /**
+   * Balanced search results (API: GET /search/balanced)
+   */
+  static async searchBalanced(query: string): Promise<ApiResponse<BalancedSearchResponse>> {
+    try {
+      const params = new URLSearchParams({ query });
+      const response = await api.get<ApiResponse<BalancedSearchResponse>>(
+        `/search/balanced?${params.toString()}`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
 }
