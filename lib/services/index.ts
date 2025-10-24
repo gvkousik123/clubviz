@@ -1,6 +1,7 @@
 // Export all API services
 export { AuthService } from './auth.service';
 export { AdminService } from './admin.service';
+export { SuperAdminService } from './superadmin.service';
 export { ClubService } from './club.service';
 export { EventService } from './event.service';
 export { BookingService } from './booking.service';

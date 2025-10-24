@@ -17,25 +17,15 @@ import { STORAGE_KEYS } from '../constants/storage';
 const storeAuthSession = (data: any) => {
   if (typeof window === 'undefined') return;
 
-  // Handle the actual API response structure
-  const accessToken = data?.accessToken || data?.token;
-  const refreshToken = data?.refreshToken;
-  const user = data?.user || {
-    username: data?.username,
-    email: data?.email,
-    roles: data?.roles
-  };
-
-  if (accessToken) {
-    localStorage.setItem(STORAGE_KEYS.accessToken, accessToken);
-  }
-
-  if (refreshToken) {
-    localStorage.setItem(STORAGE_KEYS.refreshToken, refreshToken);
-  }
-
-  if (user) {
-    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
+  // Store the entire auth response as-is
+  if (data) {
+    // Store accessToken for API client interceptor
+    if (data.accessToken) {
+      localStorage.setItem(STORAGE_KEYS.accessToken, data.accessToken);
+    }
+    
+    // Store the complete auth data
+    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(data));
   }
 };
 
@@ -43,7 +33,6 @@ const clearAuthSession = () => {
   if (typeof window === 'undefined') return;
 
   localStorage.removeItem(STORAGE_KEYS.accessToken);
-  localStorage.removeItem(STORAGE_KEYS.refreshToken);
   localStorage.removeItem(STORAGE_KEYS.user);
 };
 

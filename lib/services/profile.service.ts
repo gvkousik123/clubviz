@@ -2,109 +2,80 @@ import { api, handleApiResponse, handleApiError } from '../api-client';
 import { STORAGE_KEYS } from '../constants/storage';
 import { ApiResponse } from '../api-types';
 
-// Profile Types
+// Profile Types based on API response structure
 export interface UserProfile {
   id: string;
   username?: string;
-  firstName: string;
-  lastName: string;
-  fullName?: string;
-  displayName?: string;
   email: string;
-  emailId?: string;
+  fullName?: string;
   phoneNumber?: string;
-  phoneNum?: string;
-  age?: number;
-  dateOfBirth?: string;
-  gender?: string;
+  mobileNumber?: string;
   profilePicture?: string;
-  avatar?: string;
-  bio?: string;
-  locationText?: string;
-  locationMap?: {
-    lat: number;
-    lng: number;
-  };
-  preferences?: UserPreferences;
+  isProfileVerified?: boolean;
+  otpExpiryTime?: string;
+  otpAttempts?: number;
+  passportReceivedToken?: string;
+  passportReceivedExpiryTime?: string;
+  passportReceivedMaxExpiryTime?: string;
+  passportReceivedAttempts?: number;
+  isActive?: boolean;
+  providerId?: string;
+  roles?: string[];
   createdAt?: string;
   updatedAt?: string;
 }
 
-export interface UserPreferences {
-  favoriteClubs?: string[];
-  favoriteEvents?: string[];
-  musicGenres?: string[];
-  drinkPreferences?: string[];
-  notifications?: {
-    email?: boolean;
-    sms?: boolean;
-    push?: boolean;
-    eventReminders?: boolean;
-    promotions?: boolean;
-  };
+export interface ProfileStats {
+  clubsJoined?: number;
+  eventsAttended?: number;
+  eventsOrganized?: number;
+  totalClubOwned?: number;
+  memberSince?: string;
+  lastActivity?: string;
 }
 
 export interface ProfileUpdateRequest {
-  firstName?: string;
-  lastName?: string;
-  emailId?: string;
-  phoneNum?: string;
-  dateOfBirth?: string;
-  gender?: string;
-  bio?: string;
-  locationText?: string;
-  locationMap?: {
-    lat: number;
-    lng: number;
-  };
-}
-
-export interface ProfileStats {
-  totalEvents?: number;
-  eventsAttended?: number;
-  eventsOrganized?: number;
-  favoriteClubs?: number;
-  reviewsWritten?: number;
-  friendsCount?: number;
-  followersCount?: number;
-  followingCount?: number;
+  fullName?: string;
+  email?: string;
+  phoneNumber?: string;
+  profilePicture?: string;
 }
 
 export interface ProfileListItem {
   id: string;
   username?: string;
-  firstName: string;
-  lastName: string;
-  fullName: string;
   email: string;
+  fullName?: string;
   phoneNumber?: string;
   profilePicture?: string;
   isActive?: boolean;
-  createdAt: string;
+  roles?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**
  * Profile Service
  * Handles all profile-related API operations
+ * Based on API endpoints: /profile, /profile/stats, /profile/all, /profile/admin/{userId}
  */
 export class ProfileService {
+  
+  // ============================================================================
+  // USER PROFILE OPERATIONS
+  // ============================================================================
+
   /**
    * Get current user profile
    * GET /profile
    */
-  static async getProfile(): Promise<ApiResponse<UserProfile>> {
+  static async getProfile(): Promise<UserProfile> {
     try {
-      const response = await api.get<ApiResponse<UserProfile>>('/profile');
-      const result = handleApiResponse(response);
-      
-      // Update user in localStorage if successful
-      if (result.success && result.data) {
-        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(result.data));
-      }
-      
-      return result;
+      const response = await api.get<UserProfile>('/profile');
+      return response.data;
     } catch (error) {
-      throw new Error(handleApiError(error));
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
     }
   }
 
@@ -112,19 +83,17 @@ export class ProfileService {
    * Update user profile
    * PUT /profile
    */
-  static async updateProfile(profileData: ProfileUpdateRequest): Promise<ApiResponse<UserProfile>> {
+  static async updateProfile(profileData: ProfileUpdateRequest): Promise<UserProfile> {
     try {
-      const response = await api.put<ApiResponse<UserProfile>>('/profile', profileData);
-      const result = handleApiResponse(response);
+      const response = await api.put<UserProfile>('/profile', profileData);
       
-      // Update user in localStorage if successful
-      if (result.success && result.data) {
-        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(result.data));
-      }
+      // Update stored auth data with new profile info
+      this.updateStoredProfileData(response.data);
       
-      return result;
+      return response.data;
     } catch (error) {
-      throw new Error(handleApiError(error));
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
     }
   }
 
@@ -132,32 +101,31 @@ export class ProfileService {
    * Get user profile statistics
    * GET /profile/stats
    */
-  static async getProfileStats(): Promise<ApiResponse<ProfileStats>> {
+  static async getProfileStats(): Promise<ProfileStats> {
     try {
-      const response = await api.get<ApiResponse<ProfileStats>>('/profile/stats');
-      return handleApiResponse(response);
+      const response = await api.get<ProfileStats>('/profile/stats');
+      return response.data;
     } catch (error) {
-      throw new Error(handleApiError(error));
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
     }
   }
+
+  // ============================================================================
+  // ADMIN PROFILE OPERATIONS
+  // ============================================================================
 
   /**
    * Get all user profiles (Admin only)
    * GET /profile/all
    */
-  static async getAllProfiles(params?: {
-    page?: number;
-    size?: number;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-  }): Promise<ApiResponse<ProfileListItem[]>> {
+  static async getAllProfiles(): Promise<ProfileListItem[]> {
     try {
-      const response = await api.get<ApiResponse<ProfileListItem[]>>('/profile/all', {
-        params
-      });
-      return handleApiResponse(response);
+      const response = await api.get<ProfileListItem[]>('/profile/all');
+      return response.data;
     } catch (error) {
-      throw new Error(handleApiError(error));
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
     }
   }
 
@@ -165,68 +133,129 @@ export class ProfileService {
    * Get user profile by ID (Admin only)
    * GET /profile/admin/{userId}
    */
-  static async getProfileByAdmin(userId: string): Promise<ApiResponse<UserProfile>> {
+  static async getProfileByAdmin(userId: string): Promise<UserProfile> {
     try {
-      const response = await api.get<ApiResponse<UserProfile>>(`/profile/admin/${userId}`);
-      return handleApiResponse(response);
+      const response = await api.get<UserProfile>(`/profile/admin/${userId}`);
+      return response.data;
     } catch (error) {
-      throw new Error(handleApiError(error));
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
     }
   }
 
-  /**
-   * Update profile picture
-   */
-  static async updateProfilePicture(file: File): Promise<ApiResponse<{ profilePicture: string }>> {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      const response = await api.post<ApiResponse<{ profilePicture: string }>>(
-        '/profile/picture',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-      
-      const result = handleApiResponse(response);
-      
-      // Update profile picture in localStorage
-      if (result.success && result.data?.profilePicture) {
-        const storedUser = localStorage.getItem(STORAGE_KEYS.user);
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          user.profilePicture = result.data.profilePicture;
-          localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
-        }
-      }
-      
-      return result;
-    } catch (error) {
-      throw new Error(handleApiError(error));
-    }
-  }
+  // ============================================================================
+  // UTILITY METHODS
+  // ============================================================================
 
   /**
-   * Get stored user profile from localStorage
+   * Get stored auth data from localStorage
    */
-  static getStoredProfile(): UserProfile | null {
+  static getStoredAuthData(): any {
     try {
-      const storedUser = localStorage.getItem(STORAGE_KEYS.user);
-      return storedUser ? JSON.parse(storedUser) : null;
+      if (typeof window === 'undefined') return null;
+      const storedData = localStorage.getItem(STORAGE_KEYS.user);
+      return storedData ? JSON.parse(storedData) : null;
     } catch (error) {
-      console.error('Error parsing stored user profile:', error);
+      console.error('Error parsing stored auth data:', error);
       return null;
     }
   }
 
   /**
-   * Clear stored profile from localStorage
+   * Update stored auth data with new profile information
    */
-  static clearStoredProfile(): void {
+  static updateStoredProfileData(profileData: Partial<UserProfile>): void {
+    try {
+      if (typeof window === 'undefined') return;
+      
+      const storedData = this.getStoredAuthData();
+      if (storedData) {
+        // Merge profile data while preserving auth tokens
+        const updatedData = {
+          ...storedData,
+          ...profileData,
+          // Preserve original auth fields
+          accessToken: storedData.accessToken,
+          refreshToken: storedData.refreshToken,
+          type: storedData.type,
+        };
+        
+        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updatedData));
+      }
+    } catch (error) {
+      console.error('Error updating stored profile data:', error);
+    }
+  }
+
+  /**
+   * Get current user info from stored auth data
+   */
+  static getCurrentUser(): Partial<UserProfile> | null {
+    const authData = this.getStoredAuthData();
+    if (!authData) return null;
+
+    return {
+      id: authData.id,
+      username: authData.username,
+      email: authData.email,
+      fullName: authData.fullName,
+      phoneNumber: authData.phoneNumber,
+      profilePicture: authData.profilePicture,
+      roles: authData.roles,
+    };
+  }
+
+  /**
+   * Check if user has specific role
+   */
+  static hasRole(role: string): boolean {
+    const authData = this.getStoredAuthData();
+    return authData?.roles?.includes(role) || false;
+  }
+
+  /**
+   * Check if user is admin
+   */
+  static isAdmin(): boolean {
+    return this.hasRole('ROLE_ADMIN') || this.hasRole('ADMIN');
+  }
+
+  /**
+   * Check if user is super admin
+   */
+  static isSuperAdmin(): boolean {
+    return this.hasRole('ROLE_SUPERADMIN') || this.hasRole('SUPERADMIN');
+  }
+
+  /**
+   * Get access token
+   */
+  static getAccessToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem(STORAGE_KEYS.accessToken);
+  }
+
+  /**
+   * Get current user ID
+   */
+  static getCurrentUserId(): string | null {
+    const authData = this.getStoredAuthData();
+    return authData?.id || null;
+  }
+
+  /**
+   * Check if user is logged in
+   */
+  static isLoggedIn(): boolean {
+    return !!this.getAccessToken() && !!this.getCurrentUserId();
+  }
+
+  /**
+   * Clear all stored data (logout)
+   */
+  static clearStoredData(): void {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(STORAGE_KEYS.accessToken);
     localStorage.removeItem(STORAGE_KEYS.user);
   }
 }

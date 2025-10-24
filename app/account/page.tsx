@@ -1,12 +1,28 @@
 ﻿'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronRight, Edit, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Edit, ChevronDown, User } from 'lucide-react';
 import Link from 'next/link';
+import { useProfile } from '@/hooks/use-profile';
 
 export default function MyAccountPage() {
     const router = useRouter();
+    const {
+        profile,
+        stats,
+        currentUser,
+        isProfileLoading,
+        isStatsLoading,
+        loadProfile,
+        loadStats,
+    } = useProfile();
+
+    // Load profile data on mount
+    useEffect(() => {
+        loadProfile();
+        loadStats();
+    }, [loadProfile, loadStats]);
 
     const handleGoBack = () => {
         router.back();
@@ -21,9 +37,9 @@ export default function MyAccountPage() {
         router.push('/account/edit');
     };
 
-    // Dummy data
-    const fullName = 'DAVID SIMON';
-    const userEmail = 'davidsimon12@test.com';
+    // Use real user data from profile or current user
+    const displayName = profile?.fullName || currentUser?.fullName || 'User';
+    const displayEmail = profile?.email || currentUser?.email || 'No email';
 
     return (
         <div className="min-h-screen bg-[#021313] text-white">
@@ -49,10 +65,10 @@ export default function MyAccountPage() {
                         <div className="flex flex-col items-center gap-8">
                             <div className="flex flex-col items-center gap-2">
                                 <div className="text-white text-base font-manrope font-medium tracking-[0.50px]">
-                                    Hi, {fullName}
+                                    {isProfileLoading ? 'Loading...' : `Hi, ${displayName}`}
                                 </div>
                                 <div className="text-[#C3C2C2] text-[13px] font-manrope font-medium tracking-[0.50px]">
-                                    {userEmail}
+                                    {displayEmail}
                                 </div>
                             </div>
                             <button
@@ -66,11 +82,17 @@ export default function MyAccountPage() {
                         </div>
                         <div className="relative">
                             <div className="w-[125px] h-[125px] rounded-full border-2 border-[#14FFEC]"></div>
-                            <img
-                                className="absolute top-[11px] left-[11px] w-[103px] h-[103px] bg-[#D9D9D9] rounded-full object-cover"
-                                src="/profile/teddy-dp.png"
-                                alt="Profile"
-                            />
+                            {(profile?.profilePicture || currentUser?.profilePicture) ? (
+                                <img
+                                    className="absolute top-[11px] left-[11px] w-[103px] h-[103px] bg-[#D9D9D9] rounded-full object-cover"
+                                    src={profile?.profilePicture || currentUser?.profilePicture}
+                                    alt="Profile"
+                                />
+                            ) : (
+                                <div className="absolute top-[11px] left-[11px] w-[103px] h-[103px] bg-[#D9D9D9] rounded-full flex items-center justify-center">
+                                    <User className="w-12 h-12 text-gray-400" />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -1,13 +1,31 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Calendar, Clock, Users, Plus, DollarSign, BarChart, Edit } from 'lucide-react';
-import { useState } from 'react';
+import { Calendar, Clock, Users, Plus, DollarSign, BarChart, Edit, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useProfile } from '@/hooks/use-profile';
 
 export default function AdminDashboard() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('active');
+
+    // Use profile hook for admin profile data
+    const {
+        currentUser,
+        allProfiles,
+        loadAllProfiles,
+        isAllProfilesLoading,
+        isAdmin,
+        isSuperAdmin,
+    } = useProfile();
+
+    // Load admin data on mount
+    useEffect(() => {
+        if (isAdmin() || isSuperAdmin()) {
+            loadAllProfiles();
+        }
+    }, [loadAllProfiles, isAdmin, isSuperAdmin]);
 
     // Mock data based on the screenshot - updated to match exact values from the screenshot
     const clubData = {
@@ -47,7 +65,7 @@ export default function AdminDashboard() {
             {/* Fixed Header with gradient background */}
             <div className="fixed top-0 left-0 right-0 z-30 flex flex-col pt-8 bg-gradient-to-b from-[#11B9AB] to-[#222831] h-[140px] w-full">
                 <div className="px-6">
-                    <h2 className="text-lg font-medium">Welcome back,</h2>
+                    <h2 className="text-lg font-medium">Welcome back, {currentUser?.fullName || currentUser?.username || 'Admin'}</h2>
                 </div>
             </div>
 
