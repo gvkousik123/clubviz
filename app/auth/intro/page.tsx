@@ -14,6 +14,15 @@ const statusIndicators = [
 export default function IntroScreen() {
     const router = useRouter();
 
+    // Auto-redirect to email login after 4 seconds
+    useEffect(() => {
+        const t = setTimeout(() => {
+            router.push('/auth/login');
+        }, 4000);
+
+        return () => clearTimeout(t);
+    }, [router]);
+
     const handleGuestLogin = () => {
         router.push("/home");
     };
