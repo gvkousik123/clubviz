@@ -312,6 +312,64 @@ export class SuperAdminService {
   }
 
   // ============================================================================
+  // NEW ROLE MANAGEMENT ENDPOINTS (from API screenshots)
+  // ============================================================================
+
+  /**
+   * Add role to user (Alternative endpoint)
+   * POST /admin/users/{username}/roles/{role}
+   */
+  static async addRole(username: string, role: 'USER' | 'ADMIN' | 'SUPERADMIN'): Promise<{ message: string }> {
+    try {
+      const response = await api.post<ApiResponse<{ message: string }>>(
+        `/admin/users/${username}/roles/${role}`,
+        { username, role }
+      );
+      const result = handleApiResponse(response);
+      return result.data;
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Remove role from user (Alternative endpoint)
+   * POST /auth/roles/{username}/remove/{role}
+   */
+  static async removeRole(username: string, role: 'USER' | 'ADMIN' | 'SUPERADMIN'): Promise<{ message: string }> {
+    try {
+      const response = await api.post<ApiResponse<{ message: string }>>(
+        `/auth/roles/${username}/remove/${role}`,
+        { username, role }
+      );
+      const result = handleApiResponse(response);
+      return result.data;
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Add role to user (Alternative endpoint)
+   * POST /auth/roles/{username}/add/{role}
+   */
+  static async addRoleToUserAlt(username: string, role: 'USER' | 'ADMIN' | 'SUPERADMIN'): Promise<{ message: string }> {
+    try {
+      const response = await api.post<ApiResponse<{ message: string }>>(
+        `/auth/roles/${username}/add/${role}`,
+        { username, role }
+      );
+      const result = handleApiResponse(response);
+      return result.data;
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
+    }  
+  }
+
+  // ============================================================================
   // UTILITY METHODS
   // ============================================================================
 

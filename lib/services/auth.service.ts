@@ -599,9 +599,9 @@ export class AuthService {
    * Google Sign-In
    * POST /auth/google
    */
-  static async googleSignIn(googleToken: string): Promise<any> {
+  static async googleSignIn(idToken: string): Promise<any> {
     try {
-      const response = await api.post('/auth/google', { token: googleToken });
+      const response = await api.post('/auth/google', { idToken });
       const result = handleApiResponse(response);
       
       if (result.success && result.data) {
@@ -663,4 +663,9 @@ export class AuthService {
       throw new Error(handleApiError(error));
     }
   }
+
+  // --------------------------------------------------------------------------
+  // GOOGLE AUTHENTICATION
+  // --------------------------------------------------------------------------
+
 }

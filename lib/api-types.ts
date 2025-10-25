@@ -521,3 +521,153 @@ export interface ApiError {
   field?: string;
   details?: any;
 }
+
+// ============================================================================
+// NEW API TYPES - BASED ON SCREENSHOT INTEGRATIONS
+// ============================================================================
+
+// Smart Search API Types
+export interface SmartSearchResult {
+  id: string;
+  type: 'club' | 'event';
+  title: string;
+  description: string;
+  imageUrl?: string;
+  category: string;
+  location: string;
+  relevanceScore: number;
+  clubId?: string;
+  clubName?: string;
+}
+
+export interface SmartSearchResponse {
+  query: string;
+  totalResults: number;
+  results: SmartSearchResult[];
+  suggestedQueries: string[];
+}
+
+// Firebase Authentication Types
+export interface FirebaseTokenRequest {
+  token: string;
+}
+
+export interface FirebaseTokenResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    id: string;
+    phoneNumber: string;
+    isVerified: boolean;
+  };
+}
+
+// Mobile OTP Types
+export interface MobileOTPRequest {
+  mobileNumber: string;
+}
+
+export interface MobileOTPResponse {
+  message: string;
+  sessionId: string;
+  expiryTime: string;
+}
+
+export interface EmailOTPRequest {
+  email: string;
+}
+
+export interface EmailOTPResponse {
+  message: string;
+  sessionId: string;
+  expiryTime: string;
+}
+
+// Password Reset Types
+export interface PasswordResetRequest {
+  email: string;
+  mobileNumber?: string;
+}
+
+export interface PasswordResetVerifyRequest {
+  token: string;
+  otp: string;
+}
+
+export interface PasswordResetCompleteRequest {
+  email: string;
+  otp: string;
+  newPassword: string;
+}
+
+// Role Management Types
+export interface AddRoleRequest {
+  username: string;
+  role: 'USER' | 'ADMIN' | 'SUPERADMIN';
+}
+
+export interface RemoveRoleRequest {
+  username: string;
+  role: 'USER' | 'ADMIN' | 'SUPERADMIN';
+}
+
+export interface AddRoleToUserRequest {
+  username: string;
+  role: 'USER' | 'ADMIN' | 'SUPERADMIN';
+}
+
+export interface RoleOperationResponse {
+  message: string;
+  success: boolean;
+}
+
+// User Management Types
+export interface ActivateUserRequest {
+  username: string;
+}
+
+export interface DeactivateUserRequest {
+  username: string;
+}
+
+export interface UserStatusResponse {
+  message: string;
+  isActive: boolean;
+}
+
+// Session Management Types
+export interface SessionInfo {
+  sessionId: string;
+  userId: string;
+  username: string;
+  roles: string[];
+  isActive: boolean;
+  createdAt: string;
+  lastActivity: string;
+  ipAddress: string;
+  userAgent: string;
+}
+
+export interface CORSOriginsResponse {
+  origins: string[];
+  allowedMethods: string[];
+  allowedHeaders: string[];
+  maxAge: number;
+}
+
+// Google Authentication Types
+export interface GoogleSignInRequest {
+  idToken: string;
+}
+
+export interface GoogleSignInResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    id: string;
+    email: string;
+    fullName: string;
+    profilePicture?: string;
+    isEmailVerified: boolean;
+  };
+}

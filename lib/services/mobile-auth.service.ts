@@ -79,13 +79,61 @@ export class MobileAuthService {
 
   /**
    * Send OTP to mobile number
-   * POST /auth/mobile/send-otp
+   * POST /auth/password-reset/initiate/mobile
    */
-  static async sendMobileOTP(phoneNumber: string): Promise<ApiResponse<SendOTPResponse>> {
+  static async sendMobileOTP(mobileNumber: string): Promise<ApiResponse<SendOTPResponse>> {
     try {
       const response = await api.post<ApiResponse<SendOTPResponse>>(
-        '/auth/mobile/send-otp',
-        { phoneNumber }
+        '/auth/password-reset/initiate/mobile',
+        { mobileNumber }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Send OTP to email
+   * POST /auth/password-reset/initiate/email
+   */
+  static async sendEmailOTP(email: string): Promise<ApiResponse<SendOTPResponse>> {
+    try {
+      const response = await api.post<ApiResponse<SendOTPResponse>>(
+        '/auth/password-reset/initiate/email',
+        { email }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Verify OTP for password reset
+   * POST /auth/password-reset/verify/token
+   */
+  static async verifyPasswordResetToken(token: string, otp: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.post<ApiResponse<any>>(
+        '/auth/password-reset/verify/token',
+        { token, otp }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Complete password reset with OTP
+   * POST /auth/password-reset/reset/mobile
+   */
+  static async resetPasswordWithOTP(mobileNumber: string, otp: string, newPassword: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.post<ApiResponse<any>>(
+        '/auth/password-reset/reset/mobile',
+        { mobileNumber, otp, newPassword }
       );
       return handleApiResponse(response);
     } catch (error) {

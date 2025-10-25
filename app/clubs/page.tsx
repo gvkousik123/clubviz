@@ -115,7 +115,9 @@ export default function ClubsListPage() {
                         name: club.name,
                         openTime: 'Open until 1:30 am', // Default since API doesn't provide this
                         rating: club.rating || 4.0,
-                        image: club.images?.[0] || getClubFallbackImage(index),
+                        image: typeof club.images?.[0] === 'string'
+                            ? club.images[0]
+                            : club.images?.[0]?.url || club.logoUrl || getClubFallbackImage(index),
                         address: club.fullAddress || club.address || club.location,
                         category: club.type || 'Club'
                     }));
@@ -145,7 +147,9 @@ export default function ClubsListPage() {
                     name: club.name,
                     openTime: 'Open until 1:30 am', // Default since API doesn't provide this
                     rating: club.rating || 4.0,
-                    image: club.images?.[0] || getClubFallbackImage(index),
+                    image: typeof club.images?.[0] === 'string'
+                        ? club.images[0]
+                        : club.images?.[0]?.url || club.logoUrl || getClubFallbackImage(index),
                     address: club.fullAddress || club.address || club.location,
                     category: club.type || 'Club'
                 }));

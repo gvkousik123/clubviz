@@ -1,5 +1,5 @@
 import { api, handleApiResponse, handleApiError } from '../api-client';
-import { ApiResponse } from '../api-types';
+import { ApiResponse, SmartSearchResponse } from '../api-types';
 
 // Search-specific types
 export interface SearchQuery {
@@ -87,6 +87,11 @@ export interface SearchClub {
   barOptions?: string[];
   entryPricing?: EntryPricing;
   category?: string;
+  type?: string; // For backward compatibility
+  rating?: number; // For UI display
+  location?: string; // For address display
+  address?: string; // For address display
+  fullAddress?: string; // For address display
   owner?: UserProfile;
   members?: UserProfile[];
   admins?: UserProfile[];
@@ -134,6 +139,11 @@ export interface NearbyClub {
   barOptions?: string[];
   entryPricing?: EntryPricing;
   category?: string;
+  type?: string; // For backward compatibility
+  rating?: number; // For UI display
+  location?: string; // For address display
+  address?: string; // For address display
+  fullAddress?: string; // For address display
   owner?: UserProfile;
   members?: UserProfile[];
   admins?: UserProfile[];
@@ -384,39 +394,10 @@ export class SearchService {
    * Smart search with AI-powered results
    * GET /search/smart
    */
-  static async smartSearch(query: string, options?: {
-    location?: { lat: number; lng: number };
-    preferences?: string[];
-    limit?: number;
-  }): Promise<ApiResponse<{
-    events: SearchEvent[];
-    clubs: SearchClub[];
-    suggestions: string[];
-    categories: string[];
-  }>> {
+  static async smartSearch(query: string): Promise<SmartSearchResponse> {
     try {
       const params = new URLSearchParams({ query });
-      
-      if (options?.location) {
-        params.append('lat', options.location.lat.toString());
-        params.append('lng', options.location.lng.toString());
-      }
-      
-      if (options?.preferences?.length) {
-        params.append('preferences', options.preferences.join(','));
-      }
-      
-      if (options?.limit) {
-        params.append('limit', options.limit.toString());
-      }
-
-      const response = await api.get<ApiResponse<{
-        events: SearchEvent[];
-        clubs: SearchClub[];
-        suggestions: string[];
-        categories: string[];
-      }>>(`/search/smart?${params.toString()}`);
-      
+      const response = await api.get<SmartSearchResponse>(`/search/smart?${params.toString()}`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
