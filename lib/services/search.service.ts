@@ -359,17 +359,7 @@ export class SearchService {
    * Search for clubs/venues (API: GET /search/smart)
    * Note: Assuming this is the venue/club search endpoint
    */
-  static async smartSearch(query: string): Promise<ApiResponse<VenueSearchResult[]>> {
-    try {
-      const params = new URLSearchParams({ query });
-      const response = await api.get<ApiResponse<VenueSearchResult[]>>(
-        `/search/smart?${params.toString()}`
-      );
-      return handleApiResponse(response);
-    } catch (error) {
-      throw new Error(handleApiError(error));
-    }
-  }
+  // Smart search implementation moved to bottom with enhanced features
 
   /**
    * Balanced search results (API: GET /search/balanced)
@@ -380,6 +370,53 @@ export class SearchService {
       const response = await api.get<ApiResponse<BalancedSearchResponse>>(
         `/search/balanced?${params.toString()}`
       );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // ============================================================================
+  // SMART SEARCH
+  // ============================================================================
+
+  /**
+   * Smart search with AI-powered results
+   * GET /search/smart
+   */
+  static async smartSearch(query: string, options?: {
+    location?: { lat: number; lng: number };
+    preferences?: string[];
+    limit?: number;
+  }): Promise<ApiResponse<{
+    events: SearchEvent[];
+    clubs: SearchClub[];
+    suggestions: string[];
+    categories: string[];
+  }>> {
+    try {
+      const params = new URLSearchParams({ query });
+      
+      if (options?.location) {
+        params.append('lat', options.location.lat.toString());
+        params.append('lng', options.location.lng.toString());
+      }
+      
+      if (options?.preferences?.length) {
+        params.append('preferences', options.preferences.join(','));
+      }
+      
+      if (options?.limit) {
+        params.append('limit', options.limit.toString());
+      }
+
+      const response = await api.get<ApiResponse<{
+        events: SearchEvent[];
+        clubs: SearchClub[];
+        suggestions: string[];
+        categories: string[];
+      }>>(`/search/smart?${params.toString()}`);
+      
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));

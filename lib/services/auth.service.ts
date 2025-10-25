@@ -181,45 +181,9 @@ export class AuthService {
   }
 
   // --------------------------------------------------------------------------
-  // 7. REVOKE ALL SESSIONS (Logout from all devices)
-  // Endpoint: DELETE /auth/sessions
+  // 7. REVOKE ALL SESSIONS (Logout from all devices) - MOVED TO BOTTOM
+  // 8. REVOKE SESSION BY ID - MOVED TO BOTTOM
   // --------------------------------------------------------------------------
-  static async revokeAllSessions(): Promise<any> {
-    try {
-      const response = await api.delete('/auth/sessions');
-      const data = handleApiResponse(response);
-
-      // Clear local storage
-      clearAuthSession();
-
-      return {
-        success: true,
-        data,
-        message: data?.message || 'All sessions revoked'
-      };
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
-  // --------------------------------------------------------------------------
-  // 8. REVOKE SESSION BY ID
-  // Endpoint: DELETE /auth/sessions/{id}
-  // --------------------------------------------------------------------------
-  static async revokeSession(sessionId: string): Promise<any> {
-    try {
-      const response = await api.delete(`/auth/sessions/${sessionId}`);
-      const data = handleApiResponse(response);
-
-      return {
-        success: true,
-        data,
-        message: 'Session revoked successfully'
-      };
-    } catch (error: any) {
-      throw error;
-    }
-  }
 
   // --------------------------------------------------------------------------
   // LEGACY/BACKWARD COMPATIBILITY METHODS
@@ -591,6 +555,109 @@ export class AuthService {
       const response = await api.get<ApiResponse<{ message: string }>>(
         '/auth/test'
       );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // ============================================================================
+  // ROLE MANAGEMENT
+  // ============================================================================
+
+  /**
+   * Add role to user
+   * POST /auth/roles/{username}/add/{role}
+   */
+  static async addUserRole(username: string, role: string): Promise<ApiResponse<void>> {
+    try {
+      const response = await api.post<ApiResponse<void>>(`/auth/roles/${username}/add/${role}`);
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Remove role from user
+   * POST /auth/roles/{username}/remove/{role}
+   */
+  static async removeUserRole(username: string, role: string): Promise<ApiResponse<void>> {
+    try {
+      const response = await api.post<ApiResponse<void>>(`/auth/roles/${username}/remove/${role}`);
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // ============================================================================
+  // GOOGLE AUTHENTICATION
+  // ============================================================================
+
+  /**
+   * Google Sign-In
+   * POST /auth/google
+   */
+  static async googleSignIn(googleToken: string): Promise<any> {
+    try {
+      const response = await api.post('/auth/google', { token: googleToken });
+      const result = handleApiResponse(response);
+      
+      if (result.success && result.data) {
+        storeAuthSession(result.data);
+      }
+      
+      return result;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // ============================================================================
+  // ENHANCED SESSION MANAGEMENT
+  // ============================================================================
+
+  /**
+   * Revoke all sessions (logout from all devices)
+   * DELETE /auth/sessions
+   */
+  static async revokeAllSessions(): Promise<ApiResponse<void>> {
+    try {
+      const response = await api.delete<ApiResponse<void>>('/auth/sessions');
+      const result = handleApiResponse(response);
+      
+      // Clear local storage when all sessions are revoked
+      if (result.success) {
+        clearAuthSession();
+      }
+      
+      return result;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Revoke specific session by ID  
+   * DELETE /auth/sessions/{id}
+   */
+  static async revokeSessionById(sessionId: string): Promise<ApiResponse<void>> {
+    try {
+      const response = await api.delete<ApiResponse<void>>(`/auth/sessions/${sessionId}`);
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Get CORS origins
+   * GET /auth/cors-origins
+   */
+  static async getCorsOrigins(): Promise<ApiResponse<string[]>> {
+    try {
+      const response = await api.get<ApiResponse<string[]>>('/auth/cors-origins');
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));

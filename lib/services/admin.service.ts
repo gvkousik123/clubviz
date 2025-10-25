@@ -165,7 +165,7 @@ export class AdminService {
   // ============================================================================
 
   /**
-   * Get admin statistics
+   * Get system-wide admin statistics
    * GET /admin/stats
    * 
    * Returns system-wide statistics for admin dashboard
@@ -180,4 +180,8 @@ export class AdminService {
       throw new Error(handleApiError(error));
     }
   }
+
+  // ============================================================================
+  // NOTE: All admin management APIs are already implemented above
+  // ============================================================================
 }

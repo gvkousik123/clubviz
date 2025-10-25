@@ -97,36 +97,34 @@ export interface ClubMember {
 export interface Club {
   id: string;
   name: string;
-  description?: string;
-  logo?: string;
-  logoUrl?: string;
-  images?: ClubImage[];
-  category?: string;
-  locationText?: LocationText;
-  locationMap?: LocationMap | number[];
-  contactEmail?: string;
-  contactPhone?: string;
-  foodCuisines?: string[];
-  facilities?: string[];
-  music?: string[];
-  barOptions?: string[];
-  entryPricing?: EntryPricing;
-  memberCount?: number;
-  maxMembers?: number;
-  isJoined?: boolean;
-  canJoin?: boolean;
-  isFull?: boolean;
-  isActive?: boolean;
-  owner?: ClubOwner;
-  recentMembers?: ClubMember[];
-  admins?: ClubMember[];
-  members?: ClubMember[];
-  createdAt?: string;
-  updatedAt?: string;
-  capacityPercentage?: number;
-  memberStatus?: string;
-  canPerformAction?: boolean;
-  joinButtonText?: string;
+  description: string;
+  logo: string;
+  images: ClubImage[];
+  category: string;
+  locationText: LocationText;
+  locationMap: LocationMap;
+  contactEmail: string;
+  contactPhone: string;
+  foodCuisines: string[];
+  facilities: string[];
+  music: string[];
+  barOptions: string[];
+  entryPricing: EntryPricing;
+  memberCount: number;
+  maxMembers: number;
+  isJoined: boolean;
+  canJoin: boolean;
+  isFull: boolean;
+  isActive: boolean;
+  owner: ClubOwner;
+  recentMembers: ClubMember[];
+  admins: ClubMember[];
+  createdAt: string;
+  updatedAt: string;
+  capacityPercentage: number;
+  memberStatus: string;
+  canPerformAction: boolean;
+  joinButtonText: string;
 }
 
 export interface ClubListItem {
@@ -223,38 +221,56 @@ export interface PublicClubByCategory {
 
 export interface ClubCreateRequest {
   name: string;
-  description?: string;
-  logo?: string;
-  category?: string;
-  maxMembers?: number;
-  contactEmail?: string;
-  contactPhone?: string;
-  images?: ClubImage[];
-  locationText?: LocationText;
-  locationMap?: LocationMap;
-  foodCuisines?: string[];
-  facilities?: string[];
-  music?: string[];
-  barOptions?: string[];
-  entryPricing?: EntryPricing;
+  description: string;
+  logo: string;
+  category: string;
+  maxMembers: number;
+  contactEmail: string;
+  contactPhone: string;
+  images: ClubImage[];
+  locationText: LocationText;
+  locationMap: LocationMap;
+  foodCuisines: string[];
+  facilities: string[];
+  music: string[];
+  barOptions: string[];
+  entryPricing: EntryPricing;
+}
+
+export interface ClubCreateResponse {
+  name: string;
+  description: string;
+  logo: string;
+  category: string;
+  maxMembers: number;
+  contactEmail: string;
+  contactPhone: string;
+  images: ClubImage[];
+  locationText: LocationText;
+  locationMap: LocationMap;
+  foodCuisines: string[];
+  facilities: string[];
+  music: string[];
+  barOptions: string[];
+  entryPricing: EntryPricing;
 }
 
 export interface ClubUpdateRequest {
-  name?: string;
-  description?: string;
-  logo?: string;
-  category?: string;
-  maxMembers?: number;
-  contactEmail?: string;
-  contactPhone?: string;
-  images?: ClubImage[];
-  locationText?: LocationText;
-  locationMap?: LocationMap;
-  foodCuisines?: string[];
-  facilities?: string[];
-  music?: string[];
-  barOptions?: string[];
-  entryPricing?: EntryPricing;
+  name: string;
+  description: string;
+  logo: string;
+  category: string;
+  maxMembers: number;
+  contactEmail: string;
+  contactPhone: string;
+  images: ClubImage[];
+  locationText: LocationText;
+  locationMap: LocationMap;
+  foodCuisines: string[];
+  facilities: string[];
+  music: string[];
+  barOptions: string[];
+  entryPricing: EntryPricing;
 }
 
 /**
@@ -283,9 +299,9 @@ export class ClubService {
    * Create new club
    * POST /clubs
    */
-  static async createClub(clubData: ClubCreateRequest): Promise<ApiResponse<Club>> {
+  static async createClub(clubData: ClubCreateRequest): Promise<ApiResponse<ClubCreateResponse>> {
     try {
-      const response = await api.post<ApiResponse<Club>>('/clubs', clubData);
+      const response = await api.post<ApiResponse<ClubCreateResponse>>('/clubs', clubData);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -299,6 +315,19 @@ export class ClubService {
   static async updateClub(id: string, clubData: ClubUpdateRequest): Promise<ApiResponse<Club>> {
     try {
       const response = await api.put<ApiResponse<Club>>(`/clubs/${id}`, clubData);
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Update club (Alternative endpoint)
+   * POST /clubs/{id}
+   */
+  static async updateClubPost(id: string, clubData: ClubUpdateRequest): Promise<ApiResponse<void>> {
+    try {
+      const response = await api.post<ApiResponse<void>>(`/clubs/${id}`, clubData);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));

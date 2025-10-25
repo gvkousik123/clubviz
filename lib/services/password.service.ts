@@ -38,10 +38,10 @@ export class PasswordService {
   // ============================================================================
 
   /**
-   * Reset password using mobile number
+   * Reset password using mobile number (DEPRECATED - use resetPasswordWithMobile with OTP)
    * POST /auth/password-reset/reset/mobile
    */
-  static async resetPasswordWithMobile(mobileNumber: string, newPassword: string): Promise<PasswordResetResponse> {
+  static async resetPasswordWithMobileOld(mobileNumber: string, newPassword: string): Promise<PasswordResetResponse> {
     try {
       const response = await api.post<PasswordResetResponse>('/auth/password-reset/reset/mobile', {
         mobileNumber,
@@ -229,5 +229,109 @@ export class PasswordService {
     }
     
     return 'unknown';
+  }
+
+  // ============================================================================
+  // EMAIL-BASED PASSWORD RESET FLOW
+  // ============================================================================
+
+  /**
+   * Initiate password reset via email
+   * POST /auth/password-reset/initiate/email
+   */
+  static async initiateEmailReset(email: string): Promise<ApiResponse<PasswordResetResponse>> {
+    try {
+      const response = await api.post<ApiResponse<PasswordResetResponse>>(
+        '/auth/password-reset/initiate/email',
+        { email }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Verify password reset token
+   * POST /auth/password-reset/verify/token
+   */
+  static async verifyResetToken(token: string): Promise<ApiResponse<{ valid: boolean }>> {
+    try {
+      const response = await api.post<ApiResponse<{ valid: boolean }>>(
+        '/auth/password-reset/verify/token',
+        { token }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Reset password using token
+   * POST /auth/password-reset/reset/token
+   */
+  static async resetPasswordWithToken(token: string, newPassword: string): Promise<ApiResponse<PasswordResetResponse>> {
+    try {
+      const response = await api.post<ApiResponse<PasswordResetResponse>>(
+        '/auth/password-reset/reset/token',
+        { token, newPassword }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // ============================================================================
+  // MOBILE-BASED PASSWORD RESET FLOW
+  // ============================================================================
+
+  /**
+   * Initiate password reset via mobile
+   * POST /auth/password-reset/initiate/mobile
+   */
+  static async initiateMobileReset(mobileNumber: string): Promise<ApiResponse<PasswordResetResponse>> {
+    try {
+      const response = await api.post<ApiResponse<PasswordResetResponse>>(
+        '/auth/password-reset/initiate/mobile',
+        { mobileNumber }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Verify password reset OTP
+   * POST /auth/password-reset/verify/otp
+   */
+  static async verifyResetOTP(mobileNumber: string, otp: string): Promise<ApiResponse<{ valid: boolean }>> {
+    try {
+      const response = await api.post<ApiResponse<{ valid: boolean }>>(
+        '/auth/password-reset/verify/otp',
+        { mobileNumber, otp }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Reset password using mobile OTP
+   * POST /auth/password-reset/reset/mobile
+   */
+  static async resetPasswordWithMobile(mobileNumber: string, otp: string, newPassword: string): Promise<ApiResponse<PasswordResetResponse>> {
+    try {
+      const response = await api.post<ApiResponse<PasswordResetResponse>>(
+        '/auth/password-reset/reset/mobile',
+        { mobileNumber, otp, newPassword }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   }
 }

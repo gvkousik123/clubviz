@@ -11,6 +11,7 @@ export { SearchService } from './search.service';
 export { ProfileService } from './profile.service';
 export { PasswordService } from './password.service';
 export { LookupService } from './lookup.service';
+export { MobileAuthService } from './mobile-auth.service';
 
 // Export API client and utilities
 export { api, handleApiResponse, handleApiError } from '../api-client';
