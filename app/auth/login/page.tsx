@@ -58,17 +58,14 @@ export default function LoginPage(): JSX.Element {
     };
 
     return (
-        <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#001013] text-white">
+        <div className="relative flex h-screen flex-col overflow-hidden bg-[#001013] text-white">
             {/* Background effect */}
             <div className="pointer-events-none absolute inset-0">
                 <div className="absolute inset-0 bg-[#001013]" />
                 <div className="absolute bottom-0 left-0 right-0 h-[50%] bg-gradient-to-t from-[#003336]/30 to-transparent" />
             </div>
 
-            <div className="relative z-10 flex flex-1 flex-col px-0 pb-0 pt-2">
-                {/* Status bar */}
-
-
+            <div className="relative z-10 flex h-full flex-col px-0 pb-0 pt-2">
                 {/* Guest login button */}
                 <div className="mt-4 flex justify-end px-6">
                     <Link
@@ -79,18 +76,12 @@ export default function LoginPage(): JSX.Element {
                     </Link>
                 </div>
 
-                {/* Empty space in the middle */}
-                <div className="flex-1"></div>
-
-                {/* Login options with logo and terms */}
-                <div>
-                    {/* Logo and branding */}
-                    <div className="flex-1 flex flex-col items-center justify-end px-6 pb-8">
-                        <ClubVizLogo size="lg" variant="full" />
-                    </div>
+                {/* Logo and branding - centered with flex-1 to take remaining space */}
+                <div className="flex-1 flex flex-col items-center justify-center px-6">
+                    <ClubVizLogo size="lg" variant="full" />
 
                     {/* Terms text - exact match to design */}
-                    <div className="text-center mb-8">
+                    <div className="text-center mt-8 mb-8">
                         <p className="text-[15px] font-normal leading-tight text-white">
                             By login you are agreeing to
                         </p>
@@ -170,19 +161,13 @@ export default function LoginPage(): JSX.Element {
 
                     {/* Register Button */}
                     <div className="relative w-full -mt-[22px] rounded-t-[30px] overflow-visible bg-gradient-to-b from-[#00DCE5] to-[#00B0B3] z-40 border-t border-white">
-                        <div className="flex flex-col items-center justify-center gap-2 h-[55px] pb-[0px] text-black">
+                        <div className="flex items-center justify-center h-[55px] pb-[0px] text-black">
                             <Link
                                 href="/auth/signup"
                                 className="flex items-center justify-center gap-3"
                             >
                                 <span className="text-[16px] font-bold font-['Manrope'] leading-[21px]">Don't have an account ?</span>
                                 <span className="text-[16px] font-bold font-['Manrope'] leading-[21px]">Register</span>
-                            </Link>
-                            <Link
-                                href="/auth/forgot-password"
-                                className="text-[14px] font-medium font-['Manrope'] leading-[16px] text-black/80 hover:text-black underline"
-                            >
-                                Forgot Password?
                             </Link>
                         </div>
                     </div>

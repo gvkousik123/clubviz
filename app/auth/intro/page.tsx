@@ -75,7 +75,10 @@ export default function IntroScreen() {
                             }}
                         />
                         {/* Up arrow icon */}
-                        <div className="absolute left-1/2 top-[2%] -translate-x-1/2 flex h-8 w-8 items-center justify-center">
+                        <div
+                            className="absolute left-1/2 top-[2%] -translate-x-1/2 flex h-8 w-8 items-center justify-center cursor-pointer hover:scale-110 transition-transform duration-200"
+                            onClick={handleEmailLogin}
+                        >
                             <ChevronUp
                                 className="h-6 w-6 text-[#ffffff]"
                                 strokeWidth={3}

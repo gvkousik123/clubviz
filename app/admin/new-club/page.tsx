@@ -2,22 +2,75 @@
 
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, MapPin, ChevronRight, Plus } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { LookupService, AllLookupData } from '@/lib/services/lookup.service';
+import { useToast } from '@/hooks/use-toast';
 import '../new-event/styles.css';
 
 export default function NewClubPage() {
     const router = useRouter();
+    const { toast } = useToast();
     const logoInputRef = useRef<HTMLInputElement>(null);
     const [formData, setFormData] = useState({
         clubName: '',
         location: '',
         logo: null as File | null
     });
+    const [lookupData, setLookupData] = useState<AllLookupData>({});
+    const [isLoadingLookup, setIsLoadingLookup] = useState(true);
 
     // References for image upload sections
     const foodDrinksRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
     const ambienceRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
     const menuRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+
+    // Fetch lookup data on component mount
+    useEffect(() => {
+        const fetchLookupData = async () => {
+            try {
+                setIsLoadingLookup(true);
+                const response = await LookupService.getAllLookupData();
+                if (response.success) {
+                    setLookupData(response.data);
+                } else {
+                    toast({
+                        title: "Error",
+                        description: "Failed to load club categories",
+                        variant: "destructive",
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to fetch lookup data:', error);
+                toast({
+                    title: "Error",
+                    description: "Failed to load club categories",
+                    variant: "destructive",
+                });
+            } finally {
+                setIsLoadingLookup(false);
+            }
+        };
+
+        fetchLookupData();
+    }, [toast]);
+
+    // Helper function to get club tags from lookup data
+    const getClubTags = () => {
+        const tags = [];
+        if (lookupData.facilities && lookupData.facilities.length > 0) {
+            tags.push({ label: 'Facilities', key: 'facilities' });
+        }
+        if (lookupData.foodCuisines && lookupData.foodCuisines.length > 0) {
+            tags.push({ label: 'Food', key: 'foodCuisines' });
+        }
+        if (lookupData.music && lookupData.music.length > 0) {
+            tags.push({ label: 'Music', key: 'music' });
+        }
+        if (lookupData.barOptions && lookupData.barOptions.length > 0) {
+            tags.push({ label: 'Bar', key: 'barOptions' });
+        }
+        return tags;
+    };
 
     const handleGoBack = () => {
         router.back();
@@ -221,16 +274,23 @@ export default function NewClubPage() {
                             <label className="text-[#14FFEC] font-semibold text-base">Club Tags</label>
                         </div>
                         <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[15px] p-5 flex flex-col gap-5">
-                            {['Facilities', 'Food', 'Music', 'Bar'].map((tag, index) => (
-                                <div
-                                    key={tag}
-                                    onClick={() => handleNavigate(`/tags/${tag.toLowerCase()}`)}
-                                    className="flex items-center justify-between cursor-pointer"
-                                >
-                                    <span className="text-white text-base font-semibold">{tag}</span>
-                                    <ChevronRight className="text-[#14FFEC]" size={18} />
+                            {isLoadingLookup ? (
+                                <div className="flex items-center justify-center py-4">
+                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#14FFEC]"></div>
+                                    <span className="text-white text-sm ml-2">Loading categories...</span>
                                 </div>
-                            ))}
+                            ) : (
+                                getClubTags().map((tag) => (
+                                    <div
+                                        key={tag.key}
+                                        onClick={() => handleNavigate(`/tags/${tag.key}`)}
+                                        className="flex items-center justify-between cursor-pointer"
+                                    >
+                                        <span className="text-white text-base font-semibold">{tag.label}</span>
+                                        <ChevronRight className="text-[#14FFEC]" size={18} />
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>

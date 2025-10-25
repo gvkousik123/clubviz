@@ -97,6 +97,9 @@ export class LookupService {
    * Description: Retrieve all lookup data for club-related fields
    * Returns facilities, food, music, and bar options in a single response
    * 
+   * ⭐ RECOMMENDED: Use this method instead of individual category methods 
+   * for better performance and to reduce API calls when you need multiple categories.
+   * 
    * @returns All lookup data combined
    */
   static async getAllLookupData(): Promise<ApiResponse<AllLookupData>> {
@@ -115,6 +118,9 @@ export class LookupService {
    * GET /lookup/club/music
    * 
    * Description: Retrieve all available music options for clubs
+   * 
+   * ⚠️ NOTE: Consider using getAllLookupData() instead if you need multiple categories
+   * to reduce API calls and improve performance.
    * 
    * @returns Array of music genre options
    */
