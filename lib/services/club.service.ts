@@ -5,6 +5,34 @@ import { ApiResponse, PaginationMeta } from '../api-types';
 // CLUB TYPES
 // ============================================================================
 
+// User Profile interface for club members/admins/owners
+export interface UserProfile {
+  id: string;
+  username: string;
+  email: string;
+  password?: string;
+  fullName: string;
+  phoneNumber: string;
+  mobileNumber?: string;
+  isMobileVerified?: boolean;
+  otpCode?: string;
+  otpExpiryTime?: string;
+  otpAttempts?: number;
+  lastOtpSentTime?: string;
+  passwordResetToken?: string;
+  passwordResetExpiryTime?: string;
+  passwordResetOtp?: string;
+  passwordResetOtpExpiryTime?: string;
+  passwordResetAttempts?: number;
+  profilePicture?: string;
+  isActive: boolean;
+  provider?: string;
+  providerId?: string;
+  roles: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface LocationText {
   address1?: string;
   address2?: string;
@@ -132,6 +160,65 @@ export interface ClubListResponse {
   last: boolean;
   paginationInfo?: string;
   resultsInfo?: string;
+}
+
+export interface AdminClubFull {
+  id: string;
+  name: string;
+  description: string;
+  logoUrl?: string;
+  images?: ClubImage[];
+  locationText?: LocationText;
+  locationMap?: number[];
+  foodCuisines?: string[];
+  facilities?: string[];
+  music?: string[];
+  barOptions?: string[];
+  entryPricing?: EntryPricing;
+  category?: string;
+  owner?: UserProfile;
+  members?: UserProfile[];
+  admins?: UserProfile[];
+  isActive: boolean;
+  maxMembers?: number;
+  contactEmail?: string;
+  contactPhone?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MyClubItem {
+  id: string;
+  name: string;
+  description: string;
+  logo?: string;
+  category?: string;
+  location?: string;
+  memberCount: number;
+  maxMembers: number;
+  isJoined: boolean;
+  isFull: boolean;
+  isActive: boolean;
+  ownerName?: string;
+  createdAt: string;
+  capacityPercentage: number;
+  memberStatus?: string;
+  shortDescription?: string;
+}
+
+export interface PublicClubByCategory {
+  id: string;
+  name: string;
+  description: string;
+  logoUrl?: string;
+  images?: ClubImage[];
+  locationText?: LocationText;
+  locationMap?: number[];
+  foodCuisines?: string[];
+  facilities?: string[];
+  music?: string[];
+  barOptions?: string[];
+  entryPricing?: EntryPricing;
 }
 
 export interface ClubCreateRequest {
@@ -341,9 +428,9 @@ export class ClubService {
    * Get public club by ID
    * GET /clubs/public/{id}
    */
-  static async getPublicClubById(id: string): Promise<ApiResponse<Club>> {
+  static async getPublicClubById(id: string): Promise<ApiResponse<PublicClubByCategory>> {
     try {
-      const response = await api.get<ApiResponse<Club>>(`/clubs/public/${id}`);
+      const response = await api.get<ApiResponse<PublicClubByCategory>>(`/clubs/public/${id}`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -437,12 +524,9 @@ export class ClubService {
    * Get clubs that user has joined
    * GET /clubs/my-clubs
    */
-  static async getMyClubs(params?: {
-    page?: number;
-    size?: number;
-  }): Promise<ApiResponse<ClubListItem[]>> {
+  static async getMyClubs(): Promise<ApiResponse<MyClubItem[]>> {
     try {
-      const response = await api.get<ApiResponse<ClubListItem[]>>('/clubs/my-clubs', { params });
+      const response = await api.get<ApiResponse<MyClubItem[]>>('/clubs/my-clubs');
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -479,12 +563,12 @@ export class ClubService {
   // ============================================================================
 
   /**
-   * Get all clubs (Admin only)
+   * Get all clubs (Admin only) - Full details
    * GET /clubs/admin/all
    */
-  static async getAllClubsAdmin(): Promise<ApiResponse<Club[]>> {
+  static async getAllClubsAdmin(): Promise<ApiResponse<AdminClubFull[]>> {
     try {
-      const response = await api.get<ApiResponse<Club[]>>('/clubs/admin/all');
+      const response = await api.get<ApiResponse<AdminClubFull[]>>('/clubs/admin/all');
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -498,6 +582,69 @@ export class ClubService {
   static async deleteClubAdmin(id: string): Promise<ApiResponse<void>> {
     try {
       const response = await api.delete<ApiResponse<void>>(`/clubs/admin/${id}`);
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // ============================================================================
+  // NEW PAGINATED CLUB OPERATIONS
+  // ============================================================================
+
+  /**
+   * Get paginated clubs list
+   * GET /clubs
+   */
+  static async getClubsPaginated(params?: {
+    page?: number;
+    size?: number;
+    sortBy?: string;
+    sortDir?: 'asc' | 'desc';
+    search?: string;
+    category?: string;
+  }): Promise<ApiResponse<ClubListResponse>> {
+    try {
+      const response = await api.get<ApiResponse<ClubListResponse>>('/clubs', {
+        params
+      });
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Get public clubs categories
+   * GET /clubs/public/categories
+   */
+  static async getPublicClubsCategories(): Promise<ApiResponse<string[]>> {
+    try {
+      const response = await api.get<ApiResponse<string[]>>('/clubs/public/categories');
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Get public clubs by category with enhanced details
+   * GET /clubs/public/{category}/list
+   */
+  static async getPublicClubsByCategoryEnhanced(
+    category: string,
+    params?: {
+      page?: number;
+      size?: number;
+      sortBy?: string;
+      sortDir?: 'asc' | 'desc';
+    }
+  ): Promise<ApiResponse<PublicClubByCategory[]>> {
+    try {
+      const response = await api.get<ApiResponse<PublicClubByCategory[]>>(
+        `/clubs/public/${category}/list`,
+        { params }
+      );
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));

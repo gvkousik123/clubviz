@@ -11,6 +11,7 @@ import { EventListCard } from '@/components/events/event-list-card';
 import FilterPopup from '@/components/common/filter-popup';
 import { EVENT_FILTER_SECTIONS } from '@/lib/filter-config';
 import { useSearch } from '@/hooks/use-search';
+import { useEventList } from '@/hooks/use-event-list';
 
 
 // Dummy events used for local development (no API calls)
@@ -124,6 +125,14 @@ export default function EventsListPage() {
         clearError,
     } = useSearch();
 
+    // Event list functionality
+    const {
+        isLoadingList,
+        eventList,
+        loadEventList,
+        refreshEventList,
+    } = useEventList();
+
     // Event list images for fallbacks
     const eventImages = [
         '/event list/Rectangle 1.jpg',
@@ -149,22 +158,22 @@ export default function EventsListPage() {
                 await performEventSearch(searchQuery.trim());
                 // Update the local events state with search results
                 if (searchEvents.length > 0) {
-                    // Convert NearbyEvent[] to Event[] format for compatibility
+                    // Convert SearchEvent[] to Event[] format for compatibility
                     const convertedEvents: Event[] = searchEvents.map((event, index) => ({
                         id: event.id,
                         title: event.title,
                         description: event.description || '',
-                        clubId: event.clubId || '',
-                        coverImage: event.image || getEventFallbackImage(index),
-                        imageUrl: event.image || getEventFallbackImage(index),
-                        images: [event.image || getEventFallbackImage(index)],
+                        clubId: event.club?.id || '',
+                        coverImage: event.imageUrl || getEventFallbackImage(index),
+                        imageUrl: event.imageUrl || getEventFallbackImage(index),
+                        images: [event.imageUrl || getEventFallbackImage(index)],
                         location: event.location || '',
                         startDateTime: event.startDateTime,
                         endDateTime: event.endDateTime,
-                        isPublic: true,
-                        requiresApproval: false,
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
+                        isPublic: event.isPublic,
+                        requiresApproval: event.requiresApproval,
+                        createdAt: event.createdAt,
+                        updatedAt: event.updatedAt,
                     }));
                     setEvents(convertedEvents);
                     setLoading(false);
@@ -191,17 +200,17 @@ export default function EventsListPage() {
                     id: event.id,
                     title: event.title,
                     description: event.description || '',
-                    clubId: event.clubId || '',
-                    coverImage: event.image || getEventFallbackImage(index),
-                    imageUrl: event.image || getEventFallbackImage(index),
-                    images: [event.image || getEventFallbackImage(index)],
+                    clubId: event.club?.id || '',
+                    coverImage: event.imageUrl || getEventFallbackImage(index),
+                    imageUrl: event.imageUrl || getEventFallbackImage(index),
+                    images: [event.imageUrl || getEventFallbackImage(index)],
                     location: event.location || '',
                     startDateTime: event.startDateTime,
                     endDateTime: event.endDateTime,
-                    isPublic: true,
-                    requiresApproval: false,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
+                    isPublic: event.isPublic,
+                    requiresApproval: event.requiresApproval,
+                    createdAt: event.createdAt,
+                    updatedAt: event.updatedAt,
                 }));
                 setEvents(convertedEvents);
             }

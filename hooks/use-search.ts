@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { SearchService, NearbySearchParams, NearbyEvent, NearbyClub, BalancedSearchResponse } from '@/lib/services/search.service';
+import { SearchService, NearbySearchParams, NearbyEvent, NearbyClub, SearchEvent, SearchClub, BalancedSearchResponse } from '@/lib/services/search.service';
 import { resolveLocation, getStoredLocation, SavedLocation } from '@/lib/location';
 import { toast } from '@/hooks/use-toast';
 
@@ -13,8 +13,8 @@ export interface UseSearchState {
   isGettingLocation: boolean;
 
   // Data states
-  events: NearbyEvent[];
-  clubs: NearbyClub[];
+  events: SearchEvent[];
+  clubs: SearchClub[];
   categories: string[];
   balancedResults: BalancedSearchResponse | null;
   nearbyResults: {
@@ -59,8 +59,8 @@ export function useSearch(): UseSearchState & UseSearchActions {
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   
-  const [events, setEvents] = useState<NearbyEvent[]>([]);
-  const [clubs, setClubs] = useState<NearbyClub[]>([]);
+  const [events, setEvents] = useState<SearchEvent[]>([]);
+  const [clubs, setClubs] = useState<SearchClub[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [balancedResults, setBalancedResults] = useState<BalancedSearchResponse | null>(null);
   const [nearbyResults, setNearbyResults] = useState<{

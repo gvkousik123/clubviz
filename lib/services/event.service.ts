@@ -9,6 +9,138 @@ import {
   AttendingEvent,
 } from '../api-types';
 
+// New types for the additional event APIs
+export interface EventListItem {
+  id: string;
+  title: string;
+  shortDescription: string;
+  imageUrl: string;
+  location: string;
+  startDateTime: string;
+  endDateTime: string;
+  formattedDate: string;
+  formattedTime: string;
+  timeUntilEvent: string;
+  duration: string;
+  attendeeCount: number;
+  maxAttendees: number;
+  isRegistered: boolean;
+  canRegister: boolean;
+  isFull: boolean;
+  clubId: string;
+  clubName: string;
+  clubLogo: string;
+  organizerName: string;
+  status: 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+  isPublic: boolean;
+  requiresApproval: boolean;
+  attendeeStatus: string;
+  eventStatusText: string;
+  pastEvent: boolean;
+  upcoming: boolean;
+  ongoing: boolean;
+  capacityPercentage: number;
+}
+
+export interface EventListResponse {
+  content: EventListItem[];
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;
+  size: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+  first: boolean;
+  last: boolean;
+  paginationInfo: string;
+  resultsInfo: string;
+}
+
+export interface AttendingEventFull {
+  id: string;
+  title: string;
+  description: string;
+  startDateTime: string;
+  endDateTime: string;
+  location: string;
+  locationText?: string;
+  locationMap?: number[];
+  imageUrl?: string;
+  club: {
+    id: string;
+    name: string;
+    description: string;
+    logoUrl?: string;
+    images?: Array<{ type: string; url: string }>;
+    locationText?: {
+      address1: string;
+      address2?: string;
+      state: string;
+      city: string;
+      pincode: string;
+      fullAddress: string;
+    };
+    locationMap?: number[];
+    foodCuisines?: string[];
+    facilities?: string[];
+    music?: string[];
+    barOptions?: string[];
+    entryPricing?: {
+      coupleEntryPrice?: number;
+      groupEntryPrice?: number;
+      maleStagEntryPrice?: number;
+      femaleStagEntryPrice?: number;
+      coverCharge?: number;
+      redeemDetails?: string;
+      hasTimeRestriction?: boolean;
+      timeRestriction?: string;
+      inclusions?: string[];
+      exclusions?: string[];
+    };
+    category?: string;
+    isActive: boolean;
+    maxMembers?: number;
+    contactEmail?: string;
+    contactPhone?: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  organizer?: {
+    id: string;
+    username: string;
+    email: string;
+    fullName: string;
+    phoneNumber: string;
+    mobileNumber?: string;
+    isMobileVerified?: boolean;
+    profilePicture?: string;
+    isActive: boolean;
+    roles: string[];
+    createdAt: string;
+    updatedAt: string;
+  };
+  attendees?: Array<{
+    id: string;
+    username: string;
+    email: string;
+    fullName: string;
+    phoneNumber: string;
+    mobileNumber?: string;
+    isMobileVerified?: boolean;
+    profilePicture?: string;
+    isActive: boolean;
+    roles: string[];
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  maxAttendees?: number;
+  isPublic: boolean;
+  requiresApproval: boolean;
+  status?: 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Event-specific types matching API documentation
 export interface EventListParams {
   page?: number;
@@ -289,10 +421,11 @@ export class EventService {
 
   /**
    * Get events the user is attending (API: GET /events/attending)
+   * Returns full event details with club and attendee information
    */
-  static async getAttendingEvents(): Promise<ApiResponse<AttendingEvent[]>> {
+  static async getAttendingEvents(): Promise<ApiResponse<AttendingEventFull[]>> {
     try {
-      const response = await api.get<ApiResponse<AttendingEvent[]>>('/events/attending');
+      const response = await api.get<ApiResponse<AttendingEventFull[]>>('/events/attending');
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -621,4 +754,31 @@ export class EventService {
       throw new Error(handleApiError(error));
     }
   }
+
+  /**
+   * Get paginated event list (API: GET /events/list)
+   */
+  static async getEventList(params: EventListParams = {}): Promise<ApiResponse<EventListResponse>> {
+    try {
+      const queryParams = new URLSearchParams();
+      
+      if (params.page !== undefined) queryParams.append('page', params.page.toString());
+      if (params.size !== undefined) queryParams.append('size', params.size.toString());
+      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params.category) queryParams.append('category', params.category);
+      if (params.search) queryParams.append('search', params.search);
+      if (params.status) queryParams.append('status', params.status);
+      if (params.startDate) queryParams.append('startDate', params.startDate);
+      if (params.endDate) queryParams.append('endDate', params.endDate);
+
+      const response = await api.get<ApiResponse<EventListResponse>>(
+        `/events/list?${queryParams.toString()}`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
 }

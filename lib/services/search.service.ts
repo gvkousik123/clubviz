@@ -49,13 +49,73 @@ export interface UserProfile {
   id: string;
   username: string;
   email: string;
+  password?: string;
   fullName: string;
   phoneNumber: string;
   mobileNumber?: string;
   isMobileVerified?: boolean;
+  otpCode?: string;
+  otpExpiryTime?: string;
+  otpAttempts?: number;
+  lastOtpSentTime?: string;
+  passwordResetToken?: string;
+  passwordResetExpiryTime?: string;
+  passwordResetOtp?: string;
+  passwordResetOtpExpiryTime?: string;
+  passwordResetAttempts?: number;
   profilePicture?: string;
   isActive: boolean;
+  provider?: string;
+  providerId?: string;
   roles: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Updated Club interface based on actual API response
+export interface SearchClub {
+  id: string;
+  name: string;
+  description: string;
+  logoUrl?: string;
+  images?: ImageObject[];
+  locationText?: LocationText;
+  locationMap?: number[];
+  foodCuisines?: string[];
+  facilities?: string[];
+  music?: string[];
+  barOptions?: string[];
+  entryPricing?: EntryPricing;
+  category?: string;
+  owner?: UserProfile;
+  members?: UserProfile[];
+  admins?: UserProfile[];
+  isActive: boolean;
+  maxMembers?: number;
+  contactEmail?: string;
+  contactPhone?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Updated Event interface based on actual API response
+export interface SearchEvent {
+  id: string;
+  title: string;
+  description: string;
+  startDateTime: string;
+  endDateTime: string;
+  location: string;
+  locationText?: string;
+  locationMap?: number[];
+  imageUrl?: string;
+  club: SearchClub;
+  organizer?: UserProfile;
+  attendees?: UserProfile[];
+  maxAttendees?: number;
+  isPublic: boolean;
+  requiresApproval: boolean;
+  status?: 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
   createdAt: string;
   updatedAt: string;
 }
@@ -180,12 +240,12 @@ export class SearchService {
 
   /**
    * Search for events (API: GET /search/events)
-   * Returns NearbyEvent[] - same structure as nearby events
+   * Returns SearchEvent[] - full event details with club information
    */
-  static async searchEvents(query: string): Promise<ApiResponse<NearbyEvent[]>> {
+  static async searchEvents(query: string): Promise<ApiResponse<SearchEvent[]>> {
     try {
       const params = new URLSearchParams({ query });
-      const response = await api.get<ApiResponse<NearbyEvent[]>>(
+      const response = await api.get<ApiResponse<SearchEvent[]>>(
         `/search/events?${params.toString()}`
       );
       return handleApiResponse(response);
@@ -208,12 +268,12 @@ export class SearchService {
 
   /**
    * Search for clubs/venues (API: GET /search/clubs)
-   * Returns NearbyClub[] - same structure as nearby clubs
+   * Returns SearchClub[] - full club details with complete information
    */
-  static async searchClubs(query: string): Promise<ApiResponse<NearbyClub[]>> {
+  static async searchClubs(query: string): Promise<ApiResponse<SearchClub[]>> {
     try {
       const params = new URLSearchParams({ query });
-      const response = await api.get<ApiResponse<NearbyClub[]>>(
+      const response = await api.get<ApiResponse<SearchClub[]>>(
         `/search/clubs?${params.toString()}`
       );
       return handleApiResponse(response);
