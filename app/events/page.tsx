@@ -12,6 +12,7 @@ import FilterPopup from '@/components/common/filter-popup';
 import { EVENT_FILTER_SECTIONS } from '@/lib/filter-config';
 import { useSearch } from '@/hooks/use-search';
 import { useEventList } from '@/hooks/use-event-list';
+import { EventService } from '@/lib/services/event.service';
 
 
 // Dummy events used for local development (no API calls)
@@ -251,16 +252,54 @@ export default function EventsListPage() {
     }, []);
 
     const fetchEvents = async () => {
-        // Use local dummy events for now (no API calls)
         setLoading(true);
         setError(null);
         try {
-            // Simulate a short delay to preserve loading UI
-            await new Promise((res) => setTimeout(res, 250));
+            // Call the actual API to get events
+            const response = await EventService.getEventList({
+                page: 0,
+                size: 20,
+                sortBy: 'startDateTime',
+                sortOrder: 'asc',
+                status: 'UPCOMING'
+            });
+
+            if (response.success && response.data?.content) {
+                // Convert API response to Event[] format
+                const apiEvents: Event[] = response.data.content.map((event, index) => ({
+                    id: event.id,
+                    title: event.title,
+                    description: event.shortDescription || '',
+                    clubId: event.clubId || '',
+                    coverImage: event.imageUrl || getEventFallbackImage(index),
+                    imageUrl: event.imageUrl || getEventFallbackImage(index),
+                    images: [event.imageUrl || getEventFallbackImage(index)],
+                    location: event.location,
+                    startDateTime: event.startDateTime,
+                    endDateTime: event.endDateTime,
+                    isPublic: event.isPublic,
+                    requiresApproval: event.requiresApproval,
+                    createdAt: event.formattedDate,
+                    updatedAt: event.formattedDate,
+                }));
+                setEvents(apiEvents);
+            } else {
+                // Fallback to dummy data if API fails
+                setEvents(DUMMY_EVENTS);
+                if (response.message) {
+                    console.warn('API returned message:', response.message);
+                }
+            }
+        } catch (err: any) {
+            console.error('Error loading events:', err);
+            // Use dummy data as fallback
             setEvents(DUMMY_EVENTS);
-        } catch (err) {
-            console.error('Error loading dummy events:', err);
-            setError('Failed to load events.');
+            setError(err.message || 'Failed to load events');
+            toast({
+                title: 'Using cached data',
+                description: err.message || 'Could not fetch latest events. Showing sample data.',
+                variant: 'default',
+            });
         } finally {
             setLoading(false);
         }

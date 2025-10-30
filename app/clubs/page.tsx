@@ -11,6 +11,7 @@ import { ClubListCard } from '@/components/clubs/club-list-card';
 import FilterPopup from '@/components/common/filter-popup';
 import { CLUB_FILTER_SECTIONS } from '@/lib/filter-config';
 import { useSearch } from '@/hooks/use-search';
+import { ClubService } from '@/lib/services/club.service';
 
 // Dummy clubs data for local development
 const DUMMY_CLUBS: Club[] = [
@@ -192,13 +193,48 @@ export default function ClubsListPage() {
         loadFavorites();
     }, []);
 
-    const loadClubs = () => {
+    const loadClubs = async () => {
         setLoading(true);
-        // Simulate a short delay to preserve loading UI
-        setTimeout(() => {
+        try {
+            // Call the actual API to get clubs
+            const response = await ClubService.getPublicClubsList({
+                page: 0,
+                size: 20,
+                sortBy: 'name',
+                sortDirection: 'ASC'
+            });
+
+            if (response.success && response.data?.content) {
+                // Convert API response to Club[] format
+                const apiClubs: Club[] = response.data.content.map((club, index) => ({
+                    id: club.id,
+                    name: club.name || '',
+                    openTime: 'Open until 1:30 am', // Default since API doesn't provide this
+                    rating: 4.2, // Default rating
+                    image: getClubFallbackImage(index),
+                    address: club.location || club.description || '',
+                    category: club.category || 'Club'
+                }));
+                setClubs(apiClubs);
+            } else {
+                // Fallback to dummy data if API fails
+                setClubs(DUMMY_CLUBS);
+                if (response.message) {
+                    console.warn('API returned message:', response.message);
+                }
+            }
+        } catch (error: any) {
+            console.error('Error loading clubs:', error);
+            // Use dummy data as fallback
             setClubs(DUMMY_CLUBS);
+            toast({
+                title: 'Using cached data',
+                description: error.message || 'Could not fetch latest clubs. Showing sample data.',
+                variant: 'default',
+            });
+        } finally {
             setLoading(false);
-        }, 250);
+        }
     };
 
     const loadFavorites = () => {
