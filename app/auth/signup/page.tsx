@@ -16,7 +16,7 @@ export default function RegisterScreen() {
     const [formData, setFormData] = useState({
         fullName: "",
         email: "",
-        phoneNumber: "",
+        mobileNumber: "",
         password: "",
         confirmPassword: ""
     });
@@ -34,10 +34,10 @@ export default function RegisterScreen() {
         const trimmedEmail = formData.email.trim();
         const trimmedPassword = formData.password.trim();
         const trimmedConfirmPassword = formData.confirmPassword.trim();
-        const sanitizedPhoneNumber = formData.phoneNumber.replace(/[^0-9+]/g, '');
+        const sanitizedMobileNumber = formData.mobileNumber.replace(/[^0-9+]/g, '');
 
         // Basic validation
-        if (!trimmedFullName || !trimmedEmail || !sanitizedPhoneNumber || !trimmedPassword) {
+        if (!trimmedFullName || !trimmedEmail || !sanitizedMobileNumber || !trimmedPassword) {
             const errorMsg = 'Please fill in all required fields';
             setError(errorMsg);
             toast({
@@ -93,12 +93,12 @@ export default function RegisterScreen() {
                 trimmedFullName,
                 trimmedEmail.toLowerCase(),
                 trimmedPassword,
-                sanitizedPhoneNumber
+                sanitizedMobileNumber
             );
 
             if (response.success) {
                 // Store data for potential future use
-                localStorage.setItem(STORAGE_KEYS.pendingPhone, sanitizedPhoneNumber);
+                localStorage.setItem(STORAGE_KEYS.pendingPhone, sanitizedMobileNumber);
                 localStorage.setItem('pending_email', trimmedEmail.toLowerCase());
 
                 toast({
@@ -220,14 +220,14 @@ export default function RegisterScreen() {
                                 />
                             </div>
 
-                            {/* Phone Field */}
+                            {/* Mobile Number Field */}
                             <div>
-                                <label className="block text-[#0C0C0D] font-bold mb-2 text-base">Phone Number</label>
+                                <label className="block text-[#0C0C0D] font-bold mb-2 text-base">Mobile Number</label>
                                 <input
                                     type="tel"
-                                    placeholder="Enter your phone number"
-                                    value={formData.phoneNumber}
-                                    onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                                    placeholder="Enter your mobile number"
+                                    value={formData.mobileNumber}
+                                    onChange={(e) => handleInputChange('mobileNumber', e.target.value)}
                                     className="w-full py-3.5 px-5 rounded-[36px] border border-[#0C898B] 
                                              bg-[#EFEFEF] text-gray-900 placeholder-[#A09F99] text-base
                                              focus:outline-none focus:ring-2 focus:ring-[#0C898B] focus:border-transparent
