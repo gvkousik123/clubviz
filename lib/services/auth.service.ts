@@ -78,7 +78,7 @@ export class AuthService {
         fullName,
         email,
         password,
-        phoneNumber
+        mobileNumber: phoneNumber
       });
 
       const data = handleApiResponse(response);

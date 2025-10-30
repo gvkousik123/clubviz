@@ -2,7 +2,7 @@
 
 import { ClubVizLogo } from "@/components/auth/logo";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BatteryFull, ChevronUp, Signal, Wifi } from "lucide-react";
 
 const statusIndicators = [
@@ -13,15 +13,38 @@ const statusIndicators = [
 
 export default function IntroScreen() {
     const router = useRouter();
+    const arrowRef = useRef<HTMLDivElement>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStartY, setDragStartY] = useState(0);
 
-    // Auto-redirect to email login after 4 seconds
+    // Auto-redirect to email login after 3 seconds
     useEffect(() => {
         const t = setTimeout(() => {
             router.push('/auth/login');
-        }, 4000);
+        }, 3000);
 
         return () => clearTimeout(t);
     }, [router]);
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        setIsDragging(true);
+        setDragStartY(e.clientY);
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (!isDragging) return;
+
+        const dragDistance = dragStartY - e.clientY;
+        // If user drags up by at least 30px, navigate to login
+        if (dragDistance > 30) {
+            router.push('/auth/login');
+            setIsDragging(false);
+        }
+    };
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+    };
 
     const handleGuestLogin = () => {
         router.push("/home");
@@ -85,8 +108,13 @@ export default function IntroScreen() {
                         />
                         {/* Up arrow icon */}
                         <div
-                            className="absolute left-1/2 top-[2%] -translate-x-1/2 flex h-8 w-8 items-center justify-center cursor-pointer hover:scale-110 transition-transform duration-200"
+                            ref={arrowRef}
+                            className="absolute left-1/2 top-[2%] -translate-x-1/2 flex h-8 w-8 items-center justify-center cursor-pointer hover:scale-110 transition-transform duration-200 select-none"
                             onClick={handleEmailLogin}
+                            onMouseDown={handleMouseDown}
+                            onMouseMove={handleMouseMove}
+                            onMouseUp={handleMouseUp}
+                            onMouseLeave={handleMouseUp}
                         >
                             <ChevronUp
                                 className="h-6 w-6 text-[#ffffff]"
