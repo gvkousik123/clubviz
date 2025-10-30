@@ -23,6 +23,11 @@ import {
 } from 'lucide-react';
 import Sidebar from '@/components/common/sidebar';
 import { useSearch } from '@/hooks/use-search';
+import { EventService } from '@/lib/services/event.service';
+import { ClubService } from '@/lib/services/club.service';
+import { useToast } from '@/hooks/use-toast';
+import type { EventListItem } from '@/lib/services/event.service';
+import type { ClubListItem } from '@/lib/services/club.service';
 
 // Dummy data
 const heroSlides = [
@@ -63,10 +68,18 @@ const HomePage = () => {
     const [startX, setStartX] = useState(0);
     const [dragThreshold] = useState(50);
 
+    // API data state
+    const [venues, setVenues] = useState<ClubListItem[]>([]);
+    const [events, setEvents] = useState<EventListItem[]>([]);
+    const [isLoadingVenues, setIsLoadingVenues] = useState(false);
+    const [isLoadingEvents, setIsLoadingEvents] = useState(false);
+
     // Venue list drag state
     const [isVenueDragging, setIsVenueDragging] = useState(false);
     const [venueStartX, setVenueStartX] = useState(0);
     const [venueStartScrollLeft, setVenueStartScrollLeft] = useState(0);
+
+    const { toast } = useToast();
 
     // Search functionality
     const {
@@ -86,6 +99,102 @@ const HomePage = () => {
 
     // State to track if we're showing search results
     const [showingSearchResults, setShowingSearchResults] = useState(false);
+
+    // Load venues and events on mount
+    useEffect(() => {
+        const loadInitialData = async () => {
+            // Load venues (clubs)
+            setIsLoadingVenues(true);
+            try {
+                const clubResponse = await ClubService.getPublicClubsList({
+                    page: 0,
+                    size: 10,
+                    sortBy: 'name',
+                    sortDirection: 'ASC'
+                });
+
+                if (clubResponse.success && clubResponse.data?.content) {
+                    setVenues(clubResponse.data.content);
+                }
+            } catch (error: any) {
+                console.error('Failed to load clubs:', error);
+                toast({
+                    title: "Failed to load clubs",
+                    description: error.message || "Could not fetch clubs. Using fallback data.",
+                    variant: "destructive",
+                });
+                // Use fallback data on error
+                setVenues(venueFallback.map((v, idx) => ({
+                    id: v.id,
+                    name: v.name,
+                    description: v.name,
+                    location: v.openTime,
+                    isActive: true
+                })));
+            } finally {
+                setIsLoadingVenues(false);
+            }
+
+            // Load events
+            setIsLoadingEvents(true);
+            try {
+                const eventResponse = await EventService.getEventList({
+                    page: 0,
+                    size: 10,
+                    sortBy: 'startDateTime',
+                    sortOrder: 'asc',
+                    status: 'UPCOMING'
+                });
+
+                if (eventResponse.success && eventResponse.data?.content) {
+                    setEvents(eventResponse.data.content);
+                }
+            } catch (error: any) {
+                console.error('Failed to load events:', error);
+                toast({
+                    title: "Failed to load events",
+                    description: error.message || "Could not fetch events. Using fallback data.",
+                    variant: "destructive",
+                });
+                // Use fallback data on error
+                setEvents(eventFallback.map((e) => ({
+                    id: e.id,
+                    title: e.title,
+                    shortDescription: e.category,
+                    imageUrl: e.image,
+                    location: e.venue,
+                    startDateTime: e.startDateTime,
+                    endDateTime: e.startDateTime,
+                    formattedDate: new Date(e.startDateTime).toLocaleDateString(),
+                    formattedTime: new Date(e.startDateTime).toLocaleTimeString(),
+                    timeUntilEvent: '',
+                    duration: '',
+                    attendeeCount: 0,
+                    maxAttendees: 100,
+                    isRegistered: false,
+                    canRegister: true,
+                    isFull: false,
+                    clubId: '',
+                    clubName: e.venue.split(',')[0],
+                    clubLogo: '',
+                    organizerName: '',
+                    status: 'UPCOMING' as const,
+                    isPublic: true,
+                    requiresApproval: false,
+                    attendeeStatus: '',
+                    eventStatusText: '',
+                    pastEvent: false,
+                    upcoming: true,
+                    ongoing: false,
+                    capacityPercentage: 0
+                })));
+            } finally {
+                setIsLoadingEvents(false);
+            }
+        };
+
+        loadInitialData();
+    }, [toast]);
 
     useEffect(() => {
         const interval = setInterval(() => {

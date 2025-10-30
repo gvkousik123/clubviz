@@ -55,12 +55,8 @@ export default function EmailLoginScreen() {
         } catch (err: any) {
             console.error("Login error:", err);
 
-            // Extract error message from response
-            const errorMessage =
-                err.response?.data?.message ||
-                err.response?.data?.error ||
-                err.message ||
-                'Login failed. Please check your credentials.';
+            // Extract error message - now errors are properly formatted from service
+            const errorMessage = err.message || 'Login failed. Please check your credentials.';
 
             setError(errorMessage);
 

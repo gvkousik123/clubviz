@@ -64,7 +64,8 @@ export class AuthService {
         message: 'Login successful'
       };
     } catch (error: any) {
-      throw error;
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
     }
   }
 
@@ -89,7 +90,8 @@ export class AuthService {
         message: data?.message || 'User registered successfully!'
       };
     } catch (error: any) {
-      throw error;
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
     }
   }
 
@@ -113,7 +115,8 @@ export class AuthService {
         message: 'Token refreshed successfully'
       };
     } catch (error: any) {
-      throw error;
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
     }
   }
 
@@ -137,7 +140,8 @@ export class AuthService {
     } catch (error: any) {
       // Clear session even if API call fails
       clearAuthSession();
-      throw error;
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
     }
   }
 
@@ -156,7 +160,8 @@ export class AuthService {
         message: 'Roles fetched successfully'
       };
     } catch (error: any) {
-      throw error;
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
     }
   }
 
@@ -175,7 +180,8 @@ export class AuthService {
         message: 'Sessions fetched successfully'
       };
     } catch (error: any) {
-      throw error;
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
     }
   }
 
