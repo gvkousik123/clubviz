@@ -1,10 +1,11 @@
 ﻿'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bookmark, Share2 } from 'lucide-react';
+import { Bookmark, Loader2, Share2 } from 'lucide-react';
 import PageHeader from '@/components/common/page-header';
 import { toast } from '@/hooks/use-toast';
+import { EventService } from '@/lib/services/event.service';
 
 // Dummy favorite events data for display
 const favoriteEventsData = [
@@ -36,6 +37,29 @@ const favoriteEventsData = [
 
 export default function FavoriteEventsPage() {
     const router = useRouter();
+    const [favoriteEvents, setFavoriteEvents] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Load favorite events from API
+        const loadFavoriteEvents = async () => {
+            try {
+                const response = await EventService.getFavoriteEvents();
+                if (response.success && response.data) {
+                    setFavoriteEvents(response.data);
+                } else {
+                    setFavoriteEvents([]);
+                }
+            } catch (error) {
+                console.error('Error loading favorite events:', error);
+                setFavoriteEvents([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadFavoriteEvents();
+    }, []);
 
     const handleShare = (eventId: string) => {
         // Handle share functionality

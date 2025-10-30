@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { X } from 'lucide-react';
+import { X, User } from 'lucide-react';
+import { useProfile } from '@/hooks/use-profile';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -10,6 +11,13 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+    const { profile, currentUser } = useProfile();
+
+    // Use real user data or fallback
+    const displayName = profile?.fullName || currentUser?.fullName || 'User';
+    const displayLocation = 'NAGPUR'; // Default location
+    const profilePicture = profile?.profilePicture || currentUser?.profilePicture;
+
     return (
         <>
             {/* Backdrop */}
@@ -43,21 +51,25 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     {/* Profile Picture with Border */}
                     <div className="relative mb-6">
                         <div className="w-[120px] h-[120px] rounded-full border-2 border-[#14FFEC] flex items-center justify-center mb-4">
-                            <img
-                                src="/profile/teddy-dp.png"
-                                alt="Profile"
-                                className="w-[110px] h-[110px] rounded-full object-cover"
-                            />
+                            {profilePicture ? (
+                                <img
+                                    src={profilePicture}
+                                    alt="Profile"
+                                    className="w-[110px] h-[110px] rounded-full object-cover"
+                                />
+                            ) : (
+                                <User className="w-12 h-12 text-gray-400" />
+                            )}
                         </div>
                     </div>
 
                     {/* User Info */}
                     <div className="text-center mb-12">
-                        <h2 className="text-white text-lg font-['Manrope'] font-semibold leading-tight tracking-wide mb-2">
-                            DAVID SIMON
+                        <h2 className="text-white text-lg font-['Manrope'] font-semibold leading-tight tracking-wide mb-2 truncate px-2">
+                            {displayName.toUpperCase()}
                         </h2>
                         <p className="text-white text-sm font-['Manrope'] font-normal leading-tight tracking-wide">
-                            NAGPUR
+                            {displayLocation}
                         </p>
                     </div>
 

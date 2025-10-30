@@ -1,8 +1,8 @@
 ﻿'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bookmark } from 'lucide-react';
+import { Bookmark, Loader2 } from 'lucide-react';
 import PageHeader from '@/components/common/page-header';
 import { toast } from '@/hooks/use-toast';
 
@@ -40,6 +40,25 @@ const favoriteClubsData = [
 
 export default function FavoriteClubsPage() {
     const router = useRouter();
+    const [favoriteClubs, setFavoriteClubs] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // For now, show empty state as requested
+        // TODO: Implement API call when favorite clubs API is available
+        // const loadFavoriteClubs = async () => {
+        //     try {
+        //         const response = await ClubService.getFavoriteClubs();
+        //         setFavoriteClubs(response.data);
+        //     } catch (error) {
+        //         console.error('Error loading favorite clubs:', error);
+        //     }
+        // };
+        // loadFavoriteClubs();
+
+        setLoading(false);
+        setFavoriteClubs([]); // Show empty for now
+    }, []);
 
     const handleBookmark = (clubId: string) => {
         toast({
@@ -53,7 +72,17 @@ export default function FavoriteClubsPage() {
 
             {/* Club Cards */}
             <div className="px-6 space-y-4 pt-[20vh]">
-                {favoriteClubsData.map((club) => (
+                {loading ? (
+                    <div className="flex items-center justify-center py-12">
+                        <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+                    </div>
+                ) : favoriteClubs.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <Bookmark className="w-12 h-12 text-gray-400 mb-4" />
+                        <h3 className="text-white text-lg font-semibold mb-2">No Favorite Clubs</h3>
+                        <p className="text-gray-400 text-sm">Start adding clubs to your favorites to see them here.</p>
+                    </div>
+                ) : favoriteClubs.map((club) => (
                     <div key={club.id} className="w-full">
                         {/* Main club card structure */}
                         <div className="relative">

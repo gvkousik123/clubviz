@@ -265,22 +265,24 @@ export default function EventsListPage() {
             });
 
             if (response.success && response.data?.content) {
-                // Convert API response to Event[] format
+                // Convert API response to Event[] format with proper mapping
                 const apiEvents: Event[] = response.data.content.map((event, index) => ({
                     id: event.id,
-                    title: event.title,
+                    title: event.title.length > 25 ? event.title.substring(0, 25) + '...' : event.title,
                     description: event.shortDescription || '',
                     clubId: event.clubId || '',
-                    coverImage: event.imageUrl || getEventFallbackImage(index),
-                    imageUrl: event.imageUrl || getEventFallbackImage(index),
-                    images: [event.imageUrl || getEventFallbackImage(index)],
-                    location: event.location,
+                    coverImage: getEventFallbackImage(index), // Always use static images
+                    imageUrl: getEventFallbackImage(index), // Always use static images
+                    images: [getEventFallbackImage(index)], // Always use static images
+                    location: event.location && event.location.length > 20 ?
+                        event.location.substring(0, 20) + '...' :
+                        (event.location || event.clubName || ''),
                     startDateTime: event.startDateTime,
                     endDateTime: event.endDateTime,
                     isPublic: event.isPublic,
                     requiresApproval: event.requiresApproval,
-                    createdAt: event.formattedDate,
-                    updatedAt: event.formattedDate,
+                    createdAt: event.formattedDate || new Date().toISOString(),
+                    updatedAt: event.formattedDate || new Date().toISOString(),
                 }));
                 setEvents(apiEvents);
             } else {

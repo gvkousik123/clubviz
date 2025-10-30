@@ -114,7 +114,27 @@ const HomePage = () => {
                 });
 
                 if (clubResponse.success && clubResponse.data?.content) {
-                    setVenues(clubResponse.data.content);
+                    // Map API clubs with proper length limits and static images
+                    const mappedClubs = clubResponse.data.content.map((club, index) => ({
+                        id: club.id || '',
+                        name: club.name ? (club.name.length > 20 ? club.name.substring(0, 20) + '...' : club.name) : '',
+                        description: club.description ? (club.description.length > 50 ? club.description.substring(0, 50) + '...' : club.description) : '',
+                        location: club.location ? (club.location.length > 30 ? club.location.substring(0, 30) + '...' : club.location) : '',
+                        imageUrl: venueFallback[index % venueFallback.length]?.image || '/dabo ambience main dabo page/Rectangle 5.jpg',
+                        isActive: club.isActive !== undefined ? club.isActive : true,
+                        logo: club.logo || '',
+                        category: club.category || 'NIGHTCLUB',
+                        memberCount: club.memberCount || 0,
+                        maxMembers: club.maxMembers || 200,
+                        isJoined: club.isJoined || false,
+                        isFull: club.isFull || false,
+                        ownerName: club.ownerName || '',
+                        createdAt: club.createdAt || '',
+                        capacityPercentage: club.capacityPercentage || 0,
+                        memberStatus: club.memberStatus || '',
+                        shortDescription: club.shortDescription || club.description || ''
+                    }));
+                    setVenues(mappedClubs);
                 }
             } catch (error: any) {
                 console.error('Failed to load clubs:', error);
@@ -123,13 +143,25 @@ const HomePage = () => {
                     description: error.message || "Could not fetch clubs. Using fallback data.",
                     variant: "destructive",
                 });
-                // Use fallback data on error
+                // Use fallback data on error with proper length limits
                 setVenues(venueFallback.map((v, idx) => ({
                     id: v.id,
-                    name: v.name,
-                    description: v.name,
-                    location: v.openTime,
-                    isActive: true
+                    name: v.name.length > 20 ? v.name.substring(0, 20) + '...' : v.name,
+                    description: v.name.length > 50 ? v.name.substring(0, 50) + '...' : v.name,
+                    location: v.openTime.length > 30 ? v.openTime.substring(0, 30) + '...' : v.openTime,
+                    imageUrl: v.image,
+                    isActive: true,
+                    logo: '',
+                    category: 'NIGHTCLUB',
+                    memberCount: 50,
+                    maxMembers: 200,
+                    isJoined: false,
+                    isFull: false,
+                    ownerName: 'Club Owner',
+                    createdAt: new Date().toISOString(),
+                    capacityPercentage: 25,
+                    memberStatus: 'NONE',
+                    shortDescription: v.name
                 })));
             } finally {
                 setIsLoadingVenues(false);
@@ -147,7 +179,41 @@ const HomePage = () => {
                 });
 
                 if (eventResponse.success && eventResponse.data?.content) {
-                    setEvents(eventResponse.data.content);
+                    // Map API events with proper length limits and static images
+                    const mappedEvents = eventResponse.data.content.map((event: any, index: number) => ({
+                        id: event.id,
+                        title: event.title.length > 20 ? event.title.substring(0, 20) + '...' : event.title,
+                        shortDescription: event.shortDescription || event.clubName || '',
+                        imageUrl: eventFallback[index % eventFallback.length]?.image || '/event list/Rectangle 1.jpg',
+                        location: event.location && event.location.length > 25 ?
+                            event.location.substring(0, 25) + '...' :
+                            (event.location || event.clubName || ''),
+                        startDateTime: event.startDateTime,
+                        endDateTime: event.endDateTime,
+                        formattedDate: event.formattedDate,
+                        formattedTime: event.formattedTime,
+                        timeUntilEvent: event.timeUntilEvent || '',
+                        duration: event.duration || '',
+                        attendeeCount: event.attendeeCount || 0,
+                        maxAttendees: event.maxAttendees || 100,
+                        isRegistered: event.isRegistered || false,
+                        canRegister: event.canRegister || true,
+                        isFull: event.isFull || false,
+                        clubId: event.clubId || '',
+                        clubName: event.clubName ? (event.clubName.length > 15 ? event.clubName.substring(0, 15) + '...' : event.clubName) : '',
+                        clubLogo: event.clubLogo || '',
+                        organizerName: event.organizerName || '',
+                        status: event.status || 'UPCOMING' as const,
+                        isPublic: event.isPublic !== undefined ? event.isPublic : true,
+                        requiresApproval: event.requiresApproval || false,
+                        attendeeStatus: event.attendeeStatus || '',
+                        eventStatusText: event.eventStatusText || '',
+                        pastEvent: event.pastEvent || false,
+                        upcoming: event.upcoming !== undefined ? event.upcoming : true,
+                        ongoing: event.ongoing || false,
+                        capacityPercentage: event.capacityPercentage || 0
+                    }));
+                    setEvents(mappedEvents);
                 }
             } catch (error: any) {
                 console.error('Failed to load events:', error);
@@ -159,10 +225,10 @@ const HomePage = () => {
                 // Use fallback data on error
                 setEvents(eventFallback.map((e) => ({
                     id: e.id,
-                    title: e.title,
+                    title: e.title.length > 20 ? e.title.substring(0, 20) + '...' : e.title,
                     shortDescription: e.category,
                     imageUrl: e.image,
-                    location: e.venue,
+                    location: e.venue.length > 25 ? e.venue.substring(0, 25) + '...' : e.venue,
                     startDateTime: e.startDateTime,
                     endDateTime: e.startDateTime,
                     formattedDate: new Date(e.startDateTime).toLocaleDateString(),
@@ -175,7 +241,7 @@ const HomePage = () => {
                     canRegister: true,
                     isFull: false,
                     clubId: '',
-                    clubName: e.venue.split(',')[0],
+                    clubName: e.venue.split(',')[0].length > 15 ? e.venue.split(',')[0].substring(0, 15) + '...' : e.venue.split(',')[0],
                     clubLogo: '',
                     organizerName: '',
                     status: 'UPCOMING' as const,

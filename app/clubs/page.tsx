@@ -205,14 +205,16 @@ export default function ClubsListPage() {
             });
 
             if (response.success && response.data?.content) {
-                // Convert API response to Club[] format
+                // Convert API response to Club[] format with proper mapping
                 const apiClubs: Club[] = response.data.content.map((club, index) => ({
                     id: club.id,
-                    name: club.name || '',
+                    name: (club.name || '').length > 15 ? (club.name || '').substring(0, 15) + '...' : (club.name || ''),
                     openTime: 'Open until 1:30 am', // Default since API doesn't provide this
                     rating: 4.2, // Default rating
-                    image: getClubFallbackImage(index),
-                    address: club.location || club.description || '',
+                    image: getClubFallbackImage(index), // Always use static images
+                    address: club.description ?
+                        (club.description.length > 30 ? club.description.substring(0, 30) + '...' : club.description) :
+                        (club.location || ''),
                     category: club.category || 'Club'
                 }));
                 setClubs(apiClubs);
