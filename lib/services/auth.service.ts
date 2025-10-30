@@ -94,7 +94,6 @@ export class AuthService {
   }
 
   // --------------------------------------------------------------------------
-  // 3. REFRESH TOKEN
   // Endpoint: POST /auth/refresh
   // --------------------------------------------------------------------------
   static async refreshToken(refreshToken: string): Promise<any> {
