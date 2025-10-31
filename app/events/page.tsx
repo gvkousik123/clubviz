@@ -6,97 +6,11 @@ import Link from 'next/link';
 import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Loader2 } from 'lucide-react';
 import type { Event } from '@/lib/api-types';
 import { useToast } from '@/hooks/use-toast';
-import { EventCard } from '@/components/events/event-card';
-import { EventListCard } from '@/components/events/event-list-card';
 
 import { useSearch } from '@/hooks/use-search';
 import { useEventList } from '@/hooks/use-event-list';
 import { EventService } from '@/lib/services/event.service';
 
-
-// Dummy events used for local development (no API calls)
-const DUMMY_EVENTS: Event[] = [
-    {
-        id: 'evt-1',
-        title: 'Boiler Room: Sunset Sessions',
-        description: 'An intimate DJ session with ambient beats to close out the week.',
-        clubId: 'club-1',
-        coverImage: '/event page going people/cover1.jpg',
-        imageUrl: '/event list/Rectangle 1.jpg',
-        images: ['/event list/Rectangle 1.jpg'],
-        location: 'Boiler Room, Downtown',
-        startDateTime: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
-        endDateTime: new Date(Date.now() + 1000 * 60 * 60 * 26).toISOString(),
-        isPublic: true,
-        requiresApproval: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    },
-    {
-        id: 'evt-2',
-        title: 'Tipsy Tuesday: Havana Nights',
-        description: 'Salsa, cocktails and a lively crowd. Dress code: Tropical Chic.',
-        clubId: 'club-2',
-        coverImage: '/event page going people/cover2.jpg',
-        imageUrl: '/event list/Rectangle 2.jpg',
-        images: ['/event list/Rectangle 2.jpg'],
-        location: 'Tipsy Tuesday Club',
-        startDateTime: new Date(Date.now() + 1000 * 60 * 60 * 48).toISOString(),
-        endDateTime: new Date(Date.now() + 1000 * 60 * 60 * 50).toISOString(),
-        isPublic: true,
-        requiresApproval: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    },
-    {
-        id: 'evt-3',
-        title: 'Dabo Live: House Takeover',
-        description: 'Big room house bangers with Dabo on the console.',
-        clubId: 'club-3',
-        coverImage: '/event page going people/cover3.jpg',
-        imageUrl: '/event list/Rectangle 3.jpg',
-        images: ['/event list/Rectangle 3.jpg'],
-        location: 'Dabo Club',
-        startDateTime: new Date(Date.now() + 1000 * 60 * 60 * 72).toISOString(),
-        endDateTime: new Date(Date.now() + 1000 * 60 * 60 * 75).toISOString(),
-        isPublic: true,
-        requiresApproval: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    },
-    {
-        id: 'evt-4',
-        title: 'Open Mic Night',
-        description: 'Local artists and up-and-coming talent. Free entry before 9pm.',
-        clubId: 'club-4',
-        coverImage: '/event page going people/cover4.jpg',
-        imageUrl: '/event list/Rectangle 4.jpg',
-        images: ['/event list/Rectangle 4.jpg'],
-        location: 'Raasta Stage',
-        startDateTime: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-        endDateTime: new Date(Date.now() - 1000 * 60 * 60 * 22).toISOString(),
-        isPublic: true,
-        requiresApproval: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    },
-    {
-        id: 'evt-5',
-        title: 'Gallery Night: Visual Vibes',
-        description: 'An evening of arts, installations and curated music.',
-        clubId: 'club-5',
-        coverImage: '/event page going people/cover5.jpg',
-        imageUrl: '/event list/Rectangle 5.jpg',
-        images: ['/event list/Rectangle 5.jpg'],
-        location: 'ArtSpace',
-        startDateTime: new Date(Date.now() + 1000 * 60 * 60 * 6).toISOString(),
-        endDateTime: new Date(Date.now() + 1000 * 60 * 60 * 9).toISOString(),
-        isPublic: true,
-        requiresApproval: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    }
-];
 
 export default function EventsListPage() {
     const router = useRouter();
@@ -265,16 +179,14 @@ export default function EventsListPage() {
                 }));
                 setEvents(apiEvents);
             } else {
-                // Fallback to dummy data if API fails
-                setEvents(DUMMY_EVENTS);
+                setEvents([]);
                 if (response.message) {
                     console.warn('API returned message:', response.message);
                 }
             }
         } catch (err: any) {
             console.error('Error loading events:', err);
-            // Use dummy data as fallback
-            setEvents(DUMMY_EVENTS);
+            setEvents([]);
             setError(err.message || 'Failed to load events');
             toast({
                 title: 'Using cached data',
@@ -448,65 +360,99 @@ export default function EventsListPage() {
                 )}
 
                 {/* Main Content */}
-                <div className="w-full px-5 space-y-8 pt-[18vh]">
-                    {/* All Events Section */}
+                <div className="w-full space-y-8 pt-[18vh]">
+                    {/* This Week Events */}
                     <section className="w-full">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-white text-base font-semibold">All Events</h2>
+                        <div className="flex items-center justify-between mb-6 px-5">
+                            <h2 className="text-white text-base font-semibold">This Week</h2>
                         </div>
-                        <div className="w-full flex flex-col items-center pb-6">
+                        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
                             {loading ? (
                                 <div className="flex items-center justify-center w-full py-8">
                                     <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
                                 </div>
                             ) : events.length === 0 ? (
-                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full">
-                                    No events available right now. Check back soon!
+                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full mr-5">
+                                    No events available this week. Check back soon!
                                 </div>
                             ) : (
-                                <div className="space-y-5 pb-6 w-full">
-                                    {events.map((event, index) => (
-                                        <EventCard
-                                            key={`all-${event.id ?? index}`}
-                                            event={event}
-                                            href="/event/timeless-tuesday"
-                                            fallbackImage={getEventFallbackImage(index)}
-                                            formattedDate={formatEventDate(event.startDateTime)}
-                                            isFavorite={favorites.includes(event.id)}
-                                            onToggleFavorite={toggleFavorite}
-                                            className="w-full"
-                                        />
-                                    ))}
-                                </div>
+                                events.map((event, index) => {
+                                    const eventDate = new Date(event.startDateTime);
+                                    const monthShort = eventDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+                                    const day = eventDate.getDate().toString().padStart(2, '0');
+                                    const fallbackImage = getEventFallbackImage(index);
+
+                                    return (
+                                        <div key={event.id} className="w-[222px] h-[305px] flex-shrink-0 relative rounded-[20px] overflow-hidden" style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}>
+                                            {/* Image */}
+                                            <div className="relative">
+                                                <img
+                                                    src={fallbackImage}
+                                                    alt={event.title}
+                                                    className="w-full h-[180px] object-cover"
+                                                    style={{
+                                                        borderWidth: '1.5px',
+                                                        borderStyle: 'solid',
+                                                        borderColor: '#28D2DB',
+                                                        borderBottomRightRadius: '0',
+                                                        borderTopLeftRadius: '20px',
+                                                        borderTopRightRadius: '20px',
+                                                        borderBottomLeftRadius: '20px',
+                                                    }}
+                                                />
+                                            </div>
+
+                                            {/* Date Badge */}
+                                            <div className="absolute right-4 top-0 w-[36px] h-[45px] px-[2px] py-[10px] bg-gradient-to-b from-black to-[#00C0CA] rounded-b-[28px] border-l border-r border-b border-[#CDCDCD] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex flex-col justify-center items-center">
+                                                <div className="w-[31px] text-center text-white text-[14px] font-semibold font-['Manrope'] leading-4">{monthShort}<br />{day}</div>
+                                            </div>
+
+                                            {/* Content */}
+                                            <div className="absolute left-[18px] right-[18px] top-[188px] flex items-center justify-between">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-white text-[13px] font-bold font-['Manrope'] leading-[18px] mb-1 truncate">
+                                                        {event.title}
+                                                    </div>
+                                                    <div className="text-[#C6C6C6] text-[11px] font-semibold font-['Manrope'] leading-[15px] tracking-[0.01em] truncate">
+                                                        {event.location}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        toggleFavorite(event.id);
+                                                    }}
+                                                    className="w-[34px] h-[34px] p-[5px] bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] flex justify-center items-center"
+                                                >
+                                                    <svg className="w-5 h-5 text-[#14FFEC]" fill={favorites.includes(event.id) ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            <div className="absolute left-[18px] right-[18px] top-[249px]">
+                                                <div className="w-full h-px bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
+                                            </div>
+
+                                            <div className="absolute left-[18px] right-[18px] top-[262px] text-white text-[11px] font-bold font-['Manrope'] leading-[15px] tracking-[0.01em] truncate">
+                                                {event.description || formatEventDate(event.startDateTime).day + ' ' + formatEventDate(event.startDateTime).month}
+                                            </div>
+                                        </div>
+                                    );
+                                })
                             )}
                         </div>
                     </section>
-                    {/* All Events Section */}
+
+                    {/* Today Events */}
                     <section className="w-full">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-white text-base font-semibold">All Events</h2>
+                        <div className="flex items-center justify-between mb-6 px-5">
+                            <h2 className="text-white text-base font-semibold">Today</h2>
                         </div>
-                        <div className="w-full flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
-                            {events.length === 0 ? (
-                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full">
-                                    We couldn’t find any events right now. Check back soon!
-                                </div>
-                            ) : (
-                                <div className="space-y-5 pb-6 w-full">
-                                    {events.map((event, index) => (
-                                        <EventCard
-                                            key={`all-${event.id ?? index}`}
-                                            event={event}
-                                            href={`/event/${event.title.toLowerCase().replace(/\s+/g, '-')}`}
-                                            fallbackImage={getEventFallbackImage(index)}
-                                            formattedDate={formatEventDate(event.startDateTime)}
-                                            isFavorite={favorites.includes(event.id)}
-                                            onToggleFavorite={toggleFavorite}
-                                            className="w-full"
-                                        />
-                                    ))}
-                                </div>
-                            )}
+                        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
+                            <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full mr-5">
+                                No events scheduled for today
+                            </div>
                         </div>
                     </section>
                 </div>

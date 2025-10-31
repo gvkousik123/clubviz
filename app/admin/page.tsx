@@ -61,9 +61,6 @@ export default function AdminDashboard() {
     // Use profile hook for admin profile data
     const {
         currentUser,
-        allProfiles,
-        loadAllProfiles,
-        isAllProfilesLoading,
         isAdmin,
         isSuperAdmin,
     } = useProfile();
@@ -74,15 +71,33 @@ export default function AdminDashboard() {
     const { eventList, loadEventList, isLoadingList: isLoadingEvents } = useEventList();
     const { clubs: clubsData, loadClubs, loading: isLoadingClubs } = useClubList();
 
-    // Load admin data on mount
+    // Load admin data on mount - ONLY ONCE
     useEffect(() => {
-        if (isAdmin() || isSuperAdmin()) {
-            loadAllProfiles();
-            loadEventList();
-            loadClubs();
-            clubCrud.refreshData();
-        }
-    }, [loadAllProfiles, isAdmin, isSuperAdmin, loadEventList, loadClubs, clubCrud]);
+        let isMounted = true;
+
+        const loadAdminData = async () => {
+            if (!isMounted) return;
+
+            try {
+                // Load events for this admin
+                await loadEventList();
+
+                // Load clubs for this admin
+                await loadClubs();
+
+                // Load admin-specific club data
+                await clubCrud.refreshData();
+            } catch (error) {
+                console.error('Error loading admin data:', error);
+            }
+        };
+
+        loadAdminData();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []); // Empty dependency array - only run once on mount
 
     // Mock data based on the screenshot - updated to match exact values from the screenshot
     const clubData = {
