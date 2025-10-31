@@ -17,10 +17,10 @@ export default function IntroScreen() {
     const [isDragging, setIsDragging] = useState(false);
     const [dragStartY, setDragStartY] = useState(0);
 
-    // Auto-redirect to email login after 3 seconds
+    // Auto-redirect to mobile verification after 3 seconds
     useEffect(() => {
         const t = setTimeout(() => {
-            router.push('/auth/login');
+            router.push('/auth/mobile');
         }, 3000);
 
         return () => clearTimeout(t);
@@ -35,9 +35,9 @@ export default function IntroScreen() {
         if (!isDragging) return;
 
         const dragDistance = dragStartY - e.clientY;
-        // If user drags up by at least 30px, navigate to login
+        // If user drags up by at least 30px, navigate to mobile verification
         if (dragDistance > 30) {
-            router.push('/auth/login');
+            router.push('/auth/mobile');
             setIsDragging(false);
         }
     };
@@ -54,8 +54,8 @@ export default function IntroScreen() {
         router.push("/auth/mobile");
     };
 
-    const handleEmailLogin = () => {
-        router.push("/auth/login");
+    const handleMobileVerification = () => {
+        router.push("/auth/mobile");
     };
 
     const handleGoogleLogin = () => {
@@ -110,7 +110,7 @@ export default function IntroScreen() {
                         <div
                             ref={arrowRef}
                             className="absolute left-1/2 top-[2%] -translate-x-1/2 flex h-8 w-8 items-center justify-center cursor-pointer hover:scale-110 transition-transform duration-200 select-none"
-                            onClick={handleEmailLogin}
+                            onClick={handleMobileVerification}
                             onMouseDown={handleMouseDown}
                             onMouseMove={handleMouseMove}
                             onMouseUp={handleMouseUp}

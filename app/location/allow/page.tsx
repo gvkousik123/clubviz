@@ -65,7 +65,7 @@ export default function LocationAllowPage() {
                 {/* Back Button - styled like mobile screens */}
                 <div className="p-4 pt-6">
                     <Link
-                        href="/auth/login"
+                        href="/auth/details"
                         className="w-10 h-10 flex items-center justify-center rounded-full border border-teal-400/30 text-teal-300 hover:bg-teal-500/10 transition-colors"
                     >
                         <ArrowLeft className="w-5 h-5" />

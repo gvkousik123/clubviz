@@ -203,9 +203,39 @@ export function useAdminClubs(): UseAdminClubsState & UseAdminClubsActions {
     }
   }, [showErrorToast]);
 
-  // Refresh data
+  // Refresh data - Use admin-specific endpoint
   const refreshData = useCallback(async (): Promise<void> => {
-    await loadClubs();
+    setIsLoadingList(true);
+    setError(null);
+    
+    try {
+      // Use admin-specific endpoint to get clubs owned/managed by this admin
+      const response = await ClubService.getAllClubsAdmin();
+      
+      if (response.success && response.data) {
+        // Convert AdminClubFull[] to ClubListResponse format
+        setClubs({
+          content: response.data as any,
+          totalElements: response.data.length,
+          totalPages: 1,
+          currentPage: 0,
+          size: response.data.length,
+          first: true,
+          last: true,
+          hasNext: false,
+          hasPrevious: false,
+        });
+      } else {
+        // If admin endpoint fails, fallback to regular paginated endpoint
+        await loadClubs();
+      }
+    } catch (error) {
+      console.error('Failed to load admin clubs:', error);
+      // Fallback to regular endpoint
+      await loadClubs();
+    } finally {
+      setIsLoadingList(false);
+    }
   }, [loadClubs]);
 
   // Clear error

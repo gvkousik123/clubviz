@@ -91,9 +91,9 @@ export default function OTPVerificationScreen() {
             description: "Welcome to ClubViz!",
         });
 
-        // Navigate to location allow page after a short delay
+        // Navigate to user details page after a short delay
         setTimeout(() => {
-            router.push('/location/allow');
+            router.push('/auth/details');
             setIsLoading(false);
         }, 800);
     };
@@ -144,7 +144,7 @@ export default function OTPVerificationScreen() {
                     </Link>
 
                     <Link
-                        href="/auth/login"
+                        href="/auth/details"
                         className="px-4 py-1.5 rounded-full border border-teal-400/30 text-sm text-teal-300 hover:bg-teal-500/10 transition"
                     >
                         Skip
