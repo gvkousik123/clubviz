@@ -391,29 +391,16 @@ const HomePage = () => {
                 <header className="fixed top-0 left-0 w-full max-w-[430px] mx-auto h-[16vh] bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-6 pt-4 z-50 flex flex-col justify-between">
                     {/* Location and Profile */}
                     <div className="flex items-center justify-between">
-                        <button
-                            onClick={async () => {
-                                try {
-                                    await searchNearby();
-                                    setShowingSearchResults(true);
-                                    setSearchQuery('');
-                                } catch (error) {
-                                    console.error('Nearby search failed:', error);
-                                }
-                            }}
-                            disabled={isLoadingNearby}
-                            className="flex items-center gap-2 hover:bg-white/10 rounded-lg px-2 py-1 transition-colors disabled:opacity-50"
+                        <Link
+                            href="/location/select"
+                            className="flex items-center gap-2 hover:bg-white/10 rounded-lg px-2 py-1 transition-colors"
                         >
-                            {isLoadingNearby ? (
-                                <Loader2 className="w-6 h-6 text-[#14FFEC] animate-spin" />
-                            ) : (
-                                <MapPin className="w-6 h-6 text-[#14FFEC]" />
-                            )}
+                            <MapPin className="w-6 h-6 text-[#14FFEC]" />
                             <div className="text-white text-base font-bold tracking-wide">
-                                {currentLocation?.label || currentLocation?.city || 'Dharampeth'}
+                                {currentLocation?.label || currentLocation?.city || 'Current Location'}
                             </div>
                             <ChevronDown className="w-3 h-3 text-white" />
-                        </button>
+                        </Link>
                         <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                             <User className="w-5 h-5 text-white" />
                         </div>
@@ -471,9 +458,9 @@ const HomePage = () => {
                     {/* Search Results or Normal Content */}
                     {showingSearchResults ? (
                         /* Search Results Section */
-                        <section className="px-5 space-y-6">
+                        <section className="px-5 space-y-6 pt-[18vh]">
                             <div className="flex items-center justify-between">
-                                <h2 className="text-white text-lg font-bold">Search Results</h2>
+                                <h2 className="text-white text-lg font-bold">Search Results for "{searchQuery}"</h2>
                                 <button
                                     onClick={handleClearSearch}
                                     className="text-[#14FFEC] text-sm font-medium hover:underline"
@@ -482,27 +469,53 @@ const HomePage = () => {
                                 </button>
                             </div>
 
+                            {/* Loading State */}
+                            {isSearching && (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+                                    <span className="ml-3 text-white">Searching...</span>
+                                </div>
+                            )}
+
                             {/* Search Results - Events */}
                             {searchEvents.length > 0 && (
                                 <div className="space-y-4">
                                     <h3 className="text-white text-base font-semibold">Events</h3>
-                                    <div className="space-y-3">
-                                        {searchEvents.map((event, index) => (
-                                            <div key={event.id} className="bg-[#1a1a1a] rounded-xl p-4 flex gap-3">
-                                                <img
-                                                    src={event.imageUrl && isValidImageUrl(event.imageUrl) ? event.imageUrl : getEventFallbackImage(index)}
-                                                    alt={event.title}
-                                                    className="w-16 h-16 rounded-lg object-cover"
-                                                />
-                                                <div className="flex-1">
-                                                    <h4 className="text-white font-semibold text-sm mb-1">{event.title}</h4>
-                                                    <p className="text-gray-400 text-xs mb-2">{event.club?.name || event.location}</p>
-                                                    <p className="text-[#14FFEC] text-xs">
-                                                        {new Date(event.startDateTime).toLocaleDateString()}
-                                                    </p>
+                                    <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                                        {searchEvents.slice(0, 5).map((event, index) => {
+                                            const eventDate = new Date(event.startDateTime);
+                                            const monthShort = eventDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+                                            const day = eventDate.getDate().toString().padStart(2, '0');
+                                            const fallbackImage = getEventFallbackImage(index);
+
+                                            return (
+                                                <div key={event.id} className="w-[222px] h-[305px] flex-shrink-0 relative rounded-[20px] overflow-hidden" style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}>
+                                                    {/* Image */}
+                                                    <div className="relative">
+                                                        <img
+                                                            src={event.imageUrl && isValidImageUrl(event.imageUrl) ? event.imageUrl : fallbackImage}
+                                                            alt={event.title}
+                                                            className="w-full h-[160px] object-cover"
+                                                        />
+                                                        {/* Date Badge */}
+                                                        <div className="absolute top-4 left-4 bg-[#14FFEC] rounded-lg px-2 py-1 min-w-[40px] text-center">
+                                                            <div className="text-black text-xs font-bold">{monthShort}</div>
+                                                            <div className="text-black text-lg font-bold leading-none">{day}</div>
+                                                        </div>
+                                                    </div>
+                                                    {/* Content */}
+                                                    <div className="p-4 h-[145px] flex flex-col justify-between">
+                                                        <div>
+                                                            <h3 className="text-white font-bold text-sm mb-2 line-clamp-2">{event.title}</h3>
+                                                            <p className="text-gray-300 text-xs mb-1">{event.club?.name || event.location}</p>
+                                                        </div>
+                                                        <div className="flex justify-between items-center mt-auto">
+                                                            <span className="text-[#14FFEC] text-xs">View Details</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
@@ -511,22 +524,47 @@ const HomePage = () => {
                             {searchClubs.length > 0 && (
                                 <div className="space-y-4">
                                     <h3 className="text-white text-base font-semibold">Clubs</h3>
-                                    <div className="space-y-3">
-                                        {searchClubs.map((club, index) => {
+                                    <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                                        {searchClubs.slice(0, 5).map((club, index) => {
                                             const imageUrl = club.images?.[0]?.url || club.logoUrl;
+                                            const fallbackImage = getVenueFallbackImage(index);
                                             return (
-                                                <div key={club.id} className="bg-[#1a1a1a] rounded-xl p-4 flex gap-3">
-                                                    <img
-                                                        src={imageUrl && isValidImageUrl(imageUrl) ? imageUrl : getVenueFallbackImage(index)}
-                                                        alt={club.name}
-                                                        className="w-16 h-16 rounded-lg object-cover"
-                                                    />
-                                                    <div className="flex-1">
-                                                        <h4 className="text-white font-semibold text-sm mb-1">{club.name}</h4>
-                                                        <p className="text-gray-400 text-xs mb-2">{club.locationText?.city || club.locationText?.fullAddress || 'Location'}</p>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-yellow-400 text-xs">★ 4.0</span>
-                                                            <span className="text-[#14FFEC] text-xs">{club.category || 'Club'}</span>
+                                                <div key={club.id} className="w-[336px] h-[201px] relative flex-shrink-0 mr-1">
+                                                    {/* Main image container with rounded top */}
+                                                    <div className="w-[336px] h-[169px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[15px] border-[#14FFEC] overflow-hidden">
+                                                        <img
+                                                            src={imageUrl && isValidImageUrl(imageUrl) ? imageUrl : fallbackImage}
+                                                            alt={club.name}
+                                                            className="w-full h-full object-cover absolute inset-0"
+                                                        />
+                                                        {/* White overlay effect */}
+                                                        <div className="w-full h-full absolute inset-0 bg-white/10 mix-blend-overlay"></div>
+                                                        <div className="w-[336px] h-[169px] pl-[281px] pr-4 pt-[17px] pb-[113px] left-0 top-0 absolute justify-end items-center inline-flex bg-gradient-to-b from-black via-black/50 to-black/0 rounded-[10px] overflow-hidden">
+                                                            <div className="w-[39px] self-stretch bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] justify-center items-center inline-flex overflow-hidden">
+                                                                <Bookmark className="w-5 h-5 text-[#14FFEC]" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Glassmorphism bottom section - the translucent gray area */}
+                                                    <div className="w-[320px] h-[85px] left-[8px] top-[125px] absolute bg-[rgba(212.01,212.01,212.01,0.10)] rounded-[15px] border backdrop-blur-[17.50px]"></div>
+
+                                                    {/* Rating badge */}
+                                                    <div className="w-[30px] h-[30px] pl-1 pr-[5px] py-[5px] left-[250px] top-[110px] absolute justify-center items-center inline-flex bg-[#008378] rounded-[17px] overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),inset_0_-1px_2px_rgba(255,255,255,0.1)]">
+                                                        <div className="text-white text-[13px] font-extrabold font-['Manrope'] leading-5 tracking-[0.01em]">
+                                                            4.2
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Text content */}
+                                                    <div className="w-32 h-[50px] left-[33px] top-[144px] absolute justify-start items-center gap-[29px] inline-flex">
+                                                        <div className="w-52 flex-col justify-center items-start gap-2 inline-flex">
+                                                            <div className="self-stretch h-5 text-[#14FFEC] text-xl font-black font-['Manrope'] leading-5 tracking-[0.02em] first-letter:text-2xl first-letter:leading-2">
+                                                                {club.name}
+                                                            </div>
+                                                            <div className="self-stretch h-5 text-white text-[13px] font-semibold font-['Manrope'] leading-5 tracking-[0.01em]">
+                                                                {club.locationText?.city || 'Open now'}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -540,21 +578,51 @@ const HomePage = () => {
                             {balancedResults?.venues && balancedResults.venues.length > 0 && (
                                 <div className="space-y-4">
                                     <h3 className="text-white text-base font-semibold">More Venues</h3>
-                                    <div className="space-y-3">
-                                        {balancedResults.venues.map((venue, index) => (
-                                            <div key={venue.id} className="bg-[#1a1a1a] rounded-xl p-4 flex gap-3">
-                                                <img
-                                                    src={getVenueFallbackImage(index)}
-                                                    alt={venue.name}
-                                                    className="w-16 h-16 rounded-lg object-cover"
-                                                />
-                                                <div className="flex-1">
-                                                    <h4 className="text-white font-semibold text-sm mb-1">{venue.name}</h4>
-                                                    <p className="text-gray-400 text-xs mb-2">{venue.location}</p>
-                                                    <span className="text-[#14FFEC] text-xs">{venue.category}</span>
+                                    <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                                        {balancedResults.venues.slice(0, 5).map((venue, index) => {
+                                            const fallbackImage = getVenueFallbackImage(index);
+                                            return (
+                                                <div key={venue.id} className="w-[336px] h-[201px] relative flex-shrink-0 mr-1">
+                                                    {/* Main image container with rounded top */}
+                                                    <div className="w-[336px] h-[169px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[15px] border-[#14FFEC] overflow-hidden">
+                                                        <img
+                                                            src={fallbackImage}
+                                                            alt={venue.name}
+                                                            className="w-full h-full object-cover absolute inset-0"
+                                                        />
+                                                        {/* White overlay effect */}
+                                                        <div className="w-full h-full absolute inset-0 bg-white/10 mix-blend-overlay"></div>
+                                                        <div className="w-[336px] h-[169px] pl-[281px] pr-4 pt-[17px] pb-[113px] left-0 top-0 absolute justify-end items-center inline-flex bg-gradient-to-b from-black via-black/50 to-black/0 rounded-[10px] overflow-hidden">
+                                                            <div className="w-[39px] self-stretch bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] justify-center items-center inline-flex overflow-hidden">
+                                                                <Bookmark className="w-5 h-5 text-[#14FFEC]" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Glassmorphism bottom section - the translucent gray area */}
+                                                    <div className="w-[320px] h-[85px] left-[8px] top-[125px] absolute bg-[rgba(212.01,212.01,212.01,0.10)] rounded-[15px] border backdrop-blur-[17.50px]"></div>
+
+                                                    {/* Rating badge */}
+                                                    <div className="w-[30px] h-[30px] pl-1 pr-[5px] py-[5px] left-[250px] top-[110px] absolute justify-center items-center inline-flex bg-[#008378] rounded-[17px] overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),inset_0_-1px_2px_rgba(255,255,255,0.1)]">
+                                                        <div className="text-white text-[13px] font-extrabold font-['Manrope'] leading-5 tracking-[0.01em]">
+                                                            4.2
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Text content */}
+                                                    <div className="w-32 h-[50px] left-[33px] top-[144px] absolute justify-start items-center gap-[29px] inline-flex">
+                                                        <div className="w-52 flex-col justify-center items-start gap-2 inline-flex">
+                                                            <div className="self-stretch h-5 text-[#14FFEC] text-xl font-black font-['Manrope'] leading-5 tracking-[0.02em] first-letter:text-2xl first-letter:leading-2">
+                                                                {venue.name}
+                                                            </div>
+                                                            <div className="self-stretch h-5 text-white text-[13px] font-semibold font-['Manrope'] leading-5 tracking-[0.01em]">
+                                                                {venue.location || 'Open now'}
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
@@ -640,20 +708,8 @@ const HomePage = () => {
                                     <h2 className="text-white text-lg font-medium">Vibe Meter</h2>
                                 </div>
                                 <div className="overflow-x-auto scrollbar-hide -mx-5 px-5">
-                                    <div className="flex items-center gap-4 pb-3 min-w-max">
-                                        {vibeMeterFallback.map((user) => (
-                                            <Link key={user.id} href="/story" className="flex flex-col items-center gap-2">
-                                                <div className="w-[72px] h-[72px] relative">
-                                                    <div className="w-[72px] h-[72px] absolute left-0 top-0 rounded-full border-2 border-[#14FFEC]"></div>
-                                                    <img
-                                                        src={user.image}
-                                                        alt={user.name}
-                                                        className="w-[64px] h-[64px] absolute left-[4px] top-[4px] rounded-full border border-white object-cover"
-                                                    />
-                                                </div>
-                                                <span className="text-xs text-white text-center">{user.name}</span>
-                                            </Link>
-                                        ))}
+                                    <div className="flex items-center justify-center py-8">
+                                        <p className="text-gray-400 text-sm">No stories available right now</p>
                                     </div>
                                 </div>
                             </section>
