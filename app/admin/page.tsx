@@ -10,6 +10,8 @@ import { useAdminClubs } from '@/hooks/use-admin-clubs';
 import { useAdminEvents } from '@/hooks/use-admin-events';
 import { useEventList } from '@/hooks/use-event-list';
 import { useClubList } from '@/hooks/use-club-list';
+import { AccessDenied } from '@/components/common/access-denied';
+import { AuthService } from '@/lib/services/auth.service';
 
 export default function AdminDashboard() {
     // Protected route - requires admin access
@@ -17,13 +19,42 @@ export default function AdminDashboard() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('active');
     const [showCreateModal, setShowCreateModal] = useState<'club' | 'event' | null>(null);
+    const [accessDenied, setAccessDenied] = useState(false);
+    const [denialReason, setDenialReason] = useState<'not-authenticated' | 'no-role' | null>(null);
 
-    // Show loading message if not authenticated (auth guard will handle redirect)
-    if (!isAuthenticated) {
+    // Check access on mount
+    useEffect(() => {
+        const isAuthenticated = AuthService.isAuthenticated();
+        const userRoles = AuthService.getUserRolesFromStorage();
+        const hasAdminRole = userRoles.includes('ROLE_ADMIN') || userRoles.includes('ROLE_SUPERADMIN');
+
+        if (!isAuthenticated) {
+            setAccessDenied(true);
+            setDenialReason('not-authenticated');
+        } else if (!hasAdminRole) {
+            setAccessDenied(true);
+            setDenialReason('no-role');
+        }
+    }, []);
+
+    // Show access denied message if not authorized
+    if (accessDenied) {
+        if (denialReason === 'not-authenticated') {
+            return (
+                <AccessDenied
+                    title="Login Required"
+                    message="Please log in with your admin account to access the admin dashboard."
+                    redirectTo="/auth/login"
+                />
+            );
+        }
         return (
-            <div className="min-h-screen bg-[#021313] flex items-center justify-center">
-                <div className="text-white text-lg">Redirecting...</div>
-            </div>
+            <AccessDenied
+                title="Admin Access Required"
+                message="You don't have permission to access the admin dashboard."
+                requiredRole="ROLE_ADMIN or ROLE_SUPERADMIN"
+                redirectTo="/home"
+            />
         );
     }
 

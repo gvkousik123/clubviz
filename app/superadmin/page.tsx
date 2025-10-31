@@ -32,6 +32,7 @@ import { useSuperAdmin } from '@/hooks/use-superadmin';
 import { useToast } from '@/hooks/use-toast';
 import { useSuperAdminAuth } from '@/hooks/use-auth-guard';
 import { useProfile } from '@/hooks/use-profile';
+import { AccessDenied } from '@/components/common/access-denied';
 
 // Types are now imported from the service
 
@@ -40,6 +41,44 @@ export default function SuperAdminPage() {
     const { isAuthenticated, userRoles, hasRole } = useSuperAdminAuth();
     const router = useRouter();
     const { toast } = useToast();
+    const [accessDenied, setAccessDenied] = useState(false);
+    const [denialReason, setDenialReason] = useState<'not-authenticated' | 'no-role' | null>(null);
+
+    // Check access on mount
+    useEffect(() => {
+        const isAuthenticated = AuthService.isAuthenticated();
+        const userRoles = AuthService.getUserRolesFromStorage();
+        const hasSuperAdminRole = userRoles.includes('ROLE_SUPERADMIN');
+
+        if (!isAuthenticated) {
+            setAccessDenied(true);
+            setDenialReason('not-authenticated');
+        } else if (!hasSuperAdminRole) {
+            setAccessDenied(true);
+            setDenialReason('no-role');
+        }
+    }, []);
+
+    // Show access denied message if not authorized
+    if (accessDenied) {
+        if (denialReason === 'not-authenticated') {
+            return (
+                <AccessDenied
+                    title="Login Required"
+                    message="Please log in with your superadmin account to access the superadmin dashboard."
+                    redirectTo="/auth/login"
+                />
+            );
+        }
+        return (
+            <AccessDenied
+                title="SuperAdmin Access Required"
+                message="You don't have permission to access the superadmin dashboard."
+                requiredRole="ROLE_SUPERADMIN"
+                redirectTo="/home"
+            />
+        );
+    }
 
     // Use the custom SuperAdmin hook
     const {
