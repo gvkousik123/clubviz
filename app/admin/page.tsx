@@ -181,22 +181,32 @@ export default function AdminDashboard() {
                                     <p className="text-white text-xl font-bold">{clubData.stats.totalRevenue}</p>
                                 </div>
 
-                                {/* Total Ticket Sold */}
+                                {/* My Clubs */}
                                 <div className="bg-[#0D1F1F] rounded-[15px] p-4">
-                                    <p className="text-[#14FFEC] text-sm mb-1">Total Ticket Sold</p>
-                                    <p className="text-white text-xl font-bold">{clubData.stats.totalTicketSold}</p>
+                                    <p className="text-[#14FFEC] text-sm mb-1">My Clubs</p>
+                                    <p className="text-white text-xl font-bold">
+                                        {isLoadingClubs ? '...' : (clubsData?.content?.length || '0')}
+                                    </p>
                                 </div>
 
-                                {/* No. of People Attending */}
+                                {/* Total Events */}
                                 <div className="bg-[#0D1F1F] rounded-[15px] p-4">
-                                    <p className="text-[#14FFEC] text-sm mb-1">No. of People Attending</p>
-                                    <p className="text-white text-xl font-bold">{clubData.stats.peopleAttending}</p>
+                                    <p className="text-[#14FFEC] text-sm mb-1">Total Events</p>
+                                    <p className="text-white text-xl font-bold">
+                                        {isLoadingEvents ? '...' : (eventList?.content?.length || '0')}
+                                    </p>
                                 </div>
 
                                 {/* Active Events */}
                                 <div className="bg-[#0D1F1F] rounded-[15px] p-4">
                                     <p className="text-[#14FFEC] text-sm mb-1">Active Events</p>
-                                    <p className="text-white text-xl font-bold">{clubData.stats.activeEvents}</p>
+                                    <p className="text-white text-xl font-bold">
+                                        {isLoadingEvents ? '...' : (
+                                            eventList?.content?.filter(event =>
+                                                event.status === 'ONGOING' || event.ongoing
+                                            ).length || '0'
+                                        )}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -339,25 +349,95 @@ export default function AdminDashboard() {
 
                         {/* Club Info Section */}
                         <div className="mb-6">
-                            <h3 className="text-lg font-semibold mb-3">Club Info</h3>
+                            <h3 className="text-lg font-semibold mb-3">Club Management</h3>
                             <div className="space-y-3">
-                                {/* Update live Details */}
+                                {/* Create New Club */}
                                 <div
-                                    onClick={() => handleNavigation('/admin/update-live-details')}
+                                    onClick={handleCreateClub}
                                     className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4 flex items-center justify-between cursor-pointer"
                                 >
-                                    <p className="text-white font-medium">Update live Details</p>
+                                    <div className="flex items-center gap-3">
+                                        <Plus className="w-5 h-5 text-[#14FFEC]" />
+                                        <p className="text-white font-medium">Create New Club</p>
+                                    </div>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#14FFEC]">
                                         <path d="m9 18 6-6-6-6" />
                                     </svg>
                                 </div>
 
-                                {/* Enter/Update Club Details */}
+                                {/* My Clubs List */}
+                                {isLoadingClubs && (
+                                    <div className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4">
+                                        <p className="text-gray-400">Loading clubs...</p>
+                                    </div>
+                                )}
+
+                                {!isLoadingClubs && clubsData?.content && clubsData.content.length > 0 && clubsData.content.slice(0, 2).map((club) => (
+                                    <div
+                                        key={club.id}
+                                        className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-[#14FFEC]/20 rounded-lg flex items-center justify-center">
+                                                    {club.logo ? (
+                                                        <img src={club.logo} alt={club.name} className="w-full h-full object-cover rounded-lg" />
+                                                    ) : (
+                                                        <Users className="w-5 h-5 text-[#14FFEC]" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="text-white font-medium">{club.name}</p>
+                                                    <p className="text-gray-400 text-sm">{club.memberCount || 0} members</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEditClub(club.id);
+                                                    }}
+                                                    className="p-2 bg-[#14FFEC]/20 rounded-lg hover:bg-[#14FFEC]/30 transition-colors"
+                                                    title="Edit Club"
+                                                >
+                                                    <Edit className="w-4 h-4 text-[#14FFEC]" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteClub(club.id);
+                                                    }}
+                                                    className="p-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
+                                                    disabled={clubCrud.isDeleting}
+                                                    title="Delete Club"
+                                                >
+                                                    <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {!isLoadingClubs && (!clubsData?.content || clubsData.content.length === 0) && (
+                                    <div
+                                        onClick={handleCreateClub}
+                                        className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4 flex items-center justify-between cursor-pointer"
+                                    >
+                                        <p className="text-gray-400">No clubs found. Create your first club!</p>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#14FFEC]">
+                                            <path d="m9 18 6-6-6-6" />
+                                        </svg>
+                                    </div>
+                                )}
+
+                                {/* Update live Details */}
                                 <div
-                                    onClick={() => handleNavigation('/admin/new-club')}
+                                    onClick={() => handleNavigation('/admin/update-live-details')}
                                     className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4 flex items-center justify-between cursor-pointer"
                                 >
-                                    <p className="text-white font-medium">Enter/Update Club Details</p>
+                                    <p className="text-white font-medium">Update Live Details</p>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#14FFEC]">
                                         <path d="m9 18 6-6-6-6" />
                                     </svg>
@@ -409,57 +489,273 @@ export default function AdminDashboard() {
                                 >
                                     Upcoming Events
                                 </button>
-                            </div>                    {/* Event Cards */}
-                            <div className="pb-24">
-                                {activeTab === 'active' && clubData.events.active.map((event, index) => (
-                                    <div
-                                        key={`active-${index}`}
-                                        onClick={() => handleNavigation('/admin/event-analytics')}
-                                        className="flex items-start justify-between mb-4 cursor-pointer"
-                                    >
-                                        <div className="flex-1">
-                                            <h4 className="text-lg font-semibold text-[#14FFEC] mb-1">{event.name}</h4>
-                                            <div className="space-y-1 text-sm">
-                                                <div className="flex items-center gap-2">
-                                                    <Calendar className="w-4 h-4 text-[#14FFEC]" />
-                                                    <span>{event.date}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#14FFEC]">
-                                                        <path d="m8 3 4 8 5-5 5 15H2L8 3z" />
-                                                    </svg>
-                                                    <span>{event.dj}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Users className="w-4 h-4 text-[#14FFEC]" />
-                                                    <span>{event.tickets}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Clock className="w-4 h-4 text-[#14FFEC]" />
-                                                    <span>{event.time}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="w-20 h-28 bg-[#0D1F1F] rounded-md overflow-hidden ml-4 border border-[#14FFEC]/40">
-                                            <img
-                                                src="/event list/Rectangle 1.jpg"
-                                                alt="Event Poster"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
+                            </div>
 
-                                {activeTab === 'past' && (
+                            {/* Event Cards */}
+                            <div className="pb-24">
+                                {/* Loading State */}
+                                {isLoadingEvents && (
                                     <div className="text-center py-8 text-gray-400">
-                                        No past events to display
+                                        Loading events...
                                     </div>
                                 )}
 
-                                {activeTab === 'upcoming' && (
-                                    <div className="text-center py-8 text-gray-400">
-                                        No upcoming events to display
-                                    </div>
+                                {/* Active Events */}
+                                {activeTab === 'active' && !isLoadingEvents && (
+                                    <>
+                                        {eventList?.content && eventList.content.filter(event => event.status === 'ONGOING' || event.ongoing).length > 0 ? (
+                                            eventList.content.filter(event => event.status === 'ONGOING' || event.ongoing).map((event) => (
+                                                <div
+                                                    key={event.id}
+                                                    className="flex items-start justify-between mb-4 cursor-pointer relative group"
+                                                >
+                                                    <div
+                                                        className="flex-1"
+                                                        onClick={() => handleNavigation('/admin/event-analytics')}
+                                                    >
+                                                        <h4 className="text-lg font-semibold text-[#14FFEC] mb-1">{event.title}</h4>
+                                                        <div className="space-y-1 text-sm">
+                                                            <div className="flex items-center gap-2">
+                                                                <Calendar className="w-4 h-4 text-[#14FFEC]" />
+                                                                <span>{event.formattedDate}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#14FFEC]">
+                                                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                                                    <circle cx="12" cy="10" r="3" />
+                                                                </svg>
+                                                                <span>{event.location}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <Users className="w-4 h-4 text-[#14FFEC]" />
+                                                                <span>{event.attendeeCount}/{event.maxAttendees} attendees</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <Clock className="w-4 h-4 text-[#14FFEC]" />
+                                                                <span>{event.formattedTime}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Admin Action Buttons */}
+                                                    <div className="flex flex-col gap-2 ml-2">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleEditEvent(event.id);
+                                                            }}
+                                                            className="p-1.5 bg-[#14FFEC]/20 rounded-lg hover:bg-[#14FFEC]/40 transition-colors"
+                                                            title="Edit Event"
+                                                        >
+                                                            <Edit className="w-3 h-3 text-[#14FFEC]" />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteEvent(event.id);
+                                                            }}
+                                                            className="p-1.5 bg-red-500/20 rounded-lg hover:bg-red-500/40 transition-colors"
+                                                            disabled={eventCrud.isDeleting}
+                                                            title="Delete Event"
+                                                        >
+                                                            <svg className="w-3 h-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="w-20 h-28 bg-[#0D1F1F] rounded-md overflow-hidden ml-4 border border-[#14FFEC]/40">
+                                                        <img
+                                                            src={event.imageUrl || "/event list/Rectangle 1.jpg"}
+                                                            alt="Event Poster"
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-8 text-gray-400">
+                                                No active events to display
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+
+                                {/* Past Events */}
+                                {activeTab === 'past' && !isLoadingEvents && (
+                                    <>
+                                        {eventList?.content && eventList.content.filter(event => event.status === 'COMPLETED' || event.pastEvent).length > 0 ? (
+                                            eventList.content.filter(event => event.status === 'COMPLETED' || event.pastEvent).map((event) => (
+                                                <div
+                                                    key={event.id}
+                                                    onClick={() => handleNavigation('/admin/event-analytics')}
+                                                    className="flex items-start justify-between mb-4 cursor-pointer opacity-75"
+                                                >
+                                                    <div className="flex-1">
+                                                        <h4 className="text-lg font-semibold text-gray-300 mb-1">{event.title}</h4>
+                                                        <div className="space-y-1 text-sm text-gray-400">
+                                                            <div className="flex items-center gap-2">
+                                                                <Calendar className="w-4 h-4" />
+                                                                <span>{event.formattedDate}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <Users className="w-4 h-4" />
+                                                                <span>{event.attendeeCount} attended</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-20 h-28 bg-[#0D1F1F] rounded-md overflow-hidden ml-4 border border-gray-500/20">
+                                                        <img
+                                                            src={event.imageUrl || "/event list/Rectangle 1.jpg"}
+                                                            alt="Event Poster"
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-8 text-gray-400">
+                                                No past events to display
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+
+                                {/* Upcoming Events */}
+                                {activeTab === 'upcoming' && !isLoadingEvents && (
+                                    <>
+                                        {eventList?.content && eventList.content.filter(event => event.status === 'UPCOMING' || event.upcoming).length > 0 ? (
+                                            eventList.content.filter(event => event.status === 'UPCOMING' || event.upcoming).map((event) => (
+                                                <div
+                                                    key={event.id}
+                                                    className="flex items-start justify-between mb-4 cursor-pointer relative group"
+                                                >
+                                                    <div
+                                                        className="flex-1"
+                                                        onClick={() => handleNavigation('/admin/event-analytics')}
+                                                    >
+                                                        <h4 className="text-lg font-semibold text-[#14FFEC] mb-1">{event.title}</h4>
+                                                        <div className="space-y-1 text-sm">
+                                                            <div className="flex items-center gap-2">
+                                                                <Calendar className="w-4 h-4 text-[#14FFEC]" />
+                                                                <span>{event.formattedDate}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#14FFEC]">
+                                                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                                                    <circle cx="12" cy="10" r="3" />
+                                                                </svg>
+                                                                <span>{event.location}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <Users className="w-4 h-4 text-[#14FFEC]" />
+                                                                <span>{event.attendeeCount}/{event.maxAttendees} registered</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <Clock className="w-4 h-4 text-[#14FFEC]" />
+                                                                <span>{event.timeUntilEvent}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Admin Action Buttons */}
+                                                    <div className="flex flex-col gap-2 ml-2">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleEditEvent(event.id);
+                                                            }}
+                                                            className="p-1.5 bg-[#14FFEC]/20 rounded-lg hover:bg-[#14FFEC]/40 transition-colors"
+                                                            title="Edit Event"
+                                                        >
+                                                            <Edit className="w-3 h-3 text-[#14FFEC]" />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteEvent(event.id);
+                                                            }}
+                                                            className="p-1.5 bg-red-500/20 rounded-lg hover:bg-red-500/40 transition-colors"
+                                                            disabled={eventCrud.isDeleting}
+                                                            title="Delete Event"
+                                                        >
+                                                            <svg className="w-3 h-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="w-20 h-28 bg-[#0D1F1F] rounded-md overflow-hidden ml-4 border border-[#14FFEC]/40">
+                                                        <img
+                                                            src={event.imageUrl || "/event list/Rectangle 1.jpg"}
+                                                            alt="Event Poster"
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-8 text-gray-400">
+                                                No upcoming events to display
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+
+                                {/* Fallback for mock data when API is not available */}
+                                {!isLoadingEvents && (!eventList || eventList.content.length === 0) && (
+                                    <>
+                                        {activeTab === 'active' && clubData.events.active.map((event, index) => (
+                                            <div
+                                                key={`active-${index}`}
+                                                onClick={() => handleNavigation('/admin/event-analytics')}
+                                                className="flex items-start justify-between mb-4 cursor-pointer"
+                                            >
+                                                <div className="flex-1">
+                                                    <h4 className="text-lg font-semibold text-[#14FFEC] mb-1">{event.name}</h4>
+                                                    <div className="space-y-1 text-sm">
+                                                        <div className="flex items-center gap-2">
+                                                            <Calendar className="w-4 h-4 text-[#14FFEC]" />
+                                                            <span>{event.date}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#14FFEC]">
+                                                                <path d="m8 3 4 8 5-5 5 15H2L8 3z" />
+                                                            </svg>
+                                                            <span>{event.dj}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Users className="w-4 h-4 text-[#14FFEC]" />
+                                                            <span>{event.tickets}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Clock className="w-4 h-4 text-[#14FFEC]" />
+                                                            <span>{event.time}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="w-20 h-28 bg-[#0D1F1F] rounded-md overflow-hidden ml-4 border border-[#14FFEC]/40">
+                                                    <img
+                                                        src="/event list/Rectangle 1.jpg"
+                                                        alt="Event Poster"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        {activeTab === 'past' && (
+                                            <div className="text-center py-8 text-gray-400">
+                                                No past events to display
+                                            </div>
+                                        )}
+
+                                        {activeTab === 'upcoming' && (
+                                            <div className="text-center py-8 text-gray-400">
+                                                No upcoming events to display
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
