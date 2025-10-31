@@ -70,8 +70,7 @@ export default function SuperAdminPage() {
         currentUser,
         allProfiles,
         loadAllProfiles,
-        loadCurrentUser,
-        isCurrentUserLoading,
+        isProfileLoading,
         isAllProfilesLoading,
     } = useProfile();
 
@@ -96,11 +95,10 @@ export default function SuperAdminPage() {
     useEffect(() => {
         const initializeData = async () => {
             await refreshData();
-            await loadCurrentUser();
             await loadAllProfiles();
         };
         initializeData();
-    }, [refreshData, loadCurrentUser, loadAllProfiles]);
+    }, [refreshData, loadAllProfiles]);
 
     // Utility functions
     const handleQuickAddRole = async () => {
@@ -623,7 +621,7 @@ export default function SuperAdminPage() {
                         {currentUser?.fullName || currentUser?.username || 'SUPER ADMIN'}
                     </div>
                     <div className="text-white/70 text-sm mt-1">
-                        {isCurrentUserLoading ? 'Loading profile...' : 'System Administration'}
+                        {isProfileLoading ? 'Loading profile...' : 'System Administration'}
                     </div>
                 </div>
             </div>
