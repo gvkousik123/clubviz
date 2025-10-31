@@ -48,8 +48,11 @@ export default function EmailLoginScreen() {
                     description: "Welcome back to ClubViz!",
                 });
 
-                // Redirect to home or location page
-                router.push('/location/allow');
+                // Get appropriate route based on user roles
+                const targetRoute = AuthService.getRouteBasedOnRoles();
+
+                // Redirect based on role
+                router.push(targetRoute);
             }
 
         } catch (err: any) {

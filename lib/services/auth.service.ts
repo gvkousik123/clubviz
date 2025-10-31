@@ -454,7 +454,7 @@ export class AuthService {
   static getStoredUser(): User | null {
     if (typeof window === 'undefined') return null;
     
-  const userStr = localStorage.getItem(STORAGE_KEYS.user);
+    const userStr = localStorage.getItem(STORAGE_KEYS.user);
     if (userStr) {
       try {
         return JSON.parse(userStr);
@@ -463,6 +463,45 @@ export class AuthService {
       }
     }
     return null;
+  }
+
+  /**
+   * Get user roles from stored auth data
+   */
+  static getUserRolesFromStorage(): string[] {
+    const user: any = this.getStoredUser();
+    return user?.roles || [];
+  }
+
+  /**
+   * Check if user has specific role
+   */
+  static hasRole(role: string): boolean {
+    const roles = this.getUserRolesFromStorage();
+    return roles.includes(role);
+  }
+
+  /**
+   * Get the highest priority route based on user roles
+   */
+  static getRouteBasedOnRoles(): string {
+    const roles = this.getUserRolesFromStorage();
+    
+    // Priority order: SUPERADMIN > ADMIN > USER
+    if (roles.includes('ROLE_SUPERADMIN')) {
+      return '/superadmin';
+    }
+    
+    if (roles.includes('ROLE_ADMIN')) {
+      return '/admin';
+    }
+    
+    if (roles.includes('ROLE_USER')) {
+      return '/home';
+    }
+    
+    // Default fallback
+    return '/home';
   }
 
 

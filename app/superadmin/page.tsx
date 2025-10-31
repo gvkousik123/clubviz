@@ -30,10 +30,14 @@ import { SuperAdminService } from '@/lib/services/superadmin.service';
 import { ProfileService } from '@/lib/services/profile.service';
 import { useSuperAdmin } from '@/hooks/use-superadmin';
 import { useToast } from '@/hooks/use-toast';
+import { useSuperAdminAuth } from '@/hooks/use-auth-guard';
+import { useProfile } from '@/hooks/use-profile';
 
 // Types are now imported from the service
 
 export default function SuperAdminPage() {
+    // Protected route - requires superadmin access
+    const { isAuthenticated, userRoles, hasRole } = useSuperAdminAuth();
     const router = useRouter();
     const { toast } = useToast();
 
@@ -61,6 +65,25 @@ export default function SuperAdminPage() {
         clearSelection,
     } = useSuperAdmin();
 
+    // Profile integration for superadmin
+    const {
+        currentUser,
+        allProfiles,
+        loadAllProfiles,
+        loadCurrentUser,
+        isCurrentUserLoading,
+        isAllProfilesLoading,
+    } = useProfile();
+
+    // Show loading or redirect if not authenticated
+    if (!isAuthenticated) {
+        return (
+            <div className="min-h-screen bg-[#021313] flex items-center justify-center">
+                <div className="text-white text-lg">Redirecting...</div>
+            </div>
+        );
+    }
+
     // Local state management
     const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'roles' | 'stats'>('dashboard');
     const [searchQuery, setSearchQuery] = useState('');
@@ -73,9 +96,11 @@ export default function SuperAdminPage() {
     useEffect(() => {
         const initializeData = async () => {
             await refreshData();
+            await loadCurrentUser();
+            await loadAllProfiles();
         };
         initializeData();
-    }, [refreshData]);
+    }, [refreshData, loadCurrentUser, loadAllProfiles]);
 
     // Utility functions
     const handleQuickAddRole = async () => {
@@ -595,10 +620,10 @@ export default function SuperAdminPage() {
                 </div>
                 <div className="text-center px-6 flex-1 flex flex-col justify-center">
                     <div className="text-white text-xl font-['Manrope'] font-bold leading-6 tracking-[0.50px]">
-                        SUPER ADMIN
+                        {currentUser?.fullName || currentUser?.username || 'SUPER ADMIN'}
                     </div>
                     <div className="text-white/70 text-sm mt-1">
-                        System Administration
+                        {isCurrentUserLoading ? 'Loading profile...' : 'System Administration'}
                     </div>
                 </div>
             </div>

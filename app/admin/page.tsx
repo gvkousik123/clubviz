@@ -5,10 +5,22 @@ import { Calendar, Clock, Users, Plus, DollarSign, BarChart, Edit, User } from '
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useProfile } from '@/hooks/use-profile';
+import { useAdminAuth } from '@/hooks/use-auth-guard';
 
 export default function AdminDashboard() {
+    // Protected route - requires admin access
+    const { isAuthenticated, userRoles, hasRole } = useAdminAuth();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('active');
+
+    // Show loading message if not authenticated (auth guard will handle redirect)
+    if (!isAuthenticated) {
+        return (
+            <div className="min-h-screen bg-[#021313] flex items-center justify-center">
+                <div className="text-white text-lg">Redirecting...</div>
+            </div>
+        );
+    }
 
     // Use profile hook for admin profile data
     const {

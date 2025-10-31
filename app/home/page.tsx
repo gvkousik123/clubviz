@@ -27,6 +27,7 @@ import { EventService } from '@/lib/services/event.service';
 import { ClubService } from '@/lib/services/club.service';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/use-profile';
+import { useUserAuth } from '@/hooks/use-auth-guard';
 import type { EventListItem } from '@/lib/services/event.service';
 import type { ClubListItem } from '@/lib/services/club.service';
 
@@ -82,15 +83,16 @@ const HomePage = () => {
 
     const { toast } = useToast();
 
+    // Authentication guard
+    const { isAuthenticated } = useUserAuth();
+
     // Profile data
     const {
         profile,
         currentUser,
         isProfileLoading,
         loadProfile
-    } = useProfile();
-
-    // Search functionality
+    } = useProfile();    // Search functionality
     const {
         isSearching,
         isLoadingNearby,
