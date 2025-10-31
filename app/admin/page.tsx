@@ -181,32 +181,22 @@ export default function AdminDashboard() {
                                     <p className="text-white text-xl font-bold">{clubData.stats.totalRevenue}</p>
                                 </div>
 
-                                {/* My Clubs */}
+                                {/* Total Ticket Sold */}
                                 <div className="bg-[#0D1F1F] rounded-[15px] p-4">
-                                    <p className="text-[#14FFEC] text-sm mb-1">My Clubs</p>
-                                    <p className="text-white text-xl font-bold">
-                                        {isLoadingClubs ? '...' : (clubsData?.content?.length || '0')}
-                                    </p>
+                                    <p className="text-[#14FFEC] text-sm mb-1">Total Ticket Sold</p>
+                                    <p className="text-white text-xl font-bold">{clubData.stats.totalTicketSold}</p>
                                 </div>
 
-                                {/* Total Events */}
+                                {/* No. of People Attending */}
                                 <div className="bg-[#0D1F1F] rounded-[15px] p-4">
-                                    <p className="text-[#14FFEC] text-sm mb-1">Total Events</p>
-                                    <p className="text-white text-xl font-bold">
-                                        {isLoadingEvents ? '...' : (eventList?.content?.length || '0')}
-                                    </p>
+                                    <p className="text-[#14FFEC] text-sm mb-1">No. of People Attending</p>
+                                    <p className="text-white text-xl font-bold">{clubData.stats.peopleAttending}</p>
                                 </div>
 
                                 {/* Active Events */}
                                 <div className="bg-[#0D1F1F] rounded-[15px] p-4">
                                     <p className="text-[#14FFEC] text-sm mb-1">Active Events</p>
-                                    <p className="text-white text-xl font-bold">
-                                        {isLoadingEvents ? '...' : (
-                                            eventList?.content?.filter(event =>
-                                                event.status === 'ONGOING' || event.ongoing
-                                            ).length || '0'
-                                        )}
-                                    </p>
+                                    <p className="text-white text-xl font-bold">{clubData.stats.activeEvents}</p>
                                 </div>
                             </div>
                         </div>
@@ -624,7 +614,7 @@ export default function AdminDashboard() {
                                 {/* Upcoming Events */}
                                 {activeTab === 'upcoming' && !isLoadingEvents && (
                                     <>
-                                        {eventList?.content && eventList.content.filter(event => event.status === 'UPCOMING' || event.upcoming).length > 0 ? (
+                                        {eventList && eventList.content.filter(event => event.status === 'UPCOMING' || event.upcoming).length > 0 ? (
                                             eventList.content.filter(event => event.status === 'UPCOMING' || event.upcoming).map((event) => (
                                                 <div
                                                     key={event.id}
