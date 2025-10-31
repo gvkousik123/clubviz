@@ -125,7 +125,7 @@ export default function MyAccountPage() {
                         {/* API integration pending - showing empty state */}
                     </div>
 
-                    {/* My Preferences Section */}
+                    {/* My Preferences Section - Empty State */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-4">
                             <h3 className="text-white font-semibold text-sm whitespace-nowrap">My Preferences</h3>
@@ -138,36 +138,15 @@ export default function MyAccountPage() {
                             </button>
                         </div>
 
-                        {/* Music Genre */}
-                        <div className="bg-[#0D1F1F] rounded-lg p-4">
-                            <div className="flex items-center justify-between">
-                                <span className="text-white font-medium text-sm">Music Genre</span>
-                                <div className="flex items-center gap-2">
-                                    <ChevronDown className="w-4 h-4 text-white/70" />
-                                    <button
-                                        onClick={() => handleEditPreferences('music')}
-                                        className="text-[#14FFEC] text-xs flex items-center gap-1"
-                                    >
-                                        Edit <Edit size={10} />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Club Type */}
-                        <div className="bg-[#0D1F1F] rounded-lg p-4">
-                            <div className="flex items-center justify-between">
-                                <span className="text-white font-medium text-sm">Club Type</span>
-                                <div className="flex items-center gap-2">
-                                    <ChevronDown className="w-4 h-4 text-white/70" />
-                                    <button
-                                        onClick={() => handleEditPreferences('club')}
-                                        className="text-[#14FFEC] text-xs flex items-center gap-1"
-                                    >
-                                        Edit <Edit size={10} />
-                                    </button>
-                                </div>
-                            </div>
+                        {/* Empty State */}
+                        <div className="bg-[#0D1F1F] rounded-lg p-6 text-center">
+                            <p className="text-gray-400 text-sm">No preferences set yet</p>
+                            <button
+                                onClick={() => handleEditPreferences('all')}
+                                className="mt-3 px-4 py-2 bg-[#14FFEC] text-black rounded-lg text-xs font-medium hover:bg-[#11B9AB] transition-colors"
+                            >
+                                Set Preferences
+                            </button>
                         </div>
                     </div>
                 </div>

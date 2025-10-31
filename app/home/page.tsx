@@ -26,6 +26,7 @@ import { useSearch } from '@/hooks/use-search';
 import { EventService } from '@/lib/services/event.service';
 import { ClubService } from '@/lib/services/club.service';
 import { useToast } from '@/hooks/use-toast';
+import { useProfile } from '@/hooks/use-profile';
 import type { EventListItem } from '@/lib/services/event.service';
 import type { ClubListItem } from '@/lib/services/club.service';
 
@@ -81,6 +82,14 @@ const HomePage = () => {
 
     const { toast } = useToast();
 
+    // Profile data
+    const {
+        profile,
+        currentUser,
+        isProfileLoading,
+        loadProfile
+    } = useProfile();
+
     // Search functionality
     const {
         isSearching,
@@ -100,15 +109,18 @@ const HomePage = () => {
     // State to track if we're showing search results
     const [showingSearchResults, setShowingSearchResults] = useState(false);
 
-    // Load venues and events on mount
+    // Load profile, venues and events on mount
     useEffect(() => {
         const loadInitialData = async () => {
+            // Load profile data
+            await loadProfile();
+
             // Load venues (clubs)
             setIsLoadingVenues(true);
             try {
                 const clubResponse = await ClubService.getPublicClubsList({
                     page: 0,
-                    size: 10,
+                    size: 5,
                     sortBy: 'name',
                     sortDirection: 'ASC'
                 });
@@ -172,7 +184,7 @@ const HomePage = () => {
             try {
                 const eventResponse = await EventService.getEventList({
                     page: 0,
-                    size: 10,
+                    size: 5,
                     sortBy: 'startDateTime',
                     sortOrder: 'asc',
                     status: 'UPCOMING'
@@ -260,7 +272,7 @@ const HomePage = () => {
         };
 
         loadInitialData();
-    }, [toast]);
+    }, [toast, loadProfile]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -690,7 +702,7 @@ const HomePage = () => {
                                             <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
                                         </div>
                                     ) : venues.length > 0 ? (
-                                        venues.map((club, index) => {
+                                        venues.slice(0, 5).map((club, index) => {
                                             const fallbackImage = venueFallback[index % venueFallback.length]?.image || '/venue/Screenshot 2024-12-10 195651.png';
                                             return (
                                                 <div key={club.id} className="w-[336px] h-[201px] relative flex-shrink-0 mr-1">
@@ -793,7 +805,7 @@ const HomePage = () => {
                                             <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
                                         </div>
                                     ) : events.length > 0 ? (
-                                        events.map((event, index) => {
+                                        events.slice(0, 5).map((event, index) => {
                                             const eventDate = new Date(event.startDateTime);
                                             const monthShort = eventDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
                                             const day = eventDate.getDate().toString().padStart(2, '0');
@@ -952,7 +964,13 @@ const HomePage = () => {
             </div>
 
             {/* Sidebar */}
-            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+            <Sidebar
+                isOpen={isSidebarOpen}
+                onClose={() => setIsSidebarOpen(false)}
+                profile={profile}
+                currentUser={currentUser}
+                isProfileLoading={isProfileLoading}
+            />
         </div>
     );
 };

@@ -8,8 +8,7 @@ import type { Club } from '@/components/clubs';
 import { useToast } from '@/hooks/use-toast';
 import { ClubCard } from '@/components/clubs/club-card';
 import { ClubListCard } from '@/components/clubs/club-list-card';
-import FilterPopup from '@/components/common/filter-popup';
-import { CLUB_FILTER_SECTIONS } from '@/lib/filter-config';
+
 import { useSearch } from '@/hooks/use-search';
 import { ClubService } from '@/lib/services/club.service';
 
@@ -68,10 +67,7 @@ export default function ClubsListPage() {
     const [clubs, setClubs] = useState<Club[]>([]);
     const [loading, setLoading] = useState(true);
     const [favorites, setFavorites] = useState<string[]>([]);
-    const [activeFilter, setActiveFilter] = useState<string>('clubs-today');
     const [searchQuery, setSearchQuery] = useState('');
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({});
 
     // Search functionality
     const {
@@ -168,25 +164,7 @@ export default function ClubsListPage() {
         }
     };
 
-    const handleFilterChange = (filter: string) => {
-        if (filter === 'filter') {
-            setIsFilterOpen(true);
-        } else {
-            setActiveFilter(filter);
-            console.log('Filter changed to:', filter);
-        }
-    };
 
-    const handleFilterApply = (filters: Record<string, any>) => {
-        setAppliedFilters(filters);
-        console.log('Applied filters:', filters);
-        // Here you would apply the filters to your clubs data
-        // For now, we'll just log them
-    };
-
-    const handleFilterClose = () => {
-        setIsFilterOpen(false);
-    };
 
     useEffect(() => {
         loadClubs();
@@ -275,28 +253,7 @@ export default function ClubsListPage() {
         }
     };
 
-    const clubsTodayList = clubs.slice(0, 3);
-    const clubsNearbyList = clubs.slice(1, 4);
 
-    // Filter clubs based on active filter
-    const getFilteredClubs = () => {
-        switch (activeFilter) {
-            case 'clubs-today':
-                return clubsTodayList;
-            case 'clubs-nearby':
-                return clubsNearbyList;
-            case 'distance':
-                return clubs;
-            case 'previously-visited':
-                return clubs;
-            case 'popularity':
-                return clubs;
-            default:
-                return clubs;
-        }
-    };
-
-    const filteredClubs = getFilteredClubs();
 
     if (loading) {
         return (
@@ -394,114 +351,21 @@ export default function ClubsListPage() {
                     </div>
                 )}
 
-                {/* Filter Section */}
-                <div className="fixed top-[16vh] left-0 w-full max-w-[430px] mx-auto h-[6vh] bg-[#031313] z-30">
-                    <div className="w-full py-5 flex items-center bg-gradient-to-b from-[#021313] to-transparent">
-                        {/* Filter Button - fixed at left */}
-                        <div className="flex-shrink-0 pl-5 pr-3">
-                            <button
-                                onClick={() => handleFilterChange('filter')}
-                                className="flex items-center gap-[10px] bg-[#004342] rounded-[23px] border border-[#14FFEC] px-4 py-2 hover:bg-[#005F57] transition-colors"
-                                style={{ width: 'auto', height: '40px', justifyContent: 'center', alignItems: 'center', display: 'inline-flex' }}
-                                data-filter="close"
-                            >
-                                {/* Filter SVG icon */}
-                                <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M6.5 4H16.5M0.5 12H10.5" stroke="white" strokeLinecap="round" />
-                                    <path d="M0.5 4C0.5 5.65685 1.84315 7 3.5 7C5.15685 7 6.5 5.65685 6.5 4C6.5 2.34315 5.15685 1 3.5 1C1.84315 1 0.5 2.34315 0.5 4Z" stroke="white" strokeLinecap="round" />
-                                    <path d="M10.5 12C10.5 13.6569 11.8431 15 13.5 15C15.1569 15 16.5 13.6569 16.5 12C16.5 10.3431 15.1569 9 13.5 9C11.8431 9 10.5 10.3431 10.5 12Z" stroke="white" strokeLinecap="round" />
-                                </svg>
-                                <span style={{ color: 'white', fontSize: '14px', fontFamily: 'Manrope', fontWeight: 800, lineHeight: '16px', letterSpacing: '0.5px' }}>Filter</span>
-                            </button>
-                        </div>
-                        {/* Scrollable Filter Options - scroll left, fill remaining width */}
-                        <div className="flex-1 overflow-x-auto scrollbar-hide pr-5">
-                            <div className="flex items-center gap-2 min-w-max">
-                                <button
-                                    onClick={() => handleFilterChange('clubs-today')}
-                                    className={`h-10 px-4 py-2 rounded-[25px] border flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors ${activeFilter === 'clubs-today'
-                                        ? 'bg-[#14FFEC] border-[#004342] text-black font-bold'
-                                        : 'bg-[#005F57] border-[#14FFEC] text-white font-bold hover:bg-[#007A6B]'
-                                        }`}
-                                >
-                                    <div className="text-sm tracking-[0.5px]">Clubs Today</div>
-                                </button>
-                                <button
-                                    onClick={() => handleFilterChange('clubs-nearby')}
-                                    className={`h-10 px-4 py-2 rounded-[25px] border flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors ${activeFilter === 'clubs-nearby'
-                                        ? 'bg-[#14FFEC] border-[#004342] text-black font-bold'
-                                        : 'bg-[#004342] border-[#14FFEC] text-white font-bold hover:bg-[#005F57]'
-                                        }`}
-                                >
-                                    <div className="text-sm tracking-[0.5px]">Clubs Nearby</div>
-                                </button>
-                                <button
-                                    onClick={() => handleFilterChange('distance')}
-                                    className={`h-10 px-4 py-2 rounded-[25px] border flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors ${activeFilter === 'distance'
-                                        ? 'bg-[#14FFEC] border-[#004342] text-black font-bold'
-                                        : 'bg-[#004342] border-[#14FFEC] text-white font-bold hover:bg-[#005F57]'
-                                        }`}
-                                >
-                                    <div className="text-sm tracking-[0.5px]">Distance</div>
-                                </button>
-                                <button
-                                    onClick={() => handleFilterChange('previously-visited')}
-                                    className={`h-10 px-4 py-2 rounded-[25px] border flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors ${activeFilter === 'previously-visited'
-                                        ? 'bg-[#14FFEC] border-[#004342] text-black font-bold'
-                                        : 'bg-[#004342] border-[#14FFEC] text-white font-bold hover:bg-[#005F57]'
-                                        }`}
-                                >
-                                    <div className="text-sm tracking-[0.5px]">Previously Visited</div>
-                                </button>
-                                <button
-                                    onClick={() => handleFilterChange('popularity')}
-                                    className={`h-10 px-4 py-2 rounded-[25px] border flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors ${activeFilter === 'popularity'
-                                        ? 'bg-[#14FFEC] border-[#004342] text-black font-bold'
-                                        : 'bg-[#004342] border-[#14FFEC] text-white font-bold hover:bg-[#005F57]'
-                                        }`}
-                                >
-                                    <div className="text-sm tracking-[0.5px]">Popularity</div>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
 
                 {/* Main Content */}
-                <div className="w-full space-y-6 pt-[24vh]">
-                    {/* Clubs Nearby Section */}
-                    <section className="w-full">
-                        <div className="flex items-center justify-between mb-4 px-5">
-                            <h2 className="text-white text-sm font-semibold truncate">Clubs nearby</h2>
-                            <Link href="/clubs" className="text-[#14FFEC] text-sm font-medium whitespace-nowrap">View All</Link>
-                        </div>
-                        <div className="w-full flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
-                            {clubsNearbyList.length === 0 ? (
-                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full max-w-sm mx-auto">
-                                    No clubs found nearby.
-                                </div>
-                            ) : (
-                                clubsNearbyList.map((club, index) => (
-                                    <ClubListCard
-                                        key={`nearby-${club.id ?? index}`}
-                                        club={club}
-                                        href={`/club/${club.name.toLowerCase().replace(/\s+/g, '-')}`}
-                                        fallbackImage={getClubFallbackImage(index + 10)}
-                                        isFavorite={favorites.includes(club.id)}
-                                        onToggleFavorite={toggleFavorite}
-                                    />
-                                ))
-                            )}
-                        </div>
-                    </section>
-
+                <div className="w-full space-y-6 pt-[18vh]">
                     {/* All Clubs Section */}
                     <section className="w-full">
                         <div className="flex items-center justify-between mb-4 px-5">
                             <h2 className="text-white text-sm font-semibold truncate">All Clubs</h2>
                         </div>
                         <div className="w-full flex flex-col items-center pb-6">
-                            {clubs.length === 0 ? (
+                            {loading ? (
+                                <div className="flex items-center justify-center w-full py-8">
+                                    <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+                                </div>
+                            ) : clubs.length === 0 ? (
                                 <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full max-w-sm mx-auto">
                                     We couldn't find any clubs right now. Check back soon!
                                 </div>
@@ -525,13 +389,7 @@ export default function ClubsListPage() {
                 </div>
             </div>
 
-            {/* Filter Popup */}
-            <FilterPopup
-                isOpen={isFilterOpen}
-                onClose={handleFilterClose}
-                onApply={handleFilterApply}
-                sections={CLUB_FILTER_SECTIONS}
-            />
+
         </div>
     );
 }

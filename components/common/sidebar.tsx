@@ -4,18 +4,37 @@ import React from 'react';
 import Link from 'next/link';
 import { X, User } from 'lucide-react';
 import { useProfile } from '@/hooks/use-profile';
+import type { UserProfile } from '@/lib/services/profile.service';
 
 interface SidebarProps {
     isOpen: boolean;
     onClose: () => void;
+    profile?: UserProfile | null;
+    currentUser?: Partial<UserProfile> | null;
+    isProfileLoading?: boolean;
 }
 
-export default function Sidebar({ isOpen, onClose }: SidebarProps) {
-    const { profile, currentUser } = useProfile();
+export default function Sidebar({
+    isOpen,
+    onClose,
+    profile: passedProfile,
+    currentUser: passedCurrentUser,
+    isProfileLoading: passedIsLoading
+}: SidebarProps) {
+    const { profile: hookProfile, currentUser: hookCurrentUser, isProfileLoading: hookIsLoading } = useProfile();
+
+    // Use passed props first, then hook data as fallback
+    const profile = passedProfile || hookProfile;
+    const currentUser = passedCurrentUser || hookCurrentUser;
+    const isProfileLoading = passedIsLoading || hookIsLoading;
 
     // Use real user data or fallback
-    const displayName = profile?.fullName || currentUser?.fullName || 'User';
-    const displayLocation = 'NAGPUR'; // Default location
+    const displayName = isProfileLoading ? 'Loading...' : (profile?.fullName || currentUser?.fullName || 'User');
+    const displayLocation = profile?.phoneNumber ?
+        (profile.phoneNumber.startsWith('+91') ? 'INDIA' : 'LOCATION') :
+        (currentUser?.phoneNumber ?
+            (currentUser.phoneNumber.startsWith('+91') ? 'INDIA' : 'LOCATION') :
+            'LOCATION'); // Remove hardcoded NAGPUR
     const profilePicture = profile?.profilePicture || currentUser?.profilePicture;
 
     return (
