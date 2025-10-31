@@ -112,45 +112,7 @@ export default function MyAccountPage() {
                             <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
                         </Link>
 
-                        <div className="space-y-3">
-                            {/* Dabo Club */}
-                            <Link href="/favourites/clubs" className="bg-[#0D1F1F] rounded-xl p-4 flex items-center justify-between hover:bg-[#1a2d2d] transition-colors cursor-pointer">
-                                <div className="flex items-center gap-3">
-                                    <img
-                                        className="w-10 h-10 rounded-full object-cover"
-                                        src="/venue/Screenshot 2024-12-11 002033.png"
-                                        alt="Dabo Club"
-                                    />
-                                    <div>
-                                        <p className="text-white font-medium text-sm">Dabo</p>
-                                        <p className="text-white/70 text-xs">5.6 km away</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-white font-medium text-xs">Open Now</span>
-                                    <ChevronRight className="w-4 h-4 text-[#14FFEC]" />
-                                </div>
-                            </Link>
-
-                            {/* Raasta Club */}
-                            <Link href="/favourites/clubs" className="bg-[#0D1F1F] rounded-xl p-4 flex items-center justify-between hover:bg-[#1a2d2d] transition-colors cursor-pointer">
-                                <div className="flex items-center gap-3">
-                                    <img
-                                        className="w-10 h-10 rounded-full object-cover border-2 border-[#14FFEC]"
-                                        src="/venue/Screenshot 2024-12-11 002328.png"
-                                        alt="Raasta Club"
-                                    />
-                                    <div>
-                                        <p className="text-white font-medium text-sm">Raasta</p>
-                                        <p className="text-white/70 text-xs">8.2 km away</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-white font-medium text-xs">Open Now</span>
-                                    <ChevronRight className="w-4 h-4 text-[#14FFEC]" />
-                                </div>
-                            </Link>
-                        </div>
+                        {/* API integration pending - showing empty state */}
                     </div>
 
                     {/* Favourite Events Section */}
@@ -160,66 +122,7 @@ export default function MyAccountPage() {
                             <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
                         </Link>
 
-                        <div className="space-y-3">
-                            {/* Tipsy Tuesday Event - Special Styling */}
-                            <div className="relative">
-                                {/* Live Now background section */}
-                                <div className="bg-[#0D9A8F] rounded-[25px] pt-18 pb-2">
-                                    <div className="flex items-center justify-center gap-1.5 mt-1">
-                                        <span className="text-white text-xs font-bold tracking-wide">
-                                            Live Now
-                                        </span>
-                                        <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div>
-                                    </div>
-                                </div>
-
-                                {/* Main card floating over the Live Now section */}
-                                <Link href="/event/tipsy-tuesday" className="absolute top-0 left-0 right-0 block bg-[#0D1F1F] rounded-[25px] p-4 hover:bg-[#1a2d2d] transition-colors shadow-lg">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <img
-                                                className="w-10 h-10 rounded-full object-cover border border-white"
-                                                src="/event list/Rectangle 1.jpg"
-                                                alt="Tipsy Tuesday"
-                                            />
-                                            <div>
-                                                <div className="text-white text-sm font-bold">
-                                                    Tipsy Tuesday
-                                                </div>
-                                                <div className="text-white/80 text-xs">
-                                                    Dabo, Airport Rd
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[#14FFEC] text-xs font-bold">
-                                                24 Dec 2025
-                                            </span>
-                                            <ChevronRight className="w-4 h-4 text-[#14FFEC]" />
-                                        </div>
-                                    </div>
-                                </Link>
-                            </div>
-
-                            {/* Boiler Room Event */}
-                            <Link href="/event/boiler-room" className="bg-[#0D1F1F] rounded-[25px] p-4 flex items-center justify-between hover:bg-[#1a2d2d] transition-colors shadow-lg">
-                                <div className="flex items-center gap-3">
-                                    <img
-                                        className="w-10 h-10 rounded-full object-cover"
-                                        src="/event list/Rectangle 2.jpg"
-                                        alt="Boiler Room"
-                                    />
-                                    <div>
-                                        <p className="text-white font-medium text-sm">Boiler Room ft Kratex</p>
-                                        <p className="text-white/70 text-xs">Dabo, Airport Rd</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[#14FFEC] font-medium text-xs">30 Dec 2025</span>
-                                    <ChevronRight className="w-4 h-4 text-[#14FFEC]" />
-                                </div>
-                            </Link>
-                        </div>
+                        {/* API integration pending - showing empty state */}
                     </div>
 
                     {/* My Preferences Section */}

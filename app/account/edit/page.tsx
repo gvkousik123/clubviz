@@ -9,14 +9,14 @@ import { useProfile } from '@/hooks/use-profile';
 type ProfileFormState = {
     fullName: string;
     email: string;
-    phoneNumber: string;
+    mobileNumber: string;  // Changed from phoneNumber to mobileNumber
     profilePicture: string;
 };
 
 const INITIAL_FORM_STATE: ProfileFormState = {
     fullName: '',
     email: '',
-    phoneNumber: '',
+    mobileNumber: '',  // Changed from phoneNumber to mobileNumber
     profilePicture: '',
 };
 
@@ -44,7 +44,7 @@ export default function EditProfilePage() {
             setProfileData({
                 fullName: profile?.fullName || currentUser?.fullName || '',
                 email: profile?.email || currentUser?.email || '',
-                phoneNumber: profile?.phoneNumber || currentUser?.phoneNumber || '',
+                mobileNumber: profile?.mobileNumber || currentUser?.mobileNumber || '',
                 profilePicture: profile?.profilePicture || currentUser?.profilePicture || '',
             });
         }
@@ -73,7 +73,7 @@ export default function EditProfilePage() {
             const updateData: any = {};
             if (profileData.fullName?.trim()) updateData.fullName = profileData.fullName.trim();
             if (profileData.email?.trim()) updateData.email = profileData.email.trim();
-            if (profileData.phoneNumber?.trim()) updateData.phoneNumber = profileData.phoneNumber.trim();
+            if (profileData.mobileNumber?.trim()) updateData.mobileNumber = profileData.mobileNumber.trim();
             if (profileData.profilePicture?.trim()) updateData.profilePicture = profileData.profilePicture.trim();
 
             await updateProfile(updateData);
@@ -178,16 +178,16 @@ export default function EditProfilePage() {
                                 />
                             </div>
 
-                            {/* Phone Number Field */}
+                            {/* Mobile Number Field */}
                             <div className="bg-[#0D1F1F] rounded-[30px] border border-[#0C898B] px-5 py-3 flex items-center gap-5">
                                 <div className="w-6 h-6 flex items-center justify-center">
                                     <span className="text-[#14FFEC] text-lg">📱</span>
                                 </div>
                                 <input
                                     type="tel"
-                                    placeholder="Phone Number"
-                                    value={profileData.phoneNumber}
-                                    onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                                    placeholder="Mobile Number"
+                                    value={profileData.mobileNumber}
+                                    onChange={(e) => handleInputChange('mobileNumber', e.target.value)}
                                     className="flex-1 bg-transparent text-white text-base font-manrope font-semibold placeholder-[#9D9C9C] outline-none"
                                 />
                             </div>
@@ -201,7 +201,7 @@ export default function EditProfilePage() {
                             disabled={isLoading || !profileData.fullName?.trim() || !profileData.email?.trim()}
                             className="w-full bg-[#14FFEC] text-black font-bold py-4 rounded-[30px] disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isLoading ? 'Saving...' : 'Save Profile'}
+                            {isLoading ? 'Updating...' : 'Update'}
                         </button>
                     </div>
                 </div>
