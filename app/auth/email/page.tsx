@@ -127,11 +127,11 @@ export default function EmailLoginScreen() {
                         <div className="space-y-4">
                             {/* Email/Username Field */}
                             <div>
-                                <label className="block text-[#0C0C0D] font-bold mb-2 text-base">Email</label>
+                                <label className="block text-[#0C0C0D] font-bold mb-2 text-base">Email or username</label>
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        placeholder="Email address"
+                                        placeholder="Email or username"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="w-full py-3.5 px-5 rounded-[36px] border border-[#0C898B] 

@@ -2,8 +2,11 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { X, User } from 'lucide-react';
 import { useProfile } from '@/hooks/use-profile';
+import { AuthService } from '@/lib/services/auth.service';
+import { useToast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/lib/services/profile.service';
 
 interface SidebarProps {
@@ -22,6 +25,8 @@ export default function Sidebar({
     isProfileLoading: passedIsLoading
 }: SidebarProps) {
     const { profile: hookProfile, currentUser: hookCurrentUser, isProfileLoading: hookIsLoading } = useProfile();
+    const router = useRouter();
+    const { toast } = useToast();
 
     // Use passed props first, then hook data as fallback
     const profile = passedProfile || hookProfile;
@@ -36,6 +41,37 @@ export default function Sidebar({
             (currentUser.phoneNumber.startsWith('+91') ? 'INDIA' : 'LOCATION') :
             'LOCATION'); // Remove hardcoded NAGPUR
     const profilePicture = profile?.profilePicture || currentUser?.profilePicture;
+
+    const handleLogout = async () => {
+        try {
+            // Call the logout API and clear local storage
+            await AuthService.logout();
+
+            toast({
+                title: "Logged out successfully",
+                description: "You have been logged out of your account",
+            });
+
+            // Close sidebar and redirect to login
+            onClose();
+            router.push('/auth/login');
+        } catch (error: any) {
+            console.error('Logout error:', error);
+
+            // Even if API fails, clear local storage and redirect
+            if (typeof window !== 'undefined') {
+                localStorage.clear();
+            }
+
+            toast({
+                title: "Logged out",
+                description: "Session cleared successfully",
+            });
+
+            onClose();
+            router.push('/auth/login');
+        }
+    };
 
     return (
         <>
@@ -129,7 +165,7 @@ export default function Sidebar({
 
                     {/* Logout Button */}
                     <button
-                        onClick={onClose}
+                        onClick={handleLogout}
                         className="px-8 py-3 bg-[#129C91] rounded-full mb-12 hover:bg-[#108a7f] transition-colors cursor-pointer"
                     >
                         <span className="text-white text-base font-['Manrope'] font-semibold leading-tight tracking-wide">

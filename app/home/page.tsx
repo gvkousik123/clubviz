@@ -128,6 +128,7 @@ const HomePage = () => {
                 });
 
                 if (clubResponse.success && clubResponse.data?.content) {
+                    console.log('API Clubs Response:', clubResponse.data.content);
                     // Map API clubs with proper length limits and static images
                     const mappedClubs = clubResponse.data.content.map((club, index) => ({
                         id: club.id || '',
@@ -148,7 +149,30 @@ const HomePage = () => {
                         memberStatus: club.memberStatus || '',
                         shortDescription: club.shortDescription || club.description || ''
                     }));
+                    console.log('Mapped Clubs:', mappedClubs);
                     setVenues(mappedClubs);
+                } else {
+                    console.log('No clubs data from API, using fallback');
+                    // Use fallback data when API returns no content
+                    setVenues(venueFallback.map((v, idx) => ({
+                        id: v.id,
+                        name: v.name.length > 20 ? v.name.substring(0, 20) + '...' : v.name,
+                        description: v.name.length > 50 ? v.name.substring(0, 50) + '...' : v.name,
+                        location: v.openTime.length > 30 ? v.openTime.substring(0, 30) + '...' : v.openTime,
+                        imageUrl: v.image,
+                        isActive: true,
+                        logo: '',
+                        category: 'NIGHTCLUB',
+                        memberCount: 50,
+                        maxMembers: 200,
+                        isJoined: false,
+                        isFull: false,
+                        ownerName: 'Club Owner',
+                        createdAt: new Date().toISOString(),
+                        capacityPercentage: 25,
+                        memberStatus: 'NONE',
+                        shortDescription: v.name
+                    })));
                 }
             } catch (error: any) {
                 console.error('Failed to load clubs:', error);
@@ -193,6 +217,7 @@ const HomePage = () => {
                 });
 
                 if (eventResponse.success && eventResponse.data?.content) {
+                    console.log('API Events Response:', eventResponse.data.content);
                     // Map API events with proper length limits and static images
                     const mappedEvents = eventResponse.data.content.map((event: any, index: number) => ({
                         id: event.id,
@@ -227,7 +252,42 @@ const HomePage = () => {
                         ongoing: event.ongoing || false,
                         capacityPercentage: event.capacityPercentage || 0
                     }));
+                    console.log('Mapped Events:', mappedEvents);
                     setEvents(mappedEvents);
+                } else {
+                    console.log('No events data from API, using fallback');
+                    // Use fallback data when API returns no content
+                    setEvents(eventFallback.map((e) => ({
+                        id: e.id,
+                        title: e.title.length > 20 ? e.title.substring(0, 20) + '...' : e.title,
+                        shortDescription: e.category,
+                        imageUrl: e.image,
+                        location: e.venue.length > 25 ? e.venue.substring(0, 25) + '...' : e.venue,
+                        startDateTime: e.startDateTime,
+                        endDateTime: e.startDateTime,
+                        formattedDate: new Date(e.startDateTime).toLocaleDateString(),
+                        formattedTime: new Date(e.startDateTime).toLocaleTimeString(),
+                        timeUntilEvent: '',
+                        duration: '',
+                        attendeeCount: 0,
+                        maxAttendees: 100,
+                        isRegistered: false,
+                        canRegister: true,
+                        isFull: false,
+                        clubId: '',
+                        clubName: e.venue.split(',')[0].length > 15 ? e.venue.split(',')[0].substring(0, 15) + '...' : e.venue.split(',')[0],
+                        clubLogo: '',
+                        organizerName: '',
+                        status: 'UPCOMING' as const,
+                        isPublic: true,
+                        requiresApproval: false,
+                        attendeeStatus: '',
+                        eventStatusText: '',
+                        pastEvent: false,
+                        upcoming: true,
+                        ongoing: false,
+                        capacityPercentage: 0
+                    })));
                 }
             } catch (error: any) {
                 console.error('Failed to load events:', error);
