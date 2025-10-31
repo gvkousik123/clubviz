@@ -6,12 +6,17 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useProfile } from '@/hooks/use-profile';
 import { useAdminAuth } from '@/hooks/use-auth-guard';
+import { useAdminClubs } from '@/hooks/use-admin-clubs';
+import { useAdminEvents } from '@/hooks/use-admin-events';
+import { useEventList } from '@/hooks/use-event-list';
+import { useClubList } from '@/hooks/use-club-list';
 
 export default function AdminDashboard() {
     // Protected route - requires admin access
     const { isAuthenticated, userRoles, hasRole } = useAdminAuth();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('active');
+    const [showCreateModal, setShowCreateModal] = useState<'club' | 'event' | null>(null);
 
     // Show loading message if not authenticated (auth guard will handle redirect)
     if (!isAuthenticated) {
@@ -32,12 +37,21 @@ export default function AdminDashboard() {
         isSuperAdmin,
     } = useProfile();
 
+    // CRUD hooks for clubs and events
+    const clubCrud = useAdminClubs();
+    const eventCrud = useAdminEvents();
+    const { eventList, loadEventList, isLoadingList: isLoadingEvents } = useEventList();
+    const { clubs: clubsData, loadClubs, loading: isLoadingClubs } = useClubList();
+
     // Load admin data on mount
     useEffect(() => {
         if (isAdmin() || isSuperAdmin()) {
             loadAllProfiles();
+            loadEventList();
+            loadClubs();
+            clubCrud.refreshData();
         }
-    }, [loadAllProfiles, isAdmin, isSuperAdmin]);
+    }, [loadAllProfiles, isAdmin, isSuperAdmin, loadEventList, loadClubs, clubCrud]);
 
     // Mock data based on the screenshot - updated to match exact values from the screenshot
     const clubData = {
@@ -70,6 +84,46 @@ export default function AdminDashboard() {
 
     const handleTabChange = (tab: string) => {
         setActiveTab(tab);
+    };
+
+    // Handle club operations
+    const handleCreateClub = () => {
+        setShowCreateModal('club');
+        // Navigate to new club creation page
+        handleNavigation('/admin/new-club');
+    };
+
+    const handleEditClub = (clubId: string) => {
+        router.push(`/admin/edit-club/${clubId}`);
+    };
+
+    const handleDeleteClub = async (clubId: string) => {
+        if (confirm('Are you sure you want to delete this club?')) {
+            const success = await clubCrud.deleteClub(clubId);
+            if (success) {
+                await loadClubs(); // Refresh clubs list
+            }
+        }
+    };
+
+    // Handle event operations
+    const handleCreateEvent = () => {
+        setShowCreateModal('event');
+        // Navigate to new event creation page
+        handleNavigation('/admin/new-event');
+    };
+
+    const handleEditEvent = (eventId: string) => {
+        router.push(`/admin/edit-event/${eventId}`);
+    };
+
+    const handleDeleteEvent = async (eventId: string) => {
+        if (confirm('Are you sure you want to delete this event?')) {
+            const success = await eventCrud.deleteEvent(eventId);
+            if (success) {
+                await loadEventList(); // Refresh events list
+            }
+        }
     };
 
     return (
@@ -150,6 +204,40 @@ export default function AdminDashboard() {
                         {/* Quick Actions Section */}
                         <div className="mb-6">
                             <h3 className="text-lg font-semibold mb-3">Quick Actions</h3>
+                            <div className="grid grid-cols-2 gap-3 mb-4">
+                                {/* Create New Club */}
+                                <div
+                                    onClick={handleCreateClub}
+                                    className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4 flex items-center justify-between cursor-pointer hover:bg-[#14FFEC]/10 transition-colors"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-[#14FFEC] w-10 h-10 rounded-md flex items-center justify-center">
+                                            <Plus className="w-6 h-6 text-black" />
+                                        </div>
+                                        <div>
+                                            <p className="text-white font-medium">Create New Club</p>
+                                            <p className="text-gray-400 text-xs">Add a new club to manage</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Create New Event */}
+                                <div
+                                    onClick={handleCreateEvent}
+                                    className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4 flex items-center justify-between cursor-pointer hover:bg-[#14FFEC]/10 transition-colors"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-[#14FFEC] w-10 h-10 rounded-md flex items-center justify-center">
+                                            <Calendar className="w-6 h-6 text-black" />
+                                        </div>
+                                        <div>
+                                            <p className="text-white font-medium">Create New Event</p>
+                                            <p className="text-gray-400 text-xs">Schedule a new event</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-3 gap-3">
                                 {/* Update Dynamic Pricing */}
                                 <div
@@ -164,25 +252,88 @@ export default function AdminDashboard() {
 
                                 {/* Check Event bookings */}
                                 <div
-                                    onClick={() => handleNavigation('/admin/new-club')}
+                                    onClick={() => handleNavigation('/admin/event-analytics')}
                                     className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-3 flex flex-col items-center justify-between cursor-pointer"
                                 >
-                                    <p className="text-center text-white text-xs mb-2">Check Event bookings</p>
+                                    <p className="text-center text-white text-xs mb-2">Event Analytics</p>
                                     <div className="bg-[#14FFEC] w-8 h-8 rounded-md flex items-center justify-center">
                                         <BarChart className="w-5 h-5 text-black" />
                                     </div>
                                 </div>
 
-                                {/* Update Event Details */}
+                                {/* Club Settings */}
                                 <div
-                                    onClick={() => handleNavigation('/admin/update-live-details')}
+                                    onClick={() => handleNavigation('/admin/settings')}
                                     className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-3 flex flex-col items-center justify-between cursor-pointer"
                                 >
-                                    <p className="text-center text-white text-xs mb-2">Update Club Details</p>
+                                    <p className="text-center text-white text-xs mb-2">Club Settings</p>
                                     <div className="bg-[#14FFEC] w-8 h-8 rounded-md flex items-center justify-center">
                                         <Edit className="w-5 h-5 text-black" />
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* My Clubs Section */}
+                        <div className="mb-6">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-lg font-semibold">My Clubs</h3>
+                                {isLoadingClubs && (
+                                    <div className="text-[#14FFEC] text-sm">Loading...</div>
+                                )}
+                            </div>
+                            <div className="space-y-3">
+                                {clubsData?.content?.slice(0, 3).map((club) => (
+                                    <div
+                                        key={club.id}
+                                        className="bg-[#0D1F1F] border border-[#14FFEC]/10 rounded-[15px] p-4"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-12 h-12 bg-[#14FFEC]/20 rounded-lg flex items-center justify-center">
+                                                    {club.logo ? (
+                                                        <img src={club.logo} alt={club.name} className="w-full h-full object-cover rounded-lg" />
+                                                    ) : (
+                                                        <Users className="w-6 h-6 text-[#14FFEC]" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-white font-medium">{club.name}</h4>
+                                                    <p className="text-gray-400 text-sm">{club.memberCount || 0} members</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleEditClub(club.id)}
+                                                    className="p-2 bg-[#14FFEC]/20 rounded-lg hover:bg-[#14FFEC]/30 transition-colors"
+                                                >
+                                                    <Edit className="w-4 h-4 text-[#14FFEC]" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteClub(club.id)}
+                                                    className="p-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
+                                                    disabled={clubCrud.isDeleting}
+                                                >
+                                                    <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                {clubsData?.content?.length === 0 && (
+                                    <div className="text-center py-8">
+                                        <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                                        <p className="text-gray-400">No clubs found</p>
+                                        <button
+                                            onClick={handleCreateClub}
+                                            className="mt-2 px-4 py-2 bg-[#14FFEC] text-black rounded-lg font-medium"
+                                        >
+                                            Create Your First Club
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
