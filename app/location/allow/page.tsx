@@ -56,28 +56,28 @@ export default function LocationAllowPage() {
         <div className="min-h-screen bg-[#021313] relative flex flex-col">
             {/* Background blur effects - subtle accents */}
             <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-20 left-1/2 -translate-x-1/2 w-80 h-80 bg-teal-500/5 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-20 left-1/3 w-60 h-60 bg-cyan-500/5 rounded-full blur-3xl"></div>
+                <div className="absolute top-[12vh] left-1/2 -translate-x-1/2 w-[20rem] h-[20rem] bg-teal-500/5 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-[12vh] left-1/3 w-[15rem] h-[15rem] bg-cyan-500/5 rounded-full blur-3xl"></div>
             </div>
 
             {/* Content */}
             <div className="relative z-10 min-h-screen flex flex-col">
                 {/* Back Button - styled like mobile screens */}
-                <div className="p-4 pt-6">
+                <div className="p-[1rem] pt-[1.5rem]">
                     <Link
                         href="/auth/email"
-                        className="w-10 h-10 flex items-center justify-center rounded-full border border-teal-400/30 text-teal-300 hover:bg-teal-500/10 transition-colors"
+                        className="w-[2.5rem] h-[2.5rem] flex items-center justify-center rounded-full border border-teal-400/30 text-teal-300 hover:bg-teal-500/10 transition-colors"
                     >
-                        <ArrowLeft className="w-5 h-5" />
+                        <ArrowLeft className="w-[1.25rem] h-[1.25rem]" />
                     </Link>
                 </div>
 
                 {/* Main content - properly centered */}
-                <div className="flex-1 flex flex-col items-center justify-center px-4 pb-16 -mt-10">
+                <div className="flex-1 flex flex-col items-center justify-center px-[1rem] pb-[4rem] -mt-[2.5rem]">
                     {/* Location icon - modern style matching screenshot */}
-                    <div className="mb-10">
-                        <div className="w-[140px] h-[140px] rounded-full bg-[#014A4B] flex items-center justify-center">
-                            <div className="w-[80px] h-[80px] relative">
+                    <div className="mb-[2.5rem]">
+                        <div className="w-[8.75rem] h-[8.75rem] rounded-full bg-[#014A4B] flex items-center justify-center">
+                            <div className="w-[5rem] h-[5rem] relative">
                                 <Image
                                     src="/location/location-icon.png"
                                     alt="Location icon"
@@ -90,11 +90,11 @@ export default function LocationAllowPage() {
                     </div>
 
                     {/* Text content */}
-                    <h1 className="text-white text-[24px] font-semibold text-center mb-4">
+                    <h1 className="text-white text-[1.5rem] font-semibold text-center mb-[1rem]">
                         What is your location ?
                     </h1>
 
-                    <p className="text-[#14FFEC] text-[16px] font-semibold text-center mb-10">
+                    <p className="text-[#14FFEC] text-[1rem] font-semibold text-center mb-[2.5rem]">
                         We need your location to show<br />
                         amazing Venues and Events
                     </p>
@@ -102,7 +102,7 @@ export default function LocationAllowPage() {
                     {/* Button - styled to match screenshot */}
                     <button
                         onClick={handleAllowLocation}
-                        className="w-full max-w-[342px] h-[56px] bg-transparent rounded-full border-2 border-[#14FFEC]/80 flex items-center justify-center text-white text-[18px] font-bold tracking-[1.2px] mb-10 hover:bg-[#14FFEC]/10 transition-all"
+                        className="w-full max-w-[21.375rem] h-[3.5rem] bg-transparent rounded-full border-2 border-[#14FFEC]/80 flex items-center justify-center text-white text-[1.125rem] font-bold tracking-[0.075rem] mb-[2.5rem] hover:bg-[#14FFEC]/10 transition-all"
                     >
                         ALLOW LOCATION ACCESS
                     </button>
@@ -110,7 +110,7 @@ export default function LocationAllowPage() {
                     {/* Manual entry link */}
                     <Link
                         href="/location/select"
-                        className="text-[#14FFEC] text-[16px] font-semibold text-center"
+                        className="text-[#14FFEC] text-[1rem] font-semibold text-center"
                     >
                         Enter location manually
                     </Link>

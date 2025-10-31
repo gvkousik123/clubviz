@@ -127,25 +127,25 @@ export default function OTPVerificationScreen() {
         <div className="min-h-screen bg-[#031313] relative">
             {/* Background blur effects - subtle accents */}
             <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-20 left-1/2 -translate-x-1/2 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-20 left-1/3 w-60 h-60 bg-cyan-500/10 rounded-full blur-3xl"></div>
-                <div className="absolute top-1/3 right-1/4 w-40 h-40 bg-teal-500/10 rounded-full blur-2xl"></div>
+                <div className="absolute top-[12vh] left-1/2 -translate-x-1/2 w-[20rem] h-[20rem] bg-teal-500/10 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-[12vh] left-1/3 w-[15rem] h-[15rem] bg-cyan-500/10 rounded-full blur-3xl"></div>
+                <div className="absolute top-1/3 right-1/4 w-[10rem] h-[10rem] bg-teal-500/10 rounded-full blur-2xl"></div>
             </div>
 
             {/* Content */}
             <div className="relative z-10 min-h-screen flex flex-col">
                 {/* Header with Back and Skip */}
-                <div className="flex items-center justify-between p-4 pt-6 flex-shrink-0">
+                <div className="flex items-center justify-between p-[1rem] pt-[1.5rem] flex-shrink-0">
                     <Link
                         href="/auth/mobile"
-                        className="w-10 h-10 flex items-center justify-center rounded-full border border-teal-400/30 text-teal-300 hover:bg-teal-500/10 transition-colors"
+                        className="w-[2.5rem] h-[2.5rem] flex items-center justify-center rounded-full border border-teal-400/30 text-teal-300 hover:bg-teal-500/10 transition-colors"
                     >
-                        <ArrowLeft className="w-5 h-5" />
+                        <ArrowLeft className="w-[1.25rem] h-[1.25rem]" />
                     </Link>
 
                     <Link
                         href="/auth/email"
-                        className="px-4 py-1.5 rounded-full border border-teal-400/30 text-sm text-teal-300 hover:bg-teal-500/10 transition"
+                        className="px-[1rem] py-[0.375rem] rounded-full border border-teal-400/30 text-[0.875rem] text-teal-300 hover:bg-teal-500/10 transition"
                     >
                         Skip
                     </Link>
@@ -158,11 +158,11 @@ export default function OTPVerificationScreen() {
                         <ClubVizLogo size="lg" variant="full" />
                     </div>
 
-                    <div className="bg-white rounded-t-3xl w-full px-6 pt-8 pb-8 overflow-y-auto flex flex-col">
+                    <div className="bg-white rounded-t-3xl w-full px-[1.5rem] pt-[2rem] pb-[2rem] overflow-y-auto flex flex-col">
                         {/* Header */}
-                        <div className="mb-8">
-                            <h1 className="text-[24px] font-semibold text-[#2C1945] mb-5 text-center">Verification Code</h1>
-                            <div className="text-center mb-2">
+                        <div className="mb-[2rem]">
+                            <h1 className="text-[1.5rem] font-semibold text-[#2C1945] mb-[1.25rem] text-center">Verification Code</h1>
+                            <div className="text-center mb-[0.5rem]">
                                 <span className="text-[#2C1945] font-bold">Enter verification code. </span>
                                 <button
                                     onClick={handleResendOTP}
@@ -174,18 +174,18 @@ export default function OTPVerificationScreen() {
                             </div>
                             {phoneNumber && (
                                 <div className="text-center">
-                                    <p className="text-sm text-[#6A6A6A]">Code sent to</p>
+                                    <p className="text-[0.875rem] text-[#6A6A6A]">Code sent to</p>
                                     <p className="text-[#0D7377] font-semibold">+{phoneNumber?.slice(0, 2)} {phoneNumber?.slice(2)}</p>
                                 </div>
                             )}
                         </div>
 
                         {/* OTP Input Display */}
-                        <div className="flex justify-center gap-3 mb-6">
+                        <div className="flex justify-center gap-[0.75rem] mb-[1.5rem]">
                             {otp.map((digit, index) => (
                                 <div
                                     key={index}
-                                    className={`w-12 h-12 flex items-center justify-center rounded-[12px] 
+                                    className={`w-[3rem] h-[3rem] flex items-center justify-center rounded-[0.75rem] 
                                         ${digit ? 'bg-[#EFEFEF] border border-[#0C898B]' : 'bg-[#F7F7F7] border border-[#E0E0E0]'}`}
                                 >
                                     <span className="text-xl font-bold text-[#2C1945]">

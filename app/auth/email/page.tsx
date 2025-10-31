@@ -85,103 +85,103 @@ export default function UserDetailsScreen() {
         <div className="h-screen bg-[#031313] relative overflow-hidden">
             {/* Background blur effects - subtle accents */}
             <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-20 left-1/2 -translate-x-1/2 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-20 left-1/3 w-60 h-60 bg-cyan-500/10 rounded-full blur-3xl"></div>
-                <div className="absolute top-1/3 right-1/4 w-40 h-40 bg-teal-500/10 rounded-full blur-2xl"></div>
+                <div className="absolute top-[12vh] left-1/2 -translate-x-1/2 w-[20vw] h-[20vw] bg-teal-500/10 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-[12vh] left-1/3 w-[15vw] h-[15vw] bg-cyan-500/10 rounded-full blur-3xl"></div>
+                <div className="absolute top-1/3 right-1/4 w-[10vw] h-[10vw] bg-teal-500/10 rounded-full blur-2xl"></div>
             </div>
 
             {/* Content */}
             <div className="relative z-10 h-full flex flex-col">
                 {/* Header with Back and Skip */}
-                <div className="flex items-center justify-between p-4 pt-6 flex-shrink-0">
+                <div className="flex items-center justify-between p-[1rem] pt-[1.5rem] flex-shrink-0">
                     <Link
                         href="/auth/otp"
-                        className="w-10 h-10 flex items-center justify-center rounded-full border border-teal-400/30 text-teal-300 hover:bg-teal-500/10 transition-colors"
+                        className="w-[2.5rem] h-[2.5rem] flex items-center justify-center rounded-full border border-teal-400/30 text-teal-300 hover:bg-teal-500/10 transition-colors"
                     >
-                        <ArrowLeft className="w-5 h-5" />
+                        <ArrowLeft className="w-[1.25rem] h-[1.25rem]" />
                     </Link>
 
                     <Link
                         href="/location/allow"
-                        className="px-4 py-1.5 rounded-full border border-teal-400/30 text-sm text-teal-300 hover:bg-teal-500/10 transition"
+                        className="px-[1rem] py-[0.375rem] rounded-full border border-teal-400/30 text-[0.875rem] text-teal-300 hover:bg-teal-500/10 transition"
                     >
                         Skip
                     </Link>
                 </div>
 
                 {/* Logo Area - Centered with remaining space */}
-                <div className="flex-1 flex flex-col items-center justify-center px-6 py-4">
+                <div className="flex-1 flex flex-col items-center justify-center px-[1.5rem] py-[1rem]">
                     <ClubVizLogo size="lg" variant="full" />
                 </div>
 
                 {/* White Card Container - Form area */}
-                <div className="bg-white rounded-t-3xl w-full px-6 pt-6 pb-8 flex flex-col flex-shrink-0">
+                <div className="bg-white rounded-t-3xl w-full px-[1.5rem] pt-[1.5rem] pb-[2rem] flex flex-col flex-shrink-0">
                     {/* Header */}
-                    <div className="mb-6 text-center">
-                        <h1 className="text-2xl font-bold text-[#2C1945] mb-2">Enter Your Details</h1>
-                        <p className="text-[#0C898B] text-sm font-semibold">Enter your required Information</p>
+                    <div className="mb-[1.5rem] text-center">
+                        <h1 className="text-[1.5rem] font-bold text-[#2C1945] mb-[0.5rem]">Enter Your Details</h1>
+                        <p className="text-[#0C898B] text-[0.875rem] font-semibold">Enter your required Information</p>
                     </div>
 
                     {/* Form */}
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-[1rem]">
                         {/* Form Fields */}
-                        <div className="space-y-4">
+                        <div className="space-y-[1rem]">
                             {/* Full Name Field */}
                             <div>
-                                <label className="block text-[#0C0C0D] font-bold mb-2 text-base">Full name</label>
+                                <label className="block text-[#0C0C0D] font-bold mb-[0.5rem] text-[1rem]">Full name</label>
                                 <div className="relative">
                                     <input
                                         type="text"
                                         placeholder="Enter your full name"
                                         value={fullName}
                                         onChange={(e) => setFullName(e.target.value)}
-                                        className="w-full py-3.5 px-5 rounded-[36px] border border-[#0C898B] 
-                                                     bg-[#EFEFEF] text-gray-900 placeholder-[#A09F99] text-base
+                                        className="w-full py-[0.875rem] px-[1.25rem] rounded-[2.25rem] border border-[#0C898B] 
+                                                     bg-[#EFEFEF] text-gray-900 placeholder-[#A09F99] text-[1rem]
                                                      focus:outline-none focus:ring-2 focus:ring-[#0C898B] focus:border-transparent
-                                                     transition-all duration-200 h-[55px]"
+                                                     transition-all duration-200 h-[3.44rem]"
                                         autoFocus
                                     />
                                 </div>
                                 {errors.fullName && (
-                                    <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
+                                    <p className="text-red-500 text-[0.875rem] mt-[0.25rem]">{errors.fullName}</p>
                                 )}
                             </div>
 
                             {/* Email Field */}
                             <div>
-                                <label className="block text-[#0C0C0D] font-bold mb-2 text-base">Email</label>
+                                <label className="block text-[#0C0C0D] font-bold mb-[0.5rem] text-[1rem]">Email</label>
                                 <div className="relative">
                                     <input
                                         type="email"
                                         placeholder="Enter your email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full py-3.5 px-5 rounded-[36px] border border-[#0C898B] 
-                                                     bg-[#EFEFEF] text-gray-900 placeholder-[#A09F99] text-base
+                                        className="w-full py-[0.875rem] px-[1.25rem] rounded-[2.25rem] border border-[#0C898B] 
+                                                     bg-[#EFEFEF] text-gray-900 placeholder-[#A09F99] text-[1rem]
                                                      focus:outline-none focus:ring-2 focus:ring-[#0C898B] focus:border-transparent
-                                                     transition-all duration-200 h-[55px]"
+                                                     transition-all duration-200 h-[3.44rem]"
                                     />
                                 </div>
                                 {errors.email && (
-                                    <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                                    <p className="text-red-500 text-[0.875rem] mt-[0.25rem]">{errors.email}</p>
                                 )}
                             </div>
                         </div>
 
                         {/* Submit Button */}
-                        <div className="space-y-4 pt-2">
+                        <div className="space-y-[1rem] pt-[0.5rem]">
                             <button
                                 onClick={handleSubmit}
                                 disabled={!canSubmit}
-                                className={`w-full h-[55px] rounded-[30px] font-extrabold text-white border border-white
-                                             transition-all duration-200 text-base
+                                className={`w-full h-[3.44rem] rounded-[1.875rem] font-extrabold text-white border border-white
+                                             transition-all duration-200 text-[1rem]
                                              ${canSubmit
                                         ? 'bg-gradient-to-b from-[#0D7377] to-[#222830] active:scale-[0.98]'
                                         : 'bg-gray-400 cursor-not-allowed opacity-50'}`}
                             >
                                 {isLoading ? (
                                     <span className="flex items-center justify-center">
-                                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <svg className="animate-spin -ml-[0.25rem] mr-[0.75rem] h-[1.25rem] w-[1.25rem] text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>

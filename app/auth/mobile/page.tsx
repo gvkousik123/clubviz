@@ -76,25 +76,25 @@ export default function MobileVerificationScreen() {
         <div className="min-h-screen bg-[#031313] relative">
             {/* Background blur effects - subtle accents */}
             <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-20 left-1/2 -translate-x-1/2 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-20 left-1/3 w-60 h-60 bg-cyan-500/10 rounded-full blur-3xl"></div>
-                <div className="absolute top-1/3 right-1/4 w-40 h-40 bg-teal-500/10 rounded-full blur-2xl"></div>
+                <div className="absolute top-[12vh] left-1/2 -translate-x-1/2 w-[20rem] h-[20rem] bg-teal-500/10 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-[12vh] left-1/3 w-[15rem] h-[15rem] bg-cyan-500/10 rounded-full blur-3xl"></div>
+                <div className="absolute top-1/3 right-1/4 w-[10rem] h-[10rem] bg-teal-500/10 rounded-full blur-2xl"></div>
             </div>
 
             {/* Content */}
             <div className="relative z-10 min-h-screen flex flex-col">
                 {/* Header with Back and Skip */}
-                <div className="flex items-center justify-between p-4 pt-6 flex-shrink-0">
+                <div className="flex items-center justify-between p-[1rem] pt-[1.5rem] flex-shrink-0">
                     <Link
                         href="/auth/login"
-                        className="w-10 h-10 flex items-center justify-center rounded-full border border-teal-400/30 text-teal-300 hover:bg-teal-500/10 transition-colors"
+                        className="w-[2.5rem] h-[2.5rem] flex items-center justify-center rounded-full border border-teal-400/30 text-teal-300 hover:bg-teal-500/10 transition-colors"
                     >
-                        <ArrowLeft className="w-5 h-5" />
+                        <ArrowLeft className="w-[1.25rem] h-[1.25rem]" />
                     </Link>
 
                     <Link
                         href="/auth/login"
-                        className="px-4 py-1.5 rounded-full border border-teal-400/30 text-sm text-teal-300 hover:bg-teal-500/10 transition"
+                        className="px-[1rem] py-[0.375rem] rounded-full border border-teal-400/30 text-[0.875rem] text-teal-300 hover:bg-teal-500/10 transition"
                     >
                         Skip
                     </Link>
@@ -107,36 +107,36 @@ export default function MobileVerificationScreen() {
                         <ClubVizLogo size="lg" variant="full" />
                     </div>
 
-                    <div className="bg-white rounded-t-3xl w-full px-6 pt-8 pb-8 overflow-y-auto flex flex-col">
+                    <div className="bg-white rounded-t-3xl w-full px-[1.5rem] pt-[2rem] pb-[2rem] overflow-y-auto flex flex-col">
                         {/* Header */}
-                        <div className="mb-6">
-                            <h1 className="text-[24px] font-semibold text-[#2C1945] mb-5 text-center">Enter your Mobile Number</h1>
+                        <div className="mb-[1.5rem]">
+                            <h1 className="text-[1.5rem] font-semibold text-[#2C1945] mb-[1.25rem] text-center">Enter your Mobile Number</h1>
                         </div>
 
                         {/* Phone number display */}
-                        <div className="mb-3 text-center">
-                            <div className="w-full max-w-[380px] h-[76px] mx-auto bg-[#EFEFEF] rounded-[52px] border border-[#0C898B] flex items-center justify-center">
-                                <div className="text-[22px] font-medium text-[#666666] text-center">
+                        <div className="mb-[0.75rem] text-center">
+                            <div className="w-full max-w-[23.75rem] h-[4.75rem] mx-auto bg-[#EFEFEF] rounded-[3.25rem] border border-[#0C898B] flex items-center justify-center">
+                                <div className="text-[1.375rem] font-medium text-[#666666] text-center">
                                     {phoneNumber}
                                 </div>
                             </div>
                         </div>
 
                         {/* Confirmation text */}
-                        <div className="mb-8 text-center">
-                            <p className="text-[#2C1945] text-[15px] font-medium">We will send you a confirmation code</p>
+                        <div className="mb-[2rem] text-center">
+                            <p className="text-[#2C1945] text-[0.9375rem] font-medium">We will send you a confirmation code</p>
                         </div>
 
                         {/* Number Keypad */}
-                        <div className="mx-auto w-[280px] space-y-4 mb-6">
+                        <div className="mx-auto w-[17.5rem] space-y-[1rem] mb-[1.5rem]">
                             {/* Keypad Grid */}
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-3 gap-[1rem]">
                                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                                     <button
                                         key={num}
                                         onClick={() => handleNumberPress(num.toString())}
-                                        className="w-[70px] h-[70px] rounded-full border border-[#0C898B] 
-                                             bg-white text-[#42353B] text-3xl font-semibold
+                                        className="w-[4.375rem] h-[4.375rem] rounded-full border border-[#0C898B] 
+                                             bg-white text-[#42353B] text-[1.875rem] font-semibold
                                              hover:bg-gray-50 active:bg-gray-100 
                                              flex items-center justify-center"
                                     >
@@ -147,16 +147,16 @@ export default function MobileVerificationScreen() {
                                 {/* Bottom Row */}
                                 <button
                                     onClick={handleDelete}
-                                    className="w-[70px] h-[70px] rounded-full bg-[#EFEFEF] 
+                                    className="w-[4.375rem] h-[4.375rem] rounded-full bg-[#EFEFEF] 
                                         text-gray-900 flex items-center justify-center"
                                 >
-                                    <X className="w-4 h-4" />
+                                    <X className="w-[1rem] h-[1rem]" />
                                 </button>
 
                                 <button
                                     onClick={() => handleNumberPress('0')}
-                                    className="w-[70px] h-[70px] rounded-full border border-[#0C898B] 
-                                        bg-white text-[#42353B] text-3xl font-semibold
+                                    className="w-[4.375rem] h-[4.375rem] rounded-full border border-[#0C898B] 
+                                        bg-white text-[#42353B] text-[1.875rem] font-semibold
                                         hover:bg-gray-50 active:bg-gray-100
                                         flex items-center justify-center"
                                 >
@@ -166,10 +166,10 @@ export default function MobileVerificationScreen() {
                                 <button
                                     onClick={handleSubmit}
                                     disabled={!canSubmit}
-                                    className="w-[70px] h-[70px] rounded-full bg-[#0D7377] 
+                                    className="w-[4.375rem] h-[4.375rem] rounded-full bg-[#0D7377] 
                                         text-white flex items-center justify-center"
                                 >
-                                    <ArrowRight className="w-6 h-6 text-white" />
+                                    <ArrowRight className="w-[1.5rem] h-[1.5rem] text-white" />
                                 </button>
                             </div>
                         </div>

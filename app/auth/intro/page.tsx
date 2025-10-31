@@ -81,27 +81,27 @@ export default function IntroScreen() {
 
                 {/* Additional floating particles */}
                 <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute -top-[10%] left-[5%] h-28 w-28 rounded-full bg-[#14FFEC]/20 blur-[25px] animate-pulse" style={{ animationDuration: '7s' }} />
-                    <div className="absolute top-[25%] left-[85%] h-32 w-32 rounded-full bg-[#14FFEC]/15 blur-[30px] animate-pulse" style={{ animationDuration: '9s' }} />
-                    <div className="absolute top-[65%] left-[15%] h-36 w-36 rounded-full bg-[#14FFEC]/10 blur-[35px] animate-pulse" style={{ animationDuration: '8s' }} />
-                    <div className="absolute top-[40%] left-[75%] h-24 w-24 rounded-full bg-[#14FFEC]/25 blur-[20px] animate-pulse" style={{ animationDuration: '10s' }} />
-                    <div className="absolute top-[80%] left-[60%] h-28 w-28 rounded-full bg-[#14FFEC]/20 blur-[25px] animate-pulse" style={{ animationDuration: '7.5s' }} />
+                    <div className="absolute -top-[10%] left-[5%] h-[7rem] w-[7rem] rounded-full bg-[#14FFEC]/20 blur-[1.5625rem] animate-pulse" style={{ animationDuration: '7s' }} />
+                    <div className="absolute top-[25%] left-[85%] h-[8rem] w-[8rem] rounded-full bg-[#14FFEC]/15 blur-[1.875rem] animate-pulse" style={{ animationDuration: '9s' }} />
+                    <div className="absolute top-[65%] left-[15%] h-[9rem] w-[9rem] rounded-full bg-[#14FFEC]/10 blur-[2.1875rem] animate-pulse" style={{ animationDuration: '8s' }} />
+                    <div className="absolute top-[40%] left-[75%] h-[6rem] w-[6rem] rounded-full bg-[#14FFEC]/25 blur-[1.25rem] animate-pulse" style={{ animationDuration: '10s' }} />
+                    <div className="absolute top-[80%] left-[60%] h-[7rem] w-[7rem] rounded-full bg-[#14FFEC]/20 blur-[1.5625rem] animate-pulse" style={{ animationDuration: '7.5s' }} />
                 </div>
 
                 {/* Main focal glow in center */}
-                <div className="absolute top-[40%] left-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2">
-                    <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(20,255,236,0.25)_0%,rgba(3,19,19,0.05)_48%,rgba(3,19,19,0)_100%)] blur-[40px] opacity-90" />
+                <div className="absolute top-[40%] left-1/2 h-[31.25rem] w-[31.25rem] -translate-x-1/2 -translate-y-1/2">
+                    <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(20,255,236,0.25)_0%,rgba(3,19,19,0.05)_48%,rgba(3,19,19,0)_100%)] blur-[2.5rem] opacity-90" />
                 </div>
 
                 {/* Extra ambient light sources */}
-                <div className="absolute -left-16 top-1/4 h-72 w-72 bg-teal-500/15 blur-[140px]" />
-                <div className="absolute bottom-1/3 right-0 h-60 w-60 bg-cyan-500/10 blur-[120px]" />
+                <div className="absolute -left-[1rem] top-1/4 h-[18rem] w-[18rem] bg-teal-500/15 blur-[8.75rem]" />
+                <div className="absolute bottom-1/3 right-0 h-[15rem] w-[15rem] bg-cyan-500/10 blur-[7.5rem]" />
 
                 {/* Bottom curve with exact radial gradient from design */}
-                <div className="absolute bottom-0 left-0 right-0 h-[100px] overflow-hidden">
-                    <div className="absolute bottom-0 left-1/2 w-[862px] h-[862px] -translate-x-1/2 translate-y-[92%]">
+                <div className="absolute bottom-0 left-0 right-0 h-[6.25rem] overflow-hidden">
+                    <div className="absolute bottom-0 left-1/2 w-[53.875rem] h-[53.875rem] -translate-x-1/2 translate-y-[92%]">
                         <div
-                            className="w-full h-full rounded-[862px]"
+                            className="w-full h-full rounded-[53.875rem]"
                             style={{
                                 background: "radial-gradient(38.77% 38.77% at 115.84% 50%, #14FFEC 0%, #003336 88.46%)"
                             }}
@@ -109,7 +109,7 @@ export default function IntroScreen() {
                         {/* Up arrow icon */}
                         <div
                             ref={arrowRef}
-                            className="absolute left-1/2 top-[2%] -translate-x-1/2 flex h-8 w-8 items-center justify-center cursor-pointer hover:scale-110 transition-transform duration-200 select-none"
+                            className="absolute left-1/2 top-[2%] -translate-x-1/2 flex h-[2rem] w-[2rem] items-center justify-center cursor-pointer hover:scale-110 transition-transform duration-200 select-none"
                             onClick={handleMobileVerification}
                             onMouseDown={handleMouseDown}
                             onMouseMove={handleMouseMove}
@@ -117,7 +117,7 @@ export default function IntroScreen() {
                             onMouseLeave={handleMouseUp}
                         >
                             <ChevronUp
-                                className="h-6 w-6 text-[#ffffff]"
+                                className="h-[1.5rem] w-[1.5rem] text-[#ffffff]"
                                 strokeWidth={3}
                             />
                         </div>
@@ -127,14 +127,14 @@ export default function IntroScreen() {
 
 
 
-            <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 pb-28 pt-10">
-                <div className="mb-16 drop-shadow-[0_18px_45px_rgba(0,0,0,0.55)]">
+            <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-[1.5rem] pb-[7rem] pt-[2.5rem]">
+                <div className="mb-[4rem] drop-shadow-[0_1.125rem_2.8125rem_rgba(0,0,0,0.55)]">
                     <ClubVizLogo size="lg" variant="full" />
                 </div>
 
-                <div className="relative text-center mt-12">
+                <div className="relative text-center mt-[3rem]">
                     {/* Opening Double Quotes SVG */}
-                    <div className="absolute -left-14 -top-8 flex space-x-2">
+                    <div className="absolute -left-[3.5rem] -top-[2rem] flex space-x-[0.5rem]">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="18"
@@ -167,17 +167,17 @@ export default function IntroScreen() {
                         </svg>
                     </div>
                     <h2
-                        className="text-center font-['Anton_SC',system-ui] text-[36px] leading-[37px] tracking-[-0.32px] mt-6"
+                        className="text-center font-['Anton_SC',system-ui] text-[2.25rem] leading-[2.3125rem] tracking-[-0.02rem] mt-[1.5rem]"
                         style={{
                             background: "linear-gradient(180deg, #7FF9FF 0%, #FFF 102.94%)",
                             WebkitBackgroundClip: "text",
                             backgroundClip: "text",
                             WebkitTextFillColor: "transparent",
-                            WebkitTextStrokeWidth: "1px",
+                            WebkitTextStrokeWidth: "0.0625rem",
                             WebkitTextStrokeColor: "#029694",
                             fontWeight: 700,
                             fontStyle: "normal",
-                            textShadow: "0 0 10px rgba(127, 249, 255, 0.5)"
+                            textShadow: "0 0 0.625rem rgba(127, 249, 255, 0.5)"
                         }}
                     >
                         IGNITE
@@ -185,7 +185,7 @@ export default function IntroScreen() {
                         THE <span style={{ fontWeight: 900 }}>NIGHT</span>
                     </h2>
                     {/* Closing Double Quotes SVG */}
-                    <div className="absolute -bottom-10 -right-14 flex space-x-2">
+                    <div className="absolute -bottom-[2.5rem] -right-[3.5rem] flex space-x-[0.5rem]">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="18"
