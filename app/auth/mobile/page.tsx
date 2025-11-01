@@ -6,7 +6,8 @@ import { AuthLink } from "@/components/auth/auth-link";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
-import { firebasePhoneAuth } from "@/lib/firebase/phone-auth";
+// Temporarily using mock authentication until Firebase config is fixed
+import { mockFirebasePhoneAuth as firebasePhoneAuth } from "@/lib/firebase/mock-phone-auth";
 import { useToast } from "@/hooks/use-toast";
 import { STORAGE_KEYS } from "@/lib/constants/storage";
 

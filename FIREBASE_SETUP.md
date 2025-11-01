@@ -1,21 +1,41 @@
-# Firebase Phone Authentication Setup
+# 🚨 Firebase Setup Fix for ClubViz Phone Authentication
 
-## Prerequisites
+## THE ISSUE: You need Firebase WEB APP config, not service account!
 
-1. Firebase project with Phone Authentication enabled
-2. Web app configured in Firebase Console
-3. Authorized domains configured
+The error "api-key-not-valid" happens because you need **Firebase Web App configuration**, not the service account JSON.
 
-## Environment Variables
+## QUICK FIX STEPS:
 
-Create a `.env.local` file in the root directory with the following Firebase configuration values:
+### 1. Get Firebase Web App Configuration
+
+1. **Go to**: https://console.firebase.google.com
+2. **Select project**: "clubwiz-auth" 
+3. **Project Settings** (gear icon) → **General tab**
+4. **Scroll to "Your apps"** section
+5. **If no web app exists**: Click "Add app" → Web icon `</>` → Name it "ClubViz Web"
+6. **Copy this config**:
+
+```javascript
+// You'll see something like this - COPY THE REAL VALUES
+const firebaseConfig = {
+  apiKey: "AIzaSyC-REAL-API-KEY-HERE",
+  authDomain: "clubwiz-auth.firebaseapp.com", 
+  projectId: "clubwiz-auth",
+  storageBucket: "clubwiz-auth.appspot.com",
+  messagingSenderId: "101064381399201423611",
+  appId: "1:101064381399201423611:web:REAL-APP-ID-HERE"
+};
+```
+
+### 2. Update Your Environment File
+
+Replace the values in `.env.local`:
 
 ```env
-# Firebase Configuration
-# Get these values from Firebase Console -> Project Settings -> General -> Your apps -> Web app -> Config
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key_here
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id_here  
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id_here
+# REPLACE WITH YOUR ACTUAL VALUES FROM STEP 1
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyC-REAL-API-KEY-HERE
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=101064381399201423611
+NEXT_PUBLIC_FIREBASE_APP_ID=1:101064381399201423611:web:REAL-APP-ID-HERE
 ```
 
 ## Firebase Console Setup
