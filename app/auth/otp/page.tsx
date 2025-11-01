@@ -6,8 +6,7 @@ import { AuthLink } from "@/components/auth/auth-link";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-// Temporarily using mock authentication until Firebase config is fixed
-import { mockFirebasePhoneAuth as firebasePhoneAuth } from "@/lib/firebase/mock-phone-auth";
+import { firebasePhoneAuth } from "@/lib/firebase/phone-auth";
 import { useToast } from "@/hooks/use-toast";
 import { STORAGE_KEYS } from "@/lib/constants/storage";
 import { User } from "firebase/auth";
@@ -85,22 +84,21 @@ export default function OTPVerificationScreen() {
         try {
             console.log("Verifying OTP:", otpValue);
 
-            // Verify OTP using Firebase (mock implementation returns different structure)
-            const result = await firebasePhoneAuth.verifyOTP(otpValue);
-            const user = result.user;
+            // Verify OTP using Firebase
+            const user = await firebasePhoneAuth.verifyOTP(otpValue);
 
             console.log("OTP verification successful, user:", user.phoneNumber);
 
-            // For mock implementation, create a mock token
-            const mockIdToken = `mock-token-${Date.now()}-${user.phoneNumber}`;
+            // Get Firebase ID token for backend authentication
+            const idToken = await user.getIdToken();
 
             // Store authentication data
-            localStorage.setItem(STORAGE_KEYS.accessToken, mockIdToken);
+            localStorage.setItem(STORAGE_KEYS.accessToken, idToken);
             localStorage.setItem('firebaseUser', JSON.stringify({
-                uid: `mock-uid-${Date.now()}`,
+                uid: user.uid,
                 phoneNumber: user.phoneNumber,
-                email: null,
-                displayName: null
+                email: user.email || null,
+                displayName: user.displayName || null
             }));
             localStorage.removeItem(STORAGE_KEYS.pendingPhone);
 
