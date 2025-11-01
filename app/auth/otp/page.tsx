@@ -6,9 +6,10 @@ import { AuthLink } from "@/components/auth/auth-link";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { AuthService } from "@/lib/services/auth.service";
+import { firebasePhoneAuth } from "@/lib/firebase/phone-auth";
 import { useToast } from "@/hooks/use-toast";
 import { STORAGE_KEYS } from "@/lib/constants/storage";
+import { User } from "firebase/auth";
 
 export default function OTPVerificationScreen() {
     const router = useRouter();
@@ -68,7 +69,7 @@ export default function OTPVerificationScreen() {
         }
     };
 
-    const handleVerifyOTP = (otpCode?: string) => {
+    const handleVerifyOTP = async (otpCode?: string) => {
         if (!phoneNumber) return;
 
         const otpValue = otpCode || otp.join('');
@@ -80,45 +81,105 @@ export default function OTPVerificationScreen() {
         setIsLoading(true);
         setError(null);
 
-        // Store dummy authentication tokens
-        localStorage.setItem(STORAGE_KEYS.accessToken, 'dummy-auth-token-' + Date.now());
-        localStorage.setItem(STORAGE_KEYS.refreshToken, 'dummy-refresh-token-' + Date.now());
-        localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+        try {
+            console.log("Verifying OTP:", otpValue);
 
-        // Show success toast
-        toast({
-            title: "Login successful",
-            description: "Welcome to ClubViz!",
-        });
+            // Verify OTP using Firebase
+            const user: User = await firebasePhoneAuth.verifyOTP(otpValue);
 
-        // Navigate to user details page after a short delay
-        setTimeout(() => {
-            router.push('/auth/email');
+            console.log("OTP verification successful, user:", user.phoneNumber);
+
+            // Get Firebase ID token for backend authentication
+            const idToken = await user.getIdToken();
+
+            // Store authentication data
+            localStorage.setItem(STORAGE_KEYS.accessToken, idToken);
+            localStorage.setItem('firebaseUser', JSON.stringify({
+                uid: user.uid,
+                phoneNumber: user.phoneNumber,
+                email: user.email,
+                displayName: user.displayName
+            }));
+            localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+
+            // Show success toast
+            toast({
+                title: "Login successful",
+                description: "Welcome to ClubViz!",
+            });
+
+            // Navigate to user details page
+            setTimeout(() => {
+                router.push('/auth/email');
+            }, 800);
+
+        } catch (error: any) {
+            console.error("OTP verification failed:", error);
+            setError(error.message || 'Invalid OTP. Please try again.');
+
+            toast({
+                title: "Verification failed",
+                description: error.message || 'Invalid OTP code. Please try again.',
+                variant: "destructive",
+            });
+
+            // Clear OTP inputs on error
+            setOtp(['', '', '', '', '', '']);
+            inputRefs.current[0]?.focus();
+        } finally {
             setIsLoading(false);
-        }, 800);
+        }
     };
 
-    const handleResendOTP = () => {
+    const handleResendOTP = async () => {
         if (!phoneNumber || !canResend) return;
 
         setIsLoading(true);
         setError(null);
 
-        // Show toast for dummy OTP sent
-        toast({
-            title: "OTP sent",
-            description: "New verification code sent to your mobile",
-        });
+        try {
+            console.log("Resending OTP to:", phoneNumber);
 
-        // Reset timer
-        setTimer(30);
-        setCanResend(false);
-        setOtp(['', '', '', '', '', '']); // Clear current OTP
+            // Resend OTP using Firebase
+            const success = await firebasePhoneAuth.sendOTP(phoneNumber);
 
-        // Finish loading after a short delay
-        setTimeout(() => {
+            if (success) {
+                // Show success toast
+                toast({
+                    title: "OTP sent",
+                    description: "New verification code sent to your mobile",
+                });
+
+                // Reset timer and UI state
+                setTimer(30);
+                setCanResend(false);
+                setOtp(['', '', '', '', '', '']); // Clear current OTP
+
+                // Start timer countdown
+                const interval = setInterval(() => {
+                    setTimer((prev) => {
+                        if (prev <= 1) {
+                            setCanResend(true);
+                            clearInterval(interval);
+                            return 0;
+                        }
+                        return prev - 1;
+                    });
+                }, 1000);
+            }
+
+        } catch (error: any) {
+            console.error("Failed to resend OTP:", error);
+            setError(error.message || 'Failed to resend OTP. Please try again.');
+
+            toast({
+                title: "Failed to resend OTP",
+                description: error.message || 'Please try again',
+                variant: "destructive",
+            });
+        } finally {
             setIsLoading(false);
-        }, 500);
+        }
     };
 
     const canSubmit = otp.every(digit => digit !== '') && !isLoading;

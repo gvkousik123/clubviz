@@ -1,12 +1,12 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ClubVizLogo } from "@/components/auth/logo";
 import { AuthLink } from "@/components/auth/auth-link";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
-import { AuthService } from "@/lib/services/auth.service";
+import { firebasePhoneAuth } from "@/lib/firebase/phone-auth";
 import { useToast } from "@/hooks/use-toast";
 import { STORAGE_KEYS } from "@/lib/constants/storage";
 
@@ -16,6 +16,20 @@ export default function MobileVerificationScreen() {
     const [phoneNumber, setPhoneNumber] = useState("+91 XXXXXXXXXX");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Setup reCAPTCHA on component mount
+    useEffect(() => {
+        try {
+            firebasePhoneAuth.setupRecaptcha('recaptcha-container', 'invisible');
+        } catch (error) {
+            console.error("Error setting up reCAPTCHA:", error);
+        }
+
+        // Cleanup on unmount
+        return () => {
+            firebasePhoneAuth.cleanup();
+        };
+    }, []);
 
     const handleNumberPress = (num: string) => {
         if (phoneNumber.includes('X')) {
@@ -39,35 +53,57 @@ export default function MobileVerificationScreen() {
         }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         console.log("=== Mobile Login: handleSubmit called ===");
         console.log("Current phone number:", phoneNumber);
 
         setIsLoading(true);
+        setError(null);
 
-        // Clean phone number (remove formatting and keep only digits)
-        const cleanPhone = phoneNumber.replace(/[^0-9]/g, '');
+        try {
+            // Clean phone number and format for Firebase
+            const cleanPhone = phoneNumber.replace(/[^0-9]/g, '');
 
-        if (cleanPhone.length !== 12) { // Should be 12 digits (91 + 10 digits)
-            setError('Please enter a valid 10-digit mobile number');
+            if (cleanPhone.length !== 12) { // Should be 12 digits (91 + 10 digits)
+                setError('Please enter a valid 10-digit mobile number');
+                setIsLoading(false);
+                return;
+            }
+
+            // Convert to international format for Firebase
+            const formattedPhone = `+${cleanPhone}`;
+            console.log("Formatted phone for Firebase:", formattedPhone);
+
+            // Send OTP using Firebase
+            const success = await firebasePhoneAuth.sendOTP(formattedPhone);
+
+            if (success) {
+                // Store phone number for OTP verification
+                localStorage.setItem(STORAGE_KEYS.pendingPhone, formattedPhone);
+
+                // Show success toast
+                toast({
+                    title: "OTP sent successfully",
+                    description: "Please check your mobile for the verification code",
+                });
+
+                // Navigate to OTP verification page
+                setTimeout(() => {
+                    router.push('/auth/otp');
+                }, 800);
+            }
+        } catch (error: any) {
+            console.error("Error sending OTP:", error);
+            setError(error.message || 'Failed to send OTP. Please try again.');
+
+            toast({
+                title: "Failed to send OTP",
+                description: error.message || 'Please check your number and try again',
+                variant: "destructive",
+            });
+        } finally {
             setIsLoading(false);
-            return;
         }
-
-        // Store phone number for OTP verification (using dummy data)
-        localStorage.setItem(STORAGE_KEYS.pendingPhone, cleanPhone);
-
-        // Show success toast
-        toast({
-            title: "OTP sent successfully",
-            description: "Please check your mobile for the verification code",
-        });
-
-        // Navigate to OTP verification page after a short delay
-        setTimeout(() => {
-            router.push('/auth/otp');
-            setIsLoading(false);
-        }, 800);
     };
 
     const canSubmit = !phoneNumber.includes('X') && !isLoading;
@@ -173,6 +209,16 @@ export default function MobileVerificationScreen() {
                                 </button>
                             </div>
                         </div>
+
+                        {/* reCAPTCHA Container - Hidden but required for Firebase */}
+                        <div id="recaptcha-container" className="hidden"></div>
+
+                        {/* Error Display */}
+                        {error && (
+                            <div className="text-center mb-4">
+                                <p className="text-red-500 text-sm">{error}</p>
+                            </div>
+                        )}
 
                         {/* Display the phone number status somewhere */}
                         <div className="hidden">

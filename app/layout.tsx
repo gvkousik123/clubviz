@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { AuthProvider } from "@/components/auth/auth-provider"
 
 export const metadata: Metadata = {
   title: "ClubViz - Ultimate Platform for Booking Clubs",
@@ -34,9 +35,11 @@ export default function RootLayout({
       </head>
       <body className="antialiased bg-background-primary text-text-primary dark">
         <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
-          <main className="min-h-screen max-w-md mx-auto relative overflow-hidden">
-            {children}
-          </main>
+          <AuthProvider>
+            <main className="min-h-screen max-w-md mx-auto relative overflow-hidden">
+              {children}
+            </main>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

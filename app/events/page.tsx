@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Loader2 } from 'lucide-react';
-import type { Event } from '@/lib/api-types';
+import type { EventListItem } from '@/lib/services/event.service';
 import { useToast } from '@/hooks/use-toast';
 
 import { useSearch } from '@/hooks/use-search';
@@ -15,7 +15,7 @@ import { EventService } from '@/lib/services/event.service';
 export default function EventsListPage() {
     const router = useRouter();
     const { toast } = useToast();
-    const [events, setEvents] = useState<Event[]>([]);
+    const [events, setEvents] = useState<EventListItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [favorites, setFavorites] = useState<string[]>([]);
@@ -58,6 +58,15 @@ export default function EventsListPage() {
         return eventImages[index % eventImages.length];
     };
 
+    // Fallback data for when API fails
+    const eventFallback = [
+        { id: 'event-1', title: 'Freaky Friday with DJ Alexxx', shortDescription: 'Techno & Bollytech', location: 'DABO, Airport Road', startDateTime: new Date('2025-04-04T19:30:00Z').toISOString(), image: '/event list/Rectangle 1.jpg' },
+        { id: 'event-2', title: 'Wow Wednesday with DJ Shade', shortDescription: 'Bollywood & Bollytech', location: 'DABO, Airport Road', startDateTime: new Date('2025-04-06T19:30:00Z').toISOString(), image: '/event list/Rectangle 2.jpg' },
+        { id: 'event-3', title: 'Saturday Night Fever', shortDescription: 'Deep house & Mellow Tech', location: 'Garage Club', startDateTime: new Date('2025-04-08T20:00:00Z').toISOString(), image: '/event list/Rectangle 3.jpg' },
+        { id: 'event-4', title: 'Sunday Vibes', shortDescription: 'Chill & Lounge', location: 'Elite Club', startDateTime: new Date('2025-04-09T18:00:00Z').toISOString(), image: '/event list/Rectangle 4.jpg' },
+        { id: 'event-5', title: 'Monday Madness', shortDescription: 'House & Techno', location: 'Rhythm Club', startDateTime: new Date('2025-04-10T20:30:00Z').toISOString(), image: '/event list/Rectangle 5.jpg' },
+    ];
+
     const handleGoBack = () => {
         router.back();
     };
@@ -69,22 +78,37 @@ export default function EventsListPage() {
                 await performEventSearch(searchQuery.trim());
                 // Update the local events state with search results
                 if (searchEvents.length > 0) {
-                    // Convert SearchEvent[] to Event[] format for compatibility
-                    const convertedEvents: Event[] = searchEvents.map((event, index) => ({
+                    // Convert SearchEvent[] to EventListItem[] format for compatibility
+                    const convertedEvents: EventListItem[] = searchEvents.map((event, index) => ({
                         id: event.id,
-                        title: event.title,
-                        description: event.description || '',
-                        clubId: event.club?.id || '',
-                        coverImage: event.imageUrl || getEventFallbackImage(index),
-                        imageUrl: event.imageUrl || getEventFallbackImage(index),
-                        images: [event.imageUrl || getEventFallbackImage(index)],
-                        location: event.location || '',
+                        title: event.title.length > 25 ? event.title.substring(0, 25) + '...' : event.title,
+                        shortDescription: event.description || '',
+                        imageUrl: getEventFallbackImage(index),
+                        location: event.location && event.location.length > 20 ? event.location.substring(0, 20) + '...' : (event.location || ''),
                         startDateTime: event.startDateTime,
                         endDateTime: event.endDateTime,
+                        formattedDate: new Date(event.startDateTime).toLocaleDateString(),
+                        formattedTime: new Date(event.startDateTime).toLocaleTimeString(),
+                        timeUntilEvent: '',
+                        duration: '',
+                        attendeeCount: 0,
+                        maxAttendees: 100,
+                        isRegistered: false,
+                        canRegister: true,
+                        isFull: false,
+                        clubId: event.club?.id || '',
+                        clubName: event.club?.name || '',
+                        clubLogo: '',
+                        organizerName: '',
+                        status: 'UPCOMING' as const,
                         isPublic: event.isPublic,
                         requiresApproval: event.requiresApproval,
-                        createdAt: event.createdAt,
-                        updatedAt: event.updatedAt,
+                        attendeeStatus: '',
+                        eventStatusText: '',
+                        pastEvent: false,
+                        upcoming: true,
+                        ongoing: false,
+                        capacityPercentage: 0,
                     }));
                     setEvents(convertedEvents);
                     setLoading(false);
@@ -106,22 +130,37 @@ export default function EventsListPage() {
             await searchNearby();
 
             if (nearbyResults?.events && nearbyResults.events.length > 0) {
-                // Convert nearby events to Event[] format
-                const convertedEvents: Event[] = nearbyResults.events.map((event, index) => ({
+                // Convert nearby events to EventListItem[] format
+                const convertedEvents: EventListItem[] = nearbyResults.events.map((event, index) => ({
                     id: event.id,
-                    title: event.title,
-                    description: event.description || '',
-                    clubId: event.club?.id || '',
-                    coverImage: event.imageUrl || getEventFallbackImage(index),
-                    imageUrl: event.imageUrl || getEventFallbackImage(index),
-                    images: [event.imageUrl || getEventFallbackImage(index)],
-                    location: event.location || '',
+                    title: event.title.length > 25 ? event.title.substring(0, 25) + '...' : event.title,
+                    shortDescription: event.description || '',
+                    imageUrl: getEventFallbackImage(index),
+                    location: event.location && event.location.length > 20 ? event.location.substring(0, 20) + '...' : (event.location || ''),
                     startDateTime: event.startDateTime,
                     endDateTime: event.endDateTime,
+                    formattedDate: new Date(event.startDateTime).toLocaleDateString(),
+                    formattedTime: new Date(event.startDateTime).toLocaleTimeString(),
+                    timeUntilEvent: '',
+                    duration: '',
+                    attendeeCount: 0,
+                    maxAttendees: 100,
+                    isRegistered: false,
+                    canRegister: true,
+                    isFull: false,
+                    clubId: event.club?.id || '',
+                    clubName: event.club?.name || '',
+                    clubLogo: '',
+                    organizerName: '',
+                    status: 'UPCOMING' as const,
                     isPublic: event.isPublic,
                     requiresApproval: event.requiresApproval,
-                    createdAt: event.createdAt,
-                    updatedAt: event.updatedAt,
+                    attendeeStatus: '',
+                    eventStatusText: '',
+                    pastEvent: false,
+                    upcoming: true,
+                    ongoing: false,
+                    capacityPercentage: 0,
                 }));
                 setEvents(convertedEvents);
             }
@@ -139,10 +178,7 @@ export default function EventsListPage() {
 
 
 
-    useEffect(() => {
-        fetchEvents();
-        loadFavorites();
-    }, []);
+
 
     const fetchEvents = async () => {
         setLoading(true);
@@ -158,38 +194,118 @@ export default function EventsListPage() {
             });
 
             if (response.success && response.data?.content) {
-                // Convert API response to Event[] format with proper mapping
-                const apiEvents: Event[] = response.data.content.map((event, index) => ({
+                console.log('API Events Response:', response.data.content);
+                // Map API events with proper length limits and static images (same as home page)
+                const mappedEvents = response.data.content.map((event: any, index: number) => ({
                     id: event.id,
-                    title: event.title.length > 25 ? event.title.substring(0, 25) + '...' : event.title,
-                    description: event.shortDescription || '',
-                    clubId: event.clubId || '',
-                    coverImage: getEventFallbackImage(index), // Always use static images
-                    imageUrl: getEventFallbackImage(index), // Always use static images
-                    images: [getEventFallbackImage(index)], // Always use static images
-                    location: event.location && event.location.length > 20 ?
-                        event.location.substring(0, 20) + '...' :
+                    title: event.title.length > 20 ? event.title.substring(0, 20) + '...' : event.title,
+                    shortDescription: event.shortDescription || event.clubName || '',
+                    imageUrl: getEventFallbackImage(index),
+                    location: event.location && event.location.length > 25 ?
+                        event.location.substring(0, 25) + '...' :
                         (event.location || event.clubName || ''),
                     startDateTime: event.startDateTime,
                     endDateTime: event.endDateTime,
-                    isPublic: event.isPublic,
-                    requiresApproval: event.requiresApproval,
-                    createdAt: event.formattedDate || new Date().toISOString(),
-                    updatedAt: event.formattedDate || new Date().toISOString(),
+                    formattedDate: event.formattedDate,
+                    formattedTime: event.formattedTime,
+                    timeUntilEvent: event.timeUntilEvent || '',
+                    duration: event.duration || '',
+                    attendeeCount: event.attendeeCount || 0,
+                    maxAttendees: event.maxAttendees || 100,
+                    isRegistered: event.isRegistered || false,
+                    canRegister: event.canRegister || true,
+                    isFull: event.isFull || false,
+                    clubId: event.clubId || '',
+                    clubName: event.clubName ? (event.clubName.length > 15 ? event.clubName.substring(0, 15) + '...' : event.clubName) : '',
+                    clubLogo: event.clubLogo || '',
+                    organizerName: event.organizerName || '',
+                    status: event.status || 'UPCOMING' as const,
+                    isPublic: event.isPublic !== undefined ? event.isPublic : true,
+                    requiresApproval: event.requiresApproval || false,
+                    attendeeStatus: event.attendeeStatus || '',
+                    eventStatusText: event.eventStatusText || '',
+                    pastEvent: event.pastEvent || false,
+                    upcoming: !event.pastEvent,
+                    ongoing: event.status === 'ONGOING' || false,
+                    capacityPercentage: Math.round((event.attendeeCount || 0) / (event.maxAttendees || 100) * 100),
                 }));
-                setEvents(apiEvents);
+                setEvents(mappedEvents);
             } else {
-                setEvents([]);
+                // Use fallback data if API fails
+                const fallbackEvents: EventListItem[] = eventFallback.map((event, index) => ({
+                    id: event.id,
+                    title: event.title,
+                    shortDescription: event.shortDescription,
+                    imageUrl: event.image,
+                    location: event.location,
+                    startDateTime: event.startDateTime,
+                    endDateTime: event.startDateTime,
+                    formattedDate: new Date(event.startDateTime).toLocaleDateString(),
+                    formattedTime: new Date(event.startDateTime).toLocaleTimeString(),
+                    timeUntilEvent: '',
+                    duration: '',
+                    attendeeCount: Math.floor(Math.random() * 50) + 10,
+                    maxAttendees: 100,
+                    isRegistered: false,
+                    canRegister: true,
+                    isFull: false,
+                    clubId: '',
+                    clubName: event.location.split(',')[0] || '',
+                    clubLogo: '',
+                    organizerName: '',
+                    status: 'UPCOMING' as const,
+                    isPublic: true,
+                    requiresApproval: false,
+                    attendeeStatus: '',
+                    eventStatusText: '',
+                    pastEvent: false,
+                    upcoming: true,
+                    ongoing: false,
+                    capacityPercentage: Math.floor(Math.random() * 80) + 20,
+                }));
+                setEvents(fallbackEvents);
                 if (response.message) {
                     console.warn('API returned message:', response.message);
                 }
             }
         } catch (err: any) {
             console.error('Error loading events:', err);
-            setEvents([]);
+            // Use fallback data on error
+            const fallbackEvents: EventListItem[] = eventFallback.map((event, index) => ({
+                id: event.id,
+                title: event.title,
+                shortDescription: event.shortDescription,
+                imageUrl: event.image,
+                location: event.location,
+                startDateTime: event.startDateTime,
+                endDateTime: event.startDateTime,
+                formattedDate: new Date(event.startDateTime).toLocaleDateString(),
+                formattedTime: new Date(event.startDateTime).toLocaleTimeString(),
+                timeUntilEvent: '',
+                duration: '',
+                attendeeCount: Math.floor(Math.random() * 50) + 10,
+                maxAttendees: 100,
+                isRegistered: false,
+                canRegister: true,
+                isFull: false,
+                clubId: '',
+                clubName: event.location.split(',')[0] || '',
+                clubLogo: '',
+                organizerName: '',
+                status: 'UPCOMING' as const,
+                isPublic: true,
+                requiresApproval: false,
+                attendeeStatus: '',
+                eventStatusText: '',
+                pastEvent: false,
+                upcoming: true,
+                ongoing: false,
+                capacityPercentage: Math.floor(Math.random() * 80) + 20,
+            }));
+            setEvents(fallbackEvents);
             setError(err.message || 'Failed to load events');
             toast({
-                title: 'Using cached data',
+                title: 'Using sample data',
                 description: err.message || 'Could not fetch latest events. Showing sample data.',
                 variant: 'default',
             });
@@ -245,7 +361,14 @@ export default function EventsListPage() {
         }
     };
 
+    const isValidImageUrl = (url: string) => {
+        return url && url.startsWith('http') && !url.includes('null') && !url.includes('undefined');
+    };
 
+    useEffect(() => {
+        fetchEvents();
+        loadFavorites();
+    }, []);
 
     if (loading) {
         return (
@@ -387,7 +510,7 @@ export default function EventsListPage() {
                                             {/* Image */}
                                             <div className="relative">
                                                 <img
-                                                    src={fallbackImage}
+                                                    src={event.imageUrl && isValidImageUrl(event.imageUrl) ? event.imageUrl : fallbackImage}
                                                     alt={event.title}
                                                     className="w-full h-[180px] object-cover"
                                                     style={{
@@ -414,7 +537,7 @@ export default function EventsListPage() {
                                                         {event.title}
                                                     </div>
                                                     <div className="text-[#C6C6C6] text-[11px] font-semibold font-['Manrope'] leading-[15px] tracking-[0.01em] truncate">
-                                                        {event.location}
+                                                        {event.clubName || event.location}
                                                     </div>
                                                 </div>
                                                 <button
@@ -435,7 +558,7 @@ export default function EventsListPage() {
                                             </div>
 
                                             <div className="absolute left-[18px] right-[18px] top-[262px] text-white text-[11px] font-bold font-['Manrope'] leading-[15px] tracking-[0.01em] truncate">
-                                                {event.description || formatEventDate(event.startDateTime).day + ' ' + formatEventDate(event.startDateTime).month}
+                                                {event.shortDescription || event.formattedDate}
                                             </div>
                                         </div>
                                     );
