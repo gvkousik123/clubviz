@@ -303,12 +303,12 @@ export default function ClubsListPage() {
                     </div>
 
                     {/* Search Bar */}
-                    <div className="flex items-center gap-2">
-                        <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full">
+                        <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2 min-w-0">
                             <button
                                 onClick={handleSearch}
                                 disabled={isSearching || !searchQuery.trim()}
-                                className="disabled:opacity-50"
+                                className="disabled:opacity-50 flex-shrink-0"
                             >
                                 {isSearching ? (
                                     <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
@@ -326,14 +326,14 @@ export default function ClubsListPage() {
                                         handleSearch();
                                     }
                                 }}
-                                className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white outline-none"
+                                className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white outline-none min-w-0"
                                 disabled={isSearching}
                             />
                         </div>
                         <button
                             onClick={handleNearbySearch}
                             disabled={isLoadingNearby}
-                            className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center disabled:opacity-50"
+                            className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center disabled:opacity-50 flex-shrink-0"
                             title="Find nearby clubs"
                         >
                             {isLoadingNearby ? (
@@ -342,7 +342,7 @@ export default function ClubsListPage() {
                                 <MapPin className="w-[21px] h-[21px] text-white" />
                             )}
                         </button>
-                        <div className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center">
+                        <div className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center flex-shrink-0">
                             <SlidersHorizontal className="w-[21px] h-[21px] text-white" />
                         </div>
                     </div>
@@ -367,9 +367,9 @@ export default function ClubsListPage() {
 
 
                 {/* Main Content */}
-                <div className="w-full space-y-6 pt-[18vh]">
+                <div className="w-full flex flex-col items-center space-y-6 pt-[18vh] px-0">
                     {/* All Clubs Section */}
-                    <section className="w-full">
+                    <section className="w-full max-w-[430px]">
                         <div className="flex items-center justify-between mb-4 px-5">
                             <h2 className="text-white text-sm font-semibold truncate">All Clubs</h2>
                         </div>
