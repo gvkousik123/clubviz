@@ -18,7 +18,11 @@ export class PublicClubService {
    */
   static async searchClubs(query: string) {
     const response = await publicApi.get(`/clubs/search?query=${encodeURIComponent(query)}`);
-    return response.data;
+    return {
+      success: response.status === 200,
+      data: response.data,
+      message: 'Search completed successfully'
+    };
   }
 
   /**
@@ -26,7 +30,11 @@ export class PublicClubService {
    */
   static async getPublicClubs() {
     const response = await publicApi.get('/clubs/public');
-    return response.data;
+    return {
+      success: response.status === 200,
+      data: response.data,
+      message: 'Clubs loaded successfully'
+    };
   }
 
   /**
@@ -34,7 +42,11 @@ export class PublicClubService {
    */
   static async getPublicClubById(id: string) {
     const response = await publicApi.get(`/clubs/public/${id}`);
-    return response.data;
+    return {
+      success: response.status === 200,
+      data: response.data,
+      message: 'Club loaded successfully'
+    };
   }
 
   /**
@@ -43,7 +55,12 @@ export class PublicClubService {
   static async getPublicClubsList(params: any = {}) {
     const queryParams = new URLSearchParams(params).toString();
     const response = await publicApi.get(`/clubs/public/list?${queryParams}`);
-    return response.data;
+    // Return in the same format as the regular ClubService
+    return {
+      success: response.status === 200,
+      data: response.data,
+      message: 'Clubs loaded successfully'
+    };
   }
 
   /**
@@ -112,7 +129,11 @@ export class PublicSearchService {
    */
   static async getSearchCategories() {
     const response = await publicApi.get('/search/categories');
-    return response.data;
+    return {
+      success: response.status === 200,
+      data: response.data,
+      message: 'Categories loaded successfully'
+    };
   }
 
   /**

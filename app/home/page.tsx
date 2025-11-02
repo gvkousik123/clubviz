@@ -25,6 +25,8 @@ import Sidebar from '@/components/common/sidebar';
 import { useSearch } from '@/hooks/use-search';
 import { EventService } from '@/lib/services/event.service';
 import { ClubService } from '@/lib/services/club.service';
+import { PublicClubService, PublicEventService, PublicSearchService } from '@/lib/services/public.service';
+import { isGuestMode } from '@/lib/api-client-public';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/use-profile';
 import { useUserAuth } from '@/hooks/use-auth-guard';
@@ -111,26 +113,42 @@ const HomePage = () => {
     // State to track if we're showing search results
     const [showingSearchResults, setShowingSearchResults] = useState(false);
 
+    // Search categories state
+    const [searchCategories, setSearchCategories] = useState<string[]>([]);
+    const [showCategories, setShowCategories] = useState(false);
+    const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+
     // Load profile, venues and events on mount
     useEffect(() => {
         const loadInitialData = async () => {
-            // Load profile data
-            await loadProfile();
+            const isGuest = isGuestMode();
 
-            // Load venues (clubs)
+            // Load profile data (only for authenticated users)
+            if (!isGuest) {
+                await loadProfile();
+            }
+
+            // Load venues (clubs) - Use appropriate service based on auth status
             setIsLoadingVenues(true);
             try {
-                const clubResponse = await ClubService.getPublicClubsList({
-                    page: 0,
-                    size: 5,
-                    sortBy: 'name',
-                    sortDirection: 'ASC'
-                });
+                const clubResponse = isGuest
+                    ? await PublicClubService.getPublicClubsList({
+                        page: 0,
+                        size: 5,
+                        sortBy: 'name',
+                        sortDirection: 'ASC'
+                    })
+                    : await ClubService.getPublicClubsList({
+                        page: 0,
+                        size: 5,
+                        sortBy: 'name',
+                        sortDirection: 'ASC'
+                    });
 
                 if (clubResponse.success && clubResponse.data?.content) {
                     console.log('API Clubs Response:', clubResponse.data.content);
                     // Map API clubs with proper length limits and static images
-                    const mappedClubs = clubResponse.data.content.map((club, index) => ({
+                    const mappedClubs = clubResponse.data.content.map((club: any, index: number) => ({
                         id: club.id || '',
                         name: club.name ? (club.name.length > 20 ? club.name.substring(0, 20) + '...' : club.name) : '',
                         description: club.description ? (club.description.length > 50 ? club.description.substring(0, 50) + '...' : club.description) : '',
@@ -205,16 +223,29 @@ const HomePage = () => {
                 setIsLoadingVenues(false);
             }
 
-            // Load events
+            // Load events - Handle differently for guest vs authenticated users
             setIsLoadingEvents(true);
             try {
-                const eventResponse = await EventService.getEventList({
-                    page: 0,
-                    size: 5,
-                    sortBy: 'startDateTime',
-                    sortOrder: 'asc',
-                    status: 'UPCOMING'
-                });
+                let eventResponse;
+
+                if (isGuest) {
+                    // For guest users, use public events API
+                    eventResponse = await PublicEventService.getPublicEvents({
+                        page: 0,
+                        size: 5,
+                        sortBy: 'startDateTime',
+                        sortOrder: 'asc',
+                        status: 'UPCOMING'
+                    });
+                } else {
+                    eventResponse = await EventService.getEventList({
+                        page: 0,
+                        size: 5,
+                        sortBy: 'startDateTime',
+                        sortOrder: 'asc',
+                        status: 'UPCOMING'
+                    });
+                }
 
                 if (eventResponse.success && eventResponse.data?.content) {
                     console.log('API Events Response:', eventResponse.data.content);
@@ -336,6 +367,21 @@ const HomePage = () => {
         loadInitialData();
     }, [toast, loadProfile]);
 
+    // Show guest mode notification
+    useEffect(() => {
+        const isGuest = isGuestMode();
+        if (isGuest) {
+            // Show a toast to inform user they're in guest mode
+            setTimeout(() => {
+                toast({
+                    title: "Browsing as Guest 👋",
+                    description: "Sign in to join clubs, RSVP to events, and access more features!",
+                    duration: 5000,
+                });
+            }, 1000); // Delay to avoid overwhelming user on page load
+        }
+    }, [toast]);
+
     useEffect(() => {
         const interval = setInterval(() => {
             if (!isDragging) {
@@ -393,13 +439,60 @@ const HomePage = () => {
     };
 
     const handleSearch = async () => {
-        if (searchQuery.trim()) {
+        const isGuest = isGuestMode();
+
+        // If no search query, load and show categories
+        if (!searchQuery.trim()) {
+            console.log('Loading search categories...');
+            setIsLoadingCategories(true);
+            try {
+                const categoriesResponse = isGuest
+                    ? await PublicSearchService.getSearchCategories()
+                    : await universalSearch(''); // This will trigger category loading in useSearch
+
+                if (isGuest && categoriesResponse.success && categoriesResponse.data) {
+                    setSearchCategories(categoriesResponse.data);
+                    setShowCategories(true);
+                    setShowingSearchResults(true);
+                }
+            } catch (error) {
+                console.error('Failed to load categories:', error);
+                toast({
+                    title: "Failed to load categories",
+                    description: "Could not fetch search categories",
+                    variant: "destructive",
+                });
+            } finally {
+                setIsLoadingCategories(false);
+            }
+        } else {
+            // Perform actual search
             console.log('Searching for:', searchQuery);
             try {
-                await universalSearch(searchQuery.trim());
-                setShowingSearchResults(true);
+                if (isGuest) {
+                    // For guests, try different search approaches
+                    try {
+                        const searchResult = await PublicSearchService.globalSearch(searchQuery.trim());
+                        console.log('Guest search result:', searchResult);
+                        setShowingSearchResults(true);
+                    } catch (searchError) {
+                        console.log('Global search not available for guests, using club search');
+                        // Fallback to club search for guests
+                        const clubSearchResult = await PublicClubService.searchClubs(searchQuery.trim());
+                        console.log('Club search result for guests:', clubSearchResult);
+                        setShowingSearchResults(true);
+                    }
+                } else {
+                    await universalSearch(searchQuery.trim());
+                    setShowingSearchResults(true);
+                }
             } catch (error) {
                 console.error('Search failed:', error);
+                toast({
+                    title: "Search failed",
+                    description: "Could not perform search. Please try again.",
+                    variant: "destructive",
+                });
             }
         }
     };
@@ -407,6 +500,9 @@ const HomePage = () => {
     const handleClearSearch = () => {
         setSearchQuery('');
         setShowingSearchResults(false);
+        setShowCategories(false);
+        setSearchCategories([]);
+        setIsLoadingCategories(false);
         clearResults();
         clearError();
     };
@@ -487,6 +583,28 @@ const HomePage = () => {
                                 placeholder="Search clubs, events..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                onFocus={async () => {
+                                    if (!searchQuery.trim() && !showCategories && !isLoadingCategories) {
+                                        // Load categories when search input is focused and empty
+                                        setIsLoadingCategories(true);
+                                        try {
+                                            const isGuest = isGuestMode();
+                                            const categoriesResponse = isGuest
+                                                ? await PublicSearchService.getSearchCategories()
+                                                : await PublicSearchService.getSearchCategories(); // Same API for both
+
+                                            if (categoriesResponse.success && categoriesResponse.data) {
+                                                setSearchCategories(categoriesResponse.data);
+                                                setShowCategories(true);
+                                                setShowingSearchResults(true);
+                                            }
+                                        } catch (error) {
+                                            console.error('Failed to load categories on focus:', error);
+                                        } finally {
+                                            setIsLoadingCategories(false);
+                                        }
+                                    }
+                                }}
                                 onKeyPress={(e) => {
                                     if (e.key === 'Enter') {
                                         handleSearch();
@@ -515,14 +633,40 @@ const HomePage = () => {
                     </div>
                 </header>
 
+                {/* Guest Mode Banner */}
+                {isGuestMode() && (
+                    <div className="fixed top-[16vh] left-0 w-full max-w-[430px] mx-auto z-40">
+                        <div className="mx-4 mt-2 mb-2 p-3 bg-gradient-to-r from-teal-600 to-cyan-600 rounded-lg shadow-lg border border-teal-400/30">
+                            <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                    <p className="text-white text-sm font-medium">
+                                        👋 Browsing as Guest
+                                    </p>
+                                    <p className="text-white/80 text-xs mt-1">
+                                        Sign in to join clubs & RSVP to events
+                                    </p>
+                                </div>
+                                <Link
+                                    href="/auth/login"
+                                    className="px-3 py-1.5 bg-white/20 rounded-md text-white text-xs font-medium hover:bg-white/30 transition-colors"
+                                >
+                                    Sign In
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Main Content */}
-                <main className="pt-[16vh] px-0 space-y-6">
+                <main className={`${isGuestMode() ? 'pt-[20vh]' : 'pt-[16vh]'} px-0 space-y-6`}>
                     {/* Search Results or Normal Content */}
                     {showingSearchResults ? (
                         /* Search Results Section */
                         <section className="px-5 space-y-6 pt-[18vh]">
                             <div className="flex items-center justify-between">
-                                <h2 className="text-white text-lg font-bold">Search Results for "{searchQuery}"</h2>
+                                <h2 className="text-white text-lg font-bold">
+                                    {showCategories ? 'Search Categories' : `Search Results for "${searchQuery}"`}
+                                </h2>
                                 <button
                                     onClick={handleClearSearch}
                                     className="text-[#14FFEC] text-sm font-medium hover:underline"
@@ -530,6 +674,58 @@ const HomePage = () => {
                                     Clear Search
                                 </button>
                             </div>
+
+                            {/* Categories Display */}
+                            {showCategories && (
+                                <div className="space-y-4">
+                                    {isLoadingCategories ? (
+                                        <div className="flex items-center justify-center py-8">
+                                            <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+                                            <span className="ml-3 text-white">Loading categories...</span>
+                                        </div>
+                                    ) : searchCategories.length > 0 ? (
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {searchCategories.map((category, index) => (
+                                                <button
+                                                    key={category.id || index}
+                                                    onClick={async () => {
+                                                        const categoryName = category.name || category;
+                                                        setSearchQuery(categoryName);
+                                                        setShowCategories(false);
+
+                                                        // Perform search with the selected category
+                                                        try {
+                                                            const isGuest = isGuestMode();
+                                                            if (isGuest) {
+                                                                const searchResult = await PublicClubService.searchClubs(categoryName);
+                                                                console.log('Category search result for guests:', searchResult);
+                                                            } else {
+                                                                await universalSearch(categoryName);
+                                                            }
+                                                        } catch (error) {
+                                                            console.error('Category search failed:', error);
+                                                        }
+                                                    }}
+                                                    className="p-4 bg-gradient-to-r from-[#014A4B] to-[#008378] rounded-lg border border-[#14FFEC]/20 hover:border-[#14FFEC]/50 transition-all duration-200 text-left"
+                                                >
+                                                    <h3 className="text-white font-semibold text-sm mb-1">
+                                                        {category.name || category}
+                                                    </h3>
+                                                    {category.description && (
+                                                        <p className="text-gray-300 text-xs">
+                                                            {category.description}
+                                                        </p>
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <p className="text-gray-300">No categories available</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Loading State */}
                             {isSearching && (
@@ -540,7 +736,7 @@ const HomePage = () => {
                             )}
 
                             {/* Search Results - Events */}
-                            {searchEvents.length > 0 && (
+                            {!showCategories && searchEvents.length > 0 && (
                                 <div className="space-y-4">
                                     <h3 className="text-white text-base font-semibold">Events</h3>
                                     <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
@@ -583,7 +779,7 @@ const HomePage = () => {
                             )}
 
                             {/* Search Results - Clubs */}
-                            {searchClubs.length > 0 && (
+                            {!showCategories && searchClubs.length > 0 && (
                                 <div className="space-y-4">
                                     <h3 className="text-white text-base font-semibold">Clubs</h3>
                                     <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
@@ -637,7 +833,7 @@ const HomePage = () => {
                             )}
 
                             {/* Balanced Results */}
-                            {balancedResults?.venues && balancedResults.venues.length > 0 && (
+                            {!showCategories && balancedResults?.venues && balancedResults.venues.length > 0 && (
                                 <div className="space-y-4">
                                     <h3 className="text-white text-base font-semibold">More Venues</h3>
                                     <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
@@ -690,7 +886,7 @@ const HomePage = () => {
                             )}
 
                             {/* No Results */}
-                            {searchEvents.length === 0 && searchClubs.length === 0 && (!balancedResults?.venues || balancedResults.venues.length === 0) && (
+                            {!showCategories && !isSearching && searchEvents.length === 0 && searchClubs.length === 0 && (!balancedResults?.venues || balancedResults.venues.length === 0) && searchQuery.trim() && (
                                 <div className="text-center py-8">
                                     <p className="text-gray-400">No results found for "{searchQuery}"</p>
                                     <button

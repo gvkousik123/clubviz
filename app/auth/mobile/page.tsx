@@ -17,6 +17,25 @@ export default function MobileVerificationScreen() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Handle guest login
+    const handleGuestLogin = () => {
+        // Clear any existing auth data to ensure clean guest state
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem(STORAGE_KEYS.accessToken);
+            localStorage.removeItem(STORAGE_KEYS.user);
+            localStorage.removeItem(STORAGE_KEYS.refreshToken);
+        }
+
+        // Show success message
+        toast({
+            title: "Welcome, Guest!",
+            description: "You can browse clubs and events without logging in",
+        });
+
+        // Navigate to home page as guest
+        router.push('/home');
+    };
+
     // Setup reCAPTCHA on component mount
     useEffect(() => {
         try {
@@ -128,12 +147,12 @@ export default function MobileVerificationScreen() {
                         <ArrowLeft className="w-[1.25rem] h-[1.25rem]" />
                     </Link>
 
-                    <Link
-                        href="/auth/login"
+                    <button
+                        onClick={handleGuestLogin}
                         className="px-[1rem] py-[0.375rem] rounded-full border border-teal-400/30 text-[0.875rem] text-teal-300 hover:bg-teal-500/10 transition"
                     >
-                        Skip
-                    </Link>
+                        Guest Login
+                    </button>
                 </div>
 
                 {/* White Card Container - Sticks to bottom and takes remaining space */}

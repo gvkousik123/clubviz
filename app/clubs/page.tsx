@@ -11,6 +11,8 @@ import { ClubListCard } from '@/components/clubs/club-list-card';
 
 import { useSearch } from '@/hooks/use-search';
 import { ClubService } from '@/lib/services/club.service';
+import { PublicClubService } from '@/lib/services/public.service';
+import { isGuestMode } from '@/lib/api-client-public';
 
 // Dummy clubs data for local development
 const DUMMY_CLUBS: Club[] = [
@@ -174,25 +176,36 @@ export default function ClubsListPage() {
     const loadClubs = async () => {
         setLoading(true);
         try {
-            // Call the actual API to get clubs
-            const response = await ClubService.getPublicClubsList({
-                page: 0,
-                size: 20,
-                sortBy: 'name',
-                sortDirection: 'ASC'
-            });
+            const isGuest = isGuestMode();
+            let response;
+
+            if (isGuest) {
+                // Use public club service for guests
+                response = await PublicClubService.getPublicClubsList({
+                    page: 0,
+                    size: 20,
+                    sortBy: 'name',
+                    sortDirection: 'ASC'
+                });
+            } else {
+                // Use regular club service for authenticated users
+                response = await ClubService.getPublicClubsList({
+                    page: 0,
+                    size: 20,
+                    sortBy: 'name',
+                    sortDirection: 'ASC'
+                });
+            }
 
             if (response.success && response.data?.content) {
-                // Convert API response to Club[] format with proper mapping
+                // Convert API response to Club[] format with proper text limits (no truncation)
                 const apiClubs: Club[] = response.data.content.map((club, index) => ({
                     id: club.id,
-                    name: (club.name || '').length > 15 ? (club.name || '').substring(0, 15) + '...' : (club.name || ''),
+                    name: club.name || '',
                     openTime: 'Open until 1:30 am', // Default since API doesn't provide this
                     rating: 4.2, // Default rating
                     image: getClubFallbackImage(index), // Always use static images
-                    address: club.description ?
-                        (club.description.length > 30 ? club.description.substring(0, 30) + '...' : club.description) :
-                        (club.location || ''),
+                    address: club.description || club.location || '',
                     category: club.category || 'Club'
                 }));
                 setClubs(apiClubs);
@@ -360,7 +373,7 @@ export default function ClubsListPage() {
                         <div className="flex items-center justify-between mb-4 px-5">
                             <h2 className="text-white text-sm font-semibold truncate">All Clubs</h2>
                         </div>
-                        <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide pl-5">
+                        <div className="flex flex-col gap-4 pb-6 px-5">
                             {loading ? (
                                 <div className="flex items-center justify-center w-full py-8">
                                     <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
@@ -411,14 +424,14 @@ export default function ClubsListPage() {
                                             {/* Text content */}
                                             <div className="w-32 h-[42px] left-[33px] top-[147px] absolute justify-start items-center gap-[29px] inline-flex">
                                                 <div className="w-52 flex-col justify-center items-start gap-1 inline-flex">
-                                                    <div className="self-stretch h-4 text-[#14FFEC] text-base font-black font-['Manrope'] leading-4 tracking-[0.02em] truncate">
+                                                    <div className="self-stretch h-4 text-[#14FFEC] text-base font-black font-['Manrope'] leading-4 tracking-[0.02em] truncate overflow-hidden whitespace-nowrap">
                                                         {club.name}
                                                     </div>
-                                                    <div className="self-stretch h-3.5 text-white text-xs font-semibold font-['Manrope'] leading-3.5 tracking-[0.01em] truncate">
+                                                    <div className="self-stretch h-3.5 text-white text-xs font-semibold font-['Manrope'] leading-3.5 tracking-[0.01em] truncate overflow-hidden whitespace-nowrap">
                                                         {club.openTime}
                                                     </div>
                                                     {club.address && (
-                                                        <div className="self-stretch text-[#C3C3C3] text-[10px] font-medium font-['Manrope'] leading-3 tracking-[0.1px] truncate">
+                                                        <div className="self-stretch text-[#C3C3C3] text-[10px] font-medium font-['Manrope'] leading-3 tracking-[0.1px] truncate overflow-hidden whitespace-nowrap">
                                                             {club.address}
                                                         </div>
                                                     )}
