@@ -114,7 +114,7 @@ const HomePage = () => {
     const [showingSearchResults, setShowingSearchResults] = useState(false);
 
     // Search categories state
-    const [searchCategories, setSearchCategories] = useState<string[]>([]);
+    const [searchCategories, setSearchCategories] = useState<Array<string | { id?: string; name?: string; description?: string }>>([]);
     const [showCategories, setShowCategories] = useState(false);
     const [isLoadingCategories, setIsLoadingCategories] = useState(false);
 
@@ -446,12 +446,16 @@ const HomePage = () => {
             console.log('Loading search categories...');
             setIsLoadingCategories(true);
             try {
-                const categoriesResponse = isGuest
-                    ? await PublicSearchService.getSearchCategories()
-                    : await universalSearch(''); // This will trigger category loading in useSearch
-
-                if (isGuest && categoriesResponse.success && categoriesResponse.data) {
-                    setSearchCategories(categoriesResponse.data);
+                if (isGuest) {
+                    const categoriesResponse = await PublicSearchService.getSearchCategories();
+                    if (categoriesResponse?.success && categoriesResponse.data) {
+                        setSearchCategories(categoriesResponse.data);
+                        setShowCategories(true);
+                        setShowingSearchResults(true);
+                    }
+                } else {
+                    // For authenticated users, try to use existing search functionality
+                    await universalSearch('');
                     setShowCategories(true);
                     setShowingSearchResults(true);
                 }
@@ -593,7 +597,7 @@ const HomePage = () => {
                                                 ? await PublicSearchService.getSearchCategories()
                                                 : await PublicSearchService.getSearchCategories(); // Same API for both
 
-                                            if (categoriesResponse.success && categoriesResponse.data) {
+                                            if (categoriesResponse?.success && categoriesResponse.data) {
                                                 setSearchCategories(categoriesResponse.data);
                                                 setShowCategories(true);
                                                 setShowingSearchResults(true);

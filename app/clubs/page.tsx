@@ -199,7 +199,7 @@ export default function ClubsListPage() {
 
             if (response.success && response.data?.content) {
                 // Convert API response to Club[] format with proper text limits (no truncation)
-                const apiClubs: Club[] = response.data.content.map((club, index) => ({
+                const apiClubs: Club[] = response.data.content.map((club: any, index: number) => ({
                     id: club.id,
                     name: club.name || '',
                     openTime: 'Open until 1:30 am', // Default since API doesn't provide this
