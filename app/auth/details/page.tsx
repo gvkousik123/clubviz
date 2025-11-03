@@ -1,10 +1,11 @@
 "use client";
 
-import { ClubVizLogo } from "@/components/auth/logo";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ClubVizLogo } from "@/components/auth/logo";
+import { AuthLink } from "@/components/auth/auth-link";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function DetailsPage() {
@@ -78,7 +79,7 @@ export default function DetailsPage() {
 
     return (
         <div className="min-h-screen bg-[#031313] relative">
-            {/* Background blur effects */}
+            {/* Background blur effects - subtle accents */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-[12vh] left-1/2 -translate-x-1/2 w-[20rem] h-[20rem] bg-teal-500/10 rounded-full blur-3xl"></div>
                 <div className="absolute bottom-[12vh] left-1/3 w-[15rem] h-[15rem] bg-cyan-500/10 rounded-full blur-3xl"></div>
@@ -87,7 +88,7 @@ export default function DetailsPage() {
 
             {/* Content */}
             <div className="relative z-10 min-h-screen flex flex-col">
-                {/* Header with Back Button */}
+                {/* Header with Back and Skip */}
                 <div className="flex items-center justify-between p-[1rem] pt-[1.5rem] flex-shrink-0">
                     <Link
                         href="/auth/otp"
@@ -104,30 +105,29 @@ export default function DetailsPage() {
                     </button>
                 </div>
 
-                {/* Main Content */}
+                {/* White Card Container - Sticks to bottom and takes remaining space */}
                 <div className="flex-1 flex flex-col">
-                    {/* Logo Area */}
+                    {/* Logo Area - Now positioned just above the form with increased spacing */}
                     <div className="flex-1 flex flex-col items-center justify-end px-6 pb-8">
                         <ClubVizLogo size="lg" variant="full" />
                     </div>
 
-                    {/* Form Card - White container */}
-                    <div className="bg-white rounded-t-[2rem] px-[2rem] py-[2.5rem] min-h-[24rem]">
-                        {/* Form Header */}
-                        <div className="text-center mb-[2rem]">
-                            <h1 className="text-[1.5rem] font-bold text-gray-800 mb-[0.5rem]">
-                                Enter Your Details
-                            </h1>
-                            <p className="text-[0.875rem] text-teal-600 font-medium">
-                                Enter your required information
-                            </p>
+                    <div className="bg-white rounded-t-3xl w-full px-[1.5rem] pt-[2rem] pb-[2rem] overflow-y-auto flex flex-col">
+                        {/* Header */}
+                        <div className="mb-[1.5rem]">
+                            <h1 className="text-[1.5rem] font-semibold text-[#2C1945] mb-[1.25rem] text-center">Enter Your Details</h1>
+                        </div>
+
+                        {/* Confirmation text */}
+                        <div className="mb-[2rem] text-center">
+                            <p className="text-[#2C1945] text-[0.9375rem] font-medium">Enter your required information</p>
                         </div>
 
                         {/* Form Fields */}
                         <div className="space-y-[1.5rem] mb-[2rem]">
                             {/* Full Name Field */}
                             <div>
-                                <label className="block text-[0.875rem] font-medium text-gray-700 mb-[0.5rem]">
+                                <label className="block text-[#2C1945] text-[0.9375rem] font-medium mb-[0.5rem]">
                                     Full name
                                 </label>
                                 <input
@@ -138,10 +138,10 @@ export default function DetailsPage() {
                                         if (errors.fullName) setErrors(prev => ({ ...prev, fullName: "" }));
                                     }}
                                     placeholder="Enter your full name"
-                                    className={`w-full px-[1rem] py-[0.875rem] border-2 rounded-[0.75rem] bg-gray-50 text-[1rem] placeholder:text-gray-400 transition-colors ${errors.fullName
-                                        ? 'border-red-300 focus:border-red-500'
-                                        : 'border-gray-200 focus:border-teal-500'
-                                        } focus:outline-none focus:bg-white`}
+                                    className={`w-full px-[1rem] py-[0.875rem] border-2 rounded-[0.75rem] bg-[#EFEFEF] text-[1rem] placeholder:text-[#999999] transition-colors ${errors.fullName
+                                            ? 'border-red-300 focus:border-red-500'
+                                            : 'border-[#0C898B] focus:border-[#0C898B]'
+                                        } focus:outline-none`}
                                 />
                                 {errors.fullName && (
                                     <p className="mt-1 text-[0.875rem] text-red-500">{errors.fullName}</p>
@@ -150,7 +150,7 @@ export default function DetailsPage() {
 
                             {/* Email Field */}
                             <div>
-                                <label className="block text-[0.875rem] font-medium text-gray-700 mb-[0.5rem]">
+                                <label className="block text-[#2C1945] text-[0.9375rem] font-medium mb-[0.5rem]">
                                     Email
                                 </label>
                                 <input
@@ -161,10 +161,10 @@ export default function DetailsPage() {
                                         if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
                                     }}
                                     placeholder="Enter your email"
-                                    className={`w-full px-[1rem] py-[0.875rem] border-2 rounded-[0.75rem] bg-gray-50 text-[1rem] placeholder:text-gray-400 transition-colors ${errors.email
-                                        ? 'border-red-300 focus:border-red-500'
-                                        : 'border-gray-200 focus:border-teal-500'
-                                        } focus:outline-none focus:bg-white`}
+                                    className={`w-full px-[1rem] py-[0.875rem] border-2 rounded-[0.75rem] bg-[#EFEFEF] text-[1rem] placeholder:text-[#999999] transition-colors ${errors.email
+                                            ? 'border-red-300 focus:border-red-500'
+                                            : 'border-[#0C898B] focus:border-[#0C898B]'
+                                        } focus:outline-none`}
                                 />
                                 {errors.email && (
                                     <p className="mt-1 text-[0.875rem] text-red-500">{errors.email}</p>
