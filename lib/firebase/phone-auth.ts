@@ -30,7 +30,7 @@ export class FirebasePhoneAuth {
    * @param containerId - The ID of the DOM element where reCAPTCHA will be rendered
    * @param size - 'invisible' or 'normal'
    */
-  setupRecaptcha(containerId: string = 'recaptcha-container', size: 'invisible' | 'normal' = 'invisible'): void {
+  setupRecaptcha(containerId: string = 'recaptcha-container', size:  'normal' ): void {
     try {
       // Clear existing verifier
       if (window.recaptchaVerifier) {
@@ -44,7 +44,6 @@ export class FirebasePhoneAuth {
         },
         'expired-callback': () => {
           console.log("reCAPTCHA expired");
-          // Handle reCAPTCHA expiration
         }
       });
 

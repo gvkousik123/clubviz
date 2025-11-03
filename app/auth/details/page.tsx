@@ -138,9 +138,9 @@ export default function DetailsPage() {
                                         if (errors.fullName) setErrors(prev => ({ ...prev, fullName: "" }));
                                     }}
                                     placeholder="Enter your full name"
-                                    className={`w-full px-[1rem] py-[0.875rem] border-2 rounded-[0.75rem] bg-[#EFEFEF] text-[1rem] placeholder:text-[#999999] transition-colors ${errors.fullName
-                                            ? 'border-red-300 focus:border-red-500'
-                                            : 'border-[#0C898B] focus:border-[#0C898B]'
+                                    className={`w-full px-[1rem] py-[0.875rem] border-2 rounded-[3.25rem] bg-[#EFEFEF] text-[1rem] placeholder:text-[#999999] transition-colors ${errors.fullName
+                                        ? 'border-red-300 focus:border-red-500'
+                                        : 'border-[#0C898B] focus:border-[#0C898B]'
                                         } focus:outline-none`}
                                 />
                                 {errors.fullName && (
@@ -161,9 +161,9 @@ export default function DetailsPage() {
                                         if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
                                     }}
                                     placeholder="Enter your email"
-                                    className={`w-full px-[1rem] py-[0.875rem] border-2 rounded-[0.75rem] bg-[#EFEFEF] text-[1rem] placeholder:text-[#999999] transition-colors ${errors.email
-                                            ? 'border-red-300 focus:border-red-500'
-                                            : 'border-[#0C898B] focus:border-[#0C898B]'
+                                    className={`w-full px-[1rem] py-[0.875rem] border-2 rounded-[3.25rem] bg-[#EFEFEF] text-[1rem] placeholder:text-[#999999] transition-colors ${errors.email
+                                        ? 'border-red-300 focus:border-red-500'
+                                        : 'border-[#0C898B] focus:border-[#0C898B]'
                                         } focus:outline-none`}
                                 />
                                 {errors.email && (
@@ -176,13 +176,27 @@ export default function DetailsPage() {
                         <button
                             onClick={handleSubmit}
                             disabled={!canSubmit}
-                            className={`w-full py-[0.875rem] rounded-[0.75rem] text-[1rem] font-semibold transition-all duration-200 ${canSubmit
-                                ? 'bg-teal-600 hover:bg-teal-700 text-white shadow-sm'
-                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            className={`w-full py-[0.875rem] rounded-[3.25rem] text-[1rem] font-semibold transition-all duration-200 ${canSubmit
+                                    ? 'bg-[#0D7377] hover:bg-[#0A5A5D] text-white'
+                                    : 'bg-[#EFEFEF] text-[#999999] cursor-not-allowed'
                                 }`}
                         >
                             {isLoading ? 'Saving...' : 'Submit details'}
                         </button>
+
+                        {/* Terms and Conditions */}
+                        <div className="mt-auto pt-4">
+                            <div className="text-center">
+                                <p className="text-black font-semibold text-[14px]">
+                                    By proceeding you are agreeing to
+                                </p>
+                                <p className="text-[14px] font-semibold mt-1">
+                                    <AuthLink href="/terms" className="text-[#0095FF] font-semibold underline">Terms & Condition</AuthLink>
+                                    <span className="text-black"> and </span>
+                                    <AuthLink href="/privacy" className="text-[#0095FF] font-semibold underline">Privacy Policy</AuthLink>
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
