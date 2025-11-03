@@ -54,7 +54,7 @@ export default function Sidebar({
 
             // Close sidebar and redirect to login
             onClose();
-            router.push('/auth/login');
+            router.push('/auth/intro');
         } catch (error: any) {
             console.error('Logout error:', error);
 
@@ -69,7 +69,7 @@ export default function Sidebar({
             });
 
             onClose();
-            router.push('/auth/login');
+            router.push('/auth/intro');
         }
     };
 

@@ -16,7 +16,7 @@ export default function SidebarMenu({ isOpen, onClose }: SidebarMenuProps) {
 
     const handleLogOut = () => {
         // Handle logout logic here
-        router.push('/auth/login');
+        router.push('/auth/intro');
         onClose();
     };
 

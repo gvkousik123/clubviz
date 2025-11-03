@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
         } else if (step === 'reset') {
             setStep('initiate');
         } else {
-            router.push('/auth/login');
+            router.push('/auth/intro');
         }
     };
 
@@ -133,7 +133,7 @@ export default function ForgotPasswordPage() {
 
                         <div className="text-center">
                             <button
-                                onClick={() => router.push('/auth/login')}
+                                onClick={() => router.push('/auth/intro')}
                                 className="text-[#14FFEC] text-sm"
                             >
                                 Back to Login
@@ -187,10 +187,10 @@ export default function ForgotPasswordPage() {
                                         <div className="w-full bg-gray-700 rounded-full h-2">
                                             <div
                                                 className={`h-2 rounded-full transition-all duration-300 ${passwordStrength === 'weak'
-                                                        ? 'bg-red-500 w-1/3'
-                                                        : passwordStrength === 'medium'
-                                                            ? 'bg-yellow-500 w-2/3'
-                                                            : 'bg-green-500 w-full'
+                                                    ? 'bg-red-500 w-1/3'
+                                                    : passwordStrength === 'medium'
+                                                        ? 'bg-yellow-500 w-2/3'
+                                                        : 'bg-green-500 w-full'
                                                     }`}
                                             />
                                         </div>
@@ -264,7 +264,7 @@ export default function ForgotPasswordPage() {
                         </div>
 
                         <button
-                            onClick={() => router.push('/auth/login')}
+                            onClick={() => router.push('/auth/intro')}
                             className="w-full bg-[#14FFEC] text-black font-bold py-4 rounded-2xl"
                         >
                             Continue to Login

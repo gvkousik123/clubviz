@@ -21,7 +21,7 @@ interface AuthGuardResult {
 
 export const useAuthGuard = ({
   requiredRoles = [],
-  redirectTo = '/auth/login',
+  redirectTo = '/auth/mobile',
   requireAuth = true,
   showToast = true
 }: AuthGuardOptions): AuthGuardResult => {

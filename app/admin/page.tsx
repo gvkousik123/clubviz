@@ -44,7 +44,7 @@ export default function AdminDashboard() {
                 <AccessDenied
                     title="Login Required"
                     message="Please log in with your admin account to access the admin dashboard."
-                    redirectTo="/auth/login"
+                    redirectTo="/auth/intro"
                 />
             );
         }

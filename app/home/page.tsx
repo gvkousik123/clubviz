@@ -665,7 +665,7 @@ const HomePage = () => {
                                     </p>
                                 </div>
                                 <Link
-                                    href="/auth/login"
+                                    href="/auth/mobile"
                                     className="px-3 py-1.5 bg-white/20 rounded-md text-white text-xs font-medium hover:bg-white/30 transition-colors"
                                 >
                                     Sign In

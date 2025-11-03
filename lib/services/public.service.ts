@@ -313,6 +313,6 @@ export const getAuthRequiredMessage = (action: string): string => {
 export const redirectToLogin = (returnUrl?: string) => {
   if (typeof window !== 'undefined') {
     const currentUrl = returnUrl || window.location.pathname;
-    window.location.href = `/auth/login?returnUrl=${encodeURIComponent(currentUrl)}`;
+    window.location.href = `/auth/mobile?returnUrl=${encodeURIComponent(currentUrl)}`;
   }
 };

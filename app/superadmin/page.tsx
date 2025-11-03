@@ -66,7 +66,7 @@ export default function SuperAdminPage() {
                 <AccessDenied
                     title="Login Required"
                     message="Please log in with your superadmin account to access the superadmin dashboard."
-                    redirectTo="/auth/login"
+                    redirectTo="/auth/intro"
                 />
             );
         }

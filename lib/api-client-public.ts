@@ -107,7 +107,7 @@ apiClient.interceptors.response.use(
         // Only redirect if not already on auth pages
         const currentPath = window.location.pathname;
         if (!currentPath.startsWith('/auth/') && !currentPath.startsWith('/home')) {
-          window.location.href = '/auth/login';
+          window.location.href = '/auth/mobile';
         }
       }
     } else if (error.response?.status === 403) {

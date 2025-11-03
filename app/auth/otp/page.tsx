@@ -110,7 +110,7 @@ export default function OTPVerificationScreen() {
 
             // Navigate to user details page
             setTimeout(() => {
-                router.push('/auth/email');
+                router.push('/auth/details');
             }, 800);
 
         } catch (error: any) {
@@ -205,7 +205,7 @@ export default function OTPVerificationScreen() {
                     </Link>
 
                     <Link
-                        href="/auth/email"
+                        href="/auth/details"
                         className="px-[1rem] py-[0.375rem] rounded-full border border-teal-400/30 text-[0.875rem] text-teal-300 hover:bg-teal-500/10 transition"
                     >
                         Skip

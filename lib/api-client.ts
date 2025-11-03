@@ -43,7 +43,7 @@ apiClient.interceptors.response.use(
       // Unauthorized - clear token and redirect to login
       if (typeof window !== 'undefined') {
   localStorage.removeItem(STORAGE_KEYS.accessToken);
-        window.location.href = '/auth/login';
+        window.location.href = '/auth/mobile';
       }
     } else if (error.response?.status === 403) {
       // Forbidden
