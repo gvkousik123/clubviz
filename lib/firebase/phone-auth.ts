@@ -62,12 +62,10 @@ export class FirebasePhoneAuth {
    */
   async sendOTP(phoneNumber: string): Promise<boolean> {
     try {
-      // Validate phone number format
       if (!phoneNumber.startsWith('+')) {
         throw new Error('Phone number must be in international format (e.g., +91xxxxxxxxxx)');
       }
 
-      // Setup reCAPTCHA if not already done
       if (!window.recaptchaVerifier) {
         this.setupRecaptcha();
       }
@@ -77,7 +75,6 @@ export class FirebasePhoneAuth {
       console.log("Sending OTP to:", phoneNumber);
       const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
       
-      // Store confirmation result globally for verification
       window.confirmationResult = confirmationResult;
       
       console.log("OTP sent successfully");
@@ -85,7 +82,6 @@ export class FirebasePhoneAuth {
     } catch (error: any) {
       console.error("Error sending OTP:", error);
       
-      // Clear reCAPTCHA on error
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.clear();
         window.recaptchaVerifier = undefined;
