@@ -1,15 +1,16 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
-// Firebase configuration for clubwiz-auth project
-// Real credentials from Firebase Console
+// Firebase configuration for clubwiz-477108 project
+// Hardcoded credentials - get correct values from Firebase Console
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyAPB69pxPrG_7JzcrvwloiIYphRYzpfCBQ",
+  apiKey: "AIzaSyAPB69pxPrG_7JzcrvwloiIYphRYzpfCBQ", // ⚠️ REPLACE WITH CORRECT KEY FROM FIREBASE CONSOLE
   authDomain: "clubwiz-477108.firebaseapp.com",
   projectId: "clubwiz-477108",
   storageBucket: "clubwiz-477108.firebasestorage.app",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "260703019239",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:260703019239:web:0b681131b688abaedc4242"
+  messagingSenderId: "260703019239",
+  appId: "1:260703019239:web:0b681131b688abaedc4242",
+  measurementId: "G-X1VK4Y90XY"
 };
 
 console.log("🔥 Firebase Config:", {

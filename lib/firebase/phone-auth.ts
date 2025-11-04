@@ -1,6 +1,6 @@
-import { 
-  RecaptchaVerifier, 
-  signInWithPhoneNumber, 
+import {
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
   ConfirmationResult,
   onAuthStateChanged,
   User,
@@ -26,90 +26,112 @@ export class FirebasePhoneAuth {
   }
 
   /**
-   * Setup reCAPTCHA verifier
+   * Setup reCAPTCHA verifier following best practices from useful.md
    * @param containerId - The ID of the DOM element where reCAPTCHA will be rendered
    * @param size - 'invisible' or 'normal'
    */
-  setupRecaptcha(containerId: string = 'recaptcha-container', size:  'normal' ): void {
+  async setupRecaptcha(
+    containerId: string = "recaptcha-container",
+    size: "normal" | "invisible" = "invisible"  // Back to invisible as per best practices
+  ): Promise<void> {
     try {
-      // Clear existing verifier
+      // Clear existing verifier first
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = undefined;
       }
 
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
-        size: size,
-        callback: (response: any) => {
-          console.log("reCAPTCHA verified", response);
-        },
-        'expired-callback': () => {
-          console.log("reCAPTCHA expired");
+      // Following pattern from useful.md adapted for Firebase v9+
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        auth,
+        containerId,
+        {
+          'size': size,
+          'callback': (response: any) => {
+            console.log("✅ reCAPTCHA solved", response);
+            (window as any).recaptchaVerified = true;
+          },
+          'expired-callback': () => {
+            console.log("⚠️ reCAPTCHA expired");
+            (window as any).recaptchaVerified = false;
+          }
         }
-      });
+      );
 
-      console.log("reCAPTCHA setup complete");
+      console.log("🔥 reCAPTCHA verifier created successfully");
     } catch (error) {
-      console.error("Error setting up reCAPTCHA:", error);
+      console.error("❌ Error setting up reCAPTCHA:", error);
+      if (window.recaptchaVerifier) {
+        try {
+          window.recaptchaVerifier.clear();
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+        window.recaptchaVerifier = undefined;
+      }
       throw error;
     }
   }
 
   /**
-   * Send OTP to phone number
-   * @param phoneNumber - Phone number in international format (e.g., +91xxxxxxxxxx)
-   * @returns Promise<boolean> - Success status
+   * Send OTP to a phone number - Following pattern from useful.md
+   * @param phoneNumber - Phone number in international format (e.g. +91xxxxxxxxxx)
+   * @returns Promise<boolean>
    */
   async sendOTP(phoneNumber: string): Promise<boolean> {
     try {
-      if (!phoneNumber.startsWith('+')) {
-        throw new Error('Phone number must be in international format (e.g., +91xxxxxxxxxx)');
+      if (!phoneNumber.startsWith("+")) {
+        throw new Error("Phone number must be in international format (e.g. +91xxxxxxxxxx)");
       }
 
+      // Ensure reCAPTCHA is set up before sending OTP
       if (!window.recaptchaVerifier) {
-        this.setupRecaptcha();
+        console.log("🔄 Setting up reCAPTCHA verifier...");
+        await this.setupRecaptcha();
       }
 
-      const appVerifier = window.recaptchaVerifier;
+      console.log("📱 Sending OTP to:", phoneNumber);
+
+      // Following exact pattern from useful.md
+      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
       
-      console.log("Sending OTP to:", phoneNumber);
-      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-      
+      // Store confirmation result for OTP verification
       window.confirmationResult = confirmationResult;
       
-      console.log("OTP sent successfully");
+      console.log("✅ OTP sent successfully!");
       return true;
     } catch (error: any) {
-      console.error("Error sending OTP:", error);
-      
+      console.error("❌ Error sending OTP:", error);
+
+      // Clean up reCAPTCHA on error
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.clear();
         window.recaptchaVerifier = undefined;
       }
-      
+
       throw new Error(this.getErrorMessage(error));
     }
   }
 
   /**
    * Verify OTP entered by user
-   * @param otp - 6-digit OTP code
-   * @returns Promise<User> - Firebase user object
+   * @param otp - 6-digit OTP
+   * @returns Promise<User>
    */
   async verifyOTP(otp: string): Promise<User> {
     try {
       if (!window.confirmationResult) {
-        throw new Error('No OTP session found. Please request OTP again.');
+        throw new Error("No OTP session found. Please request OTP again.");
       }
 
-      // Validate OTP format
       if (!/^\d{6}$/.test(otp)) {
-        throw new Error('OTP must be 6 digits');
+        throw new Error("OTP must be 6 digits");
       }
 
       console.log("Verifying OTP:", otp);
       const result = await window.confirmationResult.confirm(otp);
-      
-      console.log("OTP verified successfully, user:", result.user.phoneNumber);
+      console.log("OTP verified successfully for user:", result.user.phoneNumber);
+
       return result.user;
     } catch (error: any) {
       console.error("Error verifying OTP:", error);
@@ -118,16 +140,14 @@ export class FirebasePhoneAuth {
   }
 
   /**
-   * Set up auth state listener
-   * @param callback - Function to call when auth state changes
-   * @returns Function to unsubscribe from auth state changes
+   * Auth state listener
    */
   onAuthStateChanged(callback: (user: User | null) => void): () => void {
     return onAuthStateChanged(auth, callback);
   }
 
   /**
-   * Sign out current user
+   * Sign out user
    */
   async signOut(): Promise<void> {
     try {
@@ -140,14 +160,14 @@ export class FirebasePhoneAuth {
   }
 
   /**
-   * Get current user
+   * Get current logged-in user
    */
   getCurrentUser(): User | null {
     return auth.currentUser;
   }
 
   /**
-   * Clean up reCAPTCHA verifier
+   * Clean up recaptcha verifier
    */
   cleanup(): void {
     if (window.recaptchaVerifier) {
@@ -158,32 +178,46 @@ export class FirebasePhoneAuth {
   }
 
   /**
-   * Convert Firebase error codes to user-friendly messages
+   * Convert Firebase errors to friendly messages
    */
   private getErrorMessage(error: any): string {
     switch (error.code) {
-      case 'auth/invalid-phone-number':
-        return 'Invalid phone number format. Please use international format (e.g., +91xxxxxxxxxx)';
-      case 'auth/missing-phone-number':
-        return 'Phone number is required';
-      case 'auth/quota-exceeded':
-        return 'SMS quota exceeded. Please try again later';
-      case 'auth/user-disabled':
-        return 'This phone number has been disabled';
-      case 'auth/operation-not-allowed':
-        return 'Phone authentication is not enabled for this project';
-      case 'auth/invalid-verification-code':
-        return 'Invalid OTP code. Please check and try again';
-      case 'auth/invalid-verification-id':
-        return 'Invalid verification session. Please request OTP again';
-      case 'auth/code-expired':
-        return 'OTP code has expired. Please request a new one';
-      case 'auth/captcha-check-failed':
-        return 'reCAPTCHA verification failed. Please try again';
-      case 'auth/too-many-requests':
-        return 'Too many requests. Please wait before trying again';
+      case "auth/invalid-phone-number":
+        return "Invalid phone number format. Please use international format (e.g. +91xxxxxxxxxx)";
+      case "auth/missing-phone-number":
+        return "Phone number is required";
+      case "auth/quota-exceeded":
+        return "SMS quota exceeded. Please try again later";
+      case "auth/user-disabled":
+        return "This phone number has been disabled";
+      case "auth/operation-not-allowed":
+        return "Phone authentication is not enabled for this project";
+      case "auth/invalid-verification-code":
+        return "Invalid OTP code. Please check and try again";
+      case "auth/invalid-verification-id":
+        return "Invalid verification session. Please request OTP again";
+      case "auth/code-expired":
+        return "OTP code has expired. Please request a new one";
+      case "auth/captcha-check-failed":
+        return "reCAPTCHA verification failed. Please complete the reCAPTCHA and try again";
+      case "auth/too-many-requests":
+        return "Too many requests. Please wait before trying again";
+      case "auth/app-not-verified":
+        return "App verification failed. This usually means reCAPTCHA needs to be completed manually";
+      case "auth/missing-app-credential":
+        return "App credential missing. Please refresh the page and try again";
+      case "auth/invalid-app-credential":
+        return "Invalid app credential. Please complete reCAPTCHA verification";
+      case "auth/app-not-authorized":
+        return "App not authorized for phone authentication. Check Firebase console settings";
       default:
-        return error.message || 'An unexpected error occurred. Please try again';
+        // Check for app credential related errors in the message
+        if (error.message?.includes('app credential') || 
+            error.message?.includes('app-check') ||
+            error.message?.includes('attestation')) {
+          return "App verification failed. Please complete reCAPTCHA and try again";
+        }
+        return error.message || "An unexpected error occurred. Please try again";
     }
   }
 }
