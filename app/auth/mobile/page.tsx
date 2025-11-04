@@ -13,7 +13,7 @@ import { STORAGE_KEYS } from "@/lib/constants/storage";
 export default function MobileVerificationScreen() {
     const router = useRouter();
     const { toast } = useToast();
-    const [phoneNumber, setPhoneNumber] = useState("+91 XXXXXXXXXX");
+    const [phoneNumber, setPhoneNumber] = useState("+91 ");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -51,24 +51,14 @@ export default function MobileVerificationScreen() {
     }, []);
 
     const handleNumberPress = (num: string) => {
-        if (phoneNumber.includes('X')) {
-            setPhoneNumber(prev => prev.replace('X', num));
+        if (phoneNumber.length < 13) { // +91 (3) + 10 digits = 13 characters
+            setPhoneNumber(prev => prev + num);
         }
     };
 
     const handleDelete = () => {
-        const lastDigitIndex = phoneNumber.lastIndexOf(/[0-9]/.exec(phoneNumber.split('').reverse().join(''))?.[0] || '');
-        if (lastDigitIndex > 6) { // Keep "+91 " format
-            setPhoneNumber(prev => {
-                const chars = prev.split('');
-                for (let i = chars.length - 1; i >= 0; i--) {
-                    if (/[0-9]/.test(chars[i]) && i > 6) {
-                        chars[i] = 'X';
-                        break;
-                    }
-                }
-                return chars.join('');
-            });
+        if (phoneNumber.length > 4) { // Keep "+91 " format (4 characters)
+            setPhoneNumber(prev => prev.slice(0, -1));
         }
     };
 
@@ -125,7 +115,7 @@ export default function MobileVerificationScreen() {
         }
     };
 
-    const canSubmit = !phoneNumber.includes('X') && !isLoading;
+    const canSubmit = phoneNumber.length === 13 && !isLoading;
 
     return (
         <div className="min-h-screen bg-[#031313] relative">
