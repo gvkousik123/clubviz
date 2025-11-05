@@ -19,7 +19,6 @@ export default function MobileVerificationScreen() {
 
     // Handle guest login
     const handleGuestLogin = () => {
-        // Clear any existing auth data to ensure clean guest state
         if (typeof window !== 'undefined') {
             localStorage.removeItem(STORAGE_KEYS.accessToken);
             localStorage.removeItem(STORAGE_KEYS.user);
