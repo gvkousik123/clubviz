@@ -101,6 +101,8 @@ export class FirebasePhoneAuth {
       
       // Store confirmation result for OTP verification
       window.confirmationResult = confirmationResult;
+      console.log("🔒 Confirmation result stored:", !!window.confirmationResult);
+      console.log("🔒 Confirmation result type:", typeof window.confirmationResult);
       
       console.log("✅ OTP sent successfully!");
       return true;
@@ -124,6 +126,9 @@ export class FirebasePhoneAuth {
    */
   async verifyOTP(otp: string): Promise<User> {
     try {
+      console.log("🔍 Checking confirmation result:", !!window.confirmationResult);
+      console.log("🔍 Window object keys:", Object.keys(window).filter(k => k.includes('confirm')));
+      
       if (!window.confirmationResult) {
         throw new Error("No OTP session found. Please request OTP again.");
       }
