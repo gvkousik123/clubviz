@@ -14,7 +14,8 @@ import { User } from "firebase/auth";
 export default function OTPVerificationScreen() {
     const router = useRouter();
     const { toast } = useToast();
-    const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']); // 6 digit OTP
+    // Initialize exactly 6 empty strings for OTP
+    const [otp, setOtp] = useState<string[]>(Array(6).fill('')); // 6 digit OTP
     const [timer, setTimer] = useState(30);
     const [canResend, setCanResend] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -23,6 +24,10 @@ export default function OTPVerificationScreen() {
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     useEffect(() => {
+        // Debug: Check initial OTP state
+        console.log("Initial OTP state:", otp);
+        console.log("OTP array length:", otp.length);
+
         // Get phone number from localStorage
         const savedPhone = localStorage.getItem(STORAGE_KEYS.pendingPhone);
         if (!savedPhone) {
@@ -46,9 +51,13 @@ export default function OTPVerificationScreen() {
     }, [router]);
 
     const handleOtpChange = (index: number, value: string) => {
+        console.log(`handleOtpChange called: index=${index}, value="${value}"`);
+        console.log("Current OTP before change:", otp);
+
         if (value.length <= 1 && /^\d*$/.test(value)) {
             const newOtp = [...otp];
             newOtp[index] = value;
+            console.log("New OTP after change:", newOtp);
             setOtp(newOtp);
 
             // Auto-focus next input (only if not on last input)
@@ -56,10 +65,15 @@ export default function OTPVerificationScreen() {
                 inputRefs.current[index + 1]?.focus();
             }
 
-            // Auto-submit when all digits are entered
+            // Auto-submit when all digits are entered (with small delay to show the 6th digit)
             if (newOtp.every(digit => digit !== '') && newOtp.join('').length === 6) {
-                handleVerifyOTP(newOtp.join(''));
+                console.log("All 6 digits entered, auto-submitting in 500ms...");
+                setTimeout(() => {
+                    handleVerifyOTP(newOtp.join(''));
+                }, 500);
             }
+        } else {
+            console.log("Input rejected - invalid format");
         }
     };
 
@@ -273,9 +287,14 @@ export default function OTPVerificationScreen() {
                                     <button
                                         key={num}
                                         onClick={() => {
+                                            console.log("Current OTP state:", otp);
                                             const emptyIndex = otp.findIndex(digit => digit === '');
+                                            console.log("Empty index found:", emptyIndex);
                                             if (emptyIndex !== -1) {
+                                                console.log(`Entering ${num} at index ${emptyIndex}`);
                                                 handleOtpChange(emptyIndex, num.toString());
+                                            } else {
+                                                console.log("No empty slots found!");
                                             }
                                         }}
                                         className="w-[70px] h-[70px] rounded-full border border-[#0C898B] 
@@ -305,9 +324,15 @@ export default function OTPVerificationScreen() {
 
                                 <button
                                     onClick={() => {
+                                        console.log("Zero button clicked!");
+                                        console.log("Current OTP state:", otp);
                                         const emptyIndex = otp.findIndex(digit => digit === '');
+                                        console.log("Empty index for zero:", emptyIndex);
                                         if (emptyIndex !== -1) {
+                                            console.log(`Entering 0 at index ${emptyIndex}`);
                                             handleOtpChange(emptyIndex, '0');
+                                        } else {
+                                            console.log("No empty slots for zero!");
                                         }
                                     }}
                                     className="w-[70px] h-[70px] rounded-full border border-[#0C898B] 
