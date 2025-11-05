@@ -236,7 +236,7 @@ export default function OTPVerificationScreen() {
                             {phoneNumber && (
                                 <div className="text-center">
                                     <p className="text-[0.875rem] text-[#6A6A6A]">Code sent to</p>
-                                    <p className="text-[#0D7377] font-semibold">+{phoneNumber?.slice(0, 2)} {phoneNumber?.slice(2)}</p>
+                                    <p className="text-[#0D7377] font-semibold">{phoneNumber?.slice(0, 3)} {phoneNumber?.slice(3)}</p>
                                 </div>
                             )}
                         </div>

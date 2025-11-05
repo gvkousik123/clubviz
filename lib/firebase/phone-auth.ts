@@ -54,6 +54,10 @@ export class FirebasePhoneAuth {
           'expired-callback': () => {
             console.log("⚠️ reCAPTCHA expired");
             (window as any).recaptchaVerified = false;
+          },
+          'error-callback': (error: any) => {
+            console.error("❌ reCAPTCHA error:", error);
+            (window as any).recaptchaVerified = false;
           }
         }
       );

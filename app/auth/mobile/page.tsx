@@ -13,7 +13,7 @@ import { STORAGE_KEYS } from "@/lib/constants/storage";
 export default function MobileVerificationScreen() {
     const router = useRouter();
     const { toast } = useToast();
-    const [phoneNumber, setPhoneNumber] = useState("+91 ");
+    const [phoneNumber, setPhoneNumber] = useState("+91 XXXXXXXXXX");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +39,7 @@ export default function MobileVerificationScreen() {
     // Setup reCAPTCHA on component mount
     useEffect(() => {
         try {
-            firebasePhoneAuth.setupRecaptcha('recaptcha-container', 'invisible');
+            firebasePhoneAuth.setupRecaptcha('recaptcha-container', 'normal');
         } catch (error) {
             console.error("Error setting up reCAPTCHA:", error);
         }
@@ -51,14 +51,24 @@ export default function MobileVerificationScreen() {
     }, []);
 
     const handleNumberPress = (num: string) => {
-        if (phoneNumber.length < 13) { // +91 (3) + 10 digits = 13 characters
-            setPhoneNumber(prev => prev + num);
+        if (phoneNumber.includes('X')) {
+            setPhoneNumber(prev => prev.replace('X', num));
         }
     };
 
     const handleDelete = () => {
-        if (phoneNumber.length > 4) { // Keep "+91 " format (4 characters)
-            setPhoneNumber(prev => prev.slice(0, -1));
+        const lastDigitIndex = phoneNumber.lastIndexOf(/[0-9]/.exec(phoneNumber.split('').reverse().join(''))?.[0] || '');
+        if (lastDigitIndex > 3) { // Keep "+91 " format (4 characters)
+            setPhoneNumber(prev => {
+                const chars = prev.split('');
+                for (let i = chars.length - 1; i >= 0; i--) {
+                    if (/[0-9]/.test(chars[i]) && i > 3) {
+                        chars[i] = 'X';
+                        break;
+                    }
+                }
+                return chars.join('');
+            });
         }
     };
 
@@ -82,6 +92,8 @@ export default function MobileVerificationScreen() {
             // Convert to international format for Firebase
             const formattedPhone = `+${cleanPhone}`;
             console.log("Formatted phone for Firebase:", formattedPhone);
+
+
 
             // Send OTP using Firebase
             const success = await firebasePhoneAuth.sendOTP(formattedPhone);
@@ -115,7 +127,7 @@ export default function MobileVerificationScreen() {
         }
     };
 
-    const canSubmit = phoneNumber.length === 13 && !isLoading;
+    const canSubmit = !phoneNumber.includes('X') && !isLoading;
 
     return (
         <div className="min-h-screen bg-[#031313] relative">
@@ -219,8 +231,10 @@ export default function MobileVerificationScreen() {
                             </div>
                         </div>
 
-                        {/* reCAPTCHA Container - Hidden but required for Firebase */}
-                        <div id="recaptcha-container" className="hidden"></div>
+                        {/* reCAPTCHA Container - Visible for user interaction */}
+                        <div className="flex justify-center mb-[1.5rem]">
+                            <div id="recaptcha-container"></div>
+                        </div>
 
                         {/* Error Display */}
                         {error && (
