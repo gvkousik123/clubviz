@@ -14,7 +14,7 @@ import { User } from "firebase/auth";
 export default function OTPVerificationScreen() {
     const router = useRouter();
     const { toast } = useToast();
-    const [otp, setOtp] = useState(['', '', '', '', '', '']);
+    const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']); // 6 digit OTP
     const [timer, setTimer] = useState(30);
     const [canResend, setCanResend] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -51,8 +51,8 @@ export default function OTPVerificationScreen() {
             newOtp[index] = value;
             setOtp(newOtp);
 
-            // Auto-focus next input
-            if (value && index < 5) {
+            // Auto-focus next input (only if not on last input)
+            if (value && index < otp.length - 1) {
                 inputRefs.current[index + 1]?.focus();
             }
 
