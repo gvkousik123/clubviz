@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ClubVizLogo } from "@/components/auth/logo";
 import { AuthLink } from "@/components/auth/auth-link";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { STORAGE_KEYS } from "@/lib/constants/storage";
 
 export default function DetailsPage() {
     const router = useRouter();
@@ -15,6 +16,18 @@ export default function DetailsPage() {
     const [email, setEmail] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState({ fullName: "", email: "" });
+
+    // Check if user should be on this page
+    useEffect(() => {
+        const phoneNumber = localStorage.getItem('tempPhoneNumber');
+        const firebaseToken = localStorage.getItem('tempFirebaseToken');
+
+        // If no temporary data, redirect back to mobile auth
+        if (!phoneNumber || !firebaseToken) {
+            console.log("⚠️ No registration session found, redirecting to mobile auth");
+            router.push('/auth/mobile');
+        }
+    }, [router]);
 
     const validateForm = () => {
         const newErrors = { fullName: "", email: "" };
@@ -49,24 +62,50 @@ export default function DetailsPage() {
         setIsLoading(true);
 
         try {
-            // Update user profile with the provided details
-            // This assumes you have an update profile API endpoint
-            // You might need to implement this in your auth service
+            console.log("🔄 Starting registration completion...");
 
-            toast({
-                title: "Details saved successfully",
-                description: "Welcome to ClubViz!",
+            // Get the mobile number from temporary storage
+            const phoneNumber = localStorage.getItem('tempPhoneNumber');
+            if (!phoneNumber) {
+                throw new Error('Phone number not found. Please restart the registration process.');
+            }
+
+            // Call complete registration API with mobile number included
+            const { MobileAuthService } = await import('@/lib/services/mobile-auth.service');
+            const registrationResult = await MobileAuthService.completeRegistration({
+                mobileNumber: phoneNumber,
+                fullName: fullName.trim(),
+                email: email.trim()
             });
 
-            // Navigate to location permission page
-            setTimeout(() => {
-                router.push('/location/allow');
-            }, 800);
+            console.log("✅ Registration completed:", registrationResult);
 
+            if (registrationResult.success && registrationResult.data) {
+                // Store authentication data
+                localStorage.setItem(STORAGE_KEYS.accessToken, registrationResult.data.accessToken);
+                localStorage.setItem(STORAGE_KEYS.refreshToken, registrationResult.data.refreshToken);
+                localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(registrationResult.data.user));
+
+                // Clean up temporary data
+                localStorage.removeItem('tempFirebaseToken');
+                localStorage.removeItem('tempPhoneNumber');
+
+                toast({
+                    title: "Registration completed!",
+                    description: "Welcome to ClubViz!",
+                });
+
+                // Navigate to location permission page
+                setTimeout(() => {
+                    router.push('/location/allow');
+                }, 800);
+            } else {
+                throw new Error(registrationResult.message || 'Registration failed');
+            }
         } catch (error: any) {
-            console.error("Error updating profile:", error);
+            console.error("❌ Error completing registration:", error);
             toast({
-                title: "Failed to save details",
+                title: "Failed to complete registration",
                 description: error.message || 'Please try again',
                 variant: "destructive",
             });
@@ -177,8 +216,8 @@ export default function DetailsPage() {
                             onClick={handleSubmit}
                             disabled={!canSubmit}
                             className={`w-full py-[0.875rem] rounded-[3.25rem] text-[1rem] font-semibold transition-all duration-200 ${canSubmit
-                                    ? 'bg-[#0D7377] hover:bg-[#0A5A5D] text-white'
-                                    : 'bg-[#EFEFEF] text-[#999999] cursor-not-allowed'
+                                ? 'bg-[#0D7377] hover:bg-[#0A5A5D] text-white'
+                                : 'bg-[#EFEFEF] text-[#999999] cursor-not-allowed'
                                 }`}
                         >
                             {isLoading ? 'Saving...' : 'Submit details'}

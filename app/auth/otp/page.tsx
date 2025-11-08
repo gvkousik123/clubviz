@@ -81,39 +81,81 @@ export default function OTPVerificationScreen() {
         setError(null);
 
         try {
-            console.log("Verifying OTP:", otpValue);
+            console.log("🔍 Verifying OTP:", otpValue);
 
-            // Verify OTP using Firebase
+            // Step 1: Verify OTP using Firebase
             const user = await firebasePhoneAuth.verifyOTP(otpValue);
+            console.log("✅ Firebase OTP verification successful, user:", user.phoneNumber);
 
-            console.log("OTP verification successful, user:", user.phoneNumber);
-
-            // Get Firebase ID token for backend authentication
+            // Step 2: Get Firebase ID token for backend authentication
             const idToken = await user.getIdToken();
+            console.log("🔑 Got Firebase ID token");
 
-            // Store authentication data
-            localStorage.setItem(STORAGE_KEYS.accessToken, idToken);
-            localStorage.setItem('firebaseUser', JSON.stringify({
-                uid: user.uid,
-                phoneNumber: user.phoneNumber,
-                email: user.email || null,
-                displayName: user.displayName || null
-            }));
-            localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+            try {
+                // Step 3: Call backend to verify token and check if user exists
+                const { MobileAuthService } = await import('@/lib/services/mobile-auth.service');
+                const tokenVerificationResult = await MobileAuthService.verifyFirebaseToken(idToken);
 
-            // Show success toast
-            toast({
-                title: "Login successful",
-                description: "Welcome to ClubViz!",
-            });
+                console.log("🔍 Token verification result:", tokenVerificationResult);
 
-            // Navigate to user details page
-            setTimeout(() => {
-                router.push('/auth/details');
-            }, 800);
+                // Step 4: Handle successful verification - user exists
+                if (tokenVerificationResult.success && tokenVerificationResult.data) {
+                    console.log("✅ Existing user authenticated:", tokenVerificationResult.data.user);
+
+                    // Store authentication data
+                    localStorage.setItem(STORAGE_KEYS.accessToken, tokenVerificationResult.data.accessToken);
+                    localStorage.setItem(STORAGE_KEYS.refreshToken, tokenVerificationResult.data.refreshToken);
+                    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(tokenVerificationResult.data.user));
+                    localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+
+                    toast({
+                        title: "Welcome back!",
+                        description: "You have been logged in successfully",
+                    });
+
+                    // Navigate to home for existing user
+                    setTimeout(() => {
+                        router.push('/home');
+                    }, 800);
+                } else {
+                    // This shouldn't happen but handle gracefully
+                    throw new Error("Unexpected verification response");
+                }
+
+            } catch (backendError: any) {
+                console.error("❌ Backend verification failed:", backendError);
+
+                // Check if it's a "user not found" error indicating new user
+                if (backendError.message?.includes('existing user authenticated') ||
+                    backendError.message?.toLowerCase().includes('not found') ||
+                    backendError.message?.toLowerCase().includes('new user') ||
+                    backendError.status === 202) {
+
+                    console.log("👤 New user detected from API response - redirecting to registration");
+
+                    // Store Firebase data for registration completion
+                    localStorage.setItem('tempFirebaseToken', idToken);
+                    localStorage.setItem('tempPhoneNumber', phoneNumber);
+                    localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+
+                    toast({
+                        title: "Phone verified!",
+                        description: "Please complete your profile to continue",
+                    });
+
+                    setTimeout(() => {
+                        router.push('/auth/details');
+                    }, 800);
+                } else {
+                    // Real backend error - re-throw to outer catch
+                    throw backendError;
+                }
+            }
 
         } catch (error: any) {
-            console.error("OTP verification failed:", error);
+            console.error("❌ OTP verification process failed:", error);
+
+            // Handle Firebase or other errors
             setError(error.message || 'Invalid OTP. Please try again.');
 
             toast({
@@ -128,9 +170,7 @@ export default function OTPVerificationScreen() {
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const handleResendOTP = async () => {
+    }; const handleResendOTP = async () => {
         if (!phoneNumber || !canResend) return;
 
         setIsLoading(true);

@@ -19,6 +19,24 @@ export interface FirebaseTokenResponse {
   };
 }
 
+export interface CompleteRegistrationRequest {
+  mobileNumber: string;
+  fullName: string;
+  email: string;
+}
+
+export interface CompleteRegistrationResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    id: string;
+    fullName: string;
+    email: string;
+    phoneNumber: string;
+    isVerified: boolean;
+  };
+}
+
 export interface SendOTPRequest {
   phoneNumber: string;
 }
@@ -51,12 +69,42 @@ export class MobileAuthService {
     try {
       const response = await api.post<ApiResponse<FirebaseTokenResponse>>(
         '/auth/mobile/verify-firebase-token',
-        { token: firebaseToken }
+        { idToken: firebaseToken }
       );
       
       const result = handleApiResponse(response);
       
       // Store auth session if verification successful
+      if (result.success && result.data) {
+        // Store the access token for API client interceptor
+        if (result.data.accessToken) {
+          localStorage.setItem('accessToken', result.data.accessToken);
+        }
+        
+        // Store complete auth data
+        localStorage.setItem('user', JSON.stringify(result.data));
+      }
+      
+      return result;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Complete registration for new users after mobile verification
+   * POST /auth/mobile/complete-registration
+   */
+  static async completeRegistration(data: CompleteRegistrationRequest): Promise<ApiResponse<CompleteRegistrationResponse>> {
+    try {
+      const response = await api.post<ApiResponse<CompleteRegistrationResponse>>(
+        '/auth/mobile/complete-registration',
+        data
+      );
+      
+      const result = handleApiResponse(response);
+      
+      // Store auth session if registration successful
       if (result.success && result.data) {
         // Store the access token for API client interceptor
         if (result.data.accessToken) {
