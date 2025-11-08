@@ -98,19 +98,23 @@ export default function OTPVerificationScreen() {
 
                 console.log("🔍 Token verification result:", tokenVerificationResult);
 
-                // Step 4: Check if user exists based on response structure
+                // Step 4: Check existingUser flag to determine if user exists
                 if (tokenVerificationResult.success) {
-                    // Check if response contains user data (existing user) or just mobile number (new user)
-                    if (tokenVerificationResult.data?.user && tokenVerificationResult.data?.accessToken) {
-                        // Existing user authenticated
+
+                    if (tokenVerificationResult.data?.existingUser === true) {
+                        // EXISTING USER - Already registered
                         console.log("✅ Existing user authenticated:", tokenVerificationResult.data.user);
 
                         // Store authentication data
-                        localStorage.setItem(STORAGE_KEYS.accessToken, tokenVerificationResult.data.accessToken);
+                        if (tokenVerificationResult.data.accessToken) {
+                            localStorage.setItem(STORAGE_KEYS.accessToken, tokenVerificationResult.data.accessToken);
+                        }
                         if (tokenVerificationResult.data.refreshToken) {
                             localStorage.setItem(STORAGE_KEYS.refreshToken, tokenVerificationResult.data.refreshToken);
                         }
-                        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(tokenVerificationResult.data.user));
+                        if (tokenVerificationResult.data.user) {
+                            localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(tokenVerificationResult.data.user));
+                        }
                         localStorage.removeItem(STORAGE_KEYS.pendingPhone);
 
                         toast({
@@ -122,9 +126,10 @@ export default function OTPVerificationScreen() {
                         setTimeout(() => {
                             router.push('/home');
                         }, 800);
-                    } else if (tokenVerificationResult.data?.mobileNumber) {
-                        // New user - only mobile number returned
-                        console.log("👤 New user detected (only mobileNumber in response) - redirecting to registration");
+
+                    } else if (tokenVerificationResult.data?.existingUser === false) {
+                        // NEW USER - Not yet registered
+                        console.log("👤 New user detected (existingUser: false) - redirecting to registration");
 
                         // Store Firebase data for registration completion
                         localStorage.setItem('tempFirebaseToken', idToken);
@@ -139,9 +144,10 @@ export default function OTPVerificationScreen() {
                         setTimeout(() => {
                             router.push('/auth/details');
                         }, 800);
+
                     } else {
-                        // Unexpected response format
-                        throw new Error("Unexpected verification response format");
+                        // Can't determine user status
+                        throw new Error("Cannot determine user registration status. Please try again.");
                     }
                 } else {
                     // Success is false

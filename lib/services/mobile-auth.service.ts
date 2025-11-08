@@ -20,6 +20,8 @@ export interface FirebaseTokenResponse {
   };
   // For new users (user not found - only mobile number returned)
   mobileNumber?: string;
+  // Flag to indicate if user exists
+  existingUser?: boolean;
 }
 
 export interface CompleteRegistrationRequest {
