@@ -13,7 +13,12 @@ import { STORAGE_KEYS } from "@/lib/constants/storage";
 export default function MobileVerificationScreen() {
     const router = useRouter();
     const { toast } = useToast();
-    const [phoneNumber, setPhoneNumber] = useState("+91 XXXXXXXXXX");
+    // Initialize with exactly 10 placeholder X's: +91 XXXXXXXXXX
+    const [phoneNumber, setPhoneNumber] = useState(() => {
+        const initialPhone = "+91 XXXXXXXXXX";
+        console.log("Initial phone state:", initialPhone, "Length:", initialPhone.length);
+        return initialPhone;
+    });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -50,8 +55,11 @@ export default function MobileVerificationScreen() {
     }, []);
 
     const handleNumberPress = (num: string) => {
+        console.log("Number pressed:", num, "Current phone:", phoneNumber, "Has X?", phoneNumber.includes('X'));
         if (phoneNumber.includes('X')) {
-            setPhoneNumber(prev => prev.replace('X', num));
+            const newPhone = phoneNumber.replace('X', num);
+            console.log("New phone after replace:", newPhone);
+            setPhoneNumber(newPhone);
         }
     };
 
@@ -171,10 +179,13 @@ export default function MobileVerificationScreen() {
 
                         {/* Phone number display */}
                         <div className="mb-[0.75rem] text-center">
-                            <div className="w-full max-w-[23.75rem] h-[4.75rem] mx-auto bg-[#EFEFEF] rounded-[3.25rem] border border-[#0C898B] flex items-center justify-center">
-                                <div className="text-[1.375rem] font-medium text-[#666666] text-center">
+                            <div className="w-full max-w-[23.75rem] h-[4.75rem] mx-auto bg-[#EFEFEF] rounded-[3.25rem] border border-[#0C898B] flex items-center justify-center p-2">
+                                <div className="text-[1.125rem] font-mono font-medium text-[#666666] text-center whitespace-nowrap">
                                     {phoneNumber}
                                 </div>
+                            </div>
+                            <div className="text-[0.75rem] text-gray-500 mt-1">
+                                Length: {phoneNumber.length} | X's: {(phoneNumber.match(/X/g) || []).length}
                             </div>
                         </div>
 

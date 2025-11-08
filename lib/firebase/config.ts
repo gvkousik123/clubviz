@@ -4,7 +4,7 @@ import { getAuth } from "firebase/auth";
 // Firebase configuration for clubwiz-477108 project
 // Hardcoded credentials - get correct values from Firebase Console
 const firebaseConfig = {
-  apiKey: "AIzaSyAPB69pxPrG_7JzcrvwloiIYphRYzpfCBQ", // ⚠️ REPLACE WITH CORRECT KEY FROM FIREBASE CONSOLE
+  apiKey: "AIzaSyAPB69pxPrG_7JzcrvwloiIYphRYzpfCBQ", 
   authDomain: "clubwiz-477108.firebaseapp.com",
   projectId: "clubwiz-477108",
   storageBucket: "clubwiz-477108.firebasestorage.app",

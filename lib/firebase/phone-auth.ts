@@ -180,10 +180,14 @@ export class FirebasePhoneAuth {
    */
   cleanup(): void {
     if (window.recaptchaVerifier) {
-      window.recaptchaVerifier.clear();
+      try {
+        window.recaptchaVerifier.clear();
+      } catch (e) {}
       window.recaptchaVerifier = undefined;
     }
-    window.confirmationResult = undefined;
+
+    // IMPORTANT: do NOT clear confirmationResult here
+    // window.confirmationResult must survive navigation
   }
 
   /**
