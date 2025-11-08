@@ -64,13 +64,16 @@ export default function DetailsPage() {
         try {
             console.log("🔄 Starting registration completion...");
 
-            // Get the mobile number from temporary storage
+            // Get stored data from Firebase verification
             const phoneNumber = localStorage.getItem('tempPhoneNumber');
-            if (!phoneNumber) {
-                throw new Error('Phone number not found. Please restart the registration process.');
+            const firebaseToken = localStorage.getItem('tempFirebaseToken');
+
+            if (!phoneNumber || !firebaseToken) {
+                throw new Error('Registration session expired. Please restart the verification process.');
             }
 
-            // Call complete registration API with mobile number included
+            // Step 1: Call complete registration API with mobile number included
+            console.log("📝 Step 1: Calling complete-registration API...");
             const { MobileAuthService } = await import('@/lib/services/mobile-auth.service');
             const registrationResult = await MobileAuthService.completeRegistration({
                 mobileNumber: phoneNumber,
@@ -78,34 +81,63 @@ export default function DetailsPage() {
                 email: email.trim()
             });
 
-            console.log("✅ Registration completed:", registrationResult);
+            console.log("✅ Step 1 Complete: Registration completed", registrationResult);
 
-            if (registrationResult.success && registrationResult.data) {
-                // Store authentication data
-                localStorage.setItem(STORAGE_KEYS.accessToken, registrationResult.data.accessToken);
-                localStorage.setItem(STORAGE_KEYS.refreshToken, registrationResult.data.refreshToken);
-                localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(registrationResult.data.user));
-
-                // Clean up temporary data
-                localStorage.removeItem('tempFirebaseToken');
-                localStorage.removeItem('tempPhoneNumber');
-
-                toast({
-                    title: "Registration completed!",
-                    description: "Welcome to ClubViz!",
-                });
-
-                // Navigate to location permission page
-                setTimeout(() => {
-                    router.push('/location/allow');
-                }, 800);
-            } else {
+            if (!registrationResult.success) {
                 throw new Error(registrationResult.message || 'Registration failed');
             }
-        } catch (error: any) {
-            console.error("❌ Error completing registration:", error);
+
+            // Step 2: Call verify-firebase-token API with the Firebase token
+            console.log("🔐 Step 2: Calling verify-firebase-token API...");
+            const tokenVerificationResult = await MobileAuthService.verifyFirebaseToken(firebaseToken);
+
+            console.log("✅ Step 2 Complete: Token verified", tokenVerificationResult);
+
+            if (!tokenVerificationResult.success) {
+                throw new Error(tokenVerificationResult.message || 'Token verification failed');
+            }
+
+            // Step 3: Store authentication data from both responses
+            console.log("💾 Step 3: Storing authentication data...");
+
+            // Use tokens from complete-registration response (preferred)
+            const tokens = registrationResult.data?.accessToken
+                ? registrationResult.data
+                : tokenVerificationResult.data;
+
+            if (tokens?.accessToken) {
+                localStorage.setItem(STORAGE_KEYS.accessToken, tokens.accessToken);
+            }
+            if (tokens?.refreshToken) {
+                localStorage.setItem(STORAGE_KEYS.refreshToken, tokens.refreshToken);
+            }
+
+            // Use user data from token verification response (it should have latest user data)
+            const userData = tokenVerificationResult.data?.user || registrationResult.data?.user;
+            if (userData) {
+                localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(userData));
+            }
+
+            // Clean up temporary data
+            localStorage.removeItem('tempFirebaseToken');
+            localStorage.removeItem('tempPhoneNumber');
+
+            console.log("✅ All steps completed successfully!");
+
             toast({
-                title: "Failed to complete registration",
+                title: "Registration completed!",
+                description: "Welcome to ClubViz!",
+            });
+
+            // Navigate to location permission page
+            setTimeout(() => {
+                router.push('/location/allow');
+            }, 800);
+
+        } catch (error: any) {
+            console.error("❌ Error during registration process:", error);
+            toast({
+                title: "Registration failed",
                 description: error.message || 'Please try again',
                 variant: "destructive",
             });

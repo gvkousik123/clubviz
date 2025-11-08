@@ -91,98 +91,26 @@ export default function OTPVerificationScreen() {
             const idToken = await user.getIdToken();
             console.log("🔑 Got Firebase ID token");
 
-            try {
-                // Step 3: Call backend to verify token and check if user exists
-                const { MobileAuthService } = await import('@/lib/services/mobile-auth.service');
-                const tokenVerificationResult = await MobileAuthService.verifyFirebaseToken(idToken);
+            // Step 3: Store Firebase data and redirect to details page for registration
+            console.log("📝 Redirecting to details page for registration...");
 
-                console.log("🔍 Token verification result:", tokenVerificationResult);
-
-                // Step 4: Check existingUser flag to determine if user exists
-                if (tokenVerificationResult.success) {
-
-                    if (tokenVerificationResult.data?.existingUser === true) {
-                        // EXISTING USER - Already registered
-                        console.log("✅ Existing user authenticated:", tokenVerificationResult.data.user);
-
-                        // Store authentication data
-                        if (tokenVerificationResult.data.accessToken) {
-                            localStorage.setItem(STORAGE_KEYS.accessToken, tokenVerificationResult.data.accessToken);
-                        }
-                        if (tokenVerificationResult.data.refreshToken) {
-                            localStorage.setItem(STORAGE_KEYS.refreshToken, tokenVerificationResult.data.refreshToken);
-                        }
-                        if (tokenVerificationResult.data.user) {
-                            localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(tokenVerificationResult.data.user));
-                        }
-                        localStorage.removeItem(STORAGE_KEYS.pendingPhone);
-
-                        toast({
-                            title: "Welcome back!",
-                            description: "You have been logged in successfully",
-                        });
-
-                        // Navigate to home for existing user
-                        setTimeout(() => {
-                            router.push('/home');
-                        }, 800);
-
-                    } else if (tokenVerificationResult.data?.existingUser === false) {
-                        // NEW USER - Not yet registered
-                        console.log("👤 New user detected (existingUser: false) - redirecting to registration");
-
-                        // Store Firebase data for registration completion
-                        localStorage.setItem('tempFirebaseToken', idToken);
-                        localStorage.setItem('tempPhoneNumber', phoneNumber);
-                        localStorage.removeItem(STORAGE_KEYS.pendingPhone);
-
-                        toast({
-                            title: "Phone verified!",
-                            description: "Please complete your profile to continue",
-                        });
-
-                        setTimeout(() => {
-                            router.push('/auth/details');
-                        }, 800);
-
-                    } else {
-                        // Can't determine user status
-                        throw new Error("Cannot determine user registration status. Please try again.");
-                    }
-                } else {
-                    // Success is false
-                    throw new Error("Verification failed: " + (tokenVerificationResult.message || "Unknown error"));
-                }
-
-            } catch (backendError: any) {
-                console.error("❌ Backend verification failed:", backendError);
-
-                // Check if it's a "user not found" error indicating new user
-                if (backendError.message?.includes('existing user authenticated') ||
-                    backendError.message?.toLowerCase().includes('not found') ||
-                    backendError.message?.toLowerCase().includes('new user') ||
-                    backendError.status === 202) {
-
-                    console.log("👤 New user detected from API response - redirecting to registration");
-
-                    // Store Firebase data for registration completion
-                    localStorage.setItem('tempFirebaseToken', idToken);
-                    localStorage.setItem('tempPhoneNumber', phoneNumber);
-                    localStorage.removeItem(STORAGE_KEYS.pendingPhone);
-
-                    toast({
-                        title: "Phone verified!",
-                        description: "Please complete your profile to continue",
-                    });
-
-                    setTimeout(() => {
-                        router.push('/auth/details');
-                    }, 800);
-                } else {
-                    // Real backend error - re-throw to outer catch
-                    throw backendError;
-                }
+            // Store Firebase data for registration completion
+            localStorage.setItem('tempFirebaseToken', idToken);
+            if (user.phoneNumber) {
+                localStorage.setItem('tempPhoneNumber', user.phoneNumber);
+            } else {
+                throw new Error('Phone number not available from Firebase verification');
             }
+            localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+
+            toast({
+                title: "Phone verified!",
+                description: "Please complete your profile to continue",
+            });
+
+            setTimeout(() => {
+                router.push('/auth/details');
+            }, 800);
 
         } catch (error: any) {
             console.error("❌ OTP verification process failed:", error);
