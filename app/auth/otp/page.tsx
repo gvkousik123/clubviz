@@ -98,28 +98,54 @@ export default function OTPVerificationScreen() {
 
                 console.log("🔍 Token verification result:", tokenVerificationResult);
 
-                // Step 4: Handle successful verification - user exists
-                if (tokenVerificationResult.success && tokenVerificationResult.data) {
-                    console.log("✅ Existing user authenticated:", tokenVerificationResult.data.user);
+                // Step 4: Check if user exists based on response structure
+                if (tokenVerificationResult.success) {
+                    // Check if response contains user data (existing user) or just mobile number (new user)
+                    if (tokenVerificationResult.data?.user && tokenVerificationResult.data?.accessToken) {
+                        // Existing user authenticated
+                        console.log("✅ Existing user authenticated:", tokenVerificationResult.data.user);
 
-                    // Store authentication data
-                    localStorage.setItem(STORAGE_KEYS.accessToken, tokenVerificationResult.data.accessToken);
-                    localStorage.setItem(STORAGE_KEYS.refreshToken, tokenVerificationResult.data.refreshToken);
-                    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(tokenVerificationResult.data.user));
-                    localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+                        // Store authentication data
+                        localStorage.setItem(STORAGE_KEYS.accessToken, tokenVerificationResult.data.accessToken);
+                        if (tokenVerificationResult.data.refreshToken) {
+                            localStorage.setItem(STORAGE_KEYS.refreshToken, tokenVerificationResult.data.refreshToken);
+                        }
+                        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(tokenVerificationResult.data.user));
+                        localStorage.removeItem(STORAGE_KEYS.pendingPhone);
 
-                    toast({
-                        title: "Welcome back!",
-                        description: "You have been logged in successfully",
-                    });
+                        toast({
+                            title: "Welcome back!",
+                            description: "You have been logged in successfully",
+                        });
 
-                    // Navigate to home for existing user
-                    setTimeout(() => {
-                        router.push('/home');
-                    }, 800);
+                        // Navigate to home for existing user
+                        setTimeout(() => {
+                            router.push('/home');
+                        }, 800);
+                    } else if (tokenVerificationResult.data?.mobileNumber) {
+                        // New user - only mobile number returned
+                        console.log("👤 New user detected (only mobileNumber in response) - redirecting to registration");
+
+                        // Store Firebase data for registration completion
+                        localStorage.setItem('tempFirebaseToken', idToken);
+                        localStorage.setItem('tempPhoneNumber', phoneNumber);
+                        localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+
+                        toast({
+                            title: "Phone verified!",
+                            description: "Please complete your profile to continue",
+                        });
+
+                        setTimeout(() => {
+                            router.push('/auth/details');
+                        }, 800);
+                    } else {
+                        // Unexpected response format
+                        throw new Error("Unexpected verification response format");
+                    }
                 } else {
-                    // This shouldn't happen but handle gracefully
-                    throw new Error("Unexpected verification response");
+                    // Success is false
+                    throw new Error("Verification failed: " + (tokenVerificationResult.message || "Unknown error"));
                 }
 
             } catch (backendError: any) {

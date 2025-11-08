@@ -10,13 +10,16 @@ export interface FirebaseTokenRequest {
 }
 
 export interface FirebaseTokenResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: {
+  // For existing users (successful login)
+  accessToken?: string;
+  refreshToken?: string;
+  user?: {
     id: string;
     phoneNumber: string;
     isVerified: boolean;
   };
+  // For new users (user not found - only mobile number returned)
+  mobileNumber?: string;
 }
 
 export interface CompleteRegistrationRequest {
