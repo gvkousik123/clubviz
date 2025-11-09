@@ -101,12 +101,15 @@ export default function OTPVerificationScreen() {
             try {
                 tokenVerificationResult = await MobileAuthService.verifyFirebaseToken(idToken);
                 console.log("✅ Step 1 Response:", tokenVerificationResult);
+                console.log("✅ Step 1 Response (full structure):", JSON.stringify(tokenVerificationResult, null, 2));
             } catch (error: any) {
                 console.error("❌ Step 1 Error:", error.message);
                 throw new Error(`Token verification failed: ${error.message}`);
             }
 
             // Check if user already exists
+            console.log("🔍 Full tokenVerificationResult:", tokenVerificationResult);
+            console.log("🔍 tokenVerificationResult.data:", tokenVerificationResult?.data);
             console.log("🔍 Raw existingUser value:", tokenVerificationResult?.data?.existingUser);
             console.log("🔍 Type of existingUser:", typeof tokenVerificationResult?.data?.existingUser);
             const existingUser = tokenVerificationResult?.data?.existingUser === true || tokenVerificationResult?.data?.existingUser === "true";
