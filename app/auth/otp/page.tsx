@@ -97,7 +97,7 @@ export default function OTPVerificationScreen() {
             console.log("🔐 Step 1: Calling verify-firebase-token API to check user status...");
             const { MobileAuthService } = await import('@/lib/services/mobile-auth.service');
 
-            let tokenVerificationResult;
+            let tokenVerificationResult: any;
             try {
                 tokenVerificationResult = await MobileAuthService.verifyFirebaseToken(idToken);
                 console.log("✅ Step 1 Response:", tokenVerificationResult);
@@ -107,11 +107,21 @@ export default function OTPVerificationScreen() {
             }
 
             // Check if user already exists
-            const existingUser = tokenVerificationResult?.data?.existingUser === true;
-            console.log("👤 User status:", existingUser ? "EXISTING USER" : "NEW USER");
+            console.log("🔍 Raw existingUser value:", tokenVerificationResult?.data?.existingUser);
+            console.log("🔍 Type of existingUser:", typeof tokenVerificationResult?.data?.existingUser);
+            const existingUser = tokenVerificationResult?.data?.existingUser === true || tokenVerificationResult?.data?.existingUser === "true";
+
+            // Also check if user has roles (existing users will have roles)
+            const hasRoles = Array.isArray(tokenVerificationResult?.data?.roles) && tokenVerificationResult.data.roles.length > 0;
+            const isExistingUserWithRoles = existingUser || hasRoles;
+
+            console.log("👤 User status:", isExistingUserWithRoles ? "EXISTING USER" : "NEW USER");
+            console.log("🔍 Boolean check result:", existingUser);
+            console.log("🔍 Has roles:", hasRoles);
+            console.log("🔍 Final decision:", isExistingUserWithRoles);
 
             // Step 4: Handle based on user status
-            if (existingUser) {
+            if (isExistingUserWithRoles) {
                 // EXISTING USER: Store tokens and user data directly
                 console.log("💾 Storing tokens and user data for existing user...");
 

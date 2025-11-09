@@ -115,7 +115,7 @@ export default function DetailsPage() {
             console.log("💾 Step 3: Storing authentication data...");
 
             // Extract tokens - prefer from complete-registration (new users), fallback to verify-token (existing users)
-            let finalTokens = null;
+            let finalTokens: any = null;
 
             if (registrationResult?.data?.accessToken) {
                 console.log("✅ Using tokens from Step 2 (complete-registration)");
@@ -123,11 +123,11 @@ export default function DetailsPage() {
                     accessToken: registrationResult.data.accessToken,
                     refreshToken: registrationResult.data.refreshToken
                 };
-            } else if (tokenVerificationResult?.data?.accessToken) {
+            } else if ((tokenVerificationResult?.data as any)?.jwtTokens?.accessToken) {
                 console.log("✅ Using tokens from Step 1 (verify-firebase-token)");
                 finalTokens = {
-                    accessToken: tokenVerificationResult.data.accessToken,
-                    refreshToken: tokenVerificationResult.data.refreshToken
+                    accessToken: (tokenVerificationResult.data as any).jwtTokens.accessToken,
+                    refreshToken: (tokenVerificationResult.data as any).jwtTokens.refreshToken
                 };
             }
 
@@ -144,8 +144,23 @@ export default function DetailsPage() {
                 localStorage.setItem(STORAGE_KEYS.refreshToken, finalTokens.refreshToken);
             }
 
-            // Store user data - prefer from complete-registration (has all info), fallback to verify-token
-            let userData = registrationResult?.data?.user || tokenVerificationResult?.data?.user;
+            // Store user data
+            let userData: any;
+            if (registrationResult?.data?.user) {
+                // New user registration response
+                userData = registrationResult.data.user;
+            } else if (isExistingUser) {
+                // Existing user - build from verify-firebase-token response
+                const data = tokenVerificationResult?.data as any;
+                userData = {
+                    id: data?.id,
+                    email: data?.email,
+                    username: data?.username,
+                    mobileNumber: data?.mobileNumber,
+                    roles: data?.roles,
+                    verified: data?.verified,
+                };
+            }
 
             if (userData) {
                 console.log("📝 Storing user data:", userData);
@@ -157,6 +172,7 @@ export default function DetailsPage() {
             // Clean up temporary data
             localStorage.removeItem('tempFirebaseToken');
             localStorage.removeItem('tempPhoneNumber');
+            localStorage.removeItem('verificationResult');
 
             console.log("✅ All steps completed successfully!");
             console.log("📊 Stored tokens and user data");
