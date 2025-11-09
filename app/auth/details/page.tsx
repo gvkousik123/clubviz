@@ -73,49 +73,73 @@ export default function DetailsPage() {
             }
 
             // Step 1: Call complete registration API with mobile number included
-            console.log("📝 Step 1: Calling complete-registration API...");
+            console.log("📝 Step 1: Calling complete-registration API with:", { mobileNumber: phoneNumber, fullName: fullName.trim() });
             const { MobileAuthService } = await import('@/lib/services/mobile-auth.service');
-            const registrationResult = await MobileAuthService.completeRegistration({
-                mobileNumber: phoneNumber,
-                fullName: fullName.trim(),
-                email: email.trim()
-            });
 
-            console.log("✅ Step 1 Complete: Registration completed", registrationResult);
-
-            if (!registrationResult.success) {
-                throw new Error(registrationResult.message || 'Registration failed');
+            let registrationResult;
+            try {
+                registrationResult = await MobileAuthService.completeRegistration({
+                    mobileNumber: phoneNumber,
+                    fullName: fullName.trim(),
+                    email: email.trim()
+                });
+                console.log("✅ Step 1 Response:", registrationResult);
+            } catch (error: any) {
+                console.error("❌ Step 1 Error:", error.message);
+                throw new Error(`Registration failed: ${error.message}`);
             }
 
             // Step 2: Call verify-firebase-token API with the Firebase token
             console.log("🔐 Step 2: Calling verify-firebase-token API...");
-            const tokenVerificationResult = await MobileAuthService.verifyFirebaseToken(firebaseToken);
-
-            console.log("✅ Step 2 Complete: Token verified", tokenVerificationResult);
-
-            if (!tokenVerificationResult.success) {
-                throw new Error(tokenVerificationResult.message || 'Token verification failed');
+            let tokenVerificationResult = null;
+            try {
+                tokenVerificationResult = await MobileAuthService.verifyFirebaseToken(firebaseToken);
+                console.log("✅ Step 2 Response:", tokenVerificationResult);
+            } catch (error: any) {
+                console.warn("⚠️ Step 2 Warning (non-critical):", error.message);
+                // Don't throw - Step 2 is optional if Step 1 succeeded
+                // We already have tokens from Step 1 (complete registration)
             }
 
             // Step 3: Store authentication data from both responses
             console.log("💾 Step 3: Storing authentication data...");
 
-            // Use tokens from complete-registration response (preferred)
-            const tokens = registrationResult.data?.accessToken
-                ? registrationResult.data
-                : tokenVerificationResult.data;
+            // Extract tokens from responses (they are nested in .data)
+            const registrationTokens = registrationResult?.data?.accessToken ? {
+                accessToken: registrationResult.data.accessToken,
+                refreshToken: registrationResult.data.refreshToken
+            } : null;
 
-            if (tokens?.accessToken) {
-                localStorage.setItem(STORAGE_KEYS.accessToken, tokens.accessToken);
-            }
-            if (tokens?.refreshToken) {
-                localStorage.setItem(STORAGE_KEYS.refreshToken, tokens.refreshToken);
+            const verificationTokens = tokenVerificationResult?.data?.accessToken ? {
+                accessToken: tokenVerificationResult.data.accessToken,
+                refreshToken: tokenVerificationResult.data.refreshToken
+            } : null;
+
+            // Use tokens from complete-registration (preferred), fallback to verify token
+            const finalTokens = registrationTokens || verificationTokens;
+
+            if (!finalTokens?.accessToken) {
+                console.error("❌ No tokens found in either response");
+                console.log("Registration result:", registrationResult);
+                console.log("Verification result:", tokenVerificationResult);
+                throw new Error('No authentication token received from server');
             }
 
-            // Use user data from token verification response (it should have latest user data)
-            const userData = tokenVerificationResult.data?.user || registrationResult.data?.user;
+            console.log("✅ Using tokens from:", registrationTokens ? "Step 1 (complete-registration)" : "Step 2 (verify-token)");
+
+            // Store tokens
+            localStorage.setItem(STORAGE_KEYS.accessToken, finalTokens.accessToken);
+            if (finalTokens.refreshToken) {
+                localStorage.setItem(STORAGE_KEYS.refreshToken, finalTokens.refreshToken);
+            }
+
+            // Store user data - prefer from registration response as it has complete info
+            const userData = registrationResult?.data?.user || tokenVerificationResult?.data?.user;
             if (userData) {
+                console.log("📝 Storing user data:", userData);
                 localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(userData));
+            } else {
+                console.warn("⚠️ No user data found in responses");
             }
 
             // Clean up temporary data
@@ -123,6 +147,7 @@ export default function DetailsPage() {
             localStorage.removeItem('tempPhoneNumber');
 
             console.log("✅ All steps completed successfully!");
+            console.log("📊 Stored tokens and user data");
 
             toast({
                 title: "Registration completed!",

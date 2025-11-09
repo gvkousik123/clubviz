@@ -30,7 +30,9 @@ export default function OTPVerificationScreen() {
             router.push('/auth/mobile');
             return;
         }
-        setPhoneNumber(savedPhone); const interval = setInterval(() => {
+        setPhoneNumber(savedPhone);
+
+        const interval = setInterval(() => {
             setTimer((prev) => {
                 if (prev <= 1) {
                     setCanResend(true);
