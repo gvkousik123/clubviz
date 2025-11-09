@@ -93,21 +93,38 @@ export default function OTPVerificationScreen() {
             const idToken = await user.getIdToken();
             console.log("🔑 Got Firebase ID token");
 
-            // Step 3: Store Firebase data and redirect to details page for registration
-            console.log("📝 Redirecting to details page for registration...");
+            // Step 3: Call verify-firebase-token API immediately to check user status
+            console.log("🔐 Step 1: Calling verify-firebase-token API to check user status...");
+            const { MobileAuthService } = await import('@/lib/services/mobile-auth.service');
 
-            // Store Firebase data for registration completion
+            let tokenVerificationResult;
+            try {
+                tokenVerificationResult = await MobileAuthService.verifyFirebaseToken(idToken);
+                console.log("✅ Step 1 Response:", tokenVerificationResult);
+            } catch (error: any) {
+                console.error("❌ Step 1 Error:", error.message);
+                throw new Error(`Token verification failed: ${error.message}`);
+            }
+
+            // Check if user already exists
+            const isExistingUser = tokenVerificationResult?.data?.existingUser === true;
+            console.log("👤 User status:", isExistingUser ? "EXISTING USER" : "NEW USER");
+
+            // Step 4: Store data for details page or redirect directly if existing user
             localStorage.setItem('tempFirebaseToken', idToken);
             if (user.phoneNumber) {
                 localStorage.setItem('tempPhoneNumber', user.phoneNumber);
             } else {
                 throw new Error('Phone number not available from Firebase verification');
             }
+
+            // Also store the verification result for use in details page
+            localStorage.setItem('verificationResult', JSON.stringify(tokenVerificationResult));
             localStorage.removeItem(STORAGE_KEYS.pendingPhone);
 
             toast({
                 title: "Phone verified!",
-                description: "Please complete your profile to continue",
+                description: isExistingUser ? "Logging you in..." : "Please complete your profile to continue",
             });
 
             setTimeout(() => {

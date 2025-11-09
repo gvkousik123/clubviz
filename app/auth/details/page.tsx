@@ -166,9 +166,9 @@ export default function DetailsPage() {
                 description: isExistingUser ? "You're all set!" : "Welcome to ClubViz!",
             });
 
-            // Navigate to location permission page
+            // Navigate back to mobile auth page after successful registration
             setTimeout(() => {
-                router.push('/location/allow');
+                router.push('/auth/mobile');
             }, 800);
 
         } catch (error: any) {
@@ -246,7 +246,7 @@ export default function DetailsPage() {
                                         if (errors.fullName) setErrors(prev => ({ ...prev, fullName: "" }));
                                     }}
                                     placeholder="Enter your full name"
-                                    className={`w-full px-[1rem] py-[0.875rem] border-2 rounded-[3.25rem] bg-[#EFEFEF] text-[1rem] placeholder:text-[#999999] transition-colors ${errors.fullName
+                                    className={`w-full px-[1rem] py-[0.875rem] border-2 rounded-[3.25rem] bg-[#EFEFEF] text-[#2C1945] placeholder:text-[#999999] transition-colors ${errors.fullName
                                         ? 'border-red-300 focus:border-red-500'
                                         : 'border-[#0C898B] focus:border-[#0C898B]'
                                         } focus:outline-none`}
@@ -269,7 +269,7 @@ export default function DetailsPage() {
                                         if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
                                     }}
                                     placeholder="Enter your email"
-                                    className={`w-full px-[1rem] py-[0.875rem] border-2 rounded-[3.25rem] bg-[#EFEFEF] text-[1rem] placeholder:text-[#999999] transition-colors ${errors.email
+                                    className={`w-full px-[1rem] py-[0.875rem] border-2 rounded-[3.25rem] bg-[#EFEFEF] text-[#2C1945] placeholder:text-[#999999] transition-colors ${errors.email
                                         ? 'border-red-300 focus:border-red-500'
                                         : 'border-[#0C898B] focus:border-[#0C898B]'
                                         } focus:outline-none`}
