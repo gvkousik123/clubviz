@@ -365,6 +365,34 @@ export default function EventsListPage() {
         return url && url.startsWith('http') && !url.includes('null') && !url.includes('undefined');
     };
 
+    // Helper function to get the start and end of the current week (Monday to Sunday)
+    const getCurrentWeekRange = () => {
+        const now = new Date();
+        const currentDay = now.getDay();
+        const diff = now.getDate() - currentDay + (currentDay === 0 ? -6 : 1); // Adjust to get Monday
+
+        const weekStart = new Date(now.setDate(diff));
+        weekStart.setHours(0, 0, 0, 0);
+
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+        weekEnd.setHours(23, 59, 59, 999);
+
+        return { weekStart, weekEnd };
+    };
+
+    // Helper function to check if an event is in the current week
+    const isEventThisWeek = (eventDate: string): boolean => {
+        const { weekStart, weekEnd } = getCurrentWeekRange();
+        const eventDateTime = new Date(eventDate);
+        return eventDateTime >= weekStart && eventDateTime <= weekEnd;
+    };
+
+    // Get filtered events for "This Week" section
+    const getThisWeekEvents = () => {
+        return events.filter(event => isEventThisWeek(event.startDateTime));
+    };
+
     useEffect(() => {
         fetchEvents();
         loadFavorites();
@@ -422,11 +450,11 @@ export default function EventsListPage() {
 
                     {/* Search Bar */}
                     <div className="flex items-center gap-2">
-                        <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2">
+                        <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2 min-w-0">
                             <button
                                 onClick={handleSearch}
                                 disabled={isSearching || !searchQuery.trim()}
-                                className="disabled:opacity-50"
+                                className="disabled:opacity-50 flex-shrink-0"
                             >
                                 {isSearching ? (
                                     <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
@@ -444,14 +472,14 @@ export default function EventsListPage() {
                                         handleSearch();
                                     }
                                 }}
-                                className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white outline-none"
+                                className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white outline-none min-w-0"
                                 disabled={isSearching}
                             />
                         </div>
                         <button
                             onClick={handleNearbySearch}
                             disabled={isLoadingNearby}
-                            className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center disabled:opacity-50"
+                            className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center disabled:opacity-50 flex-shrink-0"
                             title="Find nearby events"
                         >
                             {isLoadingNearby ? (
@@ -460,9 +488,9 @@ export default function EventsListPage() {
                                 <MapPin className="w-[21px] h-[21px] text-white" />
                             )}
                         </button>
-                        <div className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center">
+                        <button className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center flex-shrink-0">
                             <SlidersHorizontal className="w-[21px] h-[21px] text-white" />
-                        </div>
+                        </button>
                     </div>
                 </header>
 
@@ -494,12 +522,12 @@ export default function EventsListPage() {
                                 <div className="flex items-center justify-center w-full py-8">
                                     <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
                                 </div>
-                            ) : events.length === 0 ? (
-                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full mr-5">
-                                    No events available this week. Check back soon!
+                            ) : getThisWeekEvents().length === 0 ? (
+                                <div className="text-white/60 text-sm px-5 py-8 mr-5">
+                                    No events this week
                                 </div>
                             ) : (
-                                events.map((event, index) => {
+                                getThisWeekEvents().map((event, index) => {
                                     const eventDate = new Date(event.startDateTime);
                                     const monthShort = eventDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
                                     const day = eventDate.getDate().toString().padStart(2, '0');
@@ -573,9 +601,75 @@ export default function EventsListPage() {
                             <h2 className="text-white text-base font-semibold">Today</h2>
                         </div>
                         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
-                            <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full mr-5">
+                            <div className="text-white/60 text-sm px-5 py-8 mr-5">
                                 No events scheduled for today
                             </div>
+                        </div>
+                    </section>
+
+                    {/* All Events */}
+                    <section className="w-full px-5">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-white text-base font-semibold">All Events</h2>
+                        </div>
+                        <div className="space-y-4">
+                            {loading ? (
+                                <div className="flex items-center justify-center w-full py-8">
+                                    <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+                                </div>
+                            ) : events.length === 0 ? (
+                                <div className="text-white/60 text-sm text-center py-8">
+                                    No events available
+                                </div>
+                            ) : (
+                                events.map((event, index) => {
+                                    const eventDate = new Date(event.startDateTime);
+                                    const monthShort = eventDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+                                    const day = eventDate.getDate().toString().padStart(2, '0');
+                                    const fallbackImage = getEventFallbackImage(index);
+
+                                    return (
+                                        <div key={event.id} className="w-full rounded-[15px] overflow-hidden flex gap-4 bg-[rgba(0,60,59,0.5)] hover:bg-[rgba(0,60,59,0.8)] transition-colors cursor-pointer">
+                                            {/* Image */}
+                                            <div className="w-[100px] h-[100px] flex-shrink-0 rounded-[15px] overflow-hidden">
+                                                <img
+                                                    src={event.imageUrl && isValidImageUrl(event.imageUrl) ? event.imageUrl : fallbackImage}
+                                                    alt={event.title}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+
+                                            {/* Content */}
+                                            <div className="flex-1 p-3 flex flex-col justify-between min-w-0">
+                                                <div>
+                                                    <h3 className="text-white text-[13px] font-bold font-['Manrope'] leading-4 truncate">
+                                                        {event.title}
+                                                    </h3>
+                                                    <p className="text-[#C6C6C6] text-[11px] font-semibold font-['Manrope'] mt-1 truncate">
+                                                        {event.clubName || event.location}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="text-[#14FFEC] text-[11px] font-semibold font-['Manrope']">
+                                                        {monthShort} {day}
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            toggleFavorite(event.id);
+                                                        }}
+                                                        className="p-1"
+                                                    >
+                                                        <svg className="w-4 h-4 text-[#14FFEC]" fill={favorites.includes(event.id) ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
                         </div>
                     </section>
                 </div>

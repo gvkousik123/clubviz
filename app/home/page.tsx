@@ -554,7 +554,7 @@ const HomePage = () => {
                     </div>
 
                     {/* Search Bar */}
-                    <div className="flex items-center gap-3 w-full">
+                    <div className="flex items-center gap-2 w-full">
                         <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2 min-w-0">
                             <button
                                 onClick={handleSearch}
@@ -611,7 +611,7 @@ const HomePage = () => {
                         </div>
                         <button
                             onClick={toggleSidebar}
-                            className="w-10 h-10 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex flex-col items-center justify-center gap-[3px] cursor-pointer hover:bg-white/30 transition-colors flex-shrink-0"
+                            className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex flex-col items-center justify-center gap-[3px] cursor-pointer hover:bg-white/30 transition-colors flex-shrink-0"
                         >
                             <div className="w-[15px] h-[2px] bg-white rounded-[2px]"></div>
                             <div className="w-[19px] h-[2px] bg-white rounded-[6px]"></div>
@@ -1050,6 +1050,59 @@ const HomePage = () => {
                                 </div>
                             </section>
 
+                            {/* All Clubs */}
+                            <section className="px-5">
+                                <div className="flex items-center gap-4 mb-6">
+                                    <h2 className="text-white text-base font-semibold whitespace-nowrap">All Clubs</h2>
+                                    <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
+                                </div>
+                                <div className="space-y-3">
+                                    {isLoadingVenues ? (
+                                        <div className="flex items-center justify-center w-full py-8">
+                                            <Loader2 className="w-6 h-6 text-[#14FFEC] animate-spin" />
+                                        </div>
+                                    ) : venues.length > 0 ? (
+                                        venues.map((club, index) => {
+                                            const fallbackImage = venueFallback[index % venueFallback.length]?.image || '/venue/Screenshot 2024-12-10 195651.png';
+
+                                            return (
+                                                <div key={club.id} className="w-full rounded-[12px] overflow-hidden flex gap-3 bg-[rgba(0,60,59,0.5)] hover:bg-[rgba(0,60,59,0.8)] transition-colors">
+                                                    {/* Image */}
+                                                    <div className="w-[80px] h-[80px] flex-shrink-0 rounded-[12px] overflow-hidden">
+                                                        <img
+                                                            src={fallbackImage}
+                                                            alt={club.name}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+
+                                                    {/* Content */}
+                                                    <div className="flex-1 p-2 flex flex-col justify-between min-w-0">
+                                                        <div>
+                                                            <h3 className="text-[#14FFEC] text-[12px] font-bold font-['Manrope'] leading-3 truncate">
+                                                                {club.name && club.name.length > 20 ? club.name.substring(0, 20) + '...' : club.name}
+                                                            </h3>
+                                                            <p className="text-white text-[10px] font-semibold font-['Manrope'] mt-1 truncate">
+                                                                {(club.location || 'Open now').length > 25 ? (club.location || 'Open now').substring(0, 25) + '...' : (club.location || 'Open now')}
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex items-center justify-start">
+                                                            <div className="bg-[#008378] px-2 py-0.5 rounded text-white text-[9px] font-bold font-['Manrope']">
+                                                                4.2
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="text-gray-400 text-sm text-center py-6">
+                                            No clubs available
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+
                             {/* Event List */}
                             <section>
                                 <div className="flex items-center gap-4 mb-6 px-5">
@@ -1122,6 +1175,62 @@ const HomePage = () => {
                                     ) : (
                                         <div className="flex items-center justify-center w-full py-8">
                                             <p className="text-gray-400 text-sm">No events available</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+
+                            {/* All Events */}
+                            <section className="px-5">
+                                <div className="flex items-center gap-4 mb-6">
+                                    <h2 className="text-white text-base font-semibold whitespace-nowrap">All Events</h2>
+                                    <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
+                                </div>
+                                <div className="space-y-3">
+                                    {isLoadingEvents ? (
+                                        <div className="flex items-center justify-center w-full py-8">
+                                            <Loader2 className="w-6 h-6 text-[#14FFEC] animate-spin" />
+                                        </div>
+                                    ) : events.length > 0 ? (
+                                        events.map((event, index) => {
+                                            const eventDate = new Date(event.startDateTime);
+                                            const monthShort = eventDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+                                            const day = eventDate.getDate().toString().padStart(2, '0');
+                                            const fallbackImage = eventFallback[index % eventFallback.length]?.image || '/event list/Rectangle 1.jpg';
+
+                                            return (
+                                                <div key={event.id} className="w-full rounded-[12px] overflow-hidden flex gap-3 bg-[rgba(0,60,59,0.5)] hover:bg-[rgba(0,60,59,0.8)] transition-colors">
+                                                    {/* Image */}
+                                                    <div className="w-[80px] h-[80px] flex-shrink-0 rounded-[12px] overflow-hidden">
+                                                        <img
+                                                            src={event.imageUrl && isValidImageUrl(event.imageUrl) ? event.imageUrl : fallbackImage}
+                                                            alt={event.title}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+
+                                                    {/* Content */}
+                                                    <div className="flex-1 p-2 flex flex-col justify-between min-w-0">
+                                                        <div>
+                                                            <h3 className="text-white text-[12px] font-bold font-['Manrope'] leading-3 truncate">
+                                                                {event.title}
+                                                            </h3>
+                                                            <p className="text-[#C6C6C6] text-[10px] font-semibold font-['Manrope'] mt-1 truncate">
+                                                                {event.clubName || event.location}
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="text-[#14FFEC] text-[10px] font-semibold font-['Manrope']">
+                                                                {monthShort} {day}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="text-gray-400 text-sm text-center py-6">
+                                            No events available
                                         </div>
                                     )}
                                 </div>
