@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { X, User } from 'lucide-react';
 import { useProfile } from '@/hooks/use-profile';
 import { AuthService } from '@/lib/services/auth.service';
+import { STORAGE_KEYS } from '@/lib/constants/storage';
 import { useToast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/lib/services/profile.service';
 
@@ -58,9 +59,13 @@ export default function Sidebar({
         } catch (error: any) {
             console.error('Logout error:', error);
 
-            // Even if API fails, clear local storage and redirect
+            // On API error, only clear auth-related keys (preserve favorites, theme, etc.)
             if (typeof window !== 'undefined') {
-                localStorage.clear();
+                localStorage.removeItem(STORAGE_KEYS.accessToken);
+                localStorage.removeItem(STORAGE_KEYS.refreshToken);
+                localStorage.removeItem(STORAGE_KEYS.user);
+                localStorage.removeItem(STORAGE_KEYS.userDetails);
+                localStorage.removeItem(STORAGE_KEYS.pendingPhone);
             }
 
             toast({

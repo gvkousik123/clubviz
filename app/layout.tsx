@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/auth/auth-provider"
+import { DirectLoginWrapper } from "@/components/auth/direct-login-wrapper"
 
 export const metadata: Metadata = {
   title: "ClubViz - Ultimate Platform for Booking Clubs",
@@ -36,9 +37,11 @@ export default function RootLayout({
       <body className="antialiased bg-background-primary text-text-primary dark">
         <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
           <AuthProvider>
-            <main className="min-h-screen max-w-md mx-auto relative overflow-hidden">
-              {children}
-            </main>
+            <DirectLoginWrapper>
+              <main className="min-h-screen max-w-md mx-auto relative overflow-hidden">
+                {children}
+              </main>
+            </DirectLoginWrapper>
           </AuthProvider>
         </ThemeProvider>
       </body>
