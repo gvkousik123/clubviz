@@ -110,26 +110,66 @@ export default function OTPVerificationScreen() {
             const isExistingUser = tokenVerificationResult?.data?.existingUser === true;
             console.log("👤 User status:", isExistingUser ? "EXISTING USER" : "NEW USER");
 
-            // Step 4: Store data for details page or redirect directly if existing user
-            localStorage.setItem('tempFirebaseToken', idToken);
-            if (user.phoneNumber) {
-                localStorage.setItem('tempPhoneNumber', user.phoneNumber);
+            // Step 4: Handle based on user status
+            if (isExistingUser) {
+                // EXISTING USER: Store tokens and user data directly
+                console.log("💾 Storing tokens and user data for existing user...");
+
+                // Extract tokens from verification response
+                if (tokenVerificationResult?.data?.accessToken) {
+                    localStorage.setItem(STORAGE_KEYS.accessToken, tokenVerificationResult.data.accessToken);
+                    console.log("✅ Stored accessToken");
+                }
+                if (tokenVerificationResult?.data?.refreshToken) {
+                    localStorage.setItem(STORAGE_KEYS.refreshToken, tokenVerificationResult.data.refreshToken);
+                    console.log("✅ Stored refreshToken");
+                }                // Store user data if available
+                if (tokenVerificationResult?.data?.user) {
+                    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(tokenVerificationResult.data.user));
+                    console.log("✅ Stored user data");
+                }
+
+                // Clear any temp data
+                localStorage.removeItem('tempFirebaseToken');
+                localStorage.removeItem('tempPhoneNumber');
+                localStorage.removeItem('verificationResult');
+                localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+
+                console.log("✅ Existing user authenticated! Going to home...");
+
+                toast({
+                    title: "Welcome back!",
+                    description: "You're all set!",
+                });
+
+                setTimeout(() => {
+                    router.push('/home');
+                }, 800);
+
             } else {
-                throw new Error('Phone number not available from Firebase verification');
+                // NEW USER: Store temp data for details page
+                console.log("📝 Storing temp data for new user registration...");
+
+                localStorage.setItem('tempFirebaseToken', idToken);
+                if (user.phoneNumber) {
+                    localStorage.setItem('tempPhoneNumber', user.phoneNumber);
+                }
+
+                // Also store the verification result for use in details page
+                localStorage.setItem('verificationResult', JSON.stringify(tokenVerificationResult));
+                localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+
+                console.log("✅ Redirecting to details page for registration...");
+
+                toast({
+                    title: "Phone verified!",
+                    description: "Please complete your profile to continue",
+                });
+
+                setTimeout(() => {
+                    router.push('/auth/details');
+                }, 800);
             }
-
-            // Also store the verification result for use in details page
-            localStorage.setItem('verificationResult', JSON.stringify(tokenVerificationResult));
-            localStorage.removeItem(STORAGE_KEYS.pendingPhone);
-
-            toast({
-                title: "Phone verified!",
-                description: isExistingUser ? "Logging you in..." : "Please complete your profile to continue",
-            });
-
-            setTimeout(() => {
-                router.push('/auth/details');
-            }, 800);
 
         } catch (error: any) {
             console.error("❌ OTP verification process failed:", error);
