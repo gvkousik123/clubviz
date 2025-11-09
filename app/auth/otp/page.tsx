@@ -107,25 +107,35 @@ export default function OTPVerificationScreen() {
             }
 
             // Check if user already exists
-            const isExistingUser = tokenVerificationResult?.data?.existingUser === true;
-            console.log("👤 User status:", isExistingUser ? "EXISTING USER" : "NEW USER");
+            const existingUser = tokenVerificationResult?.data?.existingUser === true;
+            console.log("👤 User status:", existingUser ? "EXISTING USER" : "NEW USER");
 
             // Step 4: Handle based on user status
-            if (isExistingUser) {
+            if (existingUser) {
                 // EXISTING USER: Store tokens and user data directly
                 console.log("💾 Storing tokens and user data for existing user...");
 
-                // Extract tokens from verification response
-                if (tokenVerificationResult?.data?.accessToken) {
-                    localStorage.setItem(STORAGE_KEYS.accessToken, tokenVerificationResult.data.accessToken);
+                // Extract tokens from verification response (nested under jwtTokens)
+                if (tokenVerificationResult?.data?.jwtTokens?.accessToken) {
+                    localStorage.setItem(STORAGE_KEYS.accessToken, tokenVerificationResult.data.jwtTokens.accessToken);
                     console.log("✅ Stored accessToken");
                 }
-                if (tokenVerificationResult?.data?.refreshToken) {
-                    localStorage.setItem(STORAGE_KEYS.refreshToken, tokenVerificationResult.data.refreshToken);
+                if (tokenVerificationResult?.data?.jwtTokens?.refreshToken) {
+                    localStorage.setItem(STORAGE_KEYS.refreshToken, tokenVerificationResult.data.jwtTokens.refreshToken);
                     console.log("✅ Stored refreshToken");
-                }                // Store user data if available
-                if (tokenVerificationResult?.data?.user) {
-                    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(tokenVerificationResult.data.user));
+                }
+
+                // Store user data (id, email, username, mobileNumber, roles, verified)
+                if (tokenVerificationResult?.data) {
+                    const userData = {
+                        id: tokenVerificationResult.data.id,
+                        email: tokenVerificationResult.data.email,
+                        username: tokenVerificationResult.data.username,
+                        mobileNumber: tokenVerificationResult.data.mobileNumber,
+                        roles: tokenVerificationResult.data.roles,
+                        verified: tokenVerificationResult.data.verified,
+                    };
+                    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(userData));
                     console.log("✅ Stored user data");
                 }
 

@@ -553,13 +553,18 @@ export interface FirebaseTokenRequest {
 }
 
 export interface FirebaseTokenResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: string;
-    phoneNumber: string;
-    isVerified: boolean;
+  existingUser: boolean;
+  jwtTokens: {
+    accessToken: string;
+    refreshToken: string;
   };
+  id: string;
+  email: string;
+  username: string;
+  mobileNumber: string;
+  roles: string[];
+  verified: boolean;
+  type?: string;
 }
 
 // Mobile OTP Types
