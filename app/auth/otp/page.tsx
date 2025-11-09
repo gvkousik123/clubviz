@@ -108,45 +108,43 @@ export default function OTPVerificationScreen() {
             }
 
             // Check if user already exists
+            // NOTE: API returns data directly, NOT wrapped in ApiResponse.data
             console.log("🔍 Full tokenVerificationResult:", tokenVerificationResult);
-            console.log("🔍 tokenVerificationResult.data:", tokenVerificationResult?.data);
-            console.log("🔍 Raw existingUser value:", tokenVerificationResult?.data?.existingUser);
-            console.log("🔍 Type of existingUser:", typeof tokenVerificationResult?.data?.existingUser);
-            const existingUser = tokenVerificationResult?.data?.existingUser === true || tokenVerificationResult?.data?.existingUser === "true";
+            console.log("🔍 Raw existingUser value:", tokenVerificationResult?.existingUser);
+            console.log("🔍 Type of existingUser:", typeof tokenVerificationResult?.existingUser);
+            const existingUser = tokenVerificationResult?.existingUser === true || tokenVerificationResult?.existingUser === "true";
 
             // Also check if user has roles (existing users will have roles)
-            const hasRoles = Array.isArray(tokenVerificationResult?.data?.roles) && tokenVerificationResult.data.roles.length > 0;
+            const hasRoles = Array.isArray(tokenVerificationResult?.jwtTokens?.roles) && tokenVerificationResult.jwtTokens.roles.length > 0;
             const isExistingUserWithRoles = existingUser || hasRoles;
 
             console.log("👤 User status:", isExistingUserWithRoles ? "EXISTING USER" : "NEW USER");
             console.log("🔍 Boolean check result:", existingUser);
             console.log("🔍 Has roles:", hasRoles);
-            console.log("🔍 Final decision:", isExistingUserWithRoles);
-
-            // Step 4: Handle based on user status
+            console.log("🔍 Final decision:", isExistingUserWithRoles);            // Step 4: Handle based on user status
             if (isExistingUserWithRoles) {
                 // EXISTING USER: Store tokens and user data directly
                 console.log("💾 Storing tokens and user data for existing user...");
 
                 // Extract tokens from verification response (nested under jwtTokens)
-                if (tokenVerificationResult?.data?.jwtTokens?.accessToken) {
-                    localStorage.setItem(STORAGE_KEYS.accessToken, tokenVerificationResult.data.jwtTokens.accessToken);
+                if (tokenVerificationResult?.jwtTokens?.accessToken) {
+                    localStorage.setItem(STORAGE_KEYS.accessToken, tokenVerificationResult.jwtTokens.accessToken);
                     console.log("✅ Stored accessToken");
                 }
-                if (tokenVerificationResult?.data?.jwtTokens?.refreshToken) {
-                    localStorage.setItem(STORAGE_KEYS.refreshToken, tokenVerificationResult.data.jwtTokens.refreshToken);
+                if (tokenVerificationResult?.jwtTokens?.refreshToken) {
+                    localStorage.setItem(STORAGE_KEYS.refreshToken, tokenVerificationResult.jwtTokens.refreshToken);
                     console.log("✅ Stored refreshToken");
                 }
 
                 // Store user data (id, email, username, mobileNumber, roles, verified)
-                if (tokenVerificationResult?.data) {
+                if (tokenVerificationResult?.jwtTokens) {
                     const userData = {
-                        id: tokenVerificationResult.data.id,
-                        email: tokenVerificationResult.data.email,
-                        username: tokenVerificationResult.data.username,
-                        mobileNumber: tokenVerificationResult.data.mobileNumber,
-                        roles: tokenVerificationResult.data.roles,
-                        verified: tokenVerificationResult.data.verified,
+                        id: tokenVerificationResult.jwtTokens.id,
+                        email: tokenVerificationResult.jwtTokens.email,
+                        username: tokenVerificationResult.jwtTokens.username,
+                        mobileNumber: tokenVerificationResult.mobileNumber,
+                        roles: tokenVerificationResult.jwtTokens.roles,
+                        verified: tokenVerificationResult.verified,
                     };
                     localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(userData));
                     console.log("✅ Stored user data");

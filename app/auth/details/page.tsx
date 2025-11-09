@@ -88,8 +88,8 @@ export default function DetailsPage() {
             }
 
             // Check if user already exists
-            const isExistingUser = tokenVerificationResult?.data?.existingUser === true;
-            console.log("� User status:", isExistingUser ? "EXISTING USER" : "NEW USER");
+            const isExistingUser = tokenVerificationResult?.existingUser === true;
+            console.log("👤 User status:", isExistingUser ? "EXISTING USER" : "NEW USER");
 
             let registrationResult = null;
 
@@ -123,11 +123,11 @@ export default function DetailsPage() {
                     accessToken: registrationResult.data.accessToken,
                     refreshToken: registrationResult.data.refreshToken
                 };
-            } else if ((tokenVerificationResult?.data as any)?.jwtTokens?.accessToken) {
+            } else if ((tokenVerificationResult?.jwtTokens?.accessToken)) {
                 console.log("✅ Using tokens from Step 1 (verify-firebase-token)");
                 finalTokens = {
-                    accessToken: (tokenVerificationResult.data as any).jwtTokens.accessToken,
-                    refreshToken: (tokenVerificationResult.data as any).jwtTokens.refreshToken
+                    accessToken: tokenVerificationResult.jwtTokens.accessToken,
+                    refreshToken: tokenVerificationResult.jwtTokens.refreshToken
                 };
             }
 
@@ -151,14 +151,13 @@ export default function DetailsPage() {
                 userData = registrationResult.data.user;
             } else if (isExistingUser) {
                 // Existing user - build from verify-firebase-token response
-                const data = tokenVerificationResult?.data as any;
                 userData = {
-                    id: data?.id,
-                    email: data?.email,
-                    username: data?.username,
-                    mobileNumber: data?.mobileNumber,
-                    roles: data?.roles,
-                    verified: data?.verified,
+                    id: tokenVerificationResult?.jwtTokens?.id,
+                    email: tokenVerificationResult?.jwtTokens?.email,
+                    username: tokenVerificationResult?.jwtTokens?.username,
+                    mobileNumber: tokenVerificationResult?.mobileNumber,
+                    roles: tokenVerificationResult?.jwtTokens?.roles,
+                    verified: tokenVerificationResult?.verified,
                 };
             }
 
