@@ -197,33 +197,38 @@ export default function ClubsListPage() {
                 });
             }
 
-            if (response.success && response.data?.content) {
+            if (response.success && response.data?.content && response.data.content.length > 0) {
                 // Convert API response to Club[] format with proper text limits (no truncation)
                 const apiClubs: Club[] = response.data.content.map((club: any, index: number) => ({
                     id: club.id,
                     name: club.name || '',
-                    openTime: 'Open until 1:30 am', // Default since API doesn't provide this
-                    rating: 4.2, // Default rating
+                    openTime: club.openTime || 'Hours not available', // Use API value if available
+                    rating: club.rating || 4.0, // Use API rating if available, else default
                     image: getClubFallbackImage(index), // Always use static images
-                    address: club.description || club.location || '',
+                    address: club.description || club.location || club.address || '',
                     category: club.category || 'Club'
                 }));
                 setClubs(apiClubs);
+            } else if (response.success && (!response.data?.content || response.data.content.length === 0)) {
+                // API success but no clubs - show empty state
+                console.log('No clubs available from API');
+                setClubs([]);
             } else {
-                // Fallback to dummy data if API fails
-                setClubs(DUMMY_CLUBS);
+                // API failed - show empty state
+                console.log('Failed to load clubs from API');
+                setClubs([]);
                 if (response.message) {
                     console.warn('API returned message:', response.message);
                 }
             }
         } catch (error: any) {
             console.error('Error loading clubs:', error);
-            // Use dummy data as fallback
-            setClubs(DUMMY_CLUBS);
+            // Show empty state on error instead of dummy data
+            setClubs([]);
             toast({
-                title: 'Using cached data',
-                description: error.message || 'Could not fetch latest clubs. Showing sample data.',
-                variant: 'default',
+                title: 'Failed to load clubs',
+                description: error.message || 'Could not fetch clubs. Please try again later.',
+                variant: 'destructive',
             });
         } finally {
             setLoading(false);

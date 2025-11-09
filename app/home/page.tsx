@@ -145,7 +145,8 @@ const HomePage = () => {
                         sortDirection: 'ASC'
                     });
 
-                if (clubResponse.success && clubResponse.data?.content) {
+                // Handle clubs data based on API response
+                if (clubResponse.success && clubResponse.data?.content && clubResponse.data.content.length > 0) {
                     console.log('API Clubs Response:', clubResponse.data.content);
                     // Map API clubs with proper length limits and static images
                     const mappedClubs = clubResponse.data.content.map((club: any, index: number) => ({
@@ -169,56 +170,24 @@ const HomePage = () => {
                     }));
                     console.log('Mapped Clubs:', mappedClubs);
                     setVenues(mappedClubs);
+                } else if (clubResponse.success && (!clubResponse.data?.content || clubResponse.data.content.length === 0)) {
+                    // API success but no clubs available - show empty state
+                    console.log('No clubs data from API, showing empty state');
+                    setVenues([]);
                 } else {
-                    console.log('No clubs data from API, using fallback');
-                    // Use fallback data when API returns no content
-                    setVenues(venueFallback.map((v, idx) => ({
-                        id: v.id,
-                        name: v.name.length > 20 ? v.name.substring(0, 20) + '...' : v.name,
-                        description: v.name.length > 50 ? v.name.substring(0, 50) + '...' : v.name,
-                        location: v.openTime.length > 30 ? v.openTime.substring(0, 30) + '...' : v.openTime,
-                        imageUrl: v.image,
-                        isActive: true,
-                        logo: '',
-                        category: 'NIGHTCLUB',
-                        memberCount: 50,
-                        maxMembers: 200,
-                        isJoined: false,
-                        isFull: false,
-                        ownerName: 'Club Owner',
-                        createdAt: new Date().toISOString(),
-                        capacityPercentage: 25,
-                        memberStatus: 'NONE',
-                        shortDescription: v.name
-                    })));
+                    // API failed - show empty state (no fallback for consistency)
+                    console.log('API error loading clubs');
+                    setVenues([]);
                 }
             } catch (error: any) {
                 console.error('Failed to load clubs:', error);
                 toast({
                     title: "Failed to load clubs",
-                    description: error.message || "Could not fetch clubs. Using fallback data.",
+                    description: error.message || "Could not fetch clubs. No clubs will be shown.",
                     variant: "destructive",
                 });
-                // Use fallback data on error with proper length limits
-                setVenues(venueFallback.map((v, idx) => ({
-                    id: v.id,
-                    name: v.name.length > 20 ? v.name.substring(0, 20) + '...' : v.name,
-                    description: v.name.length > 50 ? v.name.substring(0, 50) + '...' : v.name,
-                    location: v.openTime.length > 30 ? v.openTime.substring(0, 30) + '...' : v.openTime,
-                    imageUrl: v.image,
-                    isActive: true,
-                    logo: '',
-                    category: 'NIGHTCLUB',
-                    memberCount: 50,
-                    maxMembers: 200,
-                    isJoined: false,
-                    isFull: false,
-                    ownerName: 'Club Owner',
-                    createdAt: new Date().toISOString(),
-                    capacityPercentage: 25,
-                    memberStatus: 'NONE',
-                    shortDescription: v.name
-                })));
+                // Show empty state on error
+                setVenues([]);
             } finally {
                 setIsLoadingVenues(false);
             }
