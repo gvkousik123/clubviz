@@ -960,7 +960,6 @@ const HomePage = () => {
                                             </div>
                                         </div>
 
-                                        {/* Pagination dots with exact styling */}
                                         <div className="w-[90px] h-[19px] absolute left-[170px] top-[225px] p-[8px] bg-[rgba(255,255,255,0.10)] rounded-[28px] backdrop-blur-[5px] inline-flex justify-center items-center gap-[5px]" style={{ outline: '1px solid white', outlineOffset: '-1px' }}>
                                             {heroSlides.slice(0, 5).map((_, index) => (
                                                 <div key={index} className="w-[12px] h-[12px] relative" onClick={() => setCurrentSlide(index)}>
