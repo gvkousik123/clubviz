@@ -74,14 +74,11 @@ const HomePage = () => {
 
     // API data state
     const [venues, setVenues] = useState<ClubListItem[]>([]);
+    const [allClubs, setAllClubs] = useState<ClubListItem[]>([]);
     const [events, setEvents] = useState<EventListItem[]>([]);
     const [isLoadingVenues, setIsLoadingVenues] = useState(false);
+    const [isLoadingAllClubs, setIsLoadingAllClubs] = useState(false);
     const [isLoadingEvents, setIsLoadingEvents] = useState(false);
-
-    // Venue list drag state
-    const [isVenueDragging, setIsVenueDragging] = useState(false);
-    const [venueStartX, setVenueStartX] = useState(0);
-    const [venueStartScrollLeft, setVenueStartScrollLeft] = useState(0);
 
     const { toast } = useToast();
 
@@ -190,6 +187,57 @@ const HomePage = () => {
                 setVenues([]);
             } finally {
                 setIsLoadingVenues(false);
+            }
+
+            // Load all clubs for "All Clubs" section
+            setIsLoadingAllClubs(true);
+            try {
+                const allClubsResponse = isGuest
+                    ? await PublicClubService.getPublicClubsList({
+                        page: 0,
+                        size: 20,
+                        sortBy: 'name',
+                        sortDirection: 'ASC'
+                    })
+                    : await ClubService.getPublicClubsList({
+                        page: 0,
+                        size: 20,
+                        sortBy: 'name',
+                        sortDirection: 'ASC'
+                    });
+
+                if (allClubsResponse.success && allClubsResponse.data?.content && allClubsResponse.data.content.length > 0) {
+                    console.log('All Clubs API Response:', allClubsResponse.data.content);
+                    const mappedAllClubs = allClubsResponse.data.content.map((club: any, index: number) => ({
+                        id: club.id || '',
+                        name: club.name ? (club.name.length > 20 ? club.name.substring(0, 20) + '...' : club.name) : '',
+                        description: club.description ? (club.description.length > 50 ? club.description.substring(0, 50) + '...' : club.description) : '',
+                        location: club.location ? (club.location.length > 30 ? club.location.substring(0, 30) + '...' : club.location) : '',
+                        imageUrl: venueFallback[index % venueFallback.length]?.image || '/dabo ambience main dabo page/Rectangle 5.jpg',
+                        isActive: club.isActive !== undefined ? club.isActive : true,
+                        logo: club.logo || '',
+                        category: club.category || 'NIGHTCLUB',
+                        memberCount: club.memberCount || 0,
+                        maxMembers: club.maxMembers || 200,
+                        isJoined: club.isJoined || false,
+                        isFull: club.isFull || false,
+                        ownerName: club.ownerName || '',
+                        createdAt: club.createdAt || '',
+                        capacityPercentage: club.capacityPercentage || 0,
+                        memberStatus: club.memberStatus || '',
+                        shortDescription: club.shortDescription || club.description || ''
+                    }));
+                    console.log('Mapped All Clubs:', mappedAllClubs);
+                    setAllClubs(mappedAllClubs);
+                } else {
+                    console.log('No data from All Clubs API');
+                    setAllClubs([]);
+                }
+            } catch (error: any) {
+                console.error('Failed to load all clubs:', error);
+                setAllClubs([]);
+            } finally {
+                setIsLoadingAllClubs(false);
             }
 
             // Load events - Handle differently for guest vs authenticated users
@@ -400,29 +448,6 @@ const HomePage = () => {
         setStartX(0);
     };
 
-    // Venue drag handlers
-    const handleVenueDragStart = (e: React.MouseEvent | React.TouchEvent, container: HTMLElement) => {
-        setIsVenueDragging(true);
-        const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-        setVenueStartX(clientX);
-        setVenueStartScrollLeft(container.scrollLeft);
-        e.preventDefault();
-    };
-
-    const handleVenueDragMove = (e: React.MouseEvent | React.TouchEvent, container: HTMLElement) => {
-        if (!isVenueDragging) return;
-        const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-        const deltaX = clientX - venueStartX;
-        container.scrollLeft = venueStartScrollLeft - deltaX;
-        e.preventDefault();
-    };
-
-    const handleVenueDragEnd = () => {
-        setIsVenueDragging(false);
-        setVenueStartX(0);
-        setVenueStartScrollLeft(0);
-    };
-
     const handleSearch = async () => {
         const isGuest = isGuestMode();
 
@@ -548,9 +573,12 @@ const HomePage = () => {
                             </div>
                             <ChevronDown className="w-3 h-3 text-white" />
                         </Link>
-                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <Link
+                            href="/account"
+                            className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                        >
                             <User className="w-5 h-5 text-white" />
-                        </div>
+                        </Link>
                     </div>
 
                     {/* Search Bar */}
@@ -954,115 +982,22 @@ const HomePage = () => {
                                 </div>
                             </section>
 
-                            {/* Venue List */}
-                            <section>
-                                <div className="flex items-center gap-4 mb-6 px-5">
-                                    <h2 className="text-white text-base font-semibold whitespace-nowrap">Venue List</h2>
-                                    <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
-                                    <Link href="/clubs" className="text-[#14FFEC] text-base font-medium">View All</Link>
-                                </div>
-                                <div
-                                    className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide cursor-grab select-none pl-5"
-                                    style={{ overflowY: 'hidden', touchAction: 'pan-x' }}
-                                    onMouseDown={(e) => {
-                                        const container = e.currentTarget;
-                                        handleVenueDragStart(e, container);
-                                        container.style.cursor = 'grabbing';
-                                    }}
-                                    onMouseMove={(e) => {
-                                        const container = e.currentTarget;
-                                        handleVenueDragMove(e, container);
-                                    }}
-                                    onMouseUp={(e) => {
-                                        handleVenueDragEnd();
-                                        const container = e.currentTarget;
-                                        container.style.cursor = 'grab';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        handleVenueDragEnd();
-                                        const container = e.currentTarget;
-                                        container.style.cursor = 'grab';
-                                    }}
-                                    onTouchStart={(e) => {
-                                        const container = e.currentTarget;
-                                        handleVenueDragStart(e, container);
-                                    }}
-                                    onTouchMove={(e) => {
-                                        const container = e.currentTarget;
-                                        handleVenueDragMove(e, container);
-                                    }}
-                                    onTouchEnd={handleVenueDragEnd}
-                                >
-                                    {isLoadingVenues ? (
-                                        <div className="flex items-center justify-center w-full py-8">
-                                            <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
-                                        </div>
-                                    ) : venues.length > 0 ? (
-                                        venues.slice(0, 5).map((club, index) => {
-                                            const fallbackImage = venueFallback[index % venueFallback.length]?.image || '/venue/Screenshot 2024-12-10 195651.png';
-                                            return (
-                                                <div key={club.id} className="w-[336px] h-[201px] relative flex-shrink-0 mr-1">
-                                                    {/* Main image container with rounded top */}
-                                                    <div className="w-[336px] h-[169px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[15px] border-[#14FFEC] overflow-hidden">
-                                                        <img
-                                                            src={fallbackImage}
-                                                            alt={club.name}
-                                                            className="w-full h-full object-cover absolute inset-0"
-                                                        />
-                                                        {/* White overlay effect */}
-                                                        <div className="w-full h-full absolute inset-0 bg-white/10 mix-blend-overlay"></div>
-                                                        <div className="w-[336px] h-[169px] pl-[281px] pr-4 pt-[17px] pb-[113px] left-0 top-0 absolute justify-end items-center inline-flex bg-gradient-to-b from-black via-black/50 to-black/0 rounded-[10px] overflow-hidden">
-                                                            <div className="w-[39px] self-stretch bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] justify-center items-center inline-flex overflow-hidden">
-                                                                <Bookmark className="w-5 h-5 text-[#14FFEC]" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
 
-                                                    {/* Glassmorphism bottom section - the translucent gray area */}
-                                                    <div className="w-[320px] h-[85px] left-[8px] top-[125px] absolute bg-[rgba(212.01,212.01,212.01,0.10)] rounded-[15px] border  backdrop-blur-[17.50px]"></div>
-
-                                                    {/* Rating badge */}
-                                                    <div className="w-[30px] h-[30px] pl-1 pr-[5px] py-[5px] left-[250px] top-[110px] absolute justify-center items-center inline-flex bg-[#008378] rounded-[17px] overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),inset_0_-1px_2px_rgba(255,255,255,0.1)]">
-                                                        <div className="text-white text-[13px] font-extrabold font-['Manrope'] leading-5 tracking-[0.01em]">
-                                                            4.2
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Text content */}
-                                                    <div className="w-32 h-[50px] left-[33px] top-[144px] absolute justify-start items-center gap-[29px] inline-flex">
-                                                        <div className="w-52 flex-col justify-center items-start gap-2 inline-flex">
-                                                            <div className="self-stretch h-5 text-[#14FFEC] text-xl font-black font-['Manrope'] leading-5 tracking-[0.02em] truncate overflow-hidden whitespace-nowrap">
-                                                                {club.name && club.name.length > 12 ? club.name.substring(0, 12) + '...' : club.name}
-                                                            </div>
-                                                            <div className="self-stretch h-5 text-white text-[13px] font-semibold font-['Manrope'] leading-5 tracking-[0.01em] truncate overflow-hidden whitespace-nowrap">
-                                                                {(club.location || 'Open now').length > 20 ? (club.location || 'Open now').substring(0, 20) + '...' : (club.location || 'Open now')}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })
-                                    ) : (
-                                        <div className="flex items-center justify-center w-full py-8">
-                                            <p className="text-gray-400 text-sm">No venues available</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </section>
 
                             {/* All Clubs */}
                             <section className="px-5">
                                 <div className="flex items-center gap-4 mb-6">
                                     <h2 className="text-white text-base font-semibold whitespace-nowrap">All Clubs</h2>
                                     <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
+                                    <Link href="/clubs" className="text-[#14FFEC] text-base font-medium">View All</Link>
                                 </div>
                                 <div className="space-y-3">
-                                    {isLoadingVenues ? (
+                                    {isLoadingAllClubs ? (
                                         <div className="flex items-center justify-center w-full py-8">
                                             <Loader2 className="w-6 h-6 text-[#14FFEC] animate-spin" />
                                         </div>
-                                    ) : venues.length > 0 ? (
-                                        venues.map((club, index) => {
+                                    ) : allClubs.length > 0 ? (
+                                        allClubs.map((club, index) => {
                                             const fallbackImage = venueFallback[index % venueFallback.length]?.image || '/venue/Screenshot 2024-12-10 195651.png';
 
                                             return (
