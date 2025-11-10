@@ -279,14 +279,14 @@ export class SmartServiceRouter {
 export const requiresAuth = (action: string): boolean => {
   const protectedActions = [
     'join_club',
-    'rsvp_event', 
+    'rsvp_event',
     'make_booking',
     'upload_content',
     'create_club',
     'create_event',
     'admin_operations'
   ];
-  
+
   return protectedActions.includes(action);
 };
 
@@ -303,7 +303,7 @@ export const getAuthRequiredMessage = (action: string): string => {
     'create_event': 'Please login to create events',
     'admin_operations': 'Admin access required'
   };
-  
+
   return messages[action] || 'Please login to continue';
 };
 

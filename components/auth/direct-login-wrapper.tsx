@@ -23,6 +23,35 @@ export const DirectLoginWrapper = ({ children }: { children: ReactNode }) => {
             return;
         }
 
+        // List of user pages that should NOT be redirected
+        const userPages = [
+            '/account',
+            '/booking',
+            '/club',
+            '/clubs',
+            '/contact',
+            '/event',
+            '/events',
+            '/example-story-usage',
+            '/favourites',
+            '/filter',
+            '/gallery',
+            '/home',
+            '/location',
+            '/payment',
+            '/review',
+            '/story',
+            '/ticket',
+        ];
+
+        // Check if current path is a user-allowed page
+        const isUserPage = userPages.some(page => pathname === page || pathname?.startsWith(page + '/'));
+
+        // Skip redirect logic for user pages - they handle their own auth
+        if (isUserPage) {
+            return;
+        }
+
         // Check if user is authenticated
         const isAuthenticated = AuthService.isAuthenticated();
 

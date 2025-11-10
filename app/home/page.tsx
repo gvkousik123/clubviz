@@ -1114,61 +1114,6 @@ const HomePage = () => {
                                 </div>
                             </section>
 
-                            {/* All Events */}
-                            <section className="px-5">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <h2 className="text-white text-base font-semibold whitespace-nowrap">All Events</h2>
-                                    <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
-                                </div>
-                                <div className="space-y-3">
-                                    {isLoadingEvents ? (
-                                        <div className="flex items-center justify-center w-full py-8">
-                                            <Loader2 className="w-6 h-6 text-[#14FFEC] animate-spin" />
-                                        </div>
-                                    ) : events.length > 0 ? (
-                                        events.map((event, index) => {
-                                            const eventDate = new Date(event.startDateTime);
-                                            const monthShort = eventDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
-                                            const day = eventDate.getDate().toString().padStart(2, '0');
-                                            const fallbackImage = eventFallback[index % eventFallback.length]?.image || '/event list/Rectangle 1.jpg';
-
-                                            return (
-                                                <div key={event.id} className="w-full rounded-[12px] overflow-hidden flex gap-3 bg-[rgba(0,60,59,0.5)] hover:bg-[rgba(0,60,59,0.8)] transition-colors">
-                                                    {/* Image */}
-                                                    <div className="w-[80px] h-[80px] flex-shrink-0 rounded-[12px] overflow-hidden">
-                                                        <img
-                                                            src={event.imageUrl && isValidImageUrl(event.imageUrl) ? event.imageUrl : fallbackImage}
-                                                            alt={event.title}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </div>
-
-                                                    {/* Content */}
-                                                    <div className="flex-1 p-2 flex flex-col justify-between min-w-0">
-                                                        <div>
-                                                            <h3 className="text-white text-[12px] font-bold font-['Manrope'] leading-3 truncate">
-                                                                {event.title}
-                                                            </h3>
-                                                            <p className="text-[#C6C6C6] text-[10px] font-semibold font-['Manrope'] mt-1 truncate">
-                                                                {event.clubName || event.location}
-                                                            </p>
-                                                        </div>
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="text-[#14FFEC] text-[10px] font-semibold font-['Manrope']">
-                                                                {monthShort} {day}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })
-                                    ) : (
-                                        <div className="text-gray-400 text-sm text-center py-6">
-                                            No events available
-                                        </div>
-                                    )}
-                                </div>
-                            </section>
 
                             {/* Footer */}
                             <div className="mt-8">
