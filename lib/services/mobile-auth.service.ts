@@ -1,5 +1,6 @@
 import { api, handleApiResponse, handleApiError } from '../api-client';
 import { ApiResponse } from '../api-types';
+import axios from 'axios';
 
 // ============================================================================
 // MOBILE AUTH SERVICE TYPES
@@ -61,35 +62,43 @@ export interface SendOTPResponse {
  * Handles Firebase-based mobile authentication and OTP operations
  */
 export class MobileAuthService {
-  
+
   // ============================================================================
   // FIREBASE AUTHENTICATION
   // ============================================================================
 
   /**
    * Verify Firebase token and authenticate user
-   * POST /auth/mobile/verify-firebase-token
+   * POST https://clubwiz.in/api/auth/mobile/verify-firebase-token
    */
   static async verifyFirebaseToken(firebaseToken: string): Promise<ApiResponse<FirebaseTokenResponse>> {
     try {
-      const response = await api.post<ApiResponse<FirebaseTokenResponse>>(
-        '/auth/mobile/verify-firebase-token',
-        { idToken: firebaseToken }
+      // Use specific domain for verify token API only
+      const response = await axios.post<ApiResponse<FirebaseTokenResponse>>(
+        'https://clubwiz.in/api/auth/mobile/verify-firebase-token',
+        { idToken: firebaseToken },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          timeout: 10000,
+        }
       );
-      
+
       const result = handleApiResponse(response);
-      
+
       // Store auth session if verification successful
       if (result.success && result.data) {
         // Store the access token for API client interceptor
         if (result.data.accessToken) {
           localStorage.setItem('accessToken', result.data.accessToken);
         }
-        
+
         // Store complete auth data
         localStorage.setItem('user', JSON.stringify(result.data));
       }
-      
+
       return result;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -106,20 +115,20 @@ export class MobileAuthService {
         '/auth/mobile/complete-registration',
         data
       );
-      
+
       const result = handleApiResponse(response);
-      
+
       // Store auth session if registration successful
       if (result.success && result.data) {
         // Store the access token for API client interceptor
         if (result.data.accessToken) {
           localStorage.setItem('accessToken', result.data.accessToken);
         }
-        
+
         // Store complete auth data
         localStorage.setItem('user', JSON.stringify(result.data));
       }
-      
+
       return result;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -213,12 +222,12 @@ export class MobileAuthService {
   static formatPhoneNumber(phoneNumber: string): string {
     // Remove non-digit characters except +
     const cleaned = phoneNumber.replace(/[^\d+]/g, '');
-    
+
     // Add + if not present and not empty
     if (cleaned && !cleaned.startsWith('+')) {
       return '+' + cleaned;
     }
-    
+
     return cleaned;
   }
 
@@ -227,7 +236,7 @@ export class MobileAuthService {
    */
   static clearMobileAuthSession(): void {
     if (typeof window === 'undefined') return;
-    
+
     localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
     localStorage.removeItem('firebaseToken');

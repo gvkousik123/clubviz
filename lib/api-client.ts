@@ -19,12 +19,12 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     // Get auth token from localStorage or your preferred storage
-  const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
-    
+    const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     return config;
   },
   (error) => {
@@ -42,7 +42,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       // Unauthorized - clear token and redirect to login
       if (typeof window !== 'undefined') {
-  localStorage.removeItem(STORAGE_KEYS.accessToken);
+        localStorage.removeItem(STORAGE_KEYS.accessToken);
         window.location.href = '/auth/mobile';
       }
     } else if (error.response?.status === 403) {
@@ -52,7 +52,7 @@ apiClient.interceptors.response.use(
       // Server errors
       console.error('Server error occurred');
     }
-    
+
     return Promise.reject(error);
   }
 );

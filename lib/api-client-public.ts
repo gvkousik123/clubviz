@@ -34,7 +34,7 @@ publicApi.interceptors.response.use(
     } else if (error.response?.status >= 500) {
       console.error('Server error');
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -72,19 +72,19 @@ apiClient.interceptors.request.use(
       '/auth/google'
     ];
 
-    const isPublicEndpoint = publicEndpoints.some(endpoint => 
+    const isPublicEndpoint = publicEndpoints.some(endpoint =>
       config.url?.includes(endpoint)
     );
 
     // Only add token for non-public endpoints
     if (!isPublicEndpoint) {
       const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
-      
+
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
-    
+
     return config;
   },
   (error) => {
@@ -103,7 +103,7 @@ apiClient.interceptors.response.use(
       // Unauthorized - clear token and redirect to login
       if (typeof window !== 'undefined') {
         localStorage.removeItem(STORAGE_KEYS.accessToken);
-        
+
         // Only redirect if not already on auth pages
         const currentPath = window.location.pathname;
         if (!currentPath.startsWith('/auth/') && !currentPath.startsWith('/home')) {
@@ -120,7 +120,7 @@ apiClient.interceptors.response.use(
       // Server error
       console.error('Server error');
     }
-    
+
     return Promise.reject(error);
   }
 );
