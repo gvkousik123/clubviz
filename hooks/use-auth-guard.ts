@@ -36,8 +36,12 @@ export const useAuthGuard = ({
 
   useEffect(() => {
     const checkAuth = () => {
+      console.log("🔍 useAuthGuard: Starting auth check", { requiredRoles, requireAuth });
+
       // Check if authentication is required
       if (requireAuth && !AuthService.isAuthenticated()) {
+        console.log("❌ useAuthGuard: Authentication required but user not authenticated");
+
         if (showToast) {
           toast({
             title: "Authentication Required",
@@ -58,9 +62,13 @@ export const useAuthGuard = ({
       // Check role requirements
       if (requiredRoles.length > 0) {
         const userRoles = AuthService.getUserRolesFromStorage();
+        console.log("👤 useAuthGuard: User roles:", userRoles, "Required:", requiredRoles);
+
         const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role));
 
         if (!hasRequiredRole) {
+          console.log("❌ useAuthGuard: User doesn't have required role");
+
           if (showToast) {
             toast({
               title: "Access Denied",
@@ -90,12 +98,18 @@ export const useAuthGuard = ({
         }
       }
 
+      console.log("✅ useAuthGuard: Auth check passed");
       setAccessDenied(false);
       setDenialReason(null);
       setIsLoading(false);
     };
 
-    checkAuth();
+    // Add a small delay to allow localStorage to be populated
+    const timer = setTimeout(() => {
+      checkAuth();
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [requiredRoles, redirectTo, requireAuth, router, toast, showToast, autoRedirect]);
 
   return {

@@ -37,6 +37,33 @@ import { AccessDenied } from '@/components/common/access-denied';
 // Types are now imported from the service
 
 export default function SuperAdminPage() {
+    // Debug authentication state
+    const [debugInfo, setDebugInfo] = useState<any>(null);
+
+    useEffect(() => {
+        const checkDebugInfo = () => {
+            const authData = {
+                isAuthenticated: AuthService.isAuthenticated(),
+                storedToken: !!AuthService.getStoredToken(),
+                userRoles: AuthService.getUserRolesFromStorage(),
+                storedUser: AuthService.getStoredUser(),
+                localStorage: {
+                    accessToken: !!localStorage.getItem('clubviz-accessToken'),
+                    user: !!localStorage.getItem('clubviz-user'),
+                    userContent: localStorage.getItem('clubviz-user') ? JSON.parse(localStorage.getItem('clubviz-user') || '{}') : null
+                }
+            };
+            setDebugInfo(authData);
+            console.log("🔍 SuperAdmin Debug Info:", authData);
+        };
+
+        checkDebugInfo();
+
+        // Check again after a small delay
+        const timer = setTimeout(checkDebugInfo, 200);
+        return () => clearTimeout(timer);
+    }, []);
+
     // Protected route - requires superadmin access
     const { isAuthenticated, userRoles, hasRole, isLoading: authLoading, accessDenied, denialReason } = useSuperAdminAuth();
     const router = useRouter();
@@ -75,6 +102,11 @@ export default function SuperAdminPage() {
                 <div className="text-center">
                     <div className="w-16 h-16 bg-gradient-primary rounded-full mx-auto mb-4 animate-pulse"></div>
                     <p className="text-white">Verifying superadmin access...</p>
+                    {debugInfo && (
+                        <div className="mt-4 p-4 bg-gray-800 rounded text-left text-xs">
+                            <pre className="text-green-400">{JSON.stringify(debugInfo, null, 2)}</pre>
+                        </div>
+                    )}
                 </div>
             </div>
         );

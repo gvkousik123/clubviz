@@ -126,42 +126,63 @@ export default function OTPVerificationScreen() {
                 // EXISTING USER: Store tokens and user data directly
                 console.log("💾 Storing tokens and user data for existing user...");
 
-                // Extract tokens from verification response (nested under jwtTokens)
-                if (tokenVerificationResult?.jwtTokens?.accessToken) {
-                    localStorage.setItem(STORAGE_KEYS.accessToken, tokenVerificationResult.jwtTokens.accessToken);
-                    console.log("✅ Stored accessToken");
-                }
-                if (tokenVerificationResult?.jwtTokens?.refreshToken) {
-                    localStorage.setItem(STORAGE_KEYS.refreshToken, tokenVerificationResult.jwtTokens.refreshToken);
-                    console.log("✅ Stored refreshToken");
-                }
+                try {
+                    // Store tokens synchronously and verify storage
+                    if (tokenVerificationResult?.jwtTokens?.accessToken) {
+                        localStorage.setItem(STORAGE_KEYS.accessToken, tokenVerificationResult.jwtTokens.accessToken);
+                        console.log("✅ Stored accessToken");
+                    }
+                    if (tokenVerificationResult?.jwtTokens?.refreshToken) {
+                        localStorage.setItem(STORAGE_KEYS.refreshToken, tokenVerificationResult.jwtTokens.refreshToken);
+                        console.log("✅ Stored refreshToken");
+                    }
 
-                // Store user data (id, email, username, mobileNumber, roles, verified)
-                if (tokenVerificationResult?.jwtTokens) {
-                    const userData = {
-                        id: tokenVerificationResult.jwtTokens.id,
-                        email: tokenVerificationResult.jwtTokens.email,
-                        username: tokenVerificationResult.jwtTokens.username,
-                        mobileNumber: tokenVerificationResult.mobileNumber,
-                        roles: tokenVerificationResult.jwtTokens.roles,
-                        verified: tokenVerificationResult.verified,
+                    // Store user data (id, email, username, mobileNumber, roles, verified)
+                    if (tokenVerificationResult?.jwtTokens) {
+                        const userData = {
+                            id: tokenVerificationResult.jwtTokens.id,
+                            email: tokenVerificationResult.jwtTokens.email,
+                            username: tokenVerificationResult.jwtTokens.username,
+                            mobileNumber: tokenVerificationResult.mobileNumber,
+                            roles: tokenVerificationResult.jwtTokens.roles,
+                            verified: tokenVerificationResult.verified,
+                            // Add accessToken to user data for auth checks
+                            accessToken: tokenVerificationResult.jwtTokens.accessToken,
+                            refreshToken: tokenVerificationResult.jwtTokens.refreshToken,
+                        };
+                        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(userData));
+                        console.log("✅ Stored user data:", userData);
+                    }
+
+                    // Clear any temp data
+                    localStorage.removeItem('tempFirebaseToken');
+                    localStorage.removeItem('tempPhoneNumber');
+                    localStorage.removeItem('verificationResult');
+                    localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+                    console.log("🧹 Cleared temporary data");
+
+                    // Verify all data is stored correctly
+                    const verificationCheck = {
+                        accessToken: !!localStorage.getItem(STORAGE_KEYS.accessToken),
+                        refreshToken: !!localStorage.getItem(STORAGE_KEYS.refreshToken),
+                        userData: !!localStorage.getItem(STORAGE_KEYS.user),
+                        userRoles: (() => {
+                            try {
+                                const user = JSON.parse(localStorage.getItem(STORAGE_KEYS.user) || '{}');
+                                return user.roles || [];
+                            } catch {
+                                return [];
+                            }
+                        })()
                     };
-                    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(userData));
-                    console.log("✅ Stored user data");
-                }
+                    console.log("🔍 Storage verification:", verificationCheck);
 
-                // Clear any temp data
-                localStorage.removeItem('tempFirebaseToken');
-                localStorage.removeItem('tempPhoneNumber');
-                localStorage.removeItem('verificationResult');
-                localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+                } catch (storageError) {
+                    console.error("❌ Error storing auth data:", storageError);
+                    throw new Error("Failed to store authentication data");
+                }
 
                 console.log("✅ Existing user authenticated! Redirecting based on role...");
-
-                toast({
-                    title: "Welcome back!",
-                    description: "You're all set!",
-                });
 
                 // Determine redirect route based on role
                 let redirectRoute = '/home'; // Default for ROLE_USER
@@ -181,10 +202,42 @@ export default function OTPVerificationScreen() {
                     console.log("ℹ️ No specific role found, defaulting to /home");
                 }
 
-                setTimeout(() => {
-                    router.push(redirectRoute);
-                }, 800);
+                toast({
+                    title: "Welcome back!",
+                    description: "You're all set!",
+                });
 
+                // Force localStorage sync and immediate redirect
+                console.log("🔄 Force syncing localStorage before redirect...");
+
+                // Ensure localStorage operations are complete with a small delay for browser sync
+                const verifyStorage = () => {
+                    const storedToken = localStorage.getItem(STORAGE_KEYS.accessToken);
+                    const storedUser = localStorage.getItem(STORAGE_KEYS.user);
+
+                    console.log("🔍 Verifying storage - Token:", !!storedToken, "User:", !!storedUser);
+
+                    if (storedToken && storedUser) {
+                        console.log("✅ Storage verified, redirecting immediately to:", redirectRoute);
+                        // Use replace to prevent back navigation issues
+                        router.replace(redirectRoute);
+                        return true;
+                    }
+                    return false;
+                };
+
+                // Give a tiny delay to ensure localStorage operations complete
+                setTimeout(() => {
+                    if (!verifyStorage()) {
+                        console.error("❌ Storage verification failed, trying once more...");
+                        setTimeout(() => {
+                            if (!verifyStorage()) {
+                                console.error("❌ Final storage verification failed, falling back to home");
+                                router.replace('/home');
+                            }
+                        }, 200);
+                    }
+                }, 50);
             } else {
                 // NEW USER: Store temp data for details page
                 console.log("📝 Storing temp data for new user registration...");
@@ -205,9 +258,8 @@ export default function OTPVerificationScreen() {
                     description: "Please complete your profile to continue",
                 });
 
-                setTimeout(() => {
-                    router.push('/auth/details');
-                }, 800);
+                // Immediate redirect without delay
+                router.replace('/auth/details');
             }
 
         } catch (error: any) {

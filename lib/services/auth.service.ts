@@ -23,7 +23,7 @@ const storeAuthSession = (data: any) => {
     if (data.accessToken) {
       localStorage.setItem(STORAGE_KEYS.accessToken, data.accessToken);
     }
-    
+
     // Store the complete auth data
     localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(data));
   }
@@ -41,7 +41,7 @@ const clearAuthSession = () => {
 // ============================================================================
 
 export class AuthService {
-  
+
   // --------------------------------------------------------------------------
   // 1. SIGN IN (Login with Email/Username & Password)
   // Endpoint: POST /auth/signin
@@ -54,7 +54,7 @@ export class AuthService {
       });
 
       const data = handleApiResponse(response);
-      
+
       // Store tokens and user data
       storeAuthSession(data);
 
@@ -105,7 +105,7 @@ export class AuthService {
       });
 
       const data = handleApiResponse(response);
-      
+
       // Store new tokens
       storeAuthSession(data);
 
@@ -203,7 +203,7 @@ export class AuthService {
       const password = data.password || '';
 
       const result = await this.signIn(usernameOrEmail, password);
-      
+
       return {
         success: result.success,
         message: result.message,
@@ -295,8 +295,24 @@ export class AuthService {
    */
   static isAuthenticated(): boolean {
     if (typeof window === 'undefined') return false;
-    
-    const token = localStorage.getItem(STORAGE_KEYS.accessToken);
+
+    // First check direct token storage
+    let token = localStorage.getItem(STORAGE_KEYS.accessToken);
+
+    // If no direct token, check user data object
+    if (!token) {
+      try {
+        const userStr = localStorage.getItem(STORAGE_KEYS.user);
+        if (userStr) {
+          const userData = JSON.parse(userStr);
+          token = userData.accessToken;
+        }
+      } catch (error) {
+        console.error('Error parsing user data for auth check:', error);
+      }
+    }
+
+    console.log('🔍 AuthService.isAuthenticated check:', !!token);
     return !!token;
   }
 
@@ -305,7 +321,7 @@ export class AuthService {
    */
   static getStoredToken(): string | null {
     if (typeof window === 'undefined') return null;
-    
+
     return localStorage.getItem(STORAGE_KEYS.accessToken);
   }
 
@@ -316,12 +332,12 @@ export class AuthService {
     try {
       const response = await api.get<ApiResponse<User>>('/auth/me');
       const result = handleApiResponse(response);
-      
+
       // Update user in localStorage
       if (result.success) {
         storeAuthSession({ user: result.data });
       }
-      
+
       return result;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -453,7 +469,7 @@ export class AuthService {
    */
   static getStoredUser(): User | null {
     if (typeof window === 'undefined') return null;
-    
+
     const userStr = localStorage.getItem(STORAGE_KEYS.user);
     if (userStr) {
       try {
@@ -486,20 +502,20 @@ export class AuthService {
    */
   static getRouteBasedOnRoles(): string {
     const roles = this.getUserRolesFromStorage();
-    
+
     // Priority order: SUPERADMIN > ADMIN > USER
     if (roles.includes('ROLE_SUPERADMIN')) {
       return '/superadmin';
     }
-    
+
     if (roles.includes('ROLE_ADMIN')) {
       return '/admin';
     }
-    
+
     if (roles.includes('ROLE_USER')) {
       return '/home';
     }
-    
+
     // Default fallback
     return '/home';
   }
@@ -529,9 +545,9 @@ export class AuthService {
         '/auth/delete-account',
         { data: { password } }
       );
-      
+
       clearAuthSession();
-      
+
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -647,11 +663,11 @@ export class AuthService {
     try {
       const response = await api.post('/auth/google', { idToken });
       const result = handleApiResponse(response);
-      
+
       if (result.success && result.data) {
         storeAuthSession(result.data);
       }
-      
+
       return result;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -670,12 +686,12 @@ export class AuthService {
     try {
       const response = await api.delete<ApiResponse<void>>('/auth/sessions');
       const result = handleApiResponse(response);
-      
+
       // Clear local storage when all sessions are revoked
       if (result.success) {
         clearAuthSession();
       }
-      
+
       return result;
     } catch (error) {
       throw new Error(handleApiError(error));

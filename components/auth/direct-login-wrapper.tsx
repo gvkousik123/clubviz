@@ -18,8 +18,9 @@ export const DirectLoginWrapper = ({ children }: { children: ReactNode }) => {
         const isAdminPage = pathname?.startsWith('/admin');
         const isSuperAdminPage = pathname?.startsWith('/superadmin');
 
-        // Skip redirect logic on auth pages
+        // Skip redirect logic on auth pages to prevent interference during login flow
         if (isAuthPage) {
+            console.log("🔒 DirectLoginWrapper: Skipping redirect logic on auth page:", pathname);
             return;
         }
 
@@ -49,15 +50,18 @@ export const DirectLoginWrapper = ({ children }: { children: ReactNode }) => {
 
         // Skip redirect logic for user pages - they handle their own auth
         if (isUserPage) {
+            console.log("🏠 DirectLoginWrapper: Skipping redirect logic on user page:", pathname);
             return;
         }
 
         // Check if user is authenticated
         const isAuthenticated = AuthService.isAuthenticated();
+        console.log("🔍 DirectLoginWrapper: Authentication check:", { isAuthenticated, pathname });
 
         if (isAuthenticated) {
             // Get user roles
             const roles = AuthService.getUserRolesFromStorage();
+            console.log("👤 DirectLoginWrapper: User roles:", roles);
 
             // Determine correct route based on role
             let correctRoute = '/home';
@@ -70,15 +74,24 @@ export const DirectLoginWrapper = ({ children }: { children: ReactNode }) => {
                 correctRoute = '/home';
             }
 
+            console.log("🎯 DirectLoginWrapper: Correct route for user:", correctRoute);
+
             // Only redirect if not already on the correct page
             if (pathname !== correctRoute) {
                 // Allow admin/superadmin to access other admin pages
                 if (isAdminPage || isSuperAdminPage) {
+                    console.log("🔑 DirectLoginWrapper: Allowing access to admin/superadmin page");
                     return; // Stay on admin pages
                 }
 
-                router.push(correctRoute);
+                console.log("🔄 DirectLoginWrapper: Redirecting to correct route:", correctRoute);
+                // Use setTimeout to avoid conflicts with other navigation
+                setTimeout(() => {
+                    router.push(correctRoute);
+                }, 200);
             }
+        } else {
+            console.log("❌ DirectLoginWrapper: User not authenticated on protected route");
         }
     }, [pathname, router]);
 
