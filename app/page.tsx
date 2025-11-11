@@ -1,12 +1,34 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { ProfileService } from '@/lib/services/profile.service';
 
 export default function RootPage() {
+  const [isChecking, setIsChecking] = useState(true);
+
   useEffect(() => {
-    // Redirect to intro screen for first-time users or home for authenticated users
-    window.location.href = '/auth/intro';
+    const redirectUser = () => {
+      // Check if user is logged in
+      if (!ProfileService.isLoggedIn()) {
+        // Not logged in, go to intro screen
+        window.location.href = '/auth/intro';
+        return;
+      }
+
+      // User is logged in, redirect based on role
+      if (ProfileService.isSuperAdmin()) {
+        window.location.href = '/superadmin';
+      } else if (ProfileService.isAdmin()) {
+        window.location.href = '/admin';
+      } else {
+        // Default to home for regular users
+        window.location.href = '/home';
+      }
+    };
+
+    redirectUser();
   }, []);
+
   return (
     <div className="bg-dark-900 min-h-screen flex items-center justify-center">
       <div className="text-center">

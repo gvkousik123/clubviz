@@ -181,9 +181,38 @@ export default function DetailsPage() {
                 description: isExistingUser ? "You're all set!" : "Welcome to ClubViz!",
             });
 
-            // Navigate back to mobile auth page after successful registration
+            // Determine redirect route based on role
+            let redirectRoute = '/home'; // Default for ROLE_USER
+
+            try {
+                // Get user data from localStorage to check roles
+                const storedUserData = localStorage.getItem(STORAGE_KEYS.user);
+                if (storedUserData) {
+                    const userData = JSON.parse(storedUserData);
+                    const userRoles = userData.roles || [];
+
+                    if (userRoles.includes('ROLE_SUPERADMIN')) {
+                        redirectRoute = '/superadmin';
+                        console.log("🔑 Redirecting SUPERADMIN to /superadmin");
+                    } else if (userRoles.includes('ROLE_ADMIN')) {
+                        redirectRoute = '/admin';
+                        console.log("🔑 Redirecting ADMIN to /admin");
+                    } else if (userRoles.includes('ROLE_USER')) {
+                        redirectRoute = '/home';
+                        console.log("🔑 Redirecting USER to /home");
+                    } else {
+                        console.log("ℹ️ No specific role found, defaulting to /home");
+                    }
+                }
+            } catch (error) {
+                console.error("Error getting user roles:", error);
+                // Default to home if error
+                redirectRoute = '/home';
+            }
+
+            // Navigate to appropriate dashboard based on role
             setTimeout(() => {
-                router.push('/auth/mobile');
+                router.push(redirectRoute);
             }, 800);
 
         } catch (error: any) {

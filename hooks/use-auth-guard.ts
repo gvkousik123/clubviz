@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthService } from '@/lib/services/auth.service';
+import { ProfileService } from '@/lib/services/profile.service';
 import { useToast } from '@/hooks/use-toast';
 
 interface AuthGuardOptions {
@@ -8,6 +9,7 @@ interface AuthGuardOptions {
   redirectTo?: string;
   requireAuth?: boolean;
   showToast?: boolean;
+  autoRedirect?: boolean;
 }
 
 interface AuthGuardResult {
@@ -23,7 +25,8 @@ export const useAuthGuard = ({
   requiredRoles = [],
   redirectTo = '/auth/mobile',
   requireAuth = true,
-  showToast = true
+  showToast = true,
+  autoRedirect = true
 }: AuthGuardOptions): AuthGuardResult => {
   const router = useRouter();
   const { toast } = useToast();
@@ -45,6 +48,10 @@ export const useAuthGuard = ({
         setAccessDenied(true);
         setDenialReason('not-authenticated');
         setIsLoading(false);
+
+        if (autoRedirect) {
+          setTimeout(() => router.replace('/auth/intro'), 1000);
+        }
         return;
       }
 
@@ -64,6 +71,21 @@ export const useAuthGuard = ({
           setAccessDenied(true);
           setDenialReason('no-role');
           setIsLoading(false);
+
+          if (autoRedirect) {
+            // Redirect to appropriate dashboard based on user's actual role
+            setTimeout(() => {
+              let redirectPath = '/home'; // default
+
+              if (ProfileService.isSuperAdmin()) {
+                redirectPath = '/superadmin';
+              } else if (ProfileService.isAdmin()) {
+                redirectPath = '/admin';
+              }
+
+              router.replace(redirectPath);
+            }, 1000);
+          }
           return;
         }
       }
@@ -74,7 +96,7 @@ export const useAuthGuard = ({
     };
 
     checkAuth();
-  }, [requiredRoles, redirectTo, requireAuth, router, toast, showToast]);
+  }, [requiredRoles, redirectTo, requireAuth, router, toast, showToast, autoRedirect]);
 
   return {
     isAuthenticated: AuthService.isAuthenticated(),
@@ -87,20 +109,23 @@ export const useAuthGuard = ({
 };
 
 // Specific hooks for different route types
-export const useUserAuth = () => useAuthGuard({ 
-  requiredRoles: ['ROLE_USER'], 
+export const useUserAuth = () => useAuthGuard({
+  requiredRoles: ['ROLE_USER'],
   requireAuth: true,
-  showToast: false
+  showToast: false,
+  autoRedirect: true
 });
 
-export const useAdminAuth = () => useAuthGuard({ 
-  requiredRoles: ['ROLE_ADMIN', 'ROLE_SUPERADMIN'], 
+export const useAdminAuth = () => useAuthGuard({
+  requiredRoles: ['ROLE_ADMIN', 'ROLE_SUPERADMIN'],
   requireAuth: true,
-  showToast: false
+  showToast: false,
+  autoRedirect: true
 });
 
-export const useSuperAdminAuth = () => useAuthGuard({ 
-  requiredRoles: ['ROLE_SUPERADMIN'], 
+export const useSuperAdminAuth = () => useAuthGuard({
+  requiredRoles: ['ROLE_SUPERADMIN'],
   requireAuth: true,
-  showToast: false
+  showToast: false,
+  autoRedirect: true
 });

@@ -38,26 +38,47 @@ import { AccessDenied } from '@/components/common/access-denied';
 
 export default function SuperAdminPage() {
     // Protected route - requires superadmin access
-    const { isAuthenticated, userRoles, hasRole } = useSuperAdminAuth();
+    const { isAuthenticated, userRoles, hasRole, isLoading: authLoading, accessDenied, denialReason } = useSuperAdminAuth();
     const router = useRouter();
     const { toast } = useToast();
-    const [accessDenied, setAccessDenied] = useState(false);
-    const [denialReason, setDenialReason] = useState<'not-authenticated' | 'no-role' | null>(null);
 
-    // Check access on mount
+    // Auto-redirect if access is denied
     useEffect(() => {
-        const isAuthenticated = AuthService.isAuthenticated();
-        const userRoles = AuthService.getUserRolesFromStorage();
-        const hasSuperAdminRole = userRoles.includes('ROLE_SUPERADMIN');
+        if (!authLoading && accessDenied) {
+            if (denialReason === 'not-authenticated') {
+                // Wait a moment to show the access denied screen, then redirect
+                const timer = setTimeout(() => {
+                    router.replace('/auth/intro');
+                }, 2000);
+                return () => clearTimeout(timer);
+            } else if (denialReason === 'no-role') {
+                // Redirect based on user's actual role
+                const timer = setTimeout(() => {
+                    const userRoles = AuthService.getUserRolesFromStorage();
+                    let redirectPath = '/home';
 
-        if (!isAuthenticated) {
-            setAccessDenied(true);
-            setDenialReason('not-authenticated');
-        } else if (!hasSuperAdminRole) {
-            setAccessDenied(true);
-            setDenialReason('no-role');
+                    if (userRoles.includes('ROLE_ADMIN')) {
+                        redirectPath = '/admin';
+                    }
+
+                    router.replace(redirectPath);
+                }, 2000);
+                return () => clearTimeout(timer);
+            }
         }
-    }, []);
+    }, [authLoading, accessDenied, denialReason, router]);
+
+    // Show loading state while checking permissions
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-dark-900 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-16 h-16 bg-gradient-primary rounded-full mx-auto mb-4 animate-pulse"></div>
+                    <p className="text-white">Verifying superadmin access...</p>
+                </div>
+            </div>
+        );
+    }
 
     // Show access denied message if not authorized
     if (accessDenied) {
@@ -73,7 +94,7 @@ export default function SuperAdminPage() {
         return (
             <AccessDenied
                 title="SuperAdmin Access Required"
-                message="You don't have permission to access the superadmin dashboard."
+                message="You don't have permission to access the superadmin dashboard. Redirecting to your dashboard..."
                 requiredRole="ROLE_SUPERADMIN"
                 redirectTo="/home"
             />

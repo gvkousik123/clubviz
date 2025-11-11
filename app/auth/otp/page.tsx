@@ -156,15 +156,33 @@ export default function OTPVerificationScreen() {
                 localStorage.removeItem('verificationResult');
                 localStorage.removeItem(STORAGE_KEYS.pendingPhone);
 
-                console.log("✅ Existing user authenticated! Going to home...");
+                console.log("✅ Existing user authenticated! Redirecting based on role...");
 
                 toast({
                     title: "Welcome back!",
                     description: "You're all set!",
                 });
 
+                // Determine redirect route based on role
+                let redirectRoute = '/home'; // Default for ROLE_USER
+                const roles = tokenVerificationResult.jwtTokens.roles || [];
+
+                if (roles.includes('ROLE_SUPERADMIN')) {
+                    redirectRoute = '/superadmin';
+                    console.log("🔑 Redirecting SUPERADMIN to /superadmin");
+                } else if (roles.includes('ROLE_ADMIN')) {
+                    redirectRoute = '/admin';
+                    console.log("🔑 Redirecting ADMIN to /admin");
+                } else if (roles.includes('ROLE_USER')) {
+                    redirectRoute = '/home';
+                    console.log("🔑 Redirecting USER to /home");
+                } else {
+                    // Default behavior
+                    console.log("ℹ️ No specific role found, defaulting to /home");
+                }
+
                 setTimeout(() => {
-                    router.push('/home');
+                    router.push(redirectRoute);
                 }, 800);
 
             } else {
