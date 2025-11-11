@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -21,10 +21,7 @@ import PageHeader from '@/components/common/page-header';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
 import { EventService } from '@/lib/services/event.service';
 
-// This tells Next.js to skip static generation for this page
-export const dynamic = 'force-dynamic';
-
-export default function EventPreviewPage() {
+function EventPreviewContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const eventId = searchParams.get('eventId');
@@ -284,5 +281,26 @@ export default function EventPreviewPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+// Loading fallback component
+function LoadingFallback() {
+    return (
+        <div className="min-h-screen bg-[#021313] text-white flex items-center justify-center">
+            <div className="text-center">
+                <div className="w-12 h-12 bg-[#14FFEC] rounded-full mx-auto mb-4 animate-pulse"></div>
+                <p>Loading event details...</p>
+            </div>
+        </div>
+    );
+}
+
+// Main page component with Suspense wrapper
+export default function EventPreviewPage() {
+    return (
+        <Suspense fallback={<LoadingFallback />}>
+            <EventPreviewContent />
+        </Suspense>
     );
 }
