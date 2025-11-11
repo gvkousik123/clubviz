@@ -66,6 +66,7 @@ export interface User {
   preferences: UserPreferences;
   createdAt: string;
   updatedAt: string;
+  roles?: string[];
 }
 
 export interface UserPreferences {

@@ -19,13 +19,37 @@ const storeAuthSession = (data: any) => {
 
   // Store the entire auth response as-is
   if (data) {
+    // Extract token from different possible locations
+    let tokenToStore = data.accessToken || data.token;
+    
     // Store accessToken for API client interceptor
-    if (data.accessToken) {
-      localStorage.setItem(STORAGE_KEYS.accessToken, data.accessToken);
+    if (tokenToStore) {
+      localStorage.setItem(STORAGE_KEYS.accessToken, tokenToStore);
+    }
+
+    // Prepare the user data to store
+    let userDataToStore = data;
+    
+    // If data has a 'user' property, merge it with other properties to preserve roles
+    if (data.user && typeof data.user === 'object') {
+      userDataToStore = {
+        ...data,
+        ...data.user,
+        // Ensure token is always included
+        accessToken: tokenToStore,
+        token: tokenToStore,
+      };
+    } else if (!data.roles && data.token) {
+      // If no roles in the response but we have a token, it might be in a nested structure
+      // Just ensure we're storing what we have
+      userDataToStore = {
+        ...data,
+        accessToken: tokenToStore,
+      };
     }
 
     // Store the complete auth data
-    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(data));
+    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(userDataToStore));
   }
 };
 

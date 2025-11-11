@@ -37,10 +37,21 @@ export const useAuthGuard = ({
   useEffect(() => {
     const checkAuth = () => {
       console.log("🔍 useAuthGuard: Starting auth check", { requiredRoles, requireAuth });
+      
+      // Debug: Log stored data
+      const storedUser = AuthService.getStoredUser();
+      const storedToken = AuthService.getStoredToken();
+      console.log("📦 useAuthGuard: Stored data", { 
+        hasToken: !!storedToken, 
+        user: storedUser,
+        userRoles: storedUser?.roles 
+      });
 
       // Check if authentication is required
       if (requireAuth && !AuthService.isAuthenticated()) {
         console.log("❌ useAuthGuard: Authentication required but user not authenticated");
+        console.log("   Token:", !!AuthService.getStoredToken());
+        console.log("   Stored User:", !!AuthService.getStoredUser());
 
         if (showToast) {
           toast({
@@ -63,11 +74,18 @@ export const useAuthGuard = ({
       if (requiredRoles.length > 0) {
         const userRoles = AuthService.getUserRolesFromStorage();
         console.log("👤 useAuthGuard: User roles:", userRoles, "Required:", requiredRoles);
+        console.log("   Raw stored user:", AuthService.getStoredUser());
+        console.log("   Roles check:", requiredRoles.map(role => ({ 
+          role, 
+          hasRole: userRoles.includes(role) 
+        })));
 
         const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role));
 
         if (!hasRequiredRole) {
           console.log("❌ useAuthGuard: User doesn't have required role");
+          console.log("   User roles from storage:", userRoles);
+          console.log("   Required roles:", requiredRoles);
 
           if (showToast) {
             toast({
