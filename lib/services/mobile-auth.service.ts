@@ -69,21 +69,14 @@ export class MobileAuthService {
 
   /**
    * Verify Firebase token and authenticate user
-   * POST https://clubwiz.in/api/auth/mobile/verify-firebase-token
+   * POST /auth/mobile/verify-firebase-token
    */
   static async verifyFirebaseToken(firebaseToken: string): Promise<ApiResponse<FirebaseTokenResponse>> {
     try {
-      // Use specific domain for verify token API only
-      const response = await axios.post<ApiResponse<FirebaseTokenResponse>>(
-        'https://clubwiz.in/api/auth/mobile/verify-firebase-token',
-        { idToken: firebaseToken },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          timeout: 10000,
-        }
+      // Use the standard API client with correct base URL
+      const response = await api.post<ApiResponse<FirebaseTokenResponse>>(
+        '/auth/mobile/verify-firebase-token',
+        { idToken: firebaseToken }
       );
 
       const result = handleApiResponse(response);
@@ -92,15 +85,16 @@ export class MobileAuthService {
       if (result.success && result.data) {
         // Store the access token for API client interceptor
         if (result.data.accessToken) {
-          localStorage.setItem('accessToken', result.data.accessToken);
+          localStorage.setItem('clubviz-accessToken', result.data.accessToken);
         }
 
         // Store complete auth data
-        localStorage.setItem('user', JSON.stringify(result.data));
+        localStorage.setItem('clubviz-user', JSON.stringify(result.data));
       }
 
       return result;
     } catch (error) {
+      console.error('Firebase token verification error:', error);
       throw new Error(handleApiError(error));
     }
   }
@@ -122,11 +116,11 @@ export class MobileAuthService {
       if (result.success && result.data) {
         // Store the access token for API client interceptor
         if (result.data.accessToken) {
-          localStorage.setItem('accessToken', result.data.accessToken);
+          localStorage.setItem('clubviz-accessToken', result.data.accessToken);
         }
 
         // Store complete auth data
-        localStorage.setItem('user', JSON.stringify(result.data));
+        localStorage.setItem('clubviz-user', JSON.stringify(result.data));
       }
 
       return result;

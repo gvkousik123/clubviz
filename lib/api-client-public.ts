@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { STORAGE_KEYS } from './constants/storage';
 
 // API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://98.90.141.103/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://clubwiz.in/api';
 const API_TIMEOUT = 10000; // 10 seconds
 
 // ============================================================================
