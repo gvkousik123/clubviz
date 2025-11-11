@@ -37,14 +37,14 @@ export const useAuthGuard = ({
   useEffect(() => {
     const checkAuth = () => {
       console.log("🔍 useAuthGuard: Starting auth check", { requiredRoles, requireAuth });
-      
+
       // Debug: Log stored data
       const storedUser = AuthService.getStoredUser();
       const storedToken = AuthService.getStoredToken();
-      console.log("📦 useAuthGuard: Stored data", { 
-        hasToken: !!storedToken, 
+      console.log("📦 useAuthGuard: Stored data", {
+        hasToken: !!storedToken,
         user: storedUser,
-        userRoles: storedUser?.roles 
+        userRoles: storedUser?.roles
       });
 
       // Check if authentication is required
@@ -75,9 +75,9 @@ export const useAuthGuard = ({
         const userRoles = AuthService.getUserRolesFromStorage();
         console.log("👤 useAuthGuard: User roles:", userRoles, "Required:", requiredRoles);
         console.log("   Raw stored user:", AuthService.getStoredUser());
-        console.log("   Roles check:", requiredRoles.map(role => ({ 
-          role, 
-          hasRole: userRoles.includes(role) 
+        console.log("   Roles check:", requiredRoles.map(role => ({
+          role,
+          hasRole: userRoles.includes(role)
         })));
 
         const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role));

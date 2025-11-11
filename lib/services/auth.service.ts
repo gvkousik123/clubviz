@@ -21,7 +21,7 @@ const storeAuthSession = (data: any) => {
   if (data) {
     // Extract token from different possible locations
     let tokenToStore = data.accessToken || data.token;
-    
+
     // Store accessToken for API client interceptor
     if (tokenToStore) {
       localStorage.setItem(STORAGE_KEYS.accessToken, tokenToStore);
@@ -29,7 +29,7 @@ const storeAuthSession = (data: any) => {
 
     // Prepare the user data to store
     let userDataToStore = data;
-    
+
     // If data has a 'user' property, merge it with other properties to preserve roles
     if (data.user && typeof data.user === 'object') {
       userDataToStore = {
