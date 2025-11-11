@@ -5,7 +5,6 @@ import { Calendar, Clock, Users, Plus, DollarSign, BarChart, Edit, User } from '
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useProfile } from '@/hooks/use-profile';
-import { useAdminAuth } from '@/hooks/use-auth-guard';
 import { useAdminClubs } from '@/hooks/use-admin-clubs';
 import { useAdminEvents } from '@/hooks/use-admin-events';
 import { useEventList } from '@/hooks/use-event-list';
@@ -14,70 +13,14 @@ import { AccessDenied } from '@/components/common/access-denied';
 import { AuthService } from '@/lib/services/auth.service';
 
 export default function AdminDashboard() {
-    // Protected route - requires admin access
-    const { isAuthenticated, userRoles, hasRole, isLoading, accessDenied, denialReason } = useAdminAuth();
+    // Authentication info - no redirects
+    const isAuthenticated = AuthService.isAuthenticated();
+    const userRoles = AuthService.getUserRolesFromStorage();
+    const hasRole = (role: string) => AuthService.hasRole(role);
+
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('active');
     const [showCreateModal, setShowCreateModal] = useState<'club' | 'event' | null>(null);
-
-    // Auto-redirect if access is denied
-    useEffect(() => {
-        if (!isLoading && accessDenied) {
-            if (denialReason === 'not-authenticated') {
-                // Wait a moment to show the access denied screen, then redirect
-                const timer = setTimeout(() => {
-                    router.replace('/auth/intro');
-                }, 2000);
-                return () => clearTimeout(timer);
-            } else if (denialReason === 'no-role') {
-                // Redirect based on user's actual role
-                const timer = setTimeout(() => {
-                    const userRoles = AuthService.getUserRolesFromStorage();
-                    let redirectPath = '/home';
-
-                    if (userRoles.includes('ROLE_SUPERADMIN')) {
-                        redirectPath = '/superadmin';
-                    }
-
-                    router.replace(redirectPath);
-                }, 2000);
-                return () => clearTimeout(timer);
-            }
-        }
-    }, [isLoading, accessDenied, denialReason, router]);
-
-    // Show loading state while checking permissions
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-dark-900 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="w-16 h-16 bg-gradient-primary rounded-full mx-auto mb-4 animate-pulse"></div>
-                    <p className="text-white">Verifying admin access...</p>
-                </div>
-            </div>
-        );
-    }
-
-    // Show access denied message if not authorized
-    if (accessDenied) {
-        if (denialReason === 'not-authenticated') {
-            return (
-                <AccessDenied
-                    title="Login Required"
-                    message="Please log in with your admin account to access the admin dashboard."
-                    redirectTo="/auth/intro"
-                />
-            );
-        }
-        return (
-            <AccessDenied
-                title="Admin Access Required"
-                message="You don't have permission to access the admin dashboard. Redirecting to your dashboard..."
-                requiredRole="ROLE_ADMIN or ROLE_SUPERADMIN"
-                redirectTo="/home"
-            />
-        );
-    }
 
     // Use profile hook for admin profile data
     const {

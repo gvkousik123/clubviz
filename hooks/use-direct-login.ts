@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { AuthService } from '@/lib/services/auth.service';
 import { STORAGE_KEYS } from '@/lib/constants/storage';
 
@@ -26,10 +25,9 @@ const clearAuthSession = () => {
 
 /**
  * Hook to handle direct login based on localStorage
- * If user has valid token, auto-login and redirect based on role
+ * No longer redirects automatically - user can navigate manually after login
  */
 export const useDirectLogin = (): UseDirectLoginResult => {
-    const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userRole, setUserRole] = useState<string | null>(null);
@@ -43,25 +41,18 @@ export const useDirectLogin = (): UseDirectLoginResult => {
                 if (isAuth) {
                     setIsAuthenticated(true);
 
-                    // Get user role for routing
+                    // Get user role for display purposes only
                     const roles = AuthService.getUserRolesFromStorage();
 
-                    // Determine route based on role priority
-                    let redirectRoute = '/home'; // Default for ROLE_USER
-
                     if (roles.includes('ROLE_SUPERADMIN')) {
-                        redirectRoute = '/superadmin';
                         setUserRole('ROLE_SUPERADMIN');
                     } else if (roles.includes('ROLE_ADMIN')) {
-                        redirectRoute = '/admin';
                         setUserRole('ROLE_ADMIN');
                     } else if (roles.includes('ROLE_USER')) {
-                        redirectRoute = '/home';
                         setUserRole('ROLE_USER');
                     }
 
-                    // Redirect to appropriate page
-                    router.push(redirectRoute);
+                    console.log('✅ Direct login check passed - user authenticated');
                 }
             } catch (error) {
                 console.error('Direct login error:', error);
@@ -71,7 +62,7 @@ export const useDirectLogin = (): UseDirectLoginResult => {
         };
 
         handleDirectLogin();
-    }, [router]);
+    }, []);
 
     return {
         isLoading,
@@ -82,23 +73,19 @@ export const useDirectLogin = (): UseDirectLoginResult => {
 
 /**
  * Hook to handle logout and clear session
+ * No longer redirects automatically
  */
 export const useLogoutHandler = () => {
-    const router = useRouter();
-
     const handleLogout = async () => {
         try {
             // Call logout API
             await AuthService.logout();
-
-            // Redirect to login
-            router.push('/auth/mobile');
+            console.log('✅ Logout successful');
         } catch (error) {
             console.error('Logout error:', error);
 
             // Fallback: clear session manually on API error
             clearAuthSession();
-            router.push('/auth/mobile');
         }
     };
 

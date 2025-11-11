@@ -26,32 +26,6 @@ export function middleware(request: NextRequest) {
         '/admin': ['ROLE_ADMIN', 'ROLE_SUPERADMIN'],
     };
 
-    // Check if current path matches any protected route
-    for (const [protectedPath, requiredRoles] of Object.entries(protectedRoutes)) {
-        if (pathname.startsWith(protectedPath)) {
-            // Check if user is authenticated
-            if (!accessToken) {
-                // Redirect to login
-                return NextResponse.redirect(new URL('/auth/intro', request.url));
-            }
-
-            // Check if user has required role
-            const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role));
-
-            if (!hasRequiredRole) {
-                // User doesn't have required role - redirect to appropriate dashboard
-                let redirectPath = '/home'; // default for regular users
-
-                if (userRoles.includes('ROLE_SUPERADMIN')) {
-                    redirectPath = '/superadmin';
-                } else if (userRoles.includes('ROLE_ADMIN')) {
-                    redirectPath = '/admin';
-                }
-
-                return NextResponse.redirect(new URL(redirectPath, request.url));
-            }
-        }
-    }
 
     return NextResponse.next();
 }

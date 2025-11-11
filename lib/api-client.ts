@@ -38,12 +38,12 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Handle common HTTP errors
+    // Handle common HTTP errors - no automatic redirects
     if (error.response?.status === 401) {
-      // Unauthorized - clear token and redirect to login
+      // Unauthorized - clear token but don't redirect
       if (typeof window !== 'undefined') {
         localStorage.removeItem(STORAGE_KEYS.accessToken);
-        window.location.href = '/auth/mobile';
+        console.warn('Token expired - user should re-authenticate');
       }
     } else if (error.response?.status === 403) {
       // Forbidden

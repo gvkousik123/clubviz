@@ -1,15 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { AuthService } from '@/lib/services/auth.service';
-import { ProfileService } from '@/lib/services/profile.service';
-import { useToast } from '@/hooks/use-toast';
 
 interface AuthGuardOptions {
   requiredRoles?: string[];
-  redirectTo?: string;
   requireAuth?: boolean;
-  showToast?: boolean;
-  autoRedirect?: boolean;
 }
 
 interface AuthGuardResult {
@@ -17,26 +11,17 @@ interface AuthGuardResult {
   userRoles: string[];
   hasRole: (role: string) => boolean;
   isLoading: boolean;
-  accessDenied: boolean;
-  denialReason: 'not-authenticated' | 'no-role' | null;
 }
 
 export const useAuthGuard = ({
   requiredRoles = [],
-  redirectTo = '/auth/mobile',
-  requireAuth = true,
-  showToast = true,
-  autoRedirect = true
+  requireAuth = true
 }: AuthGuardOptions): AuthGuardResult => {
-  const router = useRouter();
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
-  const [accessDenied, setAccessDenied] = useState(false);
-  const [denialReason, setDenialReason] = useState<'not-authenticated' | 'no-role' | null>(null);
 
   useEffect(() => {
     const checkAuth = () => {
-      console.log("🔍 useAuthGuard: Starting auth check", { requiredRoles, requireAuth });
+      console.log("🔍 useAuthGuard: Checking auth status", { requiredRoles, requireAuth });
 
       // Debug: Log stored data
       const storedUser = AuthService.getStoredUser();
@@ -49,32 +34,15 @@ export const useAuthGuard = ({
 
       // Check if authentication is required
       if (requireAuth && !AuthService.isAuthenticated()) {
-        console.log("❌ useAuthGuard: Authentication required but user not authenticated");
+        console.log("⚠️ useAuthGuard: User not authenticated");
         console.log("   Token:", !!AuthService.getStoredToken());
         console.log("   Stored User:", !!AuthService.getStoredUser());
-
-        if (showToast) {
-          toast({
-            title: "Authentication Required",
-            description: "Please log in to access this page.",
-            variant: "destructive",
-          });
-        }
-        setAccessDenied(true);
-        setDenialReason('not-authenticated');
-        setIsLoading(false);
-
-        if (autoRedirect) {
-          setTimeout(() => router.replace('/auth/intro'), 1000);
-        }
-        return;
       }
 
       // Check role requirements
       if (requiredRoles.length > 0) {
         const userRoles = AuthService.getUserRolesFromStorage();
         console.log("👤 useAuthGuard: User roles:", userRoles, "Required:", requiredRoles);
-        console.log("   Raw stored user:", AuthService.getStoredUser());
         console.log("   Roles check:", requiredRoles.map(role => ({
           role,
           hasRole: userRoles.includes(role)
@@ -83,42 +51,13 @@ export const useAuthGuard = ({
         const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role));
 
         if (!hasRequiredRole) {
-          console.log("❌ useAuthGuard: User doesn't have required role");
+          console.log("⚠️ useAuthGuard: User doesn't have required role");
           console.log("   User roles from storage:", userRoles);
           console.log("   Required roles:", requiredRoles);
-
-          if (showToast) {
-            toast({
-              title: "Access Denied",
-              description: "You don't have permission to access this page.",
-              variant: "destructive",
-            });
-          }
-          setAccessDenied(true);
-          setDenialReason('no-role');
-          setIsLoading(false);
-
-          if (autoRedirect) {
-            // Redirect to appropriate dashboard based on user's actual role
-            setTimeout(() => {
-              let redirectPath = '/home'; // default
-
-              if (ProfileService.isSuperAdmin()) {
-                redirectPath = '/superadmin';
-              } else if (ProfileService.isAdmin()) {
-                redirectPath = '/admin';
-              }
-
-              router.replace(redirectPath);
-            }, 1000);
-          }
-          return;
         }
       }
 
-      console.log("✅ useAuthGuard: Auth check passed");
-      setAccessDenied(false);
-      setDenialReason(null);
+      console.log("✅ useAuthGuard: Auth check completed - no redirects");
       setIsLoading(false);
     };
 
@@ -128,36 +67,28 @@ export const useAuthGuard = ({
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [requiredRoles, redirectTo, requireAuth, router, toast, showToast, autoRedirect]);
+  }, [requiredRoles, requireAuth]);
 
   return {
     isAuthenticated: AuthService.isAuthenticated(),
     userRoles: AuthService.getUserRolesFromStorage(),
     hasRole: (role: string) => AuthService.hasRole(role),
-    isLoading,
-    accessDenied,
-    denialReason
+    isLoading
   };
 };
 
 // Specific hooks for different route types
 export const useUserAuth = () => useAuthGuard({
   requiredRoles: ['ROLE_USER'],
-  requireAuth: true,
-  showToast: false,
-  autoRedirect: true
+  requireAuth: true
 });
 
 export const useAdminAuth = () => useAuthGuard({
   requiredRoles: ['ROLE_ADMIN', 'ROLE_SUPERADMIN'],
-  requireAuth: true,
-  showToast: false,
-  autoRedirect: true
+  requireAuth: true
 });
 
 export const useSuperAdminAuth = () => useAuthGuard({
   requiredRoles: ['ROLE_SUPERADMIN'],
-  requireAuth: true,
-  showToast: false,
-  autoRedirect: true
+  requireAuth: true
 });

@@ -29,7 +29,6 @@ import { PublicClubService, PublicEventService, PublicSearchService } from '@/li
 import { isGuestMode } from '@/lib/api-client-public';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/use-profile';
-import { useUserAuth } from '@/hooks/use-auth-guard';
 import type { EventListItem } from '@/lib/services/event.service';
 import type { ClubListItem } from '@/lib/services/club.service';
 
@@ -81,9 +80,6 @@ const HomePage = () => {
     const [isLoadingEvents, setIsLoadingEvents] = useState(false);
 
     const { toast } = useToast();
-
-    // Authentication guard
-    const { isAuthenticated } = useUserAuth();
 
     // Profile data
     const {
