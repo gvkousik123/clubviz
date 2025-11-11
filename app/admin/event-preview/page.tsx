@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
     Share2,
@@ -19,6 +20,9 @@ import {
 import PageHeader from '@/components/common/page-header';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
 import { EventService } from '@/lib/services/event.service';
+
+// This tells Next.js to skip static generation for this page
+export const dynamic = 'force-dynamic';
 
 export default function EventPreviewPage() {
     const router = useRouter();
