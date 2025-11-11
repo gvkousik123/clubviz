@@ -7,6 +7,8 @@ import './styles.css';
 import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
 import { EventService } from '@/lib/services/event.service';
 import { useToast } from '@/hooks/use-toast';
+import DatePicker from '@/components/common/date-picker';
+import { formatDateTimeForAPI } from '@/lib/date-utils';
 
 export default function NewEventPage() {
     const router = useRouter();
@@ -81,11 +83,17 @@ export default function NewEventPage() {
 
         try {
             // Prepare event data for API
+            const startDateTime = formatDateTimeForAPI(formData.eventDate, formData.eventTime);
+
+            if (!startDateTime) {
+                throw new Error('Invalid date or time format');
+            }
+
             const eventData = {
                 title: formData.eventName,
                 description: formData.description,
-                startDateTime: `${formData.eventDate}T${formData.eventTime}:00Z`,
-                endDateTime: `${formData.eventDate}T${formData.eventTime}:00Z`, // Add proper end time calculation
+                startDateTime: startDateTime,
+                endDateTime: startDateTime, // Add proper end time calculation
                 location: formData.organizer,
                 imageUrl: formData.poster ? URL.createObjectURL(formData.poster) : '',
                 category: formData.musicGenre,
@@ -268,18 +276,12 @@ export default function NewEventPage() {
                                 {/* Date and Time - in one row */}
                                 <div className="flex gap-4 w-full">
                                     <div className="w-1/2 space-y-3">
-                                        <div className="px-5">
-                                            <label className="text-[#14FFEC] font-semibold text-base">Event Date *</label>
-                                        </div>
-                                        <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
-                                            <input
-                                                type="text"
-                                                value={formData.eventDate}
-                                                onChange={(e) => handleInputChange('eventDate', e.target.value)}
-                                                className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
-                                                placeholder="DD/MM/YYYY"
-                                            />
-                                        </div>
+                                        <DatePicker
+                                            value={formData.eventDate}
+                                            onChange={(date) => handleInputChange('eventDate', date)}
+                                            placeholder="DD/MM/YYYY"
+                                            label="Event Date *"
+                                        />
                                     </div>
 
                                     <div className="w-1/2 space-y-3">
@@ -288,11 +290,10 @@ export default function NewEventPage() {
                                         </div>
                                         <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
                                             <input
-                                                type="text"
+                                                type="time"
                                                 value={formData.eventTime}
                                                 onChange={(e) => handleInputChange('eventTime', e.target.value)}
                                                 className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
-                                                placeholder="00:00"
                                             />
                                         </div>
                                     </div>
