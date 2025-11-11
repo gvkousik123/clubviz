@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
     Share2,
@@ -18,18 +18,82 @@ import {
 } from 'lucide-react';
 import PageHeader from '@/components/common/page-header';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
+import { EventService } from '@/lib/services/event.service';
 
-export default function TimelessTuesdayPage() {
+export default function EventPreviewPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const eventId = searchParams.get('eventId');
+
     const [isLiked, setIsLiked] = useState(false);
+    const [eventData, setEventData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Load event data on mount
+    useEffect(() => {
+        const loadEventData = async () => {
+            try {
+                if (!eventId) {
+                    setError('No event ID provided');
+                    setIsLoading(false);
+                    return;
+                }
+
+                const response = await EventService.getEventById(eventId);
+                if (response.success && response.data) {
+                    setEventData(response.data);
+                    setError(null);
+                } else {
+                    setError('Failed to load event data');
+                }
+            } catch (err) {
+                console.error('Error loading event:', err);
+                setError('Error loading event details');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadEventData();
+    }, [eventId]);
 
     const toggleLike = () => {
         setIsLiked(!isLiked);
     };
 
     const handleBookNow = () => {
-        router.push('/event/tickets');
+        router.push(`/booking/slot?eventId=${eventId}`);
     };
+
+    // Show loading state
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-[#021313] text-white flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-12 h-12 bg-[#14FFEC] rounded-full mx-auto mb-4 animate-pulse"></div>
+                    <p>Loading event details...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error state
+    if (error || !eventData) {
+        return (
+            <div className="min-h-screen bg-[#021313] text-white flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-400 mb-4">{error || 'Event not found'}</p>
+                    <button
+                        onClick={() => router.back()}
+                        className="px-6 py-2 bg-[#14FFEC] text-black rounded-full font-bold"
+                    >
+                        Go Back
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#021313] text-white">
@@ -37,8 +101,8 @@ export default function TimelessTuesdayPage() {
             {/* Hero Section with Event Image */}
             <div className="relative h-[420px] w-full">
                 <img
-                    src="/event list/Rectangle 1.jpg"
-                    alt="Timeless Tuesdays Event"
+                    src={eventData?.imageUrl || eventData?.image || "/event list/Rectangle 1.jpg"}
+                    alt={eventData?.title || "Event"}
                     className="w-full h-full object-cover brightness-75"
                 />
 
@@ -75,7 +139,7 @@ export default function TimelessTuesdayPage() {
                     {/* Event Title */}
                     <div className="flex justify-center items-center mb-7">
                         <h1 className="text-white text-center text-xl font-['Manrope'] leading-8 tracking-[0.24px]">
-                            Timeless Tuesdays Ft. DJ Xpensive
+                            {eventData?.title || 'Event Title'}
                         </h1>
                     </div>
 
@@ -98,14 +162,14 @@ export default function TimelessTuesdayPage() {
                     {/* Location Info */}
                     <div className="flex items-center gap-3 mb-4 px-2">
                         <MapPin size={24} className="text-[#14FFEC]" />
-                        <p className="text-white font-['Manrope']">Dabo club & kitchen, Nagpur</p>
+                        <p className="text-white font-['Manrope']">{eventData?.location || eventData?.club?.name || 'Location TBD'}</p>
                     </div>
 
                     {/* Date & Time */}
                     <div className="flex items-center gap-2 px-2">
                         <Calendar size={24} className="text-[#14FFEC]" />
                         <div className="bg-white/10 px-6 py-2 rounded-full">
-                            <p className="text-white font-['Manrope']">24 Dec | 7:00 pm</p>
+                            <p className="text-white font-['Manrope']">{eventData?.formattedDate || eventData?.startDateTime || 'Date TBD'} | {eventData?.formattedTime || 'Time TBD'}</p>
                         </div>
                     </div>
                 </div>
@@ -117,9 +181,11 @@ export default function TimelessTuesdayPage() {
 
                 {/* Music Categories */}
                 <div className="flex flex-wrap gap-2 px-6 mb-6">
-                    <span className="px-4 py-1 bg-[#0D7377] text-white rounded-full text-sm border border-[#14FFEC]">Electronic</span>
-                    <span className="px-4 py-1 bg-[#0D7377] text-white rounded-full text-sm border border-[#14FFEC]">Hip hop</span>
-                    <span className="px-4 py-1 bg-[#0D7377] text-white rounded-full text-sm border border-[#14FFEC]">Techno</span>
+                    {eventData?.category ? (
+                        <span className="px-4 py-1 bg-[#0D7377] text-white rounded-full text-sm border border-[#14FFEC]">{eventData.category}</span>
+                    ) : (
+                        <span className="text-gray-400 px-6">No categories specified</span>
+                    )}
                 </div>
 
                 {/* People Attending */}
@@ -132,7 +198,7 @@ export default function TimelessTuesdayPage() {
                                 className="w-32 h-8 rounded-full object-cover"
                             />
                         </div>
-                        <span className="text-white text-sm font-['Manrope']">61+ going in this event</span>
+                        <span className="text-white text-sm font-['Manrope']">{eventData?.attendeeCount || 0}+ going in this event</span>
                     </div>
                 </div>
 

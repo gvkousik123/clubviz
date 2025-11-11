@@ -63,30 +63,32 @@ export default function AdminDashboard() {
         };
     }, []); // Empty dependency array - only run once on mount
 
-    // Mock data based on the screenshot - updated to match exact values from the screenshot
-    const clubData = {
-        name: 'DABO',
-        stats: {
-            totalRevenue: 'Rs 12,500',
-            totalTicketSold: '220/250',
-            peopleAttending: '512',
-            activeEvents: '01'
-        },
-        events: {
-            active: [
-                {
-                    name: 'Sunday Soiree',
-                    date: '2025/02/2025',
-                    dj: 'DJ Edward D Weston',
-                    tickets: '150/270 tickets sold',
-                    time: '07:00 PM',
-                    image: '/admin/event-poster.jpg'
-                }
-            ],
-            past: [],
-            upcoming: []
+    // Calculate stats from real event data
+    const calculateStats = () => {
+        if (!eventList?.content) {
+            return {
+                totalRevenue: 'Rs 0',
+                totalTicketSold: '0/0',
+                peopleAttending: '0',
+                activeEvents: '0'
+            };
         }
+
+        const events = eventList.content;
+        const activeEvents = events.filter(e => e.status === 'ONGOING' || e.ongoing);
+        const totalAttendees = events.reduce((sum, event) => sum + event.attendeeCount, 0);
+        const totalCapacity = events.reduce((sum, event) => sum + event.maxAttendees, 0);
+
+        return {
+            totalRevenue: 'Rs 0', // Fetch from API if available
+            totalTicketSold: `${totalAttendees}/${totalCapacity}`,
+            peopleAttending: totalAttendees.toString(),
+            activeEvents: activeEvents.length.toString()
+        };
     };
+
+    const stats = calculateStats();
+    const clubName = clubsData?.content?.[0]?.name || 'Club';
 
     const handleNavigation = (path: string) => {
         router.push(path);
@@ -152,7 +154,7 @@ export default function AdminDashboard() {
                     {/* Club name and logo header section */}
                     <div className="px-6 pt-6 pb-2">
                         <div className="flex items-center justify-between">
-                            <h1 className="text-4xl font-bold tracking-wide uppercase">DABO</h1>
+                            <h1 className="text-4xl font-bold tracking-wide uppercase">{clubName}</h1>
                             {/* Club Logo */}
                             <div className="w-16 h-16 bg-black rounded-full border-2 border-[#14FFEC] flex items-center justify-center relative">
                                 <div className="relative w-14 h-14 flex items-center justify-center text-xs text-center text-[#14FFEC]">
@@ -188,25 +190,25 @@ export default function AdminDashboard() {
                                 {/* Total Revenue */}
                                 <div className="bg-[#0D1F1F] rounded-[15px] p-4">
                                     <p className="text-[#14FFEC] text-sm mb-1">Total Revenue</p>
-                                    <p className="text-white text-xl font-bold">{clubData.stats.totalRevenue}</p>
+                                    <p className="text-white text-xl font-bold">{stats.totalRevenue}</p>
                                 </div>
 
                                 {/* Total Ticket Sold */}
                                 <div className="bg-[#0D1F1F] rounded-[15px] p-4">
                                     <p className="text-[#14FFEC] text-sm mb-1">Total Ticket Sold</p>
-                                    <p className="text-white text-xl font-bold">{clubData.stats.totalTicketSold}</p>
+                                    <p className="text-white text-xl font-bold">{stats.totalTicketSold}</p>
                                 </div>
 
                                 {/* No. of People Attending */}
                                 <div className="bg-[#0D1F1F] rounded-[15px] p-4">
                                     <p className="text-[#14FFEC] text-sm mb-1">No. of People Attending</p>
-                                    <p className="text-white text-xl font-bold">{clubData.stats.peopleAttending}</p>
+                                    <p className="text-white text-xl font-bold">{stats.peopleAttending}</p>
                                 </div>
 
                                 {/* Active Events */}
                                 <div className="bg-[#0D1F1F] rounded-[15px] p-4">
                                     <p className="text-[#14FFEC] text-sm mb-1">Active Events</p>
-                                    <p className="text-white text-xl font-bold">{clubData.stats.activeEvents}</p>
+                                    <p className="text-white text-xl font-bold">{stats.activeEvents}</p>
                                 </div>
                             </div>
                         </div>
@@ -695,62 +697,6 @@ export default function AdminDashboard() {
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="text-center py-8 text-gray-400">
-                                                No upcoming events to display
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-
-                                {/* Fallback for mock data when API is not available */}
-                                {!isLoadingEvents && (!eventList || eventList.content.length === 0) && (
-                                    <>
-                                        {activeTab === 'active' && clubData.events.active.map((event, index) => (
-                                            <div
-                                                key={`active-${index}`}
-                                                onClick={() => handleNavigation('/admin/event-analytics')}
-                                                className="flex items-start justify-between mb-4 cursor-pointer"
-                                            >
-                                                <div className="flex-1">
-                                                    <h4 className="text-lg font-semibold text-[#14FFEC] mb-1">{event.name}</h4>
-                                                    <div className="space-y-1 text-sm">
-                                                        <div className="flex items-center gap-2">
-                                                            <Calendar className="w-4 h-4 text-[#14FFEC]" />
-                                                            <span>{event.date}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#14FFEC]">
-                                                                <path d="m8 3 4 8 5-5 5 15H2L8 3z" />
-                                                            </svg>
-                                                            <span>{event.dj}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <Users className="w-4 h-4 text-[#14FFEC]" />
-                                                            <span>{event.tickets}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <Clock className="w-4 h-4 text-[#14FFEC]" />
-                                                            <span>{event.time}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="w-20 h-28 bg-[#0D1F1F] rounded-md overflow-hidden ml-4 border border-[#14FFEC]/40">
-                                                    <img
-                                                        src="/event list/Rectangle 1.jpg"
-                                                        alt="Event Poster"
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
-
-                                        {activeTab === 'past' && (
-                                            <div className="text-center py-8 text-gray-400">
-                                                No past events to display
-                                            </div>
-                                        )}
-
-                                        {activeTab === 'upcoming' && (
                                             <div className="text-center py-8 text-gray-400">
                                                 No upcoming events to display
                                             </div>

@@ -5,9 +5,12 @@ import { ArrowLeft, Upload, Calendar, Clock, Music, User, Building2, Instagram, 
 import { useState, useRef } from 'react';
 import './styles.css';
 import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
+import { EventService } from '@/lib/services/event.service';
+import { useToast } from '@/hooks/use-toast';
 
 export default function NewEventPage() {
     const router = useRouter();
+    const { toast } = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const posterInputRef = useRef<HTMLInputElement>(null);
     const reelInputRef = useRef<HTMLInputElement>(null);
@@ -71,19 +74,56 @@ export default function NewEventPage() {
         setShowConfirmDialog(true);
     };
 
-    const handleConfirmCreate = () => {
+    const handleConfirmCreate = async () => {
         // Change to creating stage
         setDialogStage('creating');
+        setIsCreating(true);
 
-        // Simulate API call with timeout
-        setTimeout(() => {
-            // Handle event creation logic here
-            console.log('Creating event:', formData);
-            // Close the dialog and navigate
-            setShowConfirmDialog(false);
-            setDialogStage('confirm'); // Reset for next time
-            router.push('/admin/event-preview');
-        }, 2000);
+        try {
+            // Prepare event data for API
+            const eventData = {
+                title: formData.eventName,
+                description: formData.description,
+                startDateTime: `${formData.eventDate}T${formData.eventTime}:00Z`,
+                endDateTime: `${formData.eventDate}T${formData.eventTime}:00Z`, // Add proper end time calculation
+                location: formData.organizer,
+                imageUrl: formData.poster ? URL.createObjectURL(formData.poster) : '',
+                category: formData.musicGenre,
+                performers: formData.artistName ? [{
+                    name: formData.artistName,
+                    bio: formData.aboutArtist,
+                    instagramHandle: formData.instagramHandle,
+                    spotifyHandle: formData.spotifyHandle
+                }] : []
+            };
+
+            // Call the EventService.createEvent API
+            const response = await EventService.createEvent(eventData as any);
+
+            if (response.success && response.data?.id) {
+                toast({
+                    title: 'Event Created Successfully',
+                    description: `Your event "${formData.eventName}" has been created!`,
+                    variant: 'default'
+                });
+
+                // Close the dialog and navigate to event preview
+                setShowConfirmDialog(false);
+                setDialogStage('confirm');
+                router.push(`/admin/event-preview?eventId=${response.data.id}`);
+            } else {
+                throw new Error('Failed to create event');
+            }
+        } catch (error) {
+            console.error('Error creating event:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to create event. Please try again.',
+                variant: 'destructive'
+            });
+            setDialogStage('confirm');
+            setIsCreating(false);
+        }
     };
 
     const handlePreviewEvent = () => {
