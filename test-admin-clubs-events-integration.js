@@ -37,9 +37,9 @@ const makeRequest = async (endpoint, method = 'GET', data = null, label = '') =>
         }
 
         const response = await axios(config);
-        
-        return { 
-            success: true, 
+
+        return {
+            success: true,
             status: response.status,
             statusText: response.statusText,
             data: response.data,
@@ -48,8 +48,8 @@ const makeRequest = async (endpoint, method = 'GET', data = null, label = '') =>
             label
         };
     } catch (error) {
-        return { 
-            success: false, 
+        return {
+            success: false,
             status: error.response?.status || 'ERROR',
             statusText: error.response?.statusText || error.message,
             error: error.response?.data?.message || error.message,
@@ -82,45 +82,45 @@ const runTests = async () => {
     console.log('─'.repeat(88) + '\n');
 
     const clubTests = [
-        { 
-            endpoint: '/clubs', 
-            method: 'GET', 
-            desc: 'Get Authenticated Club Details' 
+        {
+            endpoint: '/clubs',
+            method: 'GET',
+            desc: 'Get Authenticated Club Details'
         },
-        { 
-            endpoint: '/clubs/public', 
-            method: 'GET', 
-            desc: 'Get All Public Clubs (Legacy)' 
+        {
+            endpoint: '/clubs/public',
+            method: 'GET',
+            desc: 'Get All Public Clubs (Legacy)'
         },
-        { 
-            endpoint: '/clubs/search?query=test', 
-            method: 'GET', 
-            desc: 'Search Clubs' 
+        {
+            endpoint: '/clubs/search?query=test',
+            method: 'GET',
+            desc: 'Search Clubs'
         },
-        { 
-            endpoint: '/clubs/list', 
-            method: 'GET', 
-            desc: 'Get Club List (Paginated)' 
+        {
+            endpoint: '/clubs/list',
+            method: 'GET',
+            desc: 'Get Club List (Paginated)'
         },
-        { 
-            endpoint: '/clubs/owned', 
-            method: 'GET', 
-            desc: 'Get User\'s Owned Clubs' 
+        {
+            endpoint: '/clubs/owned',
+            method: 'GET',
+            desc: 'Get User\'s Owned Clubs'
         },
-        { 
-            endpoint: '/clubs/my-clubs', 
-            method: 'GET', 
-            desc: 'Get User\'s Joined Clubs' 
+        {
+            endpoint: '/clubs/my-clubs',
+            method: 'GET',
+            desc: 'Get User\'s Joined Clubs'
         },
-        { 
-            endpoint: '/clubs/690b47de57bb21b58b1fbf27', 
-            method: 'GET', 
-            desc: 'Get Specific Club by ID' 
+        {
+            endpoint: '/clubs/690b47de57bb21b58b1fbf27',
+            method: 'GET',
+            desc: 'Get Specific Club by ID'
         },
         // Create club
-        { 
-            endpoint: '/clubs', 
-            method: 'POST', 
+        {
+            endpoint: '/clubs',
+            method: 'POST',
             data: {
                 name: 'Test Club',
                 description: 'Test club for admin',
@@ -140,9 +140,9 @@ const runTests = async () => {
             desc: 'Create New Club (POST)'
         },
         // Update club
-        { 
-            endpoint: '/clubs/690b47de57bb21b58b1fbf27', 
-            method: 'PUT', 
+        {
+            endpoint: '/clubs/690b47de57bb21b58b1fbf27',
+            method: 'PUT',
             data: {
                 name: 'Updated Test Club',
                 description: 'Updated description',
@@ -162,37 +162,37 @@ const runTests = async () => {
             desc: 'Update Club (PUT /clubs/{id})'
         },
         // Delete club
-        { 
-            endpoint: '/clubs/690b47de57bb21b58b1fbf27', 
-            method: 'DELETE', 
-            desc: 'Delete Club' 
+        {
+            endpoint: '/clubs/690b47de57bb21b58b1fbf27',
+            method: 'DELETE',
+            desc: 'Delete Club'
         },
         // Admin operations
-        { 
-            endpoint: '/clubs/690b47de57bb21b58b1fbf27/suspend', 
-            method: 'POST', 
-            desc: 'Suspend Club (Admin)' 
+        {
+            endpoint: '/clubs/690b47de57bb21b58b1fbf27/suspend',
+            method: 'POST',
+            desc: 'Suspend Club (Admin)'
         },
-        { 
-            endpoint: '/clubs/690b47de57bb21b58b1fbf27/approve', 
-            method: 'POST', 
-            desc: 'Approve Club (Admin)' 
+        {
+            endpoint: '/clubs/690b47de57bb21b58b1fbf27/approve',
+            method: 'POST',
+            desc: 'Approve Club (Admin)'
         },
         // Admin list
-        { 
-            endpoint: '/clubs/admin/all', 
-            method: 'GET', 
-            desc: 'Get All Clubs (Admin)' 
+        {
+            endpoint: '/clubs/admin/all',
+            method: 'GET',
+            desc: 'Get All Clubs (Admin)'
         },
-        { 
-            endpoint: '/clubs/admin/690b47de57bb21b58b1fbf27', 
-            method: 'GET', 
-            desc: 'Get Club Details (Admin)' 
+        {
+            endpoint: '/clubs/admin/690b47de57bb21b58b1fbf27',
+            method: 'GET',
+            desc: 'Get Club Details (Admin)'
         },
-        { 
-            endpoint: '/clubs/admin/690b47de57bb21b58b1fbf27', 
-            method: 'DELETE', 
-            desc: 'Force Delete Club (Super Admin)' 
+        {
+            endpoint: '/clubs/admin/690b47de57bb21b58b1fbf27',
+            method: 'DELETE',
+            desc: 'Force Delete Club (Super Admin)'
         }
     ];
 
@@ -200,7 +200,7 @@ const runTests = async () => {
         const result = await makeRequest(test.endpoint, test.method, test.data, test.desc);
         results.clubs.push(result);
         results.summary.total++;
-        
+
         if (result.success) {
             results.summary.passed++;
             console.log(`✅ ${test.method.padEnd(6)} ${test.endpoint.padEnd(50)} [${result.status}] ${test.desc}`);
@@ -208,7 +208,7 @@ const runTests = async () => {
             results.summary.failed++;
             console.log(`❌ ${test.method.padEnd(6)} ${test.endpoint.padEnd(50)} [${result.status}] ${test.desc}`);
         }
-        
+
         await new Promise(resolve => setTimeout(resolve, 300));
     }
 
@@ -221,50 +221,50 @@ const runTests = async () => {
     console.log('─'.repeat(88) + '\n');
 
     const eventTests = [
-        { 
-            endpoint: '/events/list', 
-            method: 'GET', 
-            desc: 'Get Events List (Paginated)' 
+        {
+            endpoint: '/events/list',
+            method: 'GET',
+            desc: 'Get Events List (Paginated)'
         },
-        { 
-            endpoint: '/events/list?page=0&size=10', 
-            method: 'GET', 
-            desc: 'Get Events with Pagination' 
+        {
+            endpoint: '/events/list?page=0&size=10',
+            method: 'GET',
+            desc: 'Get Events with Pagination'
         },
-        { 
-            endpoint: '/events/690b47de57bb21b58b1fbf28', 
-            method: 'GET', 
-            desc: 'Get Event by ID (Legacy)' 
+        {
+            endpoint: '/events/690b47de57bb21b58b1fbf28',
+            method: 'GET',
+            desc: 'Get Event by ID (Legacy)'
         },
-        { 
-            endpoint: '/events/690b47de57bb21b58b1fbf28/details', 
-            method: 'GET', 
-            desc: 'Get Event Details' 
+        {
+            endpoint: '/events/690b47de57bb21b58b1fbf28/details',
+            method: 'GET',
+            desc: 'Get Event Details'
         },
-        { 
-            endpoint: '/events/my-registrations', 
-            method: 'GET', 
-            desc: 'Get User\'s Registered Events' 
+        {
+            endpoint: '/events/my-registrations',
+            method: 'GET',
+            desc: 'Get User\'s Registered Events'
         },
-        { 
-            endpoint: '/events/my-organized-events', 
-            method: 'GET', 
-            desc: 'Get User\'s Organized Events' 
+        {
+            endpoint: '/events/my-organized-events',
+            method: 'GET',
+            desc: 'Get User\'s Organized Events'
         },
-        { 
-            endpoint: '/events/attending', 
-            method: 'GET', 
-            desc: 'Get User\'s Attending Events' 
+        {
+            endpoint: '/events/attending',
+            method: 'GET',
+            desc: 'Get User\'s Attending Events'
         },
-        { 
-            endpoint: '/events/club/690b47de57bb21b58b1fbf27', 
-            method: 'GET', 
-            desc: 'Get Events by Club' 
+        {
+            endpoint: '/events/club/690b47de57bb21b58b1fbf27',
+            method: 'GET',
+            desc: 'Get Events by Club'
         },
         // Create event
-        { 
-            endpoint: '/events', 
-            method: 'POST', 
+        {
+            endpoint: '/events',
+            method: 'POST',
             data: {
                 title: 'Test Event',
                 description: 'Test event description',
@@ -279,9 +279,9 @@ const runTests = async () => {
             desc: 'Create New Event (POST /events)'
         },
         // Update event
-        { 
-            endpoint: '/events/690b47de57bb21b58b1fbf28', 
-            method: 'PUT', 
+        {
+            endpoint: '/events/690b47de57bb21b58b1fbf28',
+            method: 'PUT',
             data: {
                 title: 'Updated Test Event',
                 description: 'Updated event description',
@@ -293,37 +293,37 @@ const runTests = async () => {
             desc: 'Update Event (PUT /events/{id})'
         },
         // Delete event
-        { 
-            endpoint: '/events/690b47de57bb21b58b1fbf28', 
-            method: 'DELETE', 
-            desc: 'Delete Event' 
+        {
+            endpoint: '/events/690b47de57bb21b58b1fbf28',
+            method: 'DELETE',
+            desc: 'Delete Event'
         },
         // Event attendance
-        { 
-            endpoint: '/events/690b47de57bb21b58b1fbf28/attend', 
-            method: 'POST', 
-            desc: 'Attend/Register for Event' 
+        {
+            endpoint: '/events/690b47de57bb21b58b1fbf28/attend',
+            method: 'POST',
+            desc: 'Attend/Register for Event'
         },
-        { 
-            endpoint: '/events/690b47de57bb21b58b1fbf28/leave', 
-            method: 'POST', 
-            desc: 'Leave/Unregister from Event' 
+        {
+            endpoint: '/events/690b47de57bb21b58b1fbf28/leave',
+            method: 'POST',
+            desc: 'Leave/Unregister from Event'
         },
         // Admin operations
-        { 
-            endpoint: '/admin/events', 
-            method: 'GET', 
-            desc: 'Get All Events (Admin)' 
+        {
+            endpoint: '/admin/events',
+            method: 'GET',
+            desc: 'Get All Events (Admin)'
         },
-        { 
-            endpoint: '/admin/events/690b47de57bb21b58b1fbf28', 
-            method: 'GET', 
-            desc: 'Get Event Details (Admin)' 
+        {
+            endpoint: '/admin/events/690b47de57bb21b58b1fbf28',
+            method: 'GET',
+            desc: 'Get Event Details (Admin)'
         },
-        { 
-            endpoint: '/admin/events/690b47de57bb21b58b1fbf28', 
-            method: 'DELETE', 
-            desc: 'Force Delete Event (Super Admin)' 
+        {
+            endpoint: '/admin/events/690b47de57bb21b58b1fbf28',
+            method: 'DELETE',
+            desc: 'Force Delete Event (Super Admin)'
         }
     ];
 
@@ -331,7 +331,7 @@ const runTests = async () => {
         const result = await makeRequest(test.endpoint, test.method, test.data, test.desc);
         results.events.push(result);
         results.summary.total++;
-        
+
         if (result.success) {
             results.summary.passed++;
             console.log(`✅ ${test.method.padEnd(6)} ${test.endpoint.padEnd(50)} [${result.status}] ${test.desc}`);
@@ -339,7 +339,7 @@ const runTests = async () => {
             results.summary.failed++;
             console.log(`❌ ${test.method.padEnd(6)} ${test.endpoint.padEnd(50)} [${result.status}] ${test.desc}`);
         }
-        
+
         await new Promise(resolve => setTimeout(resolve, 300));
     }
 
@@ -348,7 +348,7 @@ const runTests = async () => {
     // ============================================================================
     console.log('\n' + '═'.repeat(88));
     console.log('📊 INTEGRATION TEST SUMMARY\n');
-    
+
     console.log(`Total Tests: ${results.summary.total}`);
     console.log(`✅ Passed: ${results.summary.passed}`);
     console.log(`❌ Failed: ${results.summary.failed}`);
@@ -421,7 +421,7 @@ const runTests = async () => {
     } else {
         const failureRate = ((results.summary.failed / results.summary.total) * 100).toFixed(1);
         console.log(`⚠️  ${results.summary.failed} endpoints failing (${failureRate}%)\n`);
-        
+
         console.log('Issues by Status Code:');
         const statusCodes = {};
         [...results.clubs, ...results.events].forEach(r => {
@@ -429,7 +429,7 @@ const runTests = async () => {
                 statusCodes[r.status] = (statusCodes[r.status] || 0) + 1;
             }
         });
-        
+
         Object.entries(statusCodes).forEach(([status, count]) => {
             console.log(`   • ${status}: ${count} endpoint(s)`);
         });

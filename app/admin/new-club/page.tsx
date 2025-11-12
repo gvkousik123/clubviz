@@ -13,6 +13,9 @@ export default function NewClubPage() {
     const { toast } = useToast();
     const logoInputRef = useRef<HTMLInputElement>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [adminDetails, setAdminDetails] = useState({ email: '', phone: '' });
+    const [selectedLocation, setSelectedLocation] = useState({ lat: 0, lng: 0, city: '', state: '', pincode: '' });
+
     const [formData, setFormData] = useState({
         clubName: '',
         location: '',
@@ -26,7 +29,7 @@ export default function NewClubPage() {
     const ambienceRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
     const menuRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
-    // Fetch lookup data on component mount
+    // Fetch lookup data and admin details on component mount
     useEffect(() => {
         const fetchLookupData = async () => {
             try {
@@ -53,7 +56,52 @@ export default function NewClubPage() {
             }
         };
 
+        // Load admin details from localStorage
+        const loadAdminDetails = () => {
+            try {
+                const userData = localStorage.getItem('clubviz-user');
+                if (userData) {
+                    const user = JSON.parse(userData);
+                    setAdminDetails({
+                        email: user.email || 'admin@example.com',
+                        phone: user.phoneNumber || user.mobileNumber || '+91-9876543210'
+                    });
+                    console.log('📱 Loaded Admin Details:', { email: user.email, phone: user.phoneNumber || user.mobileNumber });
+                }
+            } catch (error) {
+                console.error('Failed to load admin details:', error);
+            }
+        };
+
+        // Load selected location from localStorage
+        const loadSelectedLocation = () => {
+            try {
+                const locationData = localStorage.getItem('clubviz-selected-location');
+                if (locationData) {
+                    const location = JSON.parse(locationData);
+                    setSelectedLocation(location);
+                    console.log('📍 Loaded Selected Location:', location);
+                }
+            } catch (error) {
+                console.error('Failed to load location:', error);
+            }
+        };
+
         fetchLookupData();
+        loadAdminDetails();
+        loadSelectedLocation();
+
+        // Listen for location updates from the location page
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'clubviz-selected-location' && e.newValue) {
+                const location = JSON.parse(e.newValue);
+                setSelectedLocation(location);
+                console.log('📍 Location Updated:', location);
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
     }, [toast]);
 
     // Helper function to get club tags from lookup data
@@ -119,44 +167,53 @@ export default function NewClubPage() {
 
         setIsSubmitting(true);
         try {
-            // Create minimal club data - only name is required as per API
-            const clubData = {
+            // Build club data with ONLY entered values - NO dummy data
+            const clubData: any = {
                 name: formData.clubName.trim(),
-                description: formData.clubName.trim(), // Use name as description if not provided
-                logo: 'https://via.placeholder.com/150', // Placeholder logo
-                category: 'Nightclub', // Default category
-                maxMembers: 500, // Default max members
-                contactEmail: 'club@example.com', // Placeholder
-                contactPhone: '9876543210', // Placeholder
-                images: [],
-                locationText: {
-                    city: 'Mumbai',
-                    state: 'MH',
-                    pincode: '400001'
-                },
-                locationMap: {
-                    lat: 19.0760,
-                    lng: 72.8777
-                },
-                foodCuisines: [],
-                facilities: [],
-                music: [],
-                barOptions: [],
-                entryPricing: {}
             };
 
-            console.log('Creating club with data:', clubData);
+            // Add optional fields only if they have values
+            if (formData.logo) {
+                // TODO: Upload logo and get URL
+                clubData.logo = 'https://via.placeholder.com/150';
+            }
+
+            if (selectedLocation.lat && selectedLocation.lng) {
+                clubData.locationMap = {
+                    lat: selectedLocation.lat,
+                    lng: selectedLocation.lng
+                };
+            }
+
+            if (selectedLocation.city || selectedLocation.state || selectedLocation.pincode) {
+                clubData.locationText = {
+                    city: selectedLocation.city || '',
+                    state: selectedLocation.state || '',
+                    pincode: selectedLocation.pincode || ''
+                };
+            }
+
+            if (adminDetails.email) {
+                clubData.contactEmail = adminDetails.email;
+            }
+
+            if (adminDetails.phone) {
+                clubData.contactPhone = adminDetails.phone;
+            }
+
+            console.log('🚀 Creating club with data:', JSON.stringify(clubData, null, 2));
+            console.log('📡 API Call: POST /clubs with payload:', clubData);
 
             // Call the service to create the club
-            const response = await ClubService.createClub(clubData);
+            const response = await ClubService.createClub(clubData as any);
+
+            console.log('✅ Club created successfully:', response);
 
             toast({
                 title: "Success",
                 description: `Club "${formData.clubName}" created successfully!`,
                 variant: "default",
             });
-
-            console.log('Club created:', response);
 
             // Redirect to admin panel after short delay
             setTimeout(() => {
@@ -165,7 +222,7 @@ export default function NewClubPage() {
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to create club';
-            console.error('Club creation error:', error);
+            console.error('❌ Club creation error:', error);
 
             toast({
                 title: "Error",
@@ -223,7 +280,9 @@ export default function NewClubPage() {
                     {/* Club Name */}
                     <div className="w-full flex flex-col gap-[11px]">
                         <div className="px-5">
-                            <label className="text-[#14FFEC] font-semibold text-base">Club Name</label>
+                            <label className="text-[#14FFEC] font-semibold text-base">
+                                Club Name <span className="text-red-500 text-lg">*</span>
+                            </label>
                         </div>
                         <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
                             <input
@@ -336,7 +395,11 @@ export default function NewClubPage() {
                             onClick={() => handleNavigate('/location')}
                             className="w-full h-[55px] bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5 flex items-center justify-between cursor-pointer"
                         >
-                            <span className="text-white text-base font-semibold">Add Location</span>
+                            <span className="text-white text-base font-semibold">
+                                {selectedLocation.city && selectedLocation.state
+                                    ? `${selectedLocation.city}, ${selectedLocation.state}${selectedLocation.pincode ? ' - ' + selectedLocation.pincode : ''}`
+                                    : 'Add Location'}
+                            </span>
                             <ChevronRight className="text-[#14FFEC]" size={18} />
                         </div>
                     </div>
