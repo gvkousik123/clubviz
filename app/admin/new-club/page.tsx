@@ -167,39 +167,39 @@ export default function NewClubPage() {
 
         setIsSubmitting(true);
         try {
-            // Build club data with ONLY entered values - NO dummy data
+            // Build club data with ALL required fields from API spec
             const clubData: any = {
                 name: formData.clubName.trim(),
-            };
-
-            // Add optional fields only if they have values
-            if (formData.logo) {
-                // TODO: Upload logo and get URL
-                clubData.logo = 'https://via.placeholder.com/150';
-            }
-
-            if (selectedLocation.lat && selectedLocation.lng) {
-                clubData.locationMap = {
-                    lat: selectedLocation.lat,
-                    lng: selectedLocation.lng
-                };
-            }
-
-            if (selectedLocation.city || selectedLocation.state || selectedLocation.pincode) {
-                clubData.locationText = {
+                description: 'Club Description', // TODO: Add description field to form
+                logo: formData.logo ? 'https://via.placeholder.com/150' : 'https://via.placeholder.com/150',
+                category: 'Nightclub', // TODO: Add category selector to form
+                maxMembers: 500, // TODO: Add maxMembers field to form
+                contactEmail: adminDetails.email || '',
+                contactPhone: adminDetails.phone || '',
+                images: [], // TODO: Add image upload for food/drinks, ambience, menu
+                locationText: {
                     city: selectedLocation.city || '',
                     state: selectedLocation.state || '',
-                    pincode: selectedLocation.pincode || ''
-                };
-            }
-
-            if (adminDetails.email) {
-                clubData.contactEmail = adminDetails.email;
-            }
-
-            if (adminDetails.phone) {
-                clubData.contactPhone = adminDetails.phone;
-            }
+                    pincode: selectedLocation.pincode || '',
+                    address1: '',
+                    address2: ''
+                },
+                locationMap: {
+                    lat: selectedLocation.lat || 0,
+                    lng: selectedLocation.lng || 0
+                },
+                foodCuisines: [], // TODO: Add cuisine selection to form
+                facilities: [], // TODO: Add facilities checklist to form
+                music: [], // TODO: Add music genres to form
+                barOptions: [], // TODO: Add bar options to form
+                entryPricing: {
+                    coupleEntryPrice: 0,
+                    groupEntryPrice: 0,
+                    maleStagEntryPrice: 0,
+                    femaleStagEntryPrice: 0,
+                    coverCharge: 0
+                }
+            };
 
             console.log('🚀 Creating club with data:', JSON.stringify(clubData, null, 2));
             console.log('📡 API Call: POST /clubs with payload:', clubData);
