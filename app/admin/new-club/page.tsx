@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, MapPin, ChevronRight, Plus } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { LookupService, AllLookupData } from '@/lib/services/lookup.service';
+import { ClubService } from '@/lib/services/club.service';
 import { useToast } from '@/hooks/use-toast';
 import '../new-event/styles.css';
 
@@ -11,6 +12,7 @@ export default function NewClubPage() {
     const router = useRouter();
     const { toast } = useToast();
     const logoInputRef = useRef<HTMLInputElement>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         clubName: '',
         location: '',
@@ -101,6 +103,77 @@ export default function NewClubPage() {
             router.push('/admin/add-location');
         } else {
             console.log(`Navigating to ${path}`);
+        }
+    };
+
+    const handleCreateClub = async () => {
+        // Validate required fields
+        if (!formData.clubName.trim()) {
+            toast({
+                title: "Error",
+                description: "Club name is required",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            // Create minimal club data - only name is required as per API
+            const clubData = {
+                name: formData.clubName.trim(),
+                description: formData.clubName.trim(), // Use name as description if not provided
+                logo: 'https://via.placeholder.com/150', // Placeholder logo
+                category: 'Nightclub', // Default category
+                maxMembers: 500, // Default max members
+                contactEmail: 'club@example.com', // Placeholder
+                contactPhone: '9876543210', // Placeholder
+                images: [],
+                locationText: {
+                    city: 'Mumbai',
+                    state: 'MH',
+                    pincode: '400001'
+                },
+                locationMap: {
+                    lat: 19.0760,
+                    lng: 72.8777
+                },
+                foodCuisines: [],
+                facilities: [],
+                music: [],
+                barOptions: [],
+                entryPricing: {}
+            };
+
+            console.log('Creating club with data:', clubData);
+
+            // Call the service to create the club
+            const response = await ClubService.createClub(clubData);
+
+            toast({
+                title: "Success",
+                description: `Club "${formData.clubName}" created successfully!`,
+                variant: "default",
+            });
+
+            console.log('Club created:', response);
+
+            // Redirect to admin panel after short delay
+            setTimeout(() => {
+                router.push('/admin');
+            }, 1000);
+
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to create club';
+            console.error('Club creation error:', error);
+
+            toast({
+                title: "Error",
+                description: errorMessage || 'Failed to create club. Please try again.',
+                variant: "destructive",
+            });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -300,12 +373,14 @@ export default function NewClubPage() {
             <div className="fixed bottom-0 left-0 right-0 z-50">
                 <div className="w-full h-[80px] relative bg-[#0D1F1F] shadow-[0px_30px_30px_-40px_#00968A_inset] overflow-hidden rounded-t-[40px] border-t-2 border-[#14FFEC]">
                     <div className="flex justify-center items-center px-8 h-full">
-                        <div className="w-[220px] h-[45px] bg-[#0F6861] rounded-[30px] flex justify-center items-center">
+                        <div className="w-[220px] h-[45px] bg-[#0F6861] rounded-[30px] flex justify-center items-center hover:bg-[#0D5451] transition-colors disabled:opacity-50">
                             <button
-                                className="w-full h-full flex justify-center items-center cursor-pointer"
+                                onClick={handleCreateClub}
+                                disabled={isSubmitting || !formData.clubName.trim()}
+                                className="w-full h-full flex justify-center items-center cursor-pointer disabled:cursor-not-allowed"
                             >
                                 <span className="text-center text-white text-[16px] font-['Manrope'] font-bold tracking-[0.05px]">
-                                    Save & Create Club
+                                    {isSubmitting ? 'Creating...' : 'Save & Create Club'}
                                 </span>
                             </button>
                         </div>
