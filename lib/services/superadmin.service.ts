@@ -58,9 +58,11 @@ export class SuperAdminService {
    */
   static async getAdminStats(): Promise<AdminStats> {
     try {
-      const response = await api.get<ApiResponse<AdminStats>>('/admin/stats');
+      const response = await api.get<ApiResponse<AdminStats> | AdminStats>('/admin/stats');
       const result = handleApiResponse(response);
-      return result.data;
+      // Handle both wrapped and unwrapped responses
+      const data = (result as any).data || result;
+      return data as AdminStats;
     } catch (error) {
       const errorMessage = handleApiError(error);
       throw new Error(errorMessage);
@@ -85,18 +87,21 @@ export class SuperAdminService {
     };
   }> {
     try {
-      const response = await api.get<ApiResponse<SuperAdminUser[]>>('/admin/users', {
+      const response = await api.get<ApiResponse<SuperAdminUser[]> | SuperAdminUser[]>('/admin/users', {
         params: { page, size }
       });
       const result = handleApiResponse(response);
-      
+
+      // Handle both wrapped and unwrapped responses
+      const usersData = Array.isArray(result) ? result : (result as any).data || [];
+
       return {
-        users: result.data,
+        users: usersData,
         pagination: {
-          total: result.pagination?.total || result.data.length,
-          page: result.pagination?.page || page,
-          size: result.pagination?.limit || size,
-          totalPages: result.pagination?.totalPages || Math.ceil(result.data.length / size)
+          total: (result as any).pagination?.total || usersData.length,
+          page: (result as any).pagination?.page || page,
+          size: (result as any).pagination?.limit || size,
+          totalPages: (result as any).pagination?.totalPages || Math.ceil(usersData.length / size)
         }
       };
     } catch (error) {
@@ -111,9 +116,11 @@ export class SuperAdminService {
    */
   static async getUserByUsername(username: string): Promise<SuperAdminUser> {
     try {
-      const response = await api.get<ApiResponse<SuperAdminUser>>(`/admin/users/${username}`);
+      const response = await api.get<ApiResponse<SuperAdminUser> | SuperAdminUser>(`/admin/users/${username}`);
       const result = handleApiResponse(response);
-      return result.data;
+      // Handle both wrapped and unwrapped responses
+      const data = (result as any).data || result;
+      return data as SuperAdminUser;
     } catch (error) {
       const errorMessage = handleApiError(error);
       throw new Error(errorMessage);
@@ -126,9 +133,11 @@ export class SuperAdminService {
    */
   static async deleteUser(username: string): Promise<{ message: string }> {
     try {
-      const response = await api.delete<ApiResponse<{ message: string }>>(`/admin/users/${username}`);
+      const response = await api.delete<ApiResponse<{ message: string }> | { message: string }>(`/admin/users/${username}`);
       const result = handleApiResponse(response);
-      return result.data;
+      // Handle both wrapped and unwrapped responses
+      const data = (result as any).data || result;
+      return data as { message: string };
     } catch (error) {
       const errorMessage = handleApiError(error);
       throw new Error(errorMessage);
@@ -145,11 +154,13 @@ export class SuperAdminService {
    */
   static async activateUser(username: string): Promise<{ message: string }> {
     try {
-      const response = await api.post<ApiResponse<{ message: string }>>(
+      const response = await api.post<ApiResponse<{ message: string }> | { message: string }>(
         `/admin/users/${username}/activate`
       );
       const result = handleApiResponse(response);
-      return result.data;
+      // Handle both wrapped and unwrapped responses
+      const data = (result as any).data || result;
+      return data as { message: string };
     } catch (error) {
       const errorMessage = handleApiError(error);
       throw new Error(errorMessage);
@@ -162,11 +173,13 @@ export class SuperAdminService {
    */
   static async deactivateUser(username: string): Promise<{ message: string }> {
     try {
-      const response = await api.post<ApiResponse<{ message: string }>>(
+      const response = await api.post<ApiResponse<{ message: string }> | { message: string }>(
         `/admin/users/${username}/deactivate`
       );
       const result = handleApiResponse(response);
-      return result.data;
+      // Handle both wrapped and unwrapped responses
+      const data = (result as any).data || result;
+      return data as { message: string };
     } catch (error) {
       const errorMessage = handleApiError(error);
       throw new Error(errorMessage);
@@ -183,9 +196,11 @@ export class SuperAdminService {
    */
   static async getUserRoles(username: string): Promise<string[]> {
     try {
-      const response = await api.get<ApiResponse<string[]>>(`/admin/users/${username}/roles`);
+      const response = await api.get<ApiResponse<string[]> | string[]>(`/admin/users/${username}/roles`);
       const result = handleApiResponse(response);
-      return result.data;
+      // Handle both wrapped and unwrapped responses
+      const data = Array.isArray(result) ? result : (result as any).data || [];
+      return data as string[];
     } catch (error) {
       const errorMessage = handleApiError(error);
       throw new Error(errorMessage);
@@ -198,11 +213,13 @@ export class SuperAdminService {
    */
   static async addRoleToUser(username: string, role: string): Promise<{ message: string }> {
     try {
-      const response = await api.post<ApiResponse<{ message: string }>>(
+      const response = await api.post<ApiResponse<{ message: string }> | { message: string }>(
         `/admin/users/${username}/roles/${role}`
       );
       const result = handleApiResponse(response);
-      return result.data;
+      // Handle both wrapped and unwrapped responses
+      const data = (result as any).data || result;
+      return data as { message: string };
     } catch (error) {
       const errorMessage = handleApiError(error);
       throw new Error(errorMessage);
@@ -215,11 +232,13 @@ export class SuperAdminService {
    */
   static async removeRoleFromUser(username: string, role: string): Promise<{ message: string }> {
     try {
-      const response = await api.delete<ApiResponse<{ message: string }>>(
+      const response = await api.delete<ApiResponse<{ message: string }> | { message: string }>(
         `/admin/users/${username}/roles/${role}`
       );
       const result = handleApiResponse(response);
-      return result.data;
+      // Handle both wrapped and unwrapped responses
+      const data = (result as any).data || result;
+      return data as { message: string };
     } catch (error) {
       const errorMessage = handleApiError(error);
       throw new Error(errorMessage);
@@ -233,7 +252,7 @@ export class SuperAdminService {
   /**
    * Bulk activate users
    */
-  static async bulkActivateUsers(usernames: string[]): Promise<{ 
+  static async bulkActivateUsers(usernames: string[]): Promise<{
     successful: string[];
     failed: { username: string; error: string }[];
   }> {
@@ -260,7 +279,7 @@ export class SuperAdminService {
   /**
    * Bulk deactivate users
    */
-  static async bulkDeactivateUsers(usernames: string[]): Promise<{ 
+  static async bulkDeactivateUsers(usernames: string[]): Promise<{
     successful: string[];
     failed: { username: string; error: string }[];
   }> {
@@ -287,7 +306,7 @@ export class SuperAdminService {
   /**
    * Bulk delete users
    */
-  static async bulkDeleteUsers(usernames: string[]): Promise<{ 
+  static async bulkDeleteUsers(usernames: string[]): Promise<{
     successful: string[];
     failed: { username: string; error: string }[];
   }> {
@@ -321,12 +340,14 @@ export class SuperAdminService {
    */
   static async addRole(username: string, role: 'USER' | 'ADMIN' | 'SUPERADMIN'): Promise<{ message: string }> {
     try {
-      const response = await api.post<ApiResponse<{ message: string }>>(
+      const response = await api.post<ApiResponse<{ message: string }> | { message: string }>(
         `/admin/users/${username}/roles/${role}`,
         { username, role }
       );
       const result = handleApiResponse(response);
-      return result.data;
+      // Handle both wrapped and unwrapped responses
+      const data = (result as any).data || result;
+      return data as { message: string };
     } catch (error) {
       const errorMessage = handleApiError(error);
       throw new Error(errorMessage);
@@ -339,12 +360,14 @@ export class SuperAdminService {
    */
   static async removeRole(username: string, role: 'USER' | 'ADMIN' | 'SUPERADMIN'): Promise<{ message: string }> {
     try {
-      const response = await api.post<ApiResponse<{ message: string }>>(
+      const response = await api.post<ApiResponse<{ message: string }> | { message: string }>(
         `/auth/roles/${username}/remove/${role}`,
         { username, role }
       );
       const result = handleApiResponse(response);
-      return result.data;
+      // Handle both wrapped and unwrapped responses
+      const data = (result as any).data || result;
+      return data as { message: string };
     } catch (error) {
       const errorMessage = handleApiError(error);
       throw new Error(errorMessage);
@@ -357,16 +380,18 @@ export class SuperAdminService {
    */
   static async addRoleToUserAlt(username: string, role: 'USER' | 'ADMIN' | 'SUPERADMIN'): Promise<{ message: string }> {
     try {
-      const response = await api.post<ApiResponse<{ message: string }>>(
+      const response = await api.post<ApiResponse<{ message: string }> | { message: string }>(
         `/auth/roles/${username}/add/${role}`,
         { username, role }
       );
       const result = handleApiResponse(response);
-      return result.data;
+      // Handle both wrapped and unwrapped responses
+      const data = (result as any).data || result;
+      return data as { message: string };
     } catch (error) {
       const errorMessage = handleApiError(error);
       throw new Error(errorMessage);
-    }  
+    }
   }
 
   // ============================================================================
