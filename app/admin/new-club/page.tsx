@@ -167,41 +167,40 @@ export default function NewClubPage() {
 
         setIsSubmitting(true);
         try {
-            // Build club data with ALL required fields from API spec
+            // Per Swagger: "you can create club with just base info"
+            // ONLY name is required - everything else is optional
             const clubData: any = {
-                name: formData.clubName.trim(),
-                description: 'Club Description', // TODO: Add description field to form
-                logo: formData.logo ? 'https://via.placeholder.com/150' : 'https://via.placeholder.com/150',
-                category: 'Nightclub', // TODO: Add category selector to form
-                maxMembers: 500, // TODO: Add maxMembers field to form
-                contactEmail: adminDetails.email || '',
-                contactPhone: adminDetails.phone || '',
-                images: [], // TODO: Add image upload for food/drinks, ambience, menu
-                locationText: {
-                    city: selectedLocation.city || '',
-                    state: selectedLocation.state || '',
-                    pincode: selectedLocation.pincode || '',
-                    address1: '',
-                    address2: ''
-                },
-                locationMap: {
-                    lat: selectedLocation.lat || 0,
-                    lng: selectedLocation.lng || 0
-                },
-                foodCuisines: [], // TODO: Add cuisine selection to form
-                facilities: [], // TODO: Add facilities checklist to form
-                music: [], // TODO: Add music genres to form
-                barOptions: [], // TODO: Add bar options to form
-                entryPricing: {
-                    coupleEntryPrice: 0,
-                    groupEntryPrice: 0,
-                    maleStagEntryPrice: 0,
-                    femaleStagEntryPrice: 0,
-                    coverCharge: 0
-                }
+                name: formData.clubName.trim()
             };
 
-            console.log('🚀 Creating club with data:', JSON.stringify(clubData, null, 2));
+            // Add optional fields ONLY if they have real values (not defaults/placeholders)
+            if (adminDetails.email && adminDetails.email !== 'admin@example.com') {
+                clubData.contactEmail = adminDetails.email;
+            }
+
+            if (adminDetails.phone && adminDetails.phone !== '+91-9876543210') {
+                clubData.contactPhone = adminDetails.phone;
+            }
+
+            // Only add location if user actually selected one (has both lat/lng AND city/state)
+            if (selectedLocation.lat && selectedLocation.lng && selectedLocation.city && selectedLocation.state) {
+                clubData.locationText = {
+                    city: selectedLocation.city,
+                    state: selectedLocation.state,
+                    pincode: selectedLocation.pincode || ''
+                };
+                clubData.locationMap = {
+                    lat: selectedLocation.lat,
+                    lng: selectedLocation.lng
+                };
+            }
+
+            // Only add logo if actually uploaded
+            if (formData.logo) {
+                clubData.logo = 'https://via.placeholder.com/150';
+            }
+
+            console.log('🚀 Creating club with MINIMAL required payload:', JSON.stringify(clubData, null, 2));
             console.log('📡 API Call: POST /clubs with payload:', clubData);
 
             // Call the service to create the club
