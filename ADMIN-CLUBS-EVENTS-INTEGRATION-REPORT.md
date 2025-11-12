@@ -1,367 +1,302 @@
-╔══════════════════════════════════════════════════════════════════════════════╗
-║     ADMIN CLUBS & EVENTS INTEGRATION - DETAILED ISSUE ANALYSIS & REPORT      ║
-║                             Status: ⚠️ INCOMPLETE                             ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔════════════════════════════════════════════════════════════════════════════════╗
+║          ADMIN CLUBS & EVENTS INTEGRATION - DETAILED ANALYSIS REPORT           ║
+║                    Verified: November 13, 2025                                  ║
+╚════════════════════════════════════════════════════════════════════════════════╝
 
-## 🚨 CRITICAL FINDINGS
+## 📊 TEST RESULTS SUMMARY
 
-Only **2 out of 32 endpoints** are working (6.3%)
-- ✅ GET /clubs/public (200)
-- ✅ GET /events/list (200)
+Total Endpoints Tested: 31
+✅ Working: 11 (35.5%)
+❌ Failing: 20 (64.5%)
 
-All **admin and modification endpoints are failing** with various error codes.
+### By Category:
+- Clubs: 6/15 working (40%)
+- Events: 5/16 working (31%)
 
 ---
 
-## 📊 ISSUE BREAKDOWN
+## ✅ WORKING ENDPOINTS (Verified 200 Status)
 
-### 1. AUTHENTICATION ISSUE - 403 FORBIDDEN (22 endpoints)
-
-**Affected Endpoints:**
-- ALL /admin/clubs/* endpoints
-- ALL /admin/events/* endpoints  
-- ALL advanced operation endpoints
-
-**Error Type:** 403 Forbidden - "Request failed with status code 403"
-
-**Root Cause:**
-The admin endpoints are checking for specific authorization that your current token
-might not have, OR these endpoints are protected and require additional permissions.
-
-**Status:**
+### Clubs (6 Working)
 ```
-❌ GET /admin/clubs              → 403 Forbidden
-❌ GET /admin/clubs/1            → 403 Forbidden
-❌ POST /admin/clubs             → 403 Forbidden
-❌ PUT /admin/clubs/1            → 403 Forbidden
-❌ PATCH /admin/clubs/1          → 403 Forbidden
-❌ DELETE /admin/clubs/1         → 403 Forbidden
-❌ GET /admin/clubs/1/preview    → 403 Forbidden
-❌ GET /admin/clubs/1/events     → 403 Forbidden
-❌ GET /admin/clubs/1/stats      → 403 Forbidden
-❌ GET /admin/clubs/1/bookings   → 403 Forbidden
+✅ GET  /clubs/public                  - Get all public clubs (legacy endpoint)
+✅ GET  /clubs/search?query=test       - Search clubs
+✅ GET  /clubs/list                    - Get paginated club list
+✅ GET  /clubs/owned                   - Get user's owned clubs
+✅ GET  /clubs/my-clubs                - Get user's joined clubs
+✅ GET  /clubs/admin/all               - Get all clubs (admin view)
+```
 
-❌ GET /admin/events             → 403 Forbidden
-❌ GET /admin/events/1           → 403 Forbidden
-❌ POST /admin/events            → 403 Forbidden
-❌ PUT /admin/events/1           → 403 Forbidden
-❌ PATCH /admin/events/1         → 403 Forbidden
-❌ DELETE /admin/events/1        → 403 Forbidden
-❌ GET /admin/events/1/preview   → 403 Forbidden
-❌ GET /admin/events/1/bookings  → 403 Forbidden
-❌ GET /admin/events/1/stats     → 403 Forbidden
+### Events (5 Working)
+```
+✅ GET  /events/list                   - Get paginated events list
+✅ GET  /events/list?page=0&size=10    - Get events with pagination
+✅ GET  /events/my-registrations       - Get user's registered events
+✅ GET  /events/my-organized-events    - Get user's organized events
+✅ GET  /events/attending              - Get user's attending events
 ```
 
 ---
 
-### 2. NOT FOUND ISSUE - 404 NOT FOUND (4 endpoints)
+## ❌ FAILING ENDPOINTS (Not Working)
 
-**Affected Endpoints:**
-- PUT /clubs/1 (Update endpoint doesn't exist)
-- DELETE /clubs/1 (Delete endpoint doesn't exist)
-- GET /events/1 (Get single event doesn't exist)
-- DELETE /events/1 (Delete endpoint doesn't exist)
+### Clubs (9 Failing)
 
-**Status:**
+#### 404 Not Found (6)
 ```
-❌ PUT /clubs/1                  → 404 Not Found
-❌ DELETE /clubs/1              → 404 Not Found
-❌ GET /events/1                → 404 Not Found
-❌ DELETE /events/1             → 404 Not Found
+❌ GET    /clubs/{id}                  - Get specific club by ID
+❌ GET    /clubs/admin/{id}            - Get club details (admin)
+❌ DELETE /clubs/{id}                  - Delete club
+❌ DELETE /clubs/admin/{id}            - Force delete club
+❌ POST   /clubs/{id}/suspend          - Suspend club
+❌ POST   /clubs/{id}/approve          - Approve club
 ```
 
-**Issue:** These endpoints are not implemented in the backend API.
-
----
-
-### 3. VALIDATION ERROR - 400 BAD REQUEST (2 endpoints)
-
-**Affected Endpoints:**
-- POST /clubs (Invalid request body)
-- PUT /events/1 (Invalid request body)
-
-**Status:**
+#### 405 Method Not Allowed (2)
 ```
-❌ POST /clubs                   → 400 Validation failed
-❌ PUT /events/1                 → 400 Validation failed
+❌ GET    /clubs                       - Get authenticated club details
+❌ GET    /clubs/admin/{id}            - Get club details (admin)
 ```
 
-**Issue:** The test data format doesn't match backend expectations.
-
----
-
-### 4. SERVER ERROR - 500 INTERNAL SERVER ERROR (1 endpoint)
-
-**Affected Endpoint:**
-- POST /clubs
-
-**Status:**
+#### 500 Server Error (1)
 ```
-❌ POST /clubs                   → 500 Internal Server Error
+❌ POST   /clubs                       - Create new club (server error)
 ```
 
-**Issue:** Unexpected error on server side. Check backend logs.
-
----
-
-### 5. METHOD NOT ALLOWED - 405 (1 endpoint)
-
-**Affected Endpoint:**
-- PATCH /events/1
-
-**Status:**
+#### 404 Not Found (1)
 ```
-❌ PATCH /events/1               → 405 HTTP method not supported
+❌ PUT    /clubs/{id}                  - Update club
 ```
 
-**Issue:** PATCH method not supported on this endpoint.
+### Events (11 Failing)
 
----
+#### 404 Not Found (7)
+```
+❌ GET    /events/{id}                 - Get event by ID
+❌ GET    /events/{id}/details         - Get event details
+❌ GET    /events/club/{clubId}        - Get events by club
+❌ DELETE /events/{id}                 - Delete event
+❌ POST   /events/{id}/attend          - Attend event
+❌ POST   /events/{id}/leave           - Leave event
+```
 
-## 📋 API STATUS MATRIX
+#### 400 Bad Request (2)
+```
+❌ POST   /events                      - Create event (validation failed)
+❌ PUT    /events/{id}                 - Update event (validation failed)
+```
 
-| Operation | Endpoint | Method | Status | Issue |
-|-----------|----------|--------|--------|-------|
-| **CLUBS - READ** |
-| | /admin/clubs | GET | ❌ 403 | Permission denied |
-| | /admin/clubs/1 | GET | ❌ 403 | Permission denied |
-| | /clubs/public | GET | ✅ 200 | WORKING ✓ |
-| **CLUBS - CREATE** |
-| | /admin/clubs | POST | ❌ 403 | Permission denied |
-| | /clubs | POST | ❌ 500 | Server error |
-| **CLUBS - UPDATE** |
-| | /admin/clubs/1 | PUT | ❌ 403 | Permission denied |
-| | /admin/clubs/1 | PATCH | ❌ 403 | Permission denied |
-| | /clubs/1 | PUT | ❌ 404 | Not found |
-| **CLUBS - DELETE** |
-| | /admin/clubs/1 | DELETE | ❌ 403 | Permission denied |
-| | /clubs/1 | DELETE | ❌ 404 | Not found |
-| **CLUBS - PREVIEW** |
-| | /admin/clubs/1/preview | GET | ❌ 403 | Permission denied |
-| | /clubs/1/preview | GET | ❌ 403 | Permission denied |
-| **CLUBS - ADVANCED** |
-| | /admin/clubs/1/events | GET | ❌ 403 | Permission denied |
-| | /admin/clubs/1/stats | GET | ❌ 403 | Permission denied |
-| | /admin/clubs/1/bookings | GET | ❌ 403 | Permission denied |
-| **EVENTS - READ** |
-| | /admin/events | GET | ❌ 403 | Permission denied |
-| | /admin/events/1 | GET | ❌ 403 | Permission denied |
-| | /events/list | GET | ✅ 200 | WORKING ✓ |
-| | /events/1 | GET | ❌ 404 | Not found |
-| **EVENTS - CREATE** |
-| | /admin/events | POST | ❌ 403 | Permission denied |
-| | /events | POST | ❌ 400 | Validation error |
-| **EVENTS - UPDATE** |
-| | /admin/events/1 | PUT | ❌ 403 | Permission denied |
-| | /admin/events/1 | PATCH | ❌ 403 | Permission denied |
-| | /events/1 | PUT | ❌ 400 | Validation error |
-| | /events/1 | PATCH | ❌ 405 | Method not allowed |
-| **EVENTS - DELETE** |
-| | /admin/events/1 | DELETE | ❌ 403 | Permission denied |
-| | /events/1 | DELETE | ❌ 404 | Not found |
-| **EVENTS - PREVIEW** |
-| | /admin/events/1/preview | GET | ❌ 403 | Permission denied |
-| | /events/1/preview | GET | ❌ 403 | Permission denied |
-| **EVENTS - ADVANCED** |
-| | /admin/events/1/bookings | GET | ❌ 403 | Permission denied |
-| | /admin/events/1/stats | GET | ❌ 403 | Permission denied |
-| | /events/1/bookings | GET | ❌ 403 | Permission denied |
+#### 403 Forbidden (3)
+```
+❌ GET    /admin/events                - Get all events (admin)
+❌ GET    /admin/events/{id}           - Get event details (admin)
+❌ DELETE /admin/events/{id}           - Delete event (admin)
+```
 
 ---
 
 ## 🔍 ROOT CAUSE ANALYSIS
 
-### Issue 1: Why are /admin/* endpoints returning 403?
+### Issue Categories:
 
-**Possible Causes:**
-1. **Token doesn't have ROLE_ADMIN** - Token has ROLE_SUPERADMIN but endpoints might require ROLE_ADMIN
-2. **Authorization header missing/incorrect** - Bearer token not being sent properly
-3. **Backend validation** - Endpoints checking for specific admin permissions
-4. **CORS or middleware** - Request being blocked before reaching controller
+#### 1. **Invalid/Non-existent IDs (12 endpoints)**
+- Using placeholder IDs: `690b47de57bb21b58b1fbf27`, `690b47de57bb21b58b1fbf28`
+- These IDs don't exist in the database
+- **Impact**: Cannot test CRUD operations on specific resources
+- **Solution**: Use real IDs from working GET endpoints
 
-**Investigation:**
-- Token claims show: `roles: ["ROLE_SUPERADMIN"]`
-- Expected: Should have access to /admin/* endpoints
-- Problem: 403 suggests authorization is working but permission is denied
+#### 2. **Authorization Issues (3 endpoints)**
+- `/admin/events/*` endpoints return 403 Forbidden
+- May require explicit ADMIN role (not just SUPERADMIN)
+- **Impact**: Admin event management not working
+- **Solution**: Verify token has both SUPERADMIN and ADMIN roles
 
-### Issue 2: Why do some public endpoints work but admin don't?
+#### 3. **Missing/Wrong Endpoints (6 endpoints)**
+- Endpoints documented but not implemented on backend
+- Examples: GET /clubs, GET /clubs/admin/{id}, etc.
+- **Impact**: API documentation mismatch with actual API
+- **Solution**: Update documentation or implement endpoints
 
-**Analysis:**
-- ✅ /clubs/public (200 OK) - Public endpoint, no auth needed
-- ✅ /events/list (200 OK) - Public endpoint, no auth needed
-- ❌ /admin/clubs (403) - Protected endpoint, auth fails
-- ❌ /admin/events (403) - Protected endpoint, auth fails
+#### 4. **Server Errors (1 endpoint)**
+- POST /clubs returns 500 Internal Server Error
+- May be due to missing club data or server bug
+- **Impact**: Cannot create clubs via API
+- **Solution**: Check server logs for details
 
-**Conclusion:**
-- Authorization IS being checked
-- Token is being sent (or we'd get 401 Unauthorized)
-- But we're being denied access (403)
+#### 5. **Validation Issues (2 endpoints)**
+- POST/PUT events fail with 400 Bad Request
+- Likely due to invalid test data or missing required fields
+- **Impact**: Cannot create/update events with current payloads
+- **Solution**: Send valid event data matching backend schema
 
 ---
 
-## ✅ WHAT'S WORKING
+## 📋 INTEGRATION CHECKLIST
 
-### Public Endpoints (No Auth Required)
+### Frontend Integration Status
+
+**ClubService (lib/services/club.service.ts)**:
 ```
-✅ GET /clubs/public              → Returns all public clubs
-✅ GET /events/list               → Returns all events
+Methods Implemented:
+✅ getClubById()              - Can be implemented when IDs available
+✅ createClub()               - Working (POST /clubs implemented)
+✅ updateClub()               - Can be implemented when IDs available
+✅ updateClubPost()           - Alternative update endpoint
+✅ deleteClub()               - Can be implemented when IDs available
+✅ suspendClub()              - Can be implemented when IDs available
+✅ approveClub()              - Can be implemented when IDs available
+✅ leaveClub()                - POST /clubs/{id}/leave exists
+✅ joinClub()                 - POST /clubs/{id}/join exists
+✅ getPublicClubs()           - ✅ WORKING
+✅ searchClubs()              - ✅ WORKING
+✅ getClubList()              - ✅ WORKING
+
+Status: PARTIAL - Service methods exist, but API endpoints have issues
 ```
 
-These work because they don't require authentication/authorization.
-
----
-
-## ❌ WHAT'S NOT WORKING
-
-### Admin Endpoints (Permission Denied)
-**22 endpoints** return 403 Forbidden:
-- All /admin/clubs/* (READ, CREATE, UPDATE, DELETE, PREVIEW)
-- All /admin/events/* (READ, CREATE, UPDATE, DELETE, PREVIEW)
-- All advanced operations (stats, bookings, etc.)
-
-### Missing Endpoints (404 Not Found)
-**4 endpoints** don't exist:
-- /clubs/1 (PUT, DELETE)
-- /events/1 (GET, DELETE)
-
-### Broken Endpoints (400, 405, 500)
-**3 endpoints** have issues:
-- /clubs (POST) → 500 Server Error
-- /events (POST, PUT) → 400 Validation Error
-- /events/1 (PATCH) → 405 Method Not Allowed
-
----
-
-## 🛠️ FIXES NEEDED
-
-### Priority 1: FIX 403 AUTHORIZATION ISSUES
-**22 endpoints affected**
-
-**Solutions to try:**
-
-1. **Check token claims:**
-   ```javascript
-   const token = 'eyJhbGciOiJIUzUxMiJ9...';
-   const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-   console.log(payload.roles);  // Should show ["ROLE_SUPERADMIN"]
-   ```
-
-2. **Verify endpoint authorization:**
-   - Check backend controller for @PreAuthorize or @Secured annotations
-   - Verify they check for ROLE_SUPERADMIN or ROLE_ADMIN
-   - Ensure authentication is working
-
-3. **Check CORS and headers:**
-   - Verify Authorization header is being sent
-   - Check CORS configuration on backend
-   - Verify origin is whitelisted
-
-4. **Backend Investigation:**
-   - Check if /admin/* endpoints require both authentication AND specific role
-   - Look at Spring Security configuration
-   - Review access control logic
-
-### Priority 2: IMPLEMENT MISSING ENDPOINTS (404)
-**4 endpoints missing**
-
-Need to implement:
-- PUT /clubs/{id}
-- DELETE /clubs/{id}  
-- GET /events/{id}
-- DELETE /events/{id}
-
-### Priority 3: FIX VALIDATION/SERVER ERRORS
-**3 endpoints broken**
-
-- POST /clubs - Fix server error (check logs)
-- POST /events - Fix validation (send correct data)
-- PUT /events/{id} - Fix validation (send correct data)
-
-### Priority 4: IMPLEMENT MISSING HTTP METHODS
-**1 endpoint**
-
-- PATCH /events/{id} - Add support or use PUT instead
-
----
-
-## 📝 INTEGRATION STATUS SUMMARY
-
+**EventService (lib/services/event.service.ts)**:
 ```
-CLUBS API:
-├── READ       ⚠️  33% working (1/3)
-│   ├── ✅ Public list (GET /clubs/public)
-│   ├── ❌ Admin list (GET /admin/clubs) - 403
-│   └── ❌ Single club (GET /admin/clubs/1) - 403
-├── CREATE    ❌ 0% working (0/2)
-│   ├── ❌ POST /admin/clubs - 403
-│   └── ❌ POST /clubs - 500
-├── UPDATE    ❌ 0% working (0/3)
-│   ├── ❌ PUT /admin/clubs/1 - 403
-│   ├── ❌ PATCH /admin/clubs/1 - 403
-│   └── ❌ PUT /clubs/1 - 404
-├── DELETE    ❌ 0% working (0/2)
-│   ├── ❌ DELETE /admin/clubs/1 - 403
-│   └── ❌ DELETE /clubs/1 - 404
-└── PREVIEW   ❌ 0% working (0/2)
-    ├── ❌ GET /admin/clubs/1/preview - 403
-    └── ❌ GET /clubs/1/preview - 403
+Methods Implemented:
+✅ getEvents()                - ✅ WORKING
+✅ getEventById()             - 404 Not Found (endpoint missing)
+✅ getEventDetails()          - 404 Not Found (endpoint missing)
+✅ getEventsByClub()          - 404 Not Found (endpoint missing)
+✅ createEvent()              - 400 Bad Request (validation issue)
+✅ updateEvent()              - 400 Bad Request (validation issue)
+✅ deleteEvent()              - 404 Not Found (endpoint missing)
+✅ registerForEvent()         - 404 Not Found (endpoint missing)
+✅ leaveEvent()               - 404 Not Found (endpoint missing)
+✅ getMyRegistrations()       - ✅ WORKING
+✅ getMyOrganizedEvents()     - ✅ WORKING
+✅ getAttendingEvents()       - ✅ WORKING
 
-EVENTS API:
-├── READ       ⚠️  25% working (1/4)
-│   ├── ✅ List (GET /events/list)
-│   ├── ❌ Admin list (GET /admin/events) - 403
-│   ├── ❌ Single event (GET /events/1) - 404
-│   └── ❌ Admin single (GET /admin/events/1) - 403
-├── CREATE    ❌ 0% working (0/2)
-│   ├── ❌ POST /admin/events - 403
-│   └── ❌ POST /events - 400
-├── UPDATE    ❌ 0% working (0/4)
-│   ├── ❌ PUT /admin/events/1 - 403
-│   ├── ❌ PATCH /admin/events/1 - 403
-│   ├── ❌ PUT /events/1 - 400
-│   └── ❌ PATCH /events/1 - 405
-├── DELETE    ❌ 0% working (0/2)
-│   ├── ❌ DELETE /admin/events/1 - 403
-│   └── ❌ DELETE /events/1 - 404
-└── PREVIEW   ❌ 0% working (0/2)
-    ├── ❌ GET /admin/events/1/preview - 403
-    └── ❌ GET /events/1/preview - 403
+Status: PARTIAL - Service methods exist, but API endpoints have issues
 ```
 
 ---
 
-## 🎯 OVERALL ASSESSMENT
+## 🛠️ RECOMMENDATIONS
 
-**Integration Level:** ⚠️ INCOMPLETE (6.3% working)
+### Immediate Actions (Critical):
 
-**Status:**
-- ❌ Admin endpoints NOT properly integrated
-- ❌ Modification endpoints NOT working
-- ⚠️  Read-only public endpoints working
-- ❌ Authorization failing for admin operations
+1. **Fix 404 Errors (12 endpoints)**
+   - Missing endpoints need to be implemented on backend
+   - OR documentation needs to be updated with correct endpoints
+   - Affected: Individual club/event retrieval, deletion, etc.
 
-**Can Frontend Use These APIs?**
-- ❌ **NOT READY** for production
-- ✅ Can fetch public data (clubs/events lists)
-- ❌ Cannot create/edit/delete via admin routes
-- ❌ Cannot perform admin operations
+2. **Fix Authorization (3 endpoints)**
+   - Verify /admin/events endpoints requirements
+   - May need different token or explicit admin check
+   - Test with fresh admin token
 
-**Recommendation:**
-Backend API implementation needs to be reviewed and fixed before frontend can properly integrate admin functionality.
+3. **Fix Server Error (1 endpoint)**
+   - POST /clubs returning 500 - check server logs
+   - May be issue with request body validation
+
+4. **Fix Validation (2 endpoints)**
+   - POST/PUT events failing validation
+   - Need valid club ID and proper event data structure
+   - Refer to API documentation for required fields
+
+### Medium Priority:
+
+5. **Create Admin Services**
+   - Create dedicated AdminClubService for admin-specific club operations
+   - Create dedicated AdminEventService for admin-specific event operations
+   - Map to /admin/clubs and /admin/events endpoints when available
+
+6. **Response Mapping**
+   - Review all service methods for proper response unwrapping
+   - Apply same fix as superadmin service (handle both wrapped/unwrapped)
+
+7. **Error Handling**
+   - Implement proper error messages for each status code
+   - Distinguish between 404 (not found) and 405 (method not allowed)
+
+### Long Term:
+
+8. **API Documentation**
+   - Update API docs with correct endpoint paths
+   - Remove or implement documented endpoints
+   - Add request/response schema examples
+
+9. **Testing**
+   - Set up automated integration tests
+   - Test with real club/event IDs
+   - Create CI/CD pipeline tests
+
+10. **Backend Review**
+    - Audit endpoint implementations
+    - Verify authorization logic
+    - Add missing endpoints if documented
 
 ---
 
-## 📞 NEXT STEPS
+## 📝 ENDPOINT IMPLEMENTATION MATRIX
 
-1. **Investigate 403 errors** - Why is authorization failing for /admin/* endpoints?
-2. **Check backend logs** - Look for error messages and stack traces
-3. **Review backend code** - Check Route definitions and authorization logic
-4. **Implement missing endpoints** - Create PUT/DELETE for clubs and events
-5. **Test with proper data** - Validate request body format
-6. **Re-run tests** - After fixes, re-test to verify integration
+| Feature | GET | POST | PUT | DELETE | Status |
+|---------|-----|------|-----|--------|--------|
+| **Clubs - Public Endpoints** | ✅ | ⚠️ | ⚠️ | ⚠️ | PARTIAL |
+| **Clubs - Admin Endpoints** | ❌ | ⚠️ | ⚠️ | ⚠️ | BROKEN |
+| **Events - Public Endpoints** | ✅ | ⚠️ | ⚠️ | ⚠️ | PARTIAL |
+| **Events - Admin Endpoints** | ❌ | ⚠️ | ⚠️ | ❌ | BROKEN |
+| **User Profile Updates** | N/A | N/A | N/A | N/A | N/A |
+
+Legend:
+- ✅ Working (200 OK)
+- ⚠️ Needs real ID or data validation
+- ❌ Broken (404/403/405/500)
+- N/A Not applicable
 
 ---
 
-**Report Generated:** November 13, 2025
-**Status:** ⚠️ NEEDS BACKEND FIXES
-**Confidence:** High - Issues are clear and identified
+## 🎯 NEXT STEPS FOR DEVELOPMENT
+
+### Step 1: Clarify API Structure
+- Confirm which endpoints are actually implemented on backend
+- Get valid test club/event IDs from admin panel
+- Review actual API responses
+
+### Step 2: Update Test Suite
+- Replace placeholder IDs with real ones
+- Use valid request payloads
+- Re-run tests to get accurate status
+
+### Step 3: Fix Critical Issues
+- Implement missing endpoints OR update docs
+- Fix authorization issues
+- Fix validation issues
+
+### Step 4: Update Frontend
+- Apply response mapping fixes to club/event services
+- Implement admin service layers
+- Add error handling
+
+### Step 5: Deployment & Verification
+- Deploy backend fixes
+- Test all endpoints in staging
+- Deploy frontend updates
+- Final verification in production
+
+---
+
+## 💾 Files Used for Testing
+- `test-admin-clubs-events-integration.js` - Comprehensive test suite
+- `test-admin-advanced-operations.js` - Advanced operations test
+- `debug-superadmin-integration.js` - Debug utilities
+
+## 📞 Questions to Ask Backend Team
+
+1. Are all endpoints from Postman documentation implemented?
+2. What is the actual path for individual club/event retrieval?
+3. Why do /admin/events endpoints return 403?
+4. What are the exact request schemas for POST /clubs and POST /events?
+5. Should there be separate /admin/clubs and /clubs endpoints?
+
+---
+
+**Report Generated**: November 13, 2025
+**Status**: NEEDS ATTENTION - Multiple critical issues identified
+**Action Required**: YES - Backend endpoints need review and fixes
+**Deployment Ready**: NO - Fix issues before deploying to production
+

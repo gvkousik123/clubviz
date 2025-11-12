@@ -1,17 +1,25 @@
 /**
- * TEST ADMIN EVENTS AND CLUBS APIs
- * Check: CREATE, READ, UPDATE, DELETE, PREVIEW
- * Verify all operations are properly integrated
+ * COMPREHENSIVE ADMIN CLUBS & EVENTS INTEGRATION TEST
+ * 
+ * This test verifies that all admin CRUD operations for clubs and events are properly
+ * integrated and working with the backend API.
+ * 
+ * Test Coverage:
+ * ✓ Clubs - GET, POST, PUT, DELETE
+ * ✓ Events - GET, POST, PUT, DELETE
+ * ✓ Error Handling
+ * ✓ Response Mapping
+ * ✓ Authorization
  */
 
 const axios = require('axios');
 
 const BASE_URL = 'https://clubwiz.in/api';
 
-// Test token 
+// Superadmin token (update if needed)
 const SUPERADMIN_TOKEN = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJrb3VzaWsiLCJ0eXBlIjoiYWNjZXNzIiwicm9sZXMiOlsiUk9MRV9TVVBFUkFETUlOIl0sImlhdCI6MTc2Mjk3NDM0MSwiZXhwIjoxNzYzMDYwNzQxfQ.4ngTOGJk5_JwXiatIZ_HerQtkCO92TJ4KwQFgolhsni8AU-A-fOZx1VjBaSwHxCvDc-igv3AiFSjhZ5FeXb1cA';
 
-const makeRequest = async (endpoint, method = 'GET', data = null) => {
+const makeRequest = async (endpoint, method = 'GET', data = null, label = '') => {
     try {
         const config = {
             method,
@@ -24,347 +32,411 @@ const makeRequest = async (endpoint, method = 'GET', data = null) => {
             }
         };
 
-        if (data && (method === 'PUT' || method === 'PATCH' || method === 'POST')) {
+        if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
             config.data = data;
         }
 
         const response = await axios(config);
-        return { success: true, status: response.status, data: response.data };
+        
+        return { 
+            success: true, 
+            status: response.status,
+            statusText: response.statusText,
+            data: response.data,
+            endpoint,
+            method,
+            label
+        };
     } catch (error) {
         return { 
             success: false, 
-            status: error.response?.status, 
-            error: error.response?.data?.message || error.message 
+            status: error.response?.status || 'ERROR',
+            statusText: error.response?.statusText || error.message,
+            error: error.response?.data?.message || error.message,
+            endpoint,
+            method,
+            label
         };
     }
 };
 
 const runTests = async () => {
-    console.log(`
-╔══════════════════════════════════════════════════════════════════════════════╗
-║          ADMIN CLUBS & EVENTS API INTEGRATION TEST                           ║
-║               Checking CREATE, READ, UPDATE, DELETE, PREVIEW                 ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-`);
+    console.log('╔════════════════════════════════════════════════════════════════════════════════╗');
+    console.log('║     ADMIN CLUBS & EVENTS INTEGRATION TEST - COMPREHENSIVE REPORT              ║');
+    console.log('╚════════════════════════════════════════════════════════════════════════════════╝\n');
 
-    const tests = [
-        // ========================================================================
-        // CLUBS API TESTS
-        // ========================================================================
-        {
-            category: 'CLUBS - READ',
-            tests: [
-                { endpoint: '/admin/clubs', method: 'GET', desc: 'List all clubs' },
-                { endpoint: '/admin/clubs/1', method: 'GET', desc: 'Get specific club' },
-                { endpoint: '/clubs/public', method: 'GET', desc: 'Public clubs list' },
-            ]
-        },
-        {
-            category: 'CLUBS - CREATE',
-            tests: [
-                { endpoint: '/admin/clubs', method: 'POST', desc: 'Create new club', data: { name: 'Test Club', description: 'Test' } },
-                { endpoint: '/clubs', method: 'POST', desc: 'Create club (alt)', data: { name: 'Test Club' } },
-            ]
-        },
-        {
-            category: 'CLUBS - UPDATE',
-            tests: [
-                { endpoint: '/admin/clubs/1', method: 'PUT', desc: 'Update club (PUT)', data: { name: 'Updated Club' } },
-                { endpoint: '/admin/clubs/1', method: 'PATCH', desc: 'Update club (PATCH)', data: { description: 'Updated' } },
-                { endpoint: '/clubs/1', method: 'PUT', desc: 'Update club (alt)', data: { name: 'Updated' } },
-            ]
-        },
-        {
-            category: 'CLUBS - DELETE',
-            tests: [
-                { endpoint: '/admin/clubs/1', method: 'DELETE', desc: 'Delete club' },
-                { endpoint: '/clubs/1', method: 'DELETE', desc: 'Delete club (alt)' },
-            ]
-        },
-        {
-            category: 'CLUBS - PREVIEW',
-            tests: [
-                { endpoint: '/admin/clubs/1/preview', method: 'GET', desc: 'Preview club' },
-                { endpoint: '/clubs/1/preview', method: 'GET', desc: 'Preview club (alt)' },
-            ]
-        },
+    const results = {
+        clubs: [],
+        events: [],
+        summary: {
+            total: 0,
+            passed: 0,
+            failed: 0
+        }
+    };
 
-        // ========================================================================
-        // EVENTS API TESTS
-        // ========================================================================
-        {
-            category: 'EVENTS - READ',
-            tests: [
-                { endpoint: '/admin/events', method: 'GET', desc: 'List all events' },
-                { endpoint: '/admin/events/1', method: 'GET', desc: 'Get specific event' },
-                { endpoint: '/events/list', method: 'GET', desc: 'Events list' },
-                { endpoint: '/events/1', method: 'GET', desc: 'Get event details' },
-            ]
-        },
-        {
-            category: 'EVENTS - CREATE',
-            tests: [
-                { endpoint: '/admin/events', method: 'POST', desc: 'Create event (admin)', data: { title: 'Test Event' } },
-                { endpoint: '/events', method: 'POST', desc: 'Create event', data: { title: 'Test Event' } },
-            ]
-        },
-        {
-            category: 'EVENTS - UPDATE',
-            tests: [
-                { endpoint: '/admin/events/1', method: 'PUT', desc: 'Update event (admin PUT)', data: { title: 'Updated Event' } },
-                { endpoint: '/admin/events/1', method: 'PATCH', desc: 'Update event (admin PATCH)', data: { title: 'Updated' } },
-                { endpoint: '/events/1', method: 'PUT', desc: 'Update event (PUT)', data: { title: 'Updated Event' } },
-                { endpoint: '/events/1', method: 'PATCH', desc: 'Update event (PATCH)', data: { title: 'Updated' } },
-            ]
-        },
-        {
-            category: 'EVENTS - DELETE',
-            tests: [
-                { endpoint: '/admin/events/1', method: 'DELETE', desc: 'Delete event (admin)' },
-                { endpoint: '/events/1', method: 'DELETE', desc: 'Delete event' },
-            ]
-        },
-        {
-            category: 'EVENTS - PREVIEW',
-            tests: [
-                { endpoint: '/admin/events/1/preview', method: 'GET', desc: 'Preview event' },
-                { endpoint: '/events/1/preview', method: 'GET', desc: 'Preview event (alt)' },
-            ]
-        },
+    // ============================================================================
+    // CLUBS MANAGEMENT ENDPOINTS
+    // ============================================================================
+    console.log('🏢 TESTING CLUBS MANAGEMENT ENDPOINTS\n');
+    console.log('─'.repeat(88) + '\n');
 
-        // ========================================================================
-        // ADVANCED OPERATIONS
-        // ========================================================================
-        {
-            category: 'CLUBS - ADVANCED',
-            tests: [
-                { endpoint: '/admin/clubs/1/events', method: 'GET', desc: 'Get club events' },
-                { endpoint: '/admin/clubs/1/stats', method: 'GET', desc: 'Get club stats' },
-                { endpoint: '/admin/clubs/1/bookings', method: 'GET', desc: 'Get club bookings' },
-            ]
+    const clubTests = [
+        { 
+            endpoint: '/clubs', 
+            method: 'GET', 
+            desc: 'Get Authenticated Club Details' 
         },
-        {
-            category: 'EVENTS - ADVANCED',
-            tests: [
-                { endpoint: '/admin/events/1/bookings', method: 'GET', desc: 'Get event bookings' },
-                { endpoint: '/admin/events/1/stats', method: 'GET', desc: 'Get event stats' },
-                { endpoint: '/events/1/bookings', method: 'GET', desc: 'Get event bookings (alt)' },
-            ]
+        { 
+            endpoint: '/clubs/public', 
+            method: 'GET', 
+            desc: 'Get All Public Clubs (Legacy)' 
         },
+        { 
+            endpoint: '/clubs/search?query=test', 
+            method: 'GET', 
+            desc: 'Search Clubs' 
+        },
+        { 
+            endpoint: '/clubs/list', 
+            method: 'GET', 
+            desc: 'Get Club List (Paginated)' 
+        },
+        { 
+            endpoint: '/clubs/owned', 
+            method: 'GET', 
+            desc: 'Get User\'s Owned Clubs' 
+        },
+        { 
+            endpoint: '/clubs/my-clubs', 
+            method: 'GET', 
+            desc: 'Get User\'s Joined Clubs' 
+        },
+        { 
+            endpoint: '/clubs/690b47de57bb21b58b1fbf27', 
+            method: 'GET', 
+            desc: 'Get Specific Club by ID' 
+        },
+        // Create club
+        { 
+            endpoint: '/clubs', 
+            method: 'POST', 
+            data: {
+                name: 'Test Club',
+                description: 'Test club for admin',
+                logo: 'https://via.placeholder.com/150',
+                category: 'Nightclub',
+                maxMembers: 500,
+                contactEmail: 'test@club.com',
+                contactPhone: '9876543210',
+                images: [],
+                locationText: { city: 'Mumbai', state: 'MH', pincode: '400001' },
+                locationMap: { lat: 19.0760, lng: 72.8777 },
+                foodCuisines: [],
+                facilities: [],
+                music: [],
+                barOptions: []
+            },
+            desc: 'Create New Club (POST)'
+        },
+        // Update club
+        { 
+            endpoint: '/clubs/690b47de57bb21b58b1fbf27', 
+            method: 'PUT', 
+            data: {
+                name: 'Updated Test Club',
+                description: 'Updated description',
+                logo: 'https://via.placeholder.com/150',
+                category: 'Bar',
+                maxMembers: 600,
+                contactEmail: 'updated@club.com',
+                contactPhone: '9876543210',
+                images: [],
+                locationText: { city: 'Mumbai', state: 'MH', pincode: '400001' },
+                locationMap: { lat: 19.0760, lng: 72.8777 },
+                foodCuisines: [],
+                facilities: [],
+                music: [],
+                barOptions: []
+            },
+            desc: 'Update Club (PUT /clubs/{id})'
+        },
+        // Delete club
+        { 
+            endpoint: '/clubs/690b47de57bb21b58b1fbf27', 
+            method: 'DELETE', 
+            desc: 'Delete Club' 
+        },
+        // Admin operations
+        { 
+            endpoint: '/clubs/690b47de57bb21b58b1fbf27/suspend', 
+            method: 'POST', 
+            desc: 'Suspend Club (Admin)' 
+        },
+        { 
+            endpoint: '/clubs/690b47de57bb21b58b1fbf27/approve', 
+            method: 'POST', 
+            desc: 'Approve Club (Admin)' 
+        },
+        // Admin list
+        { 
+            endpoint: '/clubs/admin/all', 
+            method: 'GET', 
+            desc: 'Get All Clubs (Admin)' 
+        },
+        { 
+            endpoint: '/clubs/admin/690b47de57bb21b58b1fbf27', 
+            method: 'GET', 
+            desc: 'Get Club Details (Admin)' 
+        },
+        { 
+            endpoint: '/clubs/admin/690b47de57bb21b58b1fbf27', 
+            method: 'DELETE', 
+            desc: 'Force Delete Club (Super Admin)' 
+        }
     ];
 
-    const results = [];
-    let categoryResults = {};
-
-    for (const category of tests) {
-        console.log(`\n${category.category}`);
-        console.log('─'.repeat(80));
+    for (const test of clubTests) {
+        const result = await makeRequest(test.endpoint, test.method, test.data, test.desc);
+        results.clubs.push(result);
+        results.summary.total++;
         
-        if (!categoryResults[category.category]) {
-            categoryResults[category.category] = { total: 0, working: 0, failed: 0, methods: {} };
+        if (result.success) {
+            results.summary.passed++;
+            console.log(`✅ ${test.method.padEnd(6)} ${test.endpoint.padEnd(50)} [${result.status}] ${test.desc}`);
+        } else {
+            results.summary.failed++;
+            console.log(`❌ ${test.method.padEnd(6)} ${test.endpoint.padEnd(50)} [${result.status}] ${test.desc}`);
         }
+        
+        await new Promise(resolve => setTimeout(resolve, 300));
+    }
 
-        for (const test of category.tests) {
-            const result = await makeRequest(test.endpoint, test.method, test.data);
-            
-            const icon = result.success ? '✅' : '❌';
-            const statusStr = result.success ? `${result.status}` : `${result.status || 'ERROR'}`;
-            
-            console.log(`${icon} ${test.method.padEnd(6)} ${test.endpoint.padEnd(35)} | ${statusStr.padEnd(5)} | ${test.desc}`);
-            
-            categoryResults[category.category].total++;
-            if (result.success) {
-                categoryResults[category.category].working++;
-            } else {
-                categoryResults[category.category].failed++;
-            }
+    console.log('\n' + '─'.repeat(88) + '\n');
 
-            if (!categoryResults[category.category].methods[test.method]) {
-                categoryResults[category.category].methods[test.method] = { total: 0, working: 0 };
-            }
-            categoryResults[category.category].methods[test.method].total++;
-            if (result.success) {
-                categoryResults[category.category].methods[test.method].working++;
-            }
+    // ============================================================================
+    // EVENTS MANAGEMENT ENDPOINTS
+    // ============================================================================
+    console.log('📅 TESTING EVENTS MANAGEMENT ENDPOINTS\n');
+    console.log('─'.repeat(88) + '\n');
 
-            results.push({ ...test, ...result });
-            await new Promise(resolve => setTimeout(resolve, 200));
+    const eventTests = [
+        { 
+            endpoint: '/events/list', 
+            method: 'GET', 
+            desc: 'Get Events List (Paginated)' 
+        },
+        { 
+            endpoint: '/events/list?page=0&size=10', 
+            method: 'GET', 
+            desc: 'Get Events with Pagination' 
+        },
+        { 
+            endpoint: '/events/690b47de57bb21b58b1fbf28', 
+            method: 'GET', 
+            desc: 'Get Event by ID (Legacy)' 
+        },
+        { 
+            endpoint: '/events/690b47de57bb21b58b1fbf28/details', 
+            method: 'GET', 
+            desc: 'Get Event Details' 
+        },
+        { 
+            endpoint: '/events/my-registrations', 
+            method: 'GET', 
+            desc: 'Get User\'s Registered Events' 
+        },
+        { 
+            endpoint: '/events/my-organized-events', 
+            method: 'GET', 
+            desc: 'Get User\'s Organized Events' 
+        },
+        { 
+            endpoint: '/events/attending', 
+            method: 'GET', 
+            desc: 'Get User\'s Attending Events' 
+        },
+        { 
+            endpoint: '/events/club/690b47de57bb21b58b1fbf27', 
+            method: 'GET', 
+            desc: 'Get Events by Club' 
+        },
+        // Create event
+        { 
+            endpoint: '/events', 
+            method: 'POST', 
+            data: {
+                title: 'Test Event',
+                description: 'Test event description',
+                startDateTime: '2025-12-20T20:00:00',
+                endDateTime: '2025-12-21T02:00:00',
+                location: 'Mumbai',
+                clubId: '690b47de57bb21b58b1fbf27',
+                maxAttendees: 500,
+                isPublic: true,
+                requiresApproval: false
+            },
+            desc: 'Create New Event (POST /events)'
+        },
+        // Update event
+        { 
+            endpoint: '/events/690b47de57bb21b58b1fbf28', 
+            method: 'PUT', 
+            data: {
+                title: 'Updated Test Event',
+                description: 'Updated event description',
+                startDateTime: '2025-12-21T20:00:00',
+                endDateTime: '2025-12-22T02:00:00',
+                location: 'Updated Mumbai',
+                maxAttendees: 600
+            },
+            desc: 'Update Event (PUT /events/{id})'
+        },
+        // Delete event
+        { 
+            endpoint: '/events/690b47de57bb21b58b1fbf28', 
+            method: 'DELETE', 
+            desc: 'Delete Event' 
+        },
+        // Event attendance
+        { 
+            endpoint: '/events/690b47de57bb21b58b1fbf28/attend', 
+            method: 'POST', 
+            desc: 'Attend/Register for Event' 
+        },
+        { 
+            endpoint: '/events/690b47de57bb21b58b1fbf28/leave', 
+            method: 'POST', 
+            desc: 'Leave/Unregister from Event' 
+        },
+        // Admin operations
+        { 
+            endpoint: '/admin/events', 
+            method: 'GET', 
+            desc: 'Get All Events (Admin)' 
+        },
+        { 
+            endpoint: '/admin/events/690b47de57bb21b58b1fbf28', 
+            method: 'GET', 
+            desc: 'Get Event Details (Admin)' 
+        },
+        { 
+            endpoint: '/admin/events/690b47de57bb21b58b1fbf28', 
+            method: 'DELETE', 
+            desc: 'Force Delete Event (Super Admin)' 
         }
+    ];
+
+    for (const test of eventTests) {
+        const result = await makeRequest(test.endpoint, test.method, test.data, test.desc);
+        results.events.push(result);
+        results.summary.total++;
+        
+        if (result.success) {
+            results.summary.passed++;
+            console.log(`✅ ${test.method.padEnd(6)} ${test.endpoint.padEnd(50)} [${result.status}] ${test.desc}`);
+        } else {
+            results.summary.failed++;
+            console.log(`❌ ${test.method.padEnd(6)} ${test.endpoint.padEnd(50)} [${result.status}] ${test.desc}`);
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 300));
     }
 
     // ============================================================================
     // SUMMARY REPORT
     // ============================================================================
-    console.log(`
+    console.log('\n' + '═'.repeat(88));
+    console.log('📊 INTEGRATION TEST SUMMARY\n');
+    
+    console.log(`Total Tests: ${results.summary.total}`);
+    console.log(`✅ Passed: ${results.summary.passed}`);
+    console.log(`❌ Failed: ${results.summary.failed}`);
+    console.log(`Success Rate: ${((results.summary.passed / results.summary.total) * 100).toFixed(1)}%\n`);
 
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                        INTEGRATION TEST SUMMARY                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-`);
+    const clubsPassed = results.clubs.filter(r => r.success).length;
+    const clubsFailed = results.clubs.filter(r => !r.success).length;
+    const eventsPassed = results.events.filter(r => r.success).length;
+    const eventsFailed = results.events.filter(r => !r.success).length;
 
-    const allWorking = results.filter(r => r.success).length;
-    const allFailed = results.filter(r => !r.success).length;
-    const total = results.length;
+    console.log('Clubs Tests:');
+    console.log(`  ✅ Passed: ${clubsPassed}/${results.clubs.length}`);
+    console.log(`  ❌ Failed: ${clubsFailed}/${results.clubs.length}\n`);
 
-    console.log(`
-📊 OVERALL RESULTS
-─────────────────────────────────────────────────────────────────────────────
-Total Tests:        ${total}
-✅ Working:         ${allWorking} (${((allWorking / total) * 100).toFixed(1)}%)
-❌ Failed/Missing:  ${allFailed} (${((allFailed / total) * 100).toFixed(1)}%)
-`);
-
-    console.log(`📋 RESULTS BY CATEGORY
-─────────────────────────────────────────────────────────────────────────────`);
-
-    for (const [category, stats] of Object.entries(categoryResults)) {
-        const percentage = ((stats.working / stats.total) * 100).toFixed(1);
-        const icon = stats.working === stats.total ? '✅' : stats.working === 0 ? '❌' : '⚠️';
-        console.log(`${icon} ${category.padEnd(35)} | ${stats.working}/${stats.total} (${percentage}%)`);
-        
-        for (const [method, methodStats] of Object.entries(stats.methods)) {
-            const methodPercentage = ((methodStats.working / methodStats.total) * 100).toFixed(1);
-            const methodIcon = methodStats.working === methodStats.total ? '✅' : methodStats.working === 0 ? '❌' : '⚠️';
-            console.log(`   ${methodIcon} ${method}: ${methodStats.working}/${methodStats.total} (${methodPercentage}%)`);
-        }
-    }
+    console.log('Events Tests:');
+    console.log(`  ✅ Passed: ${eventsPassed}/${results.events.length}`);
+    console.log(`  ❌ Failed: ${eventsFailed}/${results.events.length}\n`);
 
     // ============================================================================
     // DETAILED ANALYSIS
     // ============================================================================
-    console.log(`
+    console.log('═'.repeat(88));
+    console.log('🔍 DETAILED ANALYSIS\n');
 
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                        DETAILED ANALYSIS                                     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-`);
+    const clubsWorking = results.clubs.filter(r => r.success);
+    const clubsFailing = results.clubs.filter(r => !r.success);
+    const eventsWorking = results.events.filter(r => r.success);
+    const eventsFailing = results.events.filter(r => !r.success);
 
-    const workingByOperation = {
-        'READ (GET)': results.filter(r => r.method === 'GET' && r.success).length,
-        'CREATE (POST)': results.filter(r => r.method === 'POST' && r.success).length,
-        'UPDATE (PUT)': results.filter(r => r.method === 'PUT' && r.success).length,
-        'UPDATE (PATCH)': results.filter(r => r.method === 'PATCH' && r.success).length,
-        'DELETE': results.filter(r => r.method === 'DELETE' && r.success).length,
-    };
-
-    const totalByOperation = {
-        'READ (GET)': results.filter(r => r.method === 'GET').length,
-        'CREATE (POST)': results.filter(r => r.method === 'POST').length,
-        'UPDATE (PUT)': results.filter(r => r.method === 'PUT').length,
-        'UPDATE (PATCH)': results.filter(r => r.method === 'PATCH').length,
-        'DELETE': results.filter(r => r.method === 'DELETE').length,
-    };
-
-    console.log(`🔄 OPERATION STATUS
-─────────────────────────────────────────────────────────────────────────────`);
-
-    for (const [operation, working] of Object.entries(workingByOperation)) {
-        const total = totalByOperation[operation];
-        const icon = working === total ? '✅' : working === 0 ? '❌' : '⚠️';
-        console.log(`${icon} ${operation.padEnd(20)} | ${working}/${total} working`);
+    if (clubsWorking.length > 0) {
+        console.log('✅ CLUBS ENDPOINTS WORKING:');
+        clubsWorking.forEach(r => {
+            console.log(`   • ${r.method} ${r.endpoint} [${r.status}]`);
+        });
+        console.log();
     }
 
-    // ============================================================================
-    // RESOURCE STATUS
-    // ============================================================================
-    const clubsWorking = results.filter(r => r.endpoint.includes('/clubs') && r.success).length;
-    const clubsTotal = results.filter(r => r.endpoint.includes('/clubs')).length;
-    const eventsWorking = results.filter(r => r.endpoint.includes('/events') && r.success).length;
-    const eventsTotal = results.filter(r => r.endpoint.includes('/events')).length;
-
-    console.log(`
-
-📦 RESOURCE STATUS
-─────────────────────────────────────────────────────────────────────────────`);
-
-    console.log(`Clubs API:  ${clubsWorking === clubsTotal ? '✅' : clubsWorking === 0 ? '❌' : '⚠️'} ${clubsWorking}/${clubsTotal} endpoints working`);
-    console.log(`Events API: ${eventsWorking === eventsTotal ? '✅' : eventsWorking === 0 ? '❌' : '⚠️'} ${eventsWorking}/${eventsTotal} endpoints working`);
-
-    // ============================================================================
-    // FAILURES DETAILED
-    // ============================================================================
-    const failures = results.filter(r => !r.success);
-    
-    if (failures.length > 0) {
-        console.log(`
-
-❌ FAILED ENDPOINTS (${failures.length} total)
-─────────────────────────────────────────────────────────────────────────────`);
-        
-        const statusGroups = {};
-        failures.forEach(f => {
-            const status = f.status || 'ERROR';
-            if (!statusGroups[status]) statusGroups[status] = [];
-            statusGroups[status].push(f);
+    if (clubsFailing.length > 0) {
+        console.log('❌ CLUBS ENDPOINTS FAILING:');
+        clubsFailing.forEach(r => {
+            console.log(`   • ${r.method} ${r.endpoint} [${r.status}] - ${r.error}`);
         });
+        console.log();
+    }
 
-        for (const [status, items] of Object.entries(statusGroups)) {
-            console.log(`\n${status}:`);
-            items.forEach(item => {
-                console.log(`  • ${item.method} ${item.endpoint}`);
-                console.log(`    ${item.error || 'No response'}`);
-            });
-        }
+    if (eventsWorking.length > 0) {
+        console.log('✅ EVENTS ENDPOINTS WORKING:');
+        eventsWorking.forEach(r => {
+            console.log(`   • ${r.method} ${r.endpoint} [${r.status}]`);
+        });
+        console.log();
+    }
+
+    if (eventsFailing.length > 0) {
+        console.log('❌ EVENTS ENDPOINTS FAILING:');
+        eventsFailing.forEach(r => {
+            console.log(`   • ${r.method} ${r.endpoint} [${r.status}] - ${r.error}`);
+        });
+        console.log();
     }
 
     // ============================================================================
     // RECOMMENDATIONS
     // ============================================================================
-    console.log(`
+    console.log('═'.repeat(88));
+    console.log('💡 RECOMMENDATIONS\n');
 
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                        INTEGRATION RECOMMENDATIONS                           ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-`);
-
-    if (allWorking === total) {
-        console.log(`
-✅ EXCELLENT! All endpoints are integrated and working.
-
-Next Steps:
-1. Test in frontend application
-2. Verify data is properly displayed
-3. Test bulk operations
-4. Monitor performance with large datasets
-5. Set up comprehensive error handling in frontend
-`);
-    } else if (allWorking >= (total * 0.8)) {
-        console.log(`
-⚠️  GOOD! Most endpoints are working (${((allWorking / total) * 100).toFixed(1)}%).
-
-Issues to Address:
-${failures.map(f => `• ${f.method} ${f.endpoint} - Status ${f.status}`).join('\n')}
-
-Recommendations:
-1. Check backend routes for missing endpoints
-2. Verify HTTP methods match backend implementation
-3. Check authentication/authorization for 403 errors
-4. Test endpoint existence for 404 errors
-5. Review backend error responses
-`);
+    if (results.summary.passed === results.summary.total) {
+        console.log('🎉 ALL ENDPOINTS WORKING - Integration is complete!\n');
     } else {
-        console.log(`
-❌ INTEGRATION INCOMPLETE! Only ${((allWorking / total) * 100).toFixed(1)}% endpoints working.
-
-Critical Issues:
-${failures.slice(0, 10).map(f => `• ${f.method} ${f.endpoint} - Status ${f.status}`).join('\n')}
-
-Action Items:
-1. Review backend API implementation
-2. Check route definitions
-3. Verify authentication is set up correctly
-4. Test with proper API credentials
-5. Check API server logs for errors
-6. Implement missing endpoints
-`);
+        const failureRate = ((results.summary.failed / results.summary.total) * 100).toFixed(1);
+        console.log(`⚠️  ${results.summary.failed} endpoints failing (${failureRate}%)\n`);
+        
+        console.log('Issues by Status Code:');
+        const statusCodes = {};
+        [...results.clubs, ...results.events].forEach(r => {
+            if (!r.success) {
+                statusCodes[r.status] = (statusCodes[r.status] || 0) + 1;
+            }
+        });
+        
+        Object.entries(statusCodes).forEach(([status, count]) => {
+            console.log(`   • ${status}: ${count} endpoint(s)`);
+        });
     }
 
-    console.log(`
-
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                            END OF REPORT                                     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-`);
+    console.log('\n' + '═'.repeat(88));
+    console.log('✨ Test Complete\n');
 };
 
 runTests().catch(error => {
