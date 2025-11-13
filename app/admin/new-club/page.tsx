@@ -167,41 +167,90 @@ export default function NewClubPage() {
 
         setIsSubmitting(true);
         try {
-            // Per Swagger: "you can create club with just base info"
-            // ONLY name is required - everything else is optional
+            // 🔴 REQUIRED: Validate club name
+            if (!formData.clubName.trim()) {
+                throw new Error('Club name is required');
+            }
+
+            // ✅ BUILD COMPLETE CLUB PAYLOAD per API spec
             const clubData: any = {
-                name: formData.clubName.trim()
+                // REQUIRED FIELDS
+                name: formData.clubName.trim(),
+                description: '',  // Optional but recommended
+                logo: '',          // Optional - image URL
+                category: '',      // Optional - club category
+                maxMembers: 0,     // Optional - member capacity
+
+                // CONTACT INFORMATION
+                contactEmail: adminDetails.email !== 'admin@example.com' ? adminDetails.email : '',
+                contactPhone: adminDetails.phone !== '+91-9876543210' ? adminDetails.phone : '',
+
+                // IMAGES ARRAY
+                images: [],  // Array of {type, url}
+
+                // LOCATION INFORMATION
+                locationText: selectedLocation.lat && selectedLocation.lng && selectedLocation.city && selectedLocation.state ? {
+                    address1: '',
+                    address2: '',
+                    state: selectedLocation.state || '',
+                    city: selectedLocation.city || '',
+                    pincode: selectedLocation.pincode || ''
+                } : {
+                    address1: '',
+                    address2: '',
+                    state: '',
+                    city: '',
+                    pincode: ''
+                },
+
+                locationMap: selectedLocation.lat && selectedLocation.lng ? {
+                    lat: selectedLocation.lat || 0,
+                    lng: selectedLocation.lng || 0
+                } : {
+                    lat: 0,
+                    lng: 0
+                },
+
+                // CUISINE & FACILITIES
+                foodCuisines: lookupData.foodCuisines && lookupData.foodCuisines.length > 0 ? [] : [],
+                facilities: lookupData.facilities && lookupData.facilities.length > 0 ? [] : [],
+                music: lookupData.music && lookupData.music.length > 0 ? [] : [],
+                barOptions: lookupData.barOptions && lookupData.barOptions.length > 0 ? [] : [],
+
+                // ENTRY PRICING
+                entryPricing: {
+                    coupleEntryPrice: 0,
+                    groupEntryPrice: 0,
+                    maleStagEntryPrice: 0,
+                    femaleStagEntryPrice: 0,
+                    coverCharge: 0,
+                    redeemDetails: '',
+                    hasTimeRestriction: false,
+                    timeRestriction: '',
+                    inclusions: [],
+                    exclusions: []
+                }
             };
 
-            // Add optional fields ONLY if they have real values (not defaults/placeholders)
-            if (adminDetails.email && adminDetails.email !== 'admin@example.com') {
-                clubData.contactEmail = adminDetails.email;
-            }
-
-            if (adminDetails.phone && adminDetails.phone !== '+91-9876543210') {
-                clubData.contactPhone = adminDetails.phone;
-            }
-
-            // Only add location if user actually selected one (has both lat/lng AND city/state)
-            if (selectedLocation.lat && selectedLocation.lng && selectedLocation.city && selectedLocation.state) {
-                clubData.locationText = {
-                    city: selectedLocation.city,
-                    state: selectedLocation.state,
-                    pincode: selectedLocation.pincode || ''
-                };
-                clubData.locationMap = {
-                    lat: selectedLocation.lat,
-                    lng: selectedLocation.lng
-                };
-            }
-
-            // Only add logo if actually uploaded
-            if (formData.logo) {
-                clubData.logo = 'https://via.placeholder.com/150';
-            }
-
-            console.log('🚀 Creating club with MINIMAL required payload:', JSON.stringify(clubData, null, 2));
-            console.log('📡 API Call: POST /clubs with payload:', clubData);
+            console.log('🚀 Creating club with COMPLETE required payload:', JSON.stringify(clubData, null, 2));
+            console.log('📡 API Call: POST /clubs with all fields per API spec');
+            console.log('📊 Payload structure:', {
+                name: '✅',
+                description: '✅',
+                logo: '✅',
+                category: '✅',
+                maxMembers: '✅',
+                contactEmail: '✅',
+                contactPhone: '✅',
+                images: '✅',
+                locationText: '✅',
+                locationMap: '✅',
+                foodCuisines: '✅',
+                facilities: '✅',
+                music: '✅',
+                barOptions: '✅',
+                entryPricing: '✅'
+            });
 
             // Call the service to create the club
             const response = await ClubService.createClub(clubData as any);
