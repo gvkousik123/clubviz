@@ -301,9 +301,12 @@ export class ClubService {
    */
   static async createClub(clubData: ClubCreateRequest): Promise<ApiResponse<ClubCreateResponse>> {
     try {
+      console.log('🎯 ClubService.createClub() called with:', clubData);
       const response = await api.post<ApiResponse<ClubCreateResponse>>('/clubs', clubData);
+      console.log('🎯 ClubService.createClub() response:', response);
       return handleApiResponse(response);
     } catch (error) {
+      console.error('🎯 ClubService.createClub() error:', error);
       throw new Error(handleApiError(error));
     }
   }

@@ -25,9 +25,17 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
+    // Log all requests for debugging
+    console.log(`📤 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, {
+      headers: config.headers,
+      data: config.data,
+      hasToken: !!token,
+    });
+
     return config;
   },
   (error) => {
+    console.error('❌ Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -35,9 +43,21 @@ apiClient.interceptors.request.use(
 // Response interceptor for handling common errors
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
+    // Log all successful responses for debugging
+    console.log(`✅ API Response: ${response.status} ${response.config.url}`, {
+      data: response.data,
+      headers: response.headers,
+    });
     return response;
   },
   (error) => {
+    // Log all errors for debugging
+    console.error(`❌ API Error: ${error.response?.status} ${error.config?.url}`, {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message,
+    });
+
     // Handle common HTTP errors - no automatic redirects
     if (error.response?.status === 401) {
       // Unauthorized - clear token but don't redirect

@@ -82,6 +82,15 @@ export default function NewEventPage() {
         setIsCreating(true);
 
         try {
+            // 🔴 CRITICAL: Validate required fields
+            if (!formData.eventName.trim()) {
+                throw new Error('Event name is required');
+            }
+
+            if (!formData.description.trim()) {
+                throw new Error('Event description is required');
+            }
+
             // Prepare event data for API
             const startDateTime = formatDateTimeForAPI(formData.eventDate, formData.eventTime);
 
@@ -89,26 +98,50 @@ export default function NewEventPage() {
                 throw new Error('Invalid date or time format');
             }
 
+            // 🔴 CRITICAL: Get clubId from admin's club context
+            // Try to get from localStorage first (set when admin navigates)
+            let clubId = localStorage.getItem('adminCurrentClubId') || '';
+            
+            // If not in localStorage, we need to get admin's first club
+            if (!clubId) {
+                console.warn('⚠️ No clubId found in localStorage. Events must be tied to a specific club.');
+                throw new Error('Please select a club first. Navigate back and select a club to create events for it.');
+            }
+
+            // 🔴 REQUIRED FIELDS per EventCreateRequest interface
             const eventData = {
-                title: formData.eventName,
-                description: formData.description,
-                startDateTime: startDateTime,
-                endDateTime: startDateTime, // Add proper end time calculation
-                location: formData.organizer,
-                imageUrl: formData.poster ? URL.createObjectURL(formData.poster) : '',
-                category: formData.musicGenre,
-                performers: formData.artistName ? [{
-                    name: formData.artistName,
-                    bio: formData.aboutArtist,
-                    instagramHandle: formData.instagramHandle,
-                    spotifyHandle: formData.spotifyHandle
-                }] : []
+                // Required fields
+                title: formData.eventName.trim(),                        // REQUIRED
+                description: formData.description.trim(),               // REQUIRED
+                startDateTime: startDateTime,                           // REQUIRED
+                endDateTime: startDateTime,                             // REQUIRED (currently same as start - should calculate duration)
+                location: formData.organizer || 'TBD',                 // REQUIRED
+                clubId: clubId,                                         // REQUIRED - Which club this event belongs to
+                isPublic: true,                                         // REQUIRED - Default events to public
+                requiresApproval: false,                                // REQUIRED - Events auto-approved by default
+                
+                // Optional fields
+                imageUrl: formData.poster ? URL.createObjectURL(formData.poster) : undefined,
+                maxAttendees: undefined,                                // Optional
+                locationText: undefined,                                // Optional
+                locationMap: undefined                                  // Optional
+                
+                // ❌ REMOVED: These fields are NOT in EventCreateRequest interface
+                // category: formData.musicGenre,     // NOT in interface
+                // performers: [...]                 // NOT in interface
             };
+
+            console.log('🚀 Creating event with payload:', JSON.stringify(eventData, null, 2));
+            console.log('📡 API Call: POST /events with required fields: clubId, title, description, startDateTime, endDateTime, location, isPublic, requiresApproval');
 
             // Call the EventService.createEvent API
             const response = await EventService.createEvent(eventData as any);
 
-            if (response.success && response.data?.id) {
+            // 🟢 Response is already unwrapped by handleApiResponse
+            // response is now the Event object directly
+            if (response && response.id) {
+                console.log('✅ Event created successfully:', response);
+                
                 toast({
                     title: 'Event Created Successfully',
                     description: `Your event "${formData.eventName}" has been created!`,
@@ -118,17 +151,20 @@ export default function NewEventPage() {
                 // Close the dialog and navigate to event preview
                 setShowConfirmDialog(false);
                 setDialogStage('confirm');
-                router.push(`/admin/event-preview?eventId=${response.data.id}`);
+                router.push(`/admin/event-preview?eventId=${response.id}`);
             } else {
-                throw new Error('Failed to create event');
+                throw new Error('Failed to create event - Invalid response');
             }
         } catch (error) {
-            console.error('Error creating event:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to create event. Please try again.';
+            console.error('❌ Event creation error:', error);
+            
             toast({
                 title: 'Error',
-                description: 'Failed to create event. Please try again.',
+                description: errorMessage,
                 variant: 'destructive'
             });
+            
             setDialogStage('confirm');
             setIsCreating(false);
         }
