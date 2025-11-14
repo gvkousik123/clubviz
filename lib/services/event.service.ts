@@ -250,7 +250,7 @@ export class EventService {
   static async getEvents(params?: EventListParams): Promise<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>> {
     try {
       const queryParams = new URLSearchParams();
-      
+
       if (params) {
         if (params.page !== undefined) queryParams.append('page', params.page.toString());
         if (params.size !== undefined) queryParams.append('size', params.size.toString());
@@ -300,7 +300,7 @@ export class EventService {
    * Get events by club (API: GET /events/club/{clubId})
    */
   static async getEventsByClub(
-    clubId: string, 
+    clubId: string,
     params?: { page?: number; size?: number; sortBy?: string; sortOrder?: 'asc' | 'desc' }
   ): Promise<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>> {
     try {
@@ -324,9 +324,23 @@ export class EventService {
    */
   static async createEvent(eventData: EventCreateRequest): Promise<ApiResponse<Event>> {
     try {
+      console.log('📡 API Call: POST /events');
+      console.log('📋 Event data:', eventData);
+      console.log('🎯 Required fields check:', {
+        title: !!eventData.title,
+        description: !!eventData.description,
+        startDateTime: !!eventData.startDateTime,
+        endDateTime: !!eventData.endDateTime,
+        location: !!eventData.location,
+        clubId: !!eventData.clubId,
+        isPublic: eventData.isPublic !== undefined,
+        requiresApproval: eventData.requiresApproval !== undefined
+      });
       const response = await api.post<ApiResponse<Event>>('/events', eventData);
+      console.log('✅ Event created:', response);
       return handleApiResponse(response);
     } catch (error) {
+      console.error('❌ Error creating event:', error);
       throw new Error(handleApiError(error));
     }
   }
@@ -336,9 +350,13 @@ export class EventService {
    */
   static async updateEvent(eventId: string, eventData: EventUpdateRequest): Promise<ApiResponse<Event>> {
     try {
+      console.log(`📡 API Call: PUT /events/${eventId}`);
+      console.log('📋 Update data:', eventData);
       const response = await api.put<ApiResponse<Event>>(`/events/${eventId}`, eventData);
+      console.log('✅ Event updated:', response);
       return handleApiResponse(response);
     } catch (error) {
+      console.error(`❌ Error updating event ${eventId}:`, error);
       throw new Error(handleApiError(error));
     }
   }
@@ -348,9 +366,12 @@ export class EventService {
    */
   static async deleteEvent(eventId: string): Promise<ApiResponse<{ message: string }>> {
     try {
+      console.log(`📡 API Call: DELETE /events/${eventId}`);
       const response = await api.delete<ApiResponse<{ message: string }>>(`/events/${eventId}`);
+      console.log('✅ Event deleted:', response);
       return handleApiResponse(response);
     } catch (error) {
+      console.error(`❌ Error deleting event ${eventId}:`, error);
       throw new Error(handleApiError(error));
     }
   }
@@ -463,7 +484,7 @@ export class EventService {
     try {
       const params = new URLSearchParams();
       params.append('q', query);
-      
+
       if (filters) {
         if (filters.dateRange) {
           params.append('startDate', filters.dateRange.startDate);
@@ -761,7 +782,7 @@ export class EventService {
   static async getEventList(params: EventListParams = {}): Promise<ApiResponse<EventListResponse>> {
     try {
       const queryParams = new URLSearchParams();
-      
+
       if (params.page !== undefined) queryParams.append('page', params.page.toString());
       if (params.size !== undefined) queryParams.append('size', params.size.toString());
       if (params.sortBy) queryParams.append('sortBy', params.sortBy);

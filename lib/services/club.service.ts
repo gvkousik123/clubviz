@@ -288,9 +288,12 @@ export class ClubService {
    */
   static async getClubById(id: string): Promise<ApiResponse<Club>> {
     try {
+      console.log(`📡 API Call: GET /clubs/${id}`);
       const response = await api.get<ApiResponse<Club>>(`/clubs/${id}`);
+      console.log(`✅ Club retrieved:`, response);
       return handleApiResponse(response);
     } catch (error) {
+      console.error(`❌ Error getting club ${id}:`, error);
       throw new Error(handleApiError(error));
     }
   }
@@ -318,9 +321,13 @@ export class ClubService {
    */
   static async updateClub(id: string, clubData: ClubUpdateRequest): Promise<ApiResponse<Club>> {
     try {
+      console.log(`📡 API Call: PUT /clubs/${id}`);
+      console.log(`📋 Update data:`, clubData);
       const response = await api.put<ApiResponse<Club>>(`/clubs/${id}`, clubData);
+      console.log(`✅ Club updated:`, response);
       return handleApiResponse(response);
     } catch (error) {
+      console.error(`❌ Error updating club ${id}:`, error);
       throw new Error(handleApiError(error));
     }
   }
