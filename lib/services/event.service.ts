@@ -289,9 +289,12 @@ export class EventService {
    */
   static async getEventDetails(eventId: string): Promise<ApiResponse<EventDetailsResponse>> {
     try {
+      console.log(`📡 API Call: GET /events/${eventId}/details`);
       const response = await api.get<ApiResponse<EventDetailsResponse>>(`/events/${eventId}/details`);
+      console.log(`✅ Event details retrieved:`, response);
       return handleApiResponse(response);
     } catch (error) {
+      console.error(`❌ Error getting event details for ${eventId}:`, error);
       throw new Error(handleApiError(error));
     }
   }
@@ -310,11 +313,14 @@ export class EventService {
       if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
       if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
+      console.log(`📡 API Call: GET /events/club/${clubId}?${queryParams.toString()}`);
       const response = await api.get<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>>(
         `/events/club/${clubId}${queryParams.toString() ? '?' + queryParams.toString() : ''}`
       );
+      console.log(`✅ Club events retrieved:`, response);
       return handleApiResponse(response);
     } catch (error) {
+      console.error(`❌ Error getting events for club ${clubId}:`, error);
       throw new Error(handleApiError(error));
     }
   }
@@ -400,9 +406,12 @@ export class EventService {
    */
   static async attendEvent(eventId: string): Promise<ApiResponse<{ message: string }>> {
     try {
+      console.log(`📡 API Call: POST /events/${eventId}/attend`);
       const response = await api.post<ApiResponse<{ message: string }>>(`/events/${eventId}/attend`);
+      console.log(`✅ Registered for event:`, response);
       return handleApiResponse(response);
     } catch (error) {
+      console.error(`❌ Error registering for event ${eventId}:`, error);
       throw new Error(handleApiError(error));
     }
   }
@@ -412,9 +421,12 @@ export class EventService {
    */
   static async leaveEvent(eventId: string): Promise<ApiResponse<{ message: string }>> {
     try {
+      console.log(`📡 API Call: POST /events/${eventId}/leave`);
       const response = await api.post<ApiResponse<{ message: string }>>(`/events/${eventId}/leave`);
+      console.log(`✅ Left event:`, response);
       return handleApiResponse(response);
     } catch (error) {
+      console.error(`❌ Error leaving event ${eventId}:`, error);
       throw new Error(handleApiError(error));
     }
   }
@@ -430,11 +442,14 @@ export class EventService {
       if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
       if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
+      console.log(`📡 API Call: GET /events/my-registrations?${queryParams.toString()}`);
       const response = await api.get<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>>(
         `/events/my-registrations${queryParams.toString() ? '?' + queryParams.toString() : ''}`
       );
+      console.log(`✅ My registrations retrieved:`, response);
       return handleApiResponse(response);
     } catch (error) {
+      console.error(`❌ Error getting my registrations:`, error);
       throw new Error(handleApiError(error));
     }
   }
@@ -450,11 +465,14 @@ export class EventService {
       if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
       if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
+      console.log(`📡 API Call: GET /events/my-organized-events?${queryParams.toString()}`);
       const response = await api.get<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>>(
         `/events/my-organized-events${queryParams.toString() ? '?' + queryParams.toString() : ''}`
       );
+      console.log(`✅ My organized events retrieved:`, response);
       return handleApiResponse(response);
     } catch (error) {
+      console.error(`❌ Error getting my organized events:`, error);
       throw new Error(handleApiError(error));
     }
   }
