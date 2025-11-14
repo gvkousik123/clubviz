@@ -296,13 +296,14 @@ export class ClubService {
   }
 
   /**
-   * Create new club
-   * POST /clubs
+   * Create new club using JSON payload
+   * POST /clubs/create-json
    */
   static async createClub(clubData: ClubCreateRequest): Promise<ApiResponse<ClubCreateResponse>> {
     try {
       console.log('🎯 ClubService.createClub() called with:', clubData);
-      const response = await api.post<ApiResponse<ClubCreateResponse>>('/clubs', clubData);
+      console.log('📡 API Endpoint: POST /clubs/create-json');
+      const response = await api.post<ApiResponse<ClubCreateResponse>>('/clubs/create-json', clubData);
       console.log('🎯 ClubService.createClub() response:', response);
       return handleApiResponse(response);
     } catch (error) {

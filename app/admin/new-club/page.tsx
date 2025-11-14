@@ -233,7 +233,7 @@ export default function NewClubPage() {
             };
 
             console.log('🚀 Creating club with COMPLETE required payload:', JSON.stringify(clubData, null, 2));
-            console.log('📡 API Call: POST /clubs with all fields per API spec');
+            console.log('📡 API Call: POST /clubs/create-json with all fields per API spec');
             console.log('📊 Payload structure:', {
                 name: '✅',
                 description: '✅',
