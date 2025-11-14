@@ -1,14 +1,21 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Upload, Calendar, Clock, Music, User, Building2, Instagram, Music2, ImageIcon, VideoIcon } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { ArrowLeft, Upload, Calendar, Clock, Music, User, Building2, Instagram, Music2, ImageIcon, VideoIcon, ChevronDown } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import './styles.css';
 import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
 import { EventService } from '@/lib/services/event.service';
+import { ClubService } from '@/lib/services/club.service';
 import { useToast } from '@/hooks/use-toast';
 import DatePicker from '@/components/common/date-picker';
 import { formatDateTimeForAPI } from '@/lib/date-utils';
+
+interface Club {
+    id: string;
+    name: string;
+    logo?: string;
+}
 
 export default function NewEventPage() {
     const router = useRouter();
@@ -16,6 +23,13 @@ export default function NewEventPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const posterInputRef = useRef<HTMLInputElement>(null);
     const reelInputRef = useRef<HTMLInputElement>(null);
+
+    // Club management state
+    const [clubs, setClubs] = useState<Club[]>([]);
+    const [selectedClubId, setSelectedClubId] = useState<string>('');
+    const [showClubDropdown, setShowClubDropdown] = useState(false);
+    const [loadingClubs, setLoadingClubs] = useState(true);
+
     const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
     const [activeTab, setActiveTab] = useState('details');
     const [selectedRestriction, setSelectedRestriction] = useState<string | null>(null);
@@ -37,6 +51,45 @@ export default function NewEventPage() {
         poster: null as File | null,
         reel: null as File | null
     });
+
+    // Load manageable clubs on component mount
+    useEffect(() => {
+        const loadClubs = async () => {
+            try {
+                setLoadingClubs(true);
+                console.log('📡 Loading manageable clubs...');
+                const response = await ClubService.getManageableClubs({ page: 0, size: 100 });
+
+                // Handle both array and object with content property
+                let clubsList: Club[] = [];
+                if (Array.isArray(response)) {
+                    clubsList = response;
+                } else if (response && typeof response === 'object') {
+                    clubsList = Array.isArray((response as any).content) ? (response as any).content : Array.isArray(response) ? response : [];
+                }
+
+                console.log('✅ Clubs loaded:', clubsList);
+                setClubs(clubsList);
+
+                // Auto-select first club if available
+                if (clubsList.length > 0) {
+                    setSelectedClubId(clubsList[0].id);
+                    console.log('📌 Auto-selected club:', clubsList[0].name);
+                }
+            } catch (error) {
+                console.error('❌ Error loading clubs:', error);
+                toast({
+                    title: 'Error',
+                    description: 'Failed to load clubs. Please try again.',
+                    variant: 'destructive'
+                });
+            } finally {
+                setLoadingClubs(false);
+            }
+        };
+
+        loadClubs();
+    }, [toast]);
 
     const handleGoBack = () => {
         router.back();
@@ -72,6 +125,15 @@ export default function NewEventPage() {
     };
 
     const handleSaveEvent = () => {
+        // Validate club selection
+        if (!selectedClubId) {
+            toast({
+                title: 'Error',
+                description: 'Please select a club before creating an event',
+                variant: 'destructive'
+            });
+            return;
+        }
         // Show confirmation dialog
         setShowConfirmDialog(true);
     };
@@ -91,6 +153,10 @@ export default function NewEventPage() {
                 throw new Error('Event description is required');
             }
 
+            if (!selectedClubId) {
+                throw new Error('Please select a club for this event');
+            }
+
             // Prepare event data for API
             const startDateTime = formatDateTimeForAPI(formData.eventDate, formData.eventTime);
 
@@ -98,50 +164,43 @@ export default function NewEventPage() {
                 throw new Error('Invalid date or time format');
             }
 
-            // 🔴 CRITICAL: Get clubId from admin's club context
-            // Try to get from localStorage first (set when admin navigates)
-            let clubId = localStorage.getItem('adminCurrentClubId') || '';
-            
-            // If not in localStorage, we need to get admin's first club
-            if (!clubId) {
-                console.warn('⚠️ No clubId found in localStorage. Events must be tied to a specific club.');
-                throw new Error('Please select a club first. Navigate back and select a club to create events for it.');
-            }
-
             // 🔴 REQUIRED FIELDS per EventCreateRequest interface
-            const eventData = {
+            const eventData: any = {
                 // Required fields
                 title: formData.eventName.trim(),                        // REQUIRED
                 description: formData.description.trim(),               // REQUIRED
                 startDateTime: startDateTime,                           // REQUIRED
                 endDateTime: startDateTime,                             // REQUIRED (currently same as start - should calculate duration)
                 location: formData.organizer || 'TBD',                 // REQUIRED
-                clubId: clubId,                                         // REQUIRED - Which club this event belongs to
+                clubId: selectedClubId,                                 // REQUIRED - Selected from dropdown
                 isPublic: true,                                         // REQUIRED - Default events to public
                 requiresApproval: false,                                // REQUIRED - Events auto-approved by default
-                
+
                 // Optional fields
                 imageUrl: formData.poster ? URL.createObjectURL(formData.poster) : undefined,
                 maxAttendees: undefined,                                // Optional
                 locationText: undefined,                                // Optional
                 locationMap: undefined                                  // Optional
-                
-                // ❌ REMOVED: These fields are NOT in EventCreateRequest interface
-                // category: formData.musicGenre,     // NOT in interface
-                // performers: [...]                 // NOT in interface
             };
 
             console.log('🚀 Creating event with payload:', JSON.stringify(eventData, null, 2));
-            console.log('📡 API Call: POST /events with required fields: clubId, title, description, startDateTime, endDateTime, location, isPublic, requiresApproval');
+            console.log('📡 API Call: POST /events/create-json-with-images with clubId:', selectedClubId);
 
-            // Call the EventService.createEvent API
-            const response = await EventService.createEvent(eventData as any);
+            // Use the new endpoint if images are provided, otherwise use regular endpoint
+            let response;
+            if (formData.poster || formData.reel || formData.organizerLogo) {
+                console.log('📸 Images detected - using /events/create-json-with-images');
+                response = await EventService.createEventWithImages(eventData);
+            } else {
+                console.log('No images - using regular /events endpoint');
+                response = await EventService.createEvent(eventData);
+            }
 
             // 🟢 Response is already unwrapped by handleApiResponse
             // response is now the Event object directly
             if (response && response.id) {
                 console.log('✅ Event created successfully:', response);
-                
+
                 toast({
                     title: 'Event Created Successfully',
                     description: `Your event "${formData.eventName}" has been created!`,
@@ -158,13 +217,13 @@ export default function NewEventPage() {
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to create event. Please try again.';
             console.error('❌ Event creation error:', error);
-            
+
             toast({
                 title: 'Error',
                 description: errorMessage,
                 variant: 'destructive'
             });
-            
+
             setDialogStage('confirm');
             setIsCreating(false);
         }
@@ -202,11 +261,62 @@ export default function NewEventPage() {
                 <div className="w-full bg-[#021313] rounded-t-[40px] flex flex-col">
                     {/* Fixed header section that stays in place */}
                     <div className="w-full bg-[#021313] rounded-t-[40px]">
+                        {/* Club Selector */}
+                        <div className="w-full px-6 pt-6 pb-2">
+                            <label className="block text-[#14FFEC] font-semibold text-base mb-2">Select Club *</label>
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowClubDropdown(!showClubDropdown)}
+                                    className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[20px] p-[12px] px-4 flex items-center justify-between text-white hover:bg-[#0F2525] transition-colors"
+                                    disabled={loadingClubs}
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <Building2 size={18} className="text-[#14FFEC]" />
+                                        {loadingClubs ? 'Loading clubs...' : (selectedClubId ? clubs.find(c => c.id === selectedClubId)?.name || 'Select a club' : 'Select a club')}
+                                    </span>
+                                    <ChevronDown size={18} className={`text-[#14FFEC] transition-transform ${showClubDropdown ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {/* Dropdown Menu */}
+                                {showClubDropdown && !loadingClubs && clubs.length > 0 && (
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-[#0D1F1F] border border-[#0C898B] rounded-[15px] z-50 shadow-lg max-h-64 overflow-y-auto">
+                                        {clubs.map((club) => (
+                                            <button
+                                                key={club.id}
+                                                onClick={() => {
+                                                    setSelectedClubId(club.id);
+                                                    setShowClubDropdown(false);
+                                                    console.log('✅ Selected club:', club.name, '(ID:', club.id + ')');
+                                                }}
+                                                className={`w-full px-4 py-3 text-left flex items-center gap-3 border-b border-[#0C898B] last:border-0 hover:bg-[#0F2525] transition-colors ${selectedClubId === club.id ? 'bg-[#0F2525] border-l-4 border-l-[#14FFEC]' : ''
+                                                    }`}
+                                            >
+                                                {club.logo && (
+                                                    <img src={club.logo} alt={club.name} className="w-8 h-8 rounded-full object-cover" />
+                                                )}
+                                                <span className="text-white font-semibold">{club.name}</span>
+                                                {selectedClubId === club.id && (
+                                                    <span className="ml-auto text-[#14FFEC]">✓</span>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Empty State */}
+                                {showClubDropdown && !loadingClubs && clubs.length === 0 && (
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-[#0D1F1F] border border-[#0C898B] rounded-[15px] p-4 text-center text-gray-400">
+                                        No clubs available. Please create a club first.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Heading container */}
                         <div className="w-full pb-2">
                             <div className="flex items-center justify-center pt-8 pb-4">
                                 <h2 className="text-[28px] font-bold text-white text-center tracking-wider font-['Anton']">
-                                    DABO CLUB & KITCHEN
+                                    {selectedClubId ? clubs.find(c => c.id === selectedClubId)?.name || 'EVENT DETAILS' : 'SELECT A CLUB'}
                                 </h2>
                             </div>
                         </div>

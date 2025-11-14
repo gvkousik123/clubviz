@@ -628,6 +628,25 @@ export class ClubService {
     }
   }
 
+  /**
+   * Get manageable clubs (owned or admin of)
+   * GET /clubs/manageable
+   */
+  static async getManageableClubs(params?: {
+    page?: number;
+    size?: number;
+  }): Promise<ApiResponse<Club[]>> {
+    try {
+      console.log(`📡 API Call: GET /clubs/manageable`, params);
+      const response = await api.get<ApiResponse<Club[]>>('/clubs/manageable', { params });
+      console.log(`✅ Manageable clubs retrieved:`, response);
+      return handleApiResponse(response);
+    } catch (error) {
+      console.error(`❌ Error getting manageable clubs:`, error);
+      throw new Error(handleApiError(error));
+    }
+  }
+
   // ============================================================================
   // NEW PAGINATED CLUB OPERATIONS
   // ============================================================================

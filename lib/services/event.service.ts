@@ -346,6 +346,25 @@ export class EventService {
   }
 
   /**
+   * Create event with images (base64 encoded)
+   * POST /events/create-json-with-images
+   * Images can be provided as base64 data or uploaded URLs
+   */
+  static async createEventWithImages(eventData: EventCreateRequest & { images?: string[] }): Promise<ApiResponse<Event>> {
+    try {
+      console.log('📡 API Call: POST /events/create-json-with-images');
+      console.log('📋 Event data:', eventData);
+      console.log('📸 Images count:', eventData.images?.length || 0);
+      const response = await api.post<ApiResponse<Event>>('/events/create-json-with-images', eventData);
+      console.log('✅ Event created with images:', response);
+      return handleApiResponse(response);
+    } catch (error) {
+      console.error('❌ Error creating event with images:', error);
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
    * Update an event (API: PUT /events/{id})
    */
   static async updateEvent(eventId: string, eventData: EventUpdateRequest): Promise<ApiResponse<Event>> {
