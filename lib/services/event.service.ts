@@ -457,7 +457,7 @@ export class EventService {
   /**
    * Get events organized by the current user (API: GET /events/my-organized-events)
    */
-  static async getMyOrganizedEvents(params?: { page?: number; size?: number; sortBy?: string; sortOrder?: 'asc' | 'desc' }): Promise<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>> {
+  static async getMyOrganizedEvents(params?: { page?: number; size?: number; sortBy?: string; sortOrder?: 'asc' | 'desc' }): Promise<ApiResponse<EventListResponse>> {
     try {
       const queryParams = new URLSearchParams();
       if (params?.page !== undefined) queryParams.append('page', params.page.toString());
@@ -466,7 +466,7 @@ export class EventService {
       if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
       console.log(`📡 API Call: GET /events/my-organized-events?${queryParams.toString()}`);
-      const response = await api.get<ApiResponse<{ events: Event[]; pagination: PaginationMeta }>>(
+      const response = await api.get<ApiResponse<EventListResponse>>(
         `/events/my-organized-events${queryParams.toString() ? '?' + queryParams.toString() : ''}`
       );
       console.log(`✅ My organized events retrieved:`, response);

@@ -485,15 +485,15 @@ export default function AdminDashboard() {
                                                     <div className="space-y-1 text-sm text-gray-400">
                                                         <div className="flex items-center gap-2">
                                                             <Calendar className="w-4 h-4 text-[#14FFEC]" />
-                                                            <span>{new Date(event.startDateTime).toLocaleDateString()}</span>
+                                                            <span>{event.formattedDate}</span>
                                                         </div>
                                                         <div className="flex items-center gap-2">
                                                             <Clock className="w-4 h-4 text-[#14FFEC]" />
-                                                            <span>{new Date(event.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                            <span>{event.formattedTime}</span>
                                                         </div>
                                                         <div className="flex items-center gap-2">
                                                             <Users className="w-4 h-4 text-[#14FFEC]" />
-                                                            <span>{event.attendedCount || 0}/{event.maxAttendees} attendees</span>
+                                                            <span>{event.attendeeCount}/{event.maxAttendees || 'Unlimited'} attendees</span>
                                                         </div>
                                                     </div>
                                                 </div>
