@@ -467,7 +467,7 @@ export default function NewEventPage() {
                                 {/* Event Description */}
                                 <div className="space-y-3">
                                     <div className="px-5">
-                                        <label className="text-[#14FFEC] font-semibold text-base">Event Description</label>
+                                        <label className="text-[#14FFEC] font-semibold text-base">Event Description *</label>
                                     </div>
                                     <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[15px] px-5">
                                         <textarea

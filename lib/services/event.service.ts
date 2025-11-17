@@ -287,11 +287,27 @@ export class EventService {
   /**
    * Get detailed event information with organizer and attendees (API: GET /events/{id}/details)
    */
-  static async getEventDetails(eventId: string): Promise<ApiResponse<EventDetailsResponse>> {
+  static async getEventDetails(eventId: string): Promise<any> {
     try {
       console.log(`📡 API Call: GET /events/${eventId}/details`);
-      const response = await api.get<ApiResponse<EventDetailsResponse>>(`/events/${eventId}/details`);
+      const response = await api.get(`/events/${eventId}/details`);
       console.log(`✅ Event details retrieved:`, response);
+
+      // Handle both wrapped and direct response formats
+      if (response.data) {
+        // Check if it's wrapped in ApiResponse format
+        if (response.data.data) {
+          return { success: true, data: response.data.data };
+        } else if (response.data.id) {
+          // Direct event object in data
+          return { success: true, data: response.data };
+        } else {
+          // Might be wrapped differently
+          return { success: response.data.success || true, data: response.data };
+        }
+      }
+
+      // Fallback to handleApiResponse
       return handleApiResponse(response);
     } catch (error) {
       console.error(`❌ Error getting event details for ${eventId}:`, error);
@@ -373,13 +389,29 @@ export class EventService {
   /**
    * Update an event (API: PUT /events/{id})
    */
-  static async updateEvent(eventId: string, eventData: EventUpdateRequest): Promise<ApiResponse<Event>> {
+  static async updateEvent(eventId: string, eventData: EventUpdateRequest): Promise<any> {
     try {
       console.log(`📡 API Call: PUT /events/${eventId}`);
       console.log('📋 Update data:', eventData);
-      const response = await api.put<ApiResponse<Event>>(`/events/${eventId}`, eventData);
+      const response = await api.put(`/events/${eventId}`, eventData);
       console.log('✅ Event updated:', response);
-      return handleApiResponse(response);
+
+      // Handle various response formats
+      if (response.data) {
+        // If the response has success property, return it directly
+        if (typeof response.data === 'object' && 'success' in response.data) {
+          return response.data;
+        }
+        // If it's the event object directly
+        if (response.data.id) {
+          return { success: true, data: response.data };
+        }
+        // If it's just a 200 response without structured data
+        return { success: true, data: response.data };
+      }
+
+      // Fallback
+      return { success: true, data: response };
     } catch (error) {
       console.error(`❌ Error updating event ${eventId}:`, error);
       throw new Error(handleApiError(error));

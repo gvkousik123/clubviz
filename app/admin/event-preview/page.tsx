@@ -15,21 +15,38 @@ import {
     ThumbsUp,
     Ticket,
     ChevronLeft,
-    ChevronDown
+    ChevronDown,
+    Edit3,
+    Save,
+    X,
+    Trash2
 } from 'lucide-react';
 import PageHeader from '@/components/common/page-header';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
 import { EventService } from '@/lib/services/event.service';
+import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import DatePicker from '@/components/common/date-picker';
+import { formatDateTimeForAPI } from '@/lib/date-utils';
 
 function EventPreviewContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const eventId = searchParams.get('eventId');
+    const editMode = searchParams.get('edit') === 'true';
+    const { toast } = useToast();
 
     const [isLiked, setIsLiked] = useState(false);
     const [eventData, setEventData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // Editing states
+    const [isEditing, setIsEditing] = useState(editMode || false);
+    const [editData, setEditData] = useState<any>({});
+    const [isSaving, setIsSaving] = useState(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Load event data on mount
     useEffect(() => {
@@ -41,9 +58,42 @@ function EventPreviewContent() {
                     return;
                 }
 
-                const response = await EventService.getEventById(eventId);
-                if (response.success && response.data) {
-                    setEventData(response.data);
+                // Use getEventDetails for comprehensive event information
+                const response = await EventService.getEventDetails(eventId);
+                console.log('Event details response:', response);
+
+                // Handle both wrapped and direct response formats
+                let eventDetails = null;
+                if (response && typeof response === 'object') {
+                    if (response.data) {
+                        eventDetails = response.data;
+                    } else if (response.id) {
+                        // Direct event object
+                        eventDetails = response;
+                    }
+                }
+
+                if (eventDetails) {
+                    setEventData(eventDetails);
+                    // Extract clubId - can be direct property or nested in club object
+                    const clubId = eventDetails.clubId || (eventDetails.club?.id);
+                    const clubName = eventDetails.club?.name || '';
+
+                    console.log('📋 Club Info:', { clubId, clubName });
+
+                    // Initialize edit data
+                    setEditData({
+                        title: eventDetails.title || '',
+                        location: eventDetails.location || '',
+                        startDateTime: eventDetails.startDateTime || '',
+                        endDateTime: eventDetails.endDateTime || '',
+                        description: eventDetails.description || '',
+                        category: eventDetails.category || '',
+                        maxAttendees: eventDetails.maxAttendees || '',
+                        requiresApproval: eventDetails.requiresApproval || false,
+                        clubId: clubId || '',
+                        clubName: clubName || ''
+                    });
                     setError(null);
                 } else {
                     setError('Failed to load event data');
@@ -65,6 +115,110 @@ function EventPreviewContent() {
 
     const handleBookNow = () => {
         router.push(`/booking/slot?eventId=${eventId}`);
+    };
+
+    // Edit handlers
+    const handleEditToggle = () => {
+        if (isEditing) {
+            // Cancel editing - reset to original data
+            const clubId = eventData?.clubId || eventData?.club?.id;
+            const clubName = eventData?.club?.name || '';
+            setEditData({
+                title: eventData.title || '',
+                location: eventData.location || '',
+                startDateTime: eventData.startDateTime || '',
+                endDateTime: eventData.endDateTime || '',
+                description: eventData.description || '',
+                category: eventData.category || '',
+                maxAttendees: eventData.maxAttendees || '',
+                requiresApproval: eventData.requiresApproval || false,
+                clubId: clubId || '',
+                clubName: clubName || ''
+            });
+        }
+        setIsEditing(!isEditing);
+    };
+
+    const handleInputChange = (field: string, value: any) => {
+        setEditData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const handleSaveChanges = async () => {
+        if (!eventId) return;
+
+        setIsSaving(true);
+        try {
+            // Ensure clubId is properly passed - fallback from multiple sources
+            const clubId = editData.clubId || eventData?.clubId || eventData?.club?.id;
+
+            const updateData = {
+                title: editData.title,
+                description: editData.description,
+                location: editData.location,
+                startDateTime: editData.startDateTime,
+                endDateTime: editData.endDateTime,
+                maxAttendees: editData.maxAttendees ? parseInt(editData.maxAttendees) : undefined,
+                requiresApproval: editData.requiresApproval,
+                clubId: clubId
+            };
+
+            console.log('📡 Updating event with data:', updateData);
+            console.log('🔗 Club ID being sent:', clubId);
+            const response = await EventService.updateEvent(eventId, updateData);
+
+            if (response) {
+                // Update local event data
+                setEventData(prev => ({
+                    ...prev,
+                    ...editData
+                }));
+                setIsEditing(false);
+                toast({
+                    title: 'Success',
+                    description: 'Event updated successfully!',
+                });
+            }
+        } catch (error) {
+            console.error('Error updating event:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to update event. Please try again.',
+                variant: 'destructive'
+            });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleDeleteEvent = async () => {
+        if (!eventId) return;
+
+        setIsDeleting(true);
+        try {
+            await EventService.deleteEvent(eventId);
+            toast({
+                title: 'Success',
+                description: 'Event deleted successfully!',
+            });
+            router.push('/admin');
+        } catch (error) {
+            console.error('Error deleting event:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to delete event. Please try again.',
+                variant: 'destructive'
+            });
+        } finally {
+            setIsDeleting(false);
+            setShowDeleteDialog(false);
+        }
+    };
+
+    const handleBackClick = () => {
+        router.push('/admin');
     };
 
     // Show loading state
@@ -113,7 +267,7 @@ function EventPreviewContent() {
                 {/* Back Button */}
                 <div className="absolute top-4 left-4 flex items-center">
                     <button
-                        onClick={() => router.back()}
+                        onClick={handleBackClick}
                         className="p-2 bg-[#005D5C]/60 backdrop-blur-sm rounded-full hover:bg-[#005D5C]/80 transition-all duration-300"
                     >
                         <ChevronLeft
@@ -123,25 +277,77 @@ function EventPreviewContent() {
                     </button>
                 </div>
 
-                {/* Edit Event Details Button - Fixed and centered */}
-                <div className="absolute top-4 left-0 right-0 flex justify-center items-center">
-                    <button
-                        onClick={() => router.push('/admin/new-event')}
-                        className="bg-[#005D5C] text-white py-2 px-6 rounded-full font-bold text-sm cursor-pointer hover:bg-[#007875] transition-all duration-300"
-                    >
-                        Edit Event Details
-                    </button>
+                {/* Action Buttons - Edit and Delete */}
+                <div className="absolute top-4 right-4 flex items-center gap-2">
+                    {isEditing ? (
+                        <>
+                            <button
+                                onClick={handleSaveChanges}
+                                disabled={isSaving}
+                                className="bg-[#14FFEC] text-black py-2 px-4 rounded-full font-bold text-sm cursor-pointer hover:bg-[#10d4c4] transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+                            >
+                                {isSaving ? (
+                                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                    <Save size={16} />
+                                )}
+                                {isSaving ? 'Saving...' : 'Save'}
+                            </button>
+                            <button
+                                onClick={handleEditToggle}
+                                className="p-2 bg-[#005D5C]/60 backdrop-blur-sm rounded-full hover:bg-[#005D5C]/80 transition-all duration-300"
+                            >
+                                <X size={16} className="text-[#14FFEC]" />
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                onClick={handleEditToggle}
+                                className="bg-[#005D5C] text-white py-2 px-4 rounded-full font-bold text-sm cursor-pointer hover:bg-[#007875] transition-all duration-300 flex items-center gap-2"
+                            >
+                                <Edit3 size={16} />
+                                Edit
+                            </button>
+                            <button
+                                onClick={() => setShowDeleteDialog(true)}
+                                className="p-2 bg-red-600/60 backdrop-blur-sm rounded-full hover:bg-red-600/80 transition-all duration-300"
+                            >
+                                <Trash2 size={16} className="text-red-300" />
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
 
             {/* Event Details Section */}
             <div className="w-full bg-[#021313] rounded-t-[40px] -mt-10 relative z-10">
                 <div className="px-4 pt-8 ">
+                    {/* Club Name - Show in edit mode */}
+                    {isEditing && (eventData?.club?.name || eventData?.clubId) && (
+                        <div className="flex justify-center items-center mb-4 gap-2">
+                            <span className="text-[#14FFEC] text-xs font-semibold uppercase">Club:</span>
+                            <span className="text-white text-sm font-semibold">
+                                {eventData?.club?.name || `ID: ${eventData?.clubId}`}
+                            </span>
+                        </div>
+                    )}
+
                     {/* Event Title */}
                     <div className="flex justify-center items-center mb-7">
-                        <h1 className="text-white text-center text-xl font-['Manrope'] leading-8 tracking-[0.24px]">
-                            {eventData?.title || 'Event Title'}
-                        </h1>
+                        {isEditing ? (
+                            <input
+                                type="text"
+                                value={editData.title}
+                                onChange={(e) => handleInputChange('title', e.target.value)}
+                                className="bg-[#0D1F1F] text-white text-center text-xl font-['Manrope'] leading-8 tracking-[0.24px] rounded-lg px-4 py-2 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none w-full max-w-md"
+                                placeholder="Event Title"
+                            />
+                        ) : (
+                            <h1 className="text-white text-center text-xl font-['Manrope'] leading-8 tracking-[0.24px]">
+                                {eventData?.title || 'Untitled Event'}
+                            </h1>
+                        )}
                     </div>
 
                     {/* Action Icons */}
@@ -163,14 +369,38 @@ function EventPreviewContent() {
                     {/* Location Info */}
                     <div className="flex items-center gap-3 mb-4 px-2">
                         <MapPin size={24} className="text-[#14FFEC]" />
-                        <p className="text-white font-['Manrope']">{eventData?.location || eventData?.club?.name || 'Location TBD'}</p>
+                        {isEditing ? (
+                            <input
+                                type="text"
+                                value={editData.location}
+                                onChange={(e) => handleInputChange('location', e.target.value)}
+                                className="bg-[#0D1F1F] text-white font-['Manrope'] rounded-lg px-3 py-1 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none flex-1"
+                                placeholder="Location"
+                            />
+                        ) : (
+                            <p className="text-white font-['Manrope']">
+                                {eventData?.location || eventData?.club?.name || 'TBD'}
+                            </p>
+                        )}
                     </div>
 
                     {/* Date & Time */}
                     <div className="flex items-center gap-2 px-2">
                         <Calendar size={24} className="text-[#14FFEC]" />
-                        <div className="bg-white/10 px-6 py-2 rounded-full">
-                            <p className="text-white font-['Manrope']">{eventData?.formattedDate || eventData?.startDateTime || 'Date TBD'} | {eventData?.formattedTime || 'Time TBD'}</p>
+                        <div className="bg-white/10 px-6 py-2 rounded-full flex-1">
+                            {isEditing ? (
+                                <input
+                                    type="datetime-local"
+                                    value={editData.startDateTime}
+                                    onChange={(e) => handleInputChange('startDateTime', e.target.value)}
+                                    className="bg-transparent text-white font-['Manrope'] outline-none w-full"
+                                />
+                            ) : (
+                                <p className="text-white font-['Manrope']">
+                                    {eventData?.formattedDate || eventData?.startDateTime || 'Date TBD'} |
+                                    {eventData?.formattedTime || 'Time TBD'}
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -182,12 +412,55 @@ function EventPreviewContent() {
 
                 {/* Music Categories */}
                 <div className="flex flex-wrap gap-2 px-6 mb-6">
-                    {eventData?.category ? (
-                        <span className="px-4 py-1 bg-[#0D7377] text-white rounded-full text-sm border border-[#14FFEC]">{eventData.category}</span>
+                    {isEditing ? (
+                        <input
+                            type="text"
+                            value={editData.category}
+                            onChange={(e) => handleInputChange('category', e.target.value)}
+                            className="bg-[#0D1F1F] text-white rounded-full px-4 py-1 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
+                            placeholder="Category"
+                        />
                     ) : (
-                        <span className="text-gray-400 px-6">No categories specified</span>
+                        <>
+                            {eventData?.category ? (
+                                <span className="px-4 py-1 bg-[#0D7377] text-white rounded-full text-sm border border-[#14FFEC]">
+                                    {eventData.category}
+                                </span>
+                            ) : (
+                                <span className="text-gray-400 px-6">No categories specified</span>
+                            )}
+                        </>
                     )}
                 </div>
+
+                {/* Max Attendees - Only show in edit mode */}
+                {isEditing && (
+                    <div className="px-6 mb-6">
+                        <label className="text-white text-sm font-['Manrope'] mb-2 block">Max Attendees</label>
+                        <input
+                            type="number"
+                            value={editData.maxAttendees}
+                            onChange={(e) => handleInputChange('maxAttendees', e.target.value)}
+                            className="bg-[#0D1F1F] text-white rounded-lg px-4 py-2 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none w-full"
+                            placeholder="Maximum number of attendees"
+                        />
+                    </div>
+                )}
+
+                {/* Requires Approval - Only show in edit mode */}
+                {isEditing && (
+                    <div className="px-6 mb-6">
+                        <label className="flex items-center gap-3 text-white font-['Manrope'] cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={editData.requiresApproval}
+                                onChange={(e) => handleInputChange('requiresApproval', e.target.checked)}
+                                className="w-4 h-4 text-[#14FFEC] bg-[#0D1F1F] border-[#14FFEC]/30 rounded focus:ring-[#14FFEC] focus:ring-2"
+                            />
+                            Requires manual approval for attendance
+                        </label>
+                    </div>
+                )}
 
                 {/* People Attending */}
                 <div className="px-6 mb-6">
@@ -199,7 +472,9 @@ function EventPreviewContent() {
                                 className="w-32 h-8 rounded-full object-cover"
                             />
                         </div>
-                        <span className="text-white text-sm font-['Manrope']">{eventData?.attendeeCount || 0}+ going in this event</span>
+                        <span className="text-white text-sm font-['Manrope']">
+                            {eventData?.attendeeCount || 0}+ going in this event
+                        </span>
                     </div>
                 </div>
 
@@ -211,12 +486,12 @@ function EventPreviewContent() {
                 {/* Artist */}
                 <div className="px-6 mb-6">
                     <h2 className="text-white text-xl font-['Manrope'] mb-3">Artist</h2>
-                    <div className="bg-[#0D1F1F] rounded-lg p-4 flex items-center justify-between  ">
+                    <div className="bg-[#0D1F1F] rounded-lg p-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center">
                                 <img
                                     src="/vibemeter/Screenshot_2025-05-24_094641-removebg-preview.png"
-                                    alt="DJ Edward"
+                                    alt="Artist"
                                     className="w-full h-full rounded-full object-cover"
                                     onError={(e) => {
                                         const target = e.target as HTMLImageElement;
@@ -225,7 +500,9 @@ function EventPreviewContent() {
                                 />
                             </div>
                             <div>
-                                <p className="text-white font-['Manrope']">DJ Edward</p>
+                                <p className="text-white font-['Manrope']">
+                                    {eventData?.artistName || 'Artist TBD'}
+                                </p>
                             </div>
                         </div>
                         <button className="text-[#14FFEC]">
@@ -242,16 +519,26 @@ function EventPreviewContent() {
                 {/* Description */}
                 <div className="px-6 mb-8">
                     <h2 className="text-white text-xl font-['Manrope'] mb-3">About this Event</h2>
-                    <div className="bg-[#0D1F1F] rounded-lg p-4 mb-2  ">
-                        <p className="text-white/80 text-sm leading-relaxed font-['Manrope']">
-                            Join us for Timeless Tuesdays featuring DJ Xpensive! Experience the best electronic,
-                            hip hop and techno music in town. Free drinks, free parking, and amazing atmosphere
-                            guaranteed. Don't miss out on the most exciting Tuesday night party in Nagpur!
-                        </p>
+                    <div className="bg-[#0D1F1F] rounded-lg p-4 mb-2">
+                        {isEditing ? (
+                            <textarea
+                                value={editData.description}
+                                onChange={(e) => handleInputChange('description', e.target.value)}
+                                className="w-full bg-transparent text-white/80 text-sm leading-relaxed font-['Manrope'] outline-none border border-[#14FFEC]/30 rounded-lg p-2 focus:border-[#14FFEC] min-h-[120px]"
+                                placeholder="Event description..."
+                            />
+                        ) : (
+                            <p className="text-white/80 text-sm leading-relaxed font-['Manrope']">
+                                {eventData?.description || editData.description ||
+                                    "Join us for an amazing event! Experience great music, atmosphere, and unforgettable moments. Don't miss out on this exciting experience!"}
+                            </p>
+                        )}
                     </div>
-                    <button className="text-[#14FFEC] flex items-center justify-center w-full">
-                        <ChevronDown size={20} />
-                    </button>
+                    {!isEditing && (
+                        <button className="text-[#14FFEC] flex items-center justify-center w-full">
+                            <ChevronDown size={20} />
+                        </button>
+                    )}
                 </div>
 
                 {/* Separator Line */}
@@ -262,7 +549,7 @@ function EventPreviewContent() {
                 {/* Event Organizers */}
                 <div className="px-6 mb-8">
                     <h2 className="text-white text-xl font-['Manrope'] mb-3">Event Organised & Presented by</h2>
-                    <div className="w-full p-4 bg-[#0D1F1F]  rounded-[20px]">
+                    <div className="w-full p-4 bg-[#0D1F1F] rounded-[20px]">
                         <div className="flex items-center justify-start gap-8">
                             <div className="flex items-center gap-2">
                                 <img className="w-[51px] h-[51px] rounded-full object-cover" src="/vibemeter/Screenshot_2025-05-16_192139-removebg-preview.png" />
@@ -280,6 +567,66 @@ function EventPreviewContent() {
                     </div>
                 </div>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <DialogOverlay />
+                <DialogContent className="p-0 border-none bg-transparent max-w-[420px]" showCloseButton={false}>
+                    <div className="w-full p-[20px_21px_20px_22px] bg-[#0D1F1F] overflow-hidden rounded-[17px] flex flex-col items-center gap-[26px] relative">
+                        {/* Close button */}
+                        <div className="absolute right-3 top-3">
+                            <button
+                                onClick={() => setShowDeleteDialog(false)}
+                                className="w-8 h-8 flex items-center justify-center text-white bg-transparent rounded-full hover:bg-white/10 transition-colors"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Warning Icon */}
+                        <div className="w-[80px] h-[80px] relative overflow-hidden flex items-center justify-center">
+                            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
+                                <Trash2 size={32} className="text-red-400" />
+                            </div>
+                        </div>
+
+                        {/* Title and Message */}
+                        <div className="flex flex-col items-center gap-[12px]">
+                            <div className="text-[#F9F9F9] text-[20px] font-semibold font-['Manrope']">
+                                Delete Event
+                            </div>
+                            <div className="text-[#A3A3A3] text-[14px] font-['Manrope'] text-center leading-relaxed">
+                                Are you sure you want to delete "{eventData?.title || 'this event'}"? This action cannot be undone.
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-[14px]">
+                            <button
+                                onClick={handleDeleteEvent}
+                                disabled={isDeleting}
+                                className="w-[154px] h-[38px] bg-red-600 rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-red-700 transition-all duration-300 disabled:opacity-50"
+                            >
+                                <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px] flex items-center gap-2">
+                                    {isDeleting && (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    )}
+                                    {isDeleting ? 'Deleting...' : 'Yes, Delete'}
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => setShowDeleteDialog(false)}
+                                className="w-[154px] h-[38px] border border-[#007877] rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-[#012e2e] transition-all duration-300"
+                            >
+                                <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px]">
+                                    Cancel
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

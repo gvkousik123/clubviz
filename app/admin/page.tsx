@@ -11,6 +11,7 @@ import { useClubList } from '@/hooks/use-club-list';
 import { useOrganizedEvents } from '@/hooks/use-organized-events';
 import { AccessDenied } from '@/components/common/access-denied';
 import { AuthService } from '@/lib/services/auth.service';
+import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
 
 export default function AdminDashboard() {
     // Authentication info - no redirects
@@ -19,8 +20,12 @@ export default function AdminDashboard() {
     const hasRole = (role: string) => AuthService.hasRole(role);
 
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState('active');
     const [showCreateModal, setShowCreateModal] = useState<'club' | 'event' | null>(null);
+
+    // Delete dialog states
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [deleteEventId, setDeleteEventId] = useState<string | null>(null);
+    const [deleteEventTitle, setDeleteEventTitle] = useState<string>('');
 
     // Use profile hook for admin profile data
     const {
@@ -33,7 +38,7 @@ export default function AdminDashboard() {
     const clubCrud = useAdminClubs();
     const eventCrud = useAdminEvents();
     const { clubs: clubsData, loadClubs, loading: isLoadingClubs } = useClubList();
-    const { events: organizedEvents, loadOrganizedEvents, isLoading: isLoadingOrganized } = useOrganizedEvents();
+    const { events: organizedEvents, loadOrganizedEvents, isLoading: isLoadingOrganized, error: organizedEventsError, setEvents } = useOrganizedEvents();
 
     // Load admin data on mount - ONLY ONCE
     useEffect(() => {
@@ -93,10 +98,6 @@ export default function AdminDashboard() {
         router.push(path);
     };
 
-    const handleTabChange = (tab: string) => {
-        setActiveTab(tab);
-    };
-
     // Handle club operations
     const handleCreateClub = () => {
         setShowCreateModal('club');
@@ -125,16 +126,72 @@ export default function AdminDashboard() {
     };
 
     const handleEditEvent = (eventId: string) => {
-        router.push(`/admin/edit-event/${eventId}`);
+        router.push(`/admin/event-preview?eventId=${eventId}&edit=true`);
     };
 
-    const handleDeleteEvent = async (eventId: string) => {
-        if (confirm('Are you sure you want to delete this event?')) {
-            const success = await eventCrud.deleteEvent(eventId);
-            if (success) {
-                await loadOrganizedEvents({ page: 0, size: 20, sortBy: 'startDateTime', sortOrder: 'asc' }); // Refresh organized events
-            }
+    const handleDeleteEvent = (eventId: string) => {
+        const event = organizedEvents.find(e => e.id === eventId);
+        if (event) {
+            setDeleteEventId(eventId);
+            setDeleteEventTitle(event.title);
+            setShowDeleteDialog(true);
         }
+    };
+
+    const handleConfirmDeleteEvent = async () => {
+        if (!deleteEventId) return;
+
+        try {
+            // Immediately remove from UI (optimistic update)
+            const updatedEvents = organizedEvents.filter(event => event.id !== deleteEventId);
+            setEvents(updatedEvents);
+
+            // Close the dialog
+            setShowDeleteDialog(false);
+            setDeleteEventId(null);
+            setDeleteEventTitle('');
+
+            // Show success feedback
+            const toastDiv = document.createElement('div');
+            toastDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+            toastDiv.textContent = '✓ Event deleted successfully!';
+            document.body.appendChild(toastDiv);
+            setTimeout(() => {
+                if (document.body.contains(toastDiv)) {
+                    document.body.removeChild(toastDiv);
+                }
+            }, 3000);
+
+            // Call API in background (don't wait for it)
+            eventCrud.deleteEvent(deleteEventId).then(success => {
+                if (!success) {
+                    // If API failed, revert the optimistic update
+                    console.error('API delete failed, reverting...');
+                    loadOrganizedEvents({ page: 0, size: 20, sortBy: 'startDateTime', sortOrder: 'asc' });
+                }
+            });
+
+        } catch (error) {
+            console.error('Error deleting event:', error);
+            // Show error toast
+            const errorToast = document.createElement('div');
+            errorToast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+            errorToast.textContent = '⚠️ Failed to delete event';
+            document.body.appendChild(errorToast);
+            setTimeout(() => {
+                if (document.body.contains(errorToast)) {
+                    document.body.removeChild(errorToast);
+                }
+            }, 3000);
+            // Reload to get correct state
+            loadOrganizedEvents({ page: 0, size: 20, sortBy: 'startDateTime', sortOrder: 'asc' });
+        }
+    };
+
+    const handleCancelDeleteEvent = () => {
+        setShowDeleteDialog(false);
+        setDeleteEventId(null);
+        setDeleteEventTitle('');
     };
 
     return (
@@ -282,6 +339,98 @@ export default function AdminDashboard() {
                                         <Edit className="w-5 h-5 text-black" />
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* My Organized Events Section - Moved here after Quick Actions */}
+                        <div className="mb-6">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-lg font-semibold">My Organized Events</h3>
+                                {isLoadingOrganized && (
+                                    <div className="text-[#14FFEC] text-sm">Loading...</div>
+                                )}
+                            </div>
+                            <div className="space-y-3">
+                                {organizedEvents && organizedEvents.length > 0 ? (
+                                    organizedEvents.slice(0, 5).map((event) => (
+                                        <div
+                                            key={event.id}
+                                            className="bg-[#0D1F1F] border border-[#14FFEC]/10 rounded-[15px] p-4"
+                                        >
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1 cursor-pointer" onClick={() => router.push(`/admin/event-preview?eventId=${event.id}`)}>
+                                                    <h4 className="text-white font-medium mb-1">{event.title}</h4>
+                                                    <div className="space-y-1 text-sm text-gray-400">
+                                                        <div className="flex items-center gap-2">
+                                                            <Calendar className="w-4 h-4 text-[#14FFEC]" />
+                                                            <span>{event.formattedDate}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Clock className="w-4 h-4 text-[#14FFEC]" />
+                                                            <span>{event.formattedTime}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Users className="w-4 h-4 text-[#14FFEC]" />
+                                                            <span>{event.attendeeCount}/{event.maxAttendees || 'Unlimited'} attendees</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2 ml-4">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleEditEvent(event.id);
+                                                        }}
+                                                        className="p-2 bg-[#14FFEC]/20 rounded-lg hover:bg-[#14FFEC]/30 transition-colors"
+                                                        title="Edit Event"
+                                                    >
+                                                        <Edit className="w-4 h-4 text-[#14FFEC]" />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDeleteEvent(event.id);
+                                                        }}
+                                                        className="p-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
+                                                        disabled={eventCrud.isDeleting}
+                                                        title="Delete Event"
+                                                    >
+                                                        <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    !isLoadingOrganized && (
+                                        organizedEventsError ? (
+                                            <div className="text-center py-8">
+                                                <div className="w-12 h-12 text-red-500 mx-auto mb-4">⚠️</div>
+                                                <p className="text-red-400 mb-2">Error loading events</p>
+                                                <p className="text-gray-400 text-sm">{organizedEventsError}</p>
+                                                <button
+                                                    onClick={() => loadOrganizedEvents({ page: 0, size: 20, sortBy: 'startDateTime', sortOrder: 'asc' })}
+                                                    className="mt-4 px-4 py-2 bg-[#14FFEC] text-black rounded-lg font-medium"
+                                                >
+                                                    Retry
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-8">
+                                                <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                                                <p className="text-gray-400">No organized events found</p>
+                                                <button
+                                                    onClick={handleCreateEvent}
+                                                    className="mt-2 px-4 py-2 bg-[#14FFEC] text-black rounded-lg font-medium"
+                                                >
+                                                    Create Your First Event
+                                                </button>
+                                            </div>
+                                        )
+                                    )
+                                )}
                             </div>
                         </div>
 
@@ -456,329 +605,66 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
                         </div>
-
-                        {/* My Organized Events Section */}
-                        <div className="mb-6">
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-lg font-semibold">My Organized Events</h3>
-                                {isLoadingOrganized && (
-                                    <div className="text-[#14FFEC] text-sm">Loading...</div>
-                                )}
-                            </div>
-                            <div className="space-y-3">
-                                {organizedEvents && organizedEvents.length > 0 ? (
-                                    organizedEvents.slice(0, 5).map((event) => (
-                                        <div
-                                            key={event.id}
-                                            className="bg-[#0D1F1F] border border-[#14FFEC]/10 rounded-[15px] p-4"
-                                        >
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex-1">
-                                                    <h4 className="text-white font-medium mb-1">{event.title}</h4>
-                                                    <div className="space-y-1 text-sm text-gray-400">
-                                                        <div className="flex items-center gap-2">
-                                                            <Calendar className="w-4 h-4 text-[#14FFEC]" />
-                                                            <span>{event.formattedDate}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <Clock className="w-4 h-4 text-[#14FFEC]" />
-                                                            <span>{event.formattedTime}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <Users className="w-4 h-4 text-[#14FFEC]" />
-                                                            <span>{event.attendeeCount}/{event.maxAttendees || 'Unlimited'} attendees</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-2 ml-4">
-                                                    <button
-                                                        onClick={() => handleEditEvent(event.id)}
-                                                        className="p-2 bg-[#14FFEC]/20 rounded-lg hover:bg-[#14FFEC]/30 transition-colors"
-                                                        title="Edit Event"
-                                                    >
-                                                        <Edit className="w-4 h-4 text-[#14FFEC]" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteEvent(event.id)}
-                                                        className="p-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
-                                                        disabled={eventCrud.isDeleting}
-                                                        title="Delete Event"
-                                                    >
-                                                        <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    !isLoadingOrganized && (
-                                        <div className="text-center py-8">
-                                            <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                            <p className="text-gray-400">No organized events found</p>
-                                            <button
-                                                onClick={handleCreateEvent}
-                                                className="mt-2 px-4 py-2 bg-[#14FFEC] text-black rounded-lg font-medium"
-                                            >
-                                                Create Your First Event
-                                            </button>
-                                        </div>
-                                    )
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Event Info Section */}
-                        <div>
-                            <h3 className="text-lg font-semibold mb-3">Event Info</h3>
-
-                            {/* Event Tabs */}
-                            <div className="flex gap-2 mb-4">
-                                <button
-                                    onClick={() => handleTabChange('past')}
-                                    className={`px-4 py-2 rounded-full text-xs font-medium ${activeTab === 'past'
-                                        ? 'bg-[#14FFEC] text-black'
-                                        : 'bg-[#0D1F1F] text-white'
-                                        }`}
-                                >
-                                    Past Events
-                                </button>
-                                <button
-                                    onClick={() => handleTabChange('active')}
-                                    className={`px-4 py-2 rounded-full text-xs font-medium ${activeTab === 'active'
-                                        ? 'bg-[#14FFEC] text-black'
-                                        : 'bg-[#0D1F1F] text-white'
-                                        }`}
-                                >
-                                    Active Events
-                                </button>
-                                <button
-                                    onClick={() => handleTabChange('upcoming')}
-                                    className={`px-4 py-2 rounded-full text-xs font-medium ${activeTab === 'upcoming'
-                                        ? 'bg-[#14FFEC] text-black'
-                                        : 'bg-[#0D1F1F] text-white'
-                                        }`}
-                                >
-                                    Upcoming Events
-                                </button>
-                            </div>
-
-                            {/* Event Cards */}
-                            <div className="pb-24">
-                                {/* Loading State */}
-                                {isLoadingOrganized && (
-                                    <div className="text-center py-8 text-gray-400">
-                                        Loading events...
-                                    </div>
-                                )}
-
-                                {/* Active Events */}
-                                {activeTab === 'active' && !isLoadingOrganized && (
-                                    <>
-                                        {organizedEvents && organizedEvents.filter(event => event.status === 'ONGOING' || event.ongoing).length > 0 ? (
-                                            organizedEvents.filter(event => event.status === 'ONGOING' || event.ongoing).map((event) => (
-                                                <div
-                                                    key={event.id}
-                                                    className="flex items-start justify-between mb-4 cursor-pointer relative group"
-                                                >
-                                                    <div
-                                                        className="flex-1"
-                                                        onClick={() => handleNavigation('/admin/event-analytics')}
-                                                    >
-                                                        <h4 className="text-lg font-semibold text-[#14FFEC] mb-1">{event.title}</h4>
-                                                        <div className="space-y-1 text-sm">
-                                                            <div className="flex items-center gap-2">
-                                                                <Calendar className="w-4 h-4 text-[#14FFEC]" />
-                                                                <span>{event.formattedDate}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#14FFEC]">
-                                                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                                                                    <circle cx="12" cy="10" r="3" />
-                                                                </svg>
-                                                                <span>{event.location}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <Users className="w-4 h-4 text-[#14FFEC]" />
-                                                                <span>{event.attendeeCount}/{event.maxAttendees} attendees</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <Clock className="w-4 h-4 text-[#14FFEC]" />
-                                                                <span>{event.formattedTime}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Admin Action Buttons */}
-                                                    <div className="flex flex-col gap-2 ml-2">
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleEditEvent(event.id);
-                                                            }}
-                                                            className="p-1.5 bg-[#14FFEC]/20 rounded-lg hover:bg-[#14FFEC]/40 transition-colors"
-                                                            title="Edit Event"
-                                                        >
-                                                            <Edit className="w-3 h-3 text-[#14FFEC]" />
-                                                        </button>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleDeleteEvent(event.id);
-                                                            }}
-                                                            className="p-1.5 bg-red-500/20 rounded-lg hover:bg-red-500/40 transition-colors"
-                                                            disabled={eventCrud.isDeleting}
-                                                            title="Delete Event"
-                                                        >
-                                                            <svg className="w-3 h-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                            </svg>
-                                                        </button>
-                                                    </div>
-
-                                                    <div className="w-20 h-28 bg-[#0D1F1F] rounded-md overflow-hidden ml-4 border border-[#14FFEC]/40">
-                                                        <img
-                                                            src={event.imageUrl || "/event list/Rectangle 1.jpg"}
-                                                            alt="Event Poster"
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="text-center py-8 text-gray-400">
-                                                No active events to display
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-
-                                {/* Past Events */}
-                                {activeTab === 'past' && !isLoadingOrganized && (
-                                    <>
-                                        {organizedEvents && organizedEvents.filter(event => event.status === 'COMPLETED' || event.pastEvent).length > 0 ? (
-                                            organizedEvents.filter(event => event.status === 'COMPLETED' || event.pastEvent).map((event) => (
-                                                <div
-                                                    key={event.id}
-                                                    onClick={() => handleNavigation('/admin/event-analytics')}
-                                                    className="flex items-start justify-between mb-4 cursor-pointer opacity-75"
-                                                >
-                                                    <div className="flex-1">
-                                                        <h4 className="text-lg font-semibold text-gray-300 mb-1">{event.title}</h4>
-                                                        <div className="space-y-1 text-sm text-gray-400">
-                                                            <div className="flex items-center gap-2">
-                                                                <Calendar className="w-4 h-4" />
-                                                                <span>{event.formattedDate}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <Users className="w-4 h-4" />
-                                                                <span>{event.attendeeCount} attended</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="w-20 h-28 bg-[#0D1F1F] rounded-md overflow-hidden ml-4 border border-gray-500/20">
-                                                        <img
-                                                            src={event.imageUrl || "/event list/Rectangle 1.jpg"}
-                                                            alt="Event Poster"
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="text-center py-8 text-gray-400">
-                                                No past events to display
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-
-                                {/* Upcoming Events */}
-                                {activeTab === 'upcoming' && !isLoadingOrganized && (
-                                    <>
-                                        {organizedEvents && organizedEvents.filter(event => event.status === 'UPCOMING' || event.upcoming).length > 0 ? (
-                                            organizedEvents.filter(event => event.status === 'UPCOMING' || event.upcoming).map((event) => (
-                                                <div
-                                                    key={event.id}
-                                                    className="flex items-start justify-between mb-4 cursor-pointer relative group"
-                                                >
-                                                    <div
-                                                        className="flex-1"
-                                                        onClick={() => handleNavigation('/admin/event-analytics')}
-                                                    >
-                                                        <h4 className="text-lg font-semibold text-[#14FFEC] mb-1">{event.title}</h4>
-                                                        <div className="space-y-1 text-sm">
-                                                            <div className="flex items-center gap-2">
-                                                                <Calendar className="w-4 h-4 text-[#14FFEC]" />
-                                                                <span>{event.formattedDate}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#14FFEC]">
-                                                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                                                                    <circle cx="12" cy="10" r="3" />
-                                                                </svg>
-                                                                <span>{event.location}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <Users className="w-4 h-4 text-[#14FFEC]" />
-                                                                <span>{event.attendeeCount}/{event.maxAttendees} registered</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <Clock className="w-4 h-4 text-[#14FFEC]" />
-                                                                <span>{event.timeUntilEvent}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Admin Action Buttons */}
-                                                    <div className="flex flex-col gap-2 ml-2">
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleEditEvent(event.id);
-                                                            }}
-                                                            className="p-1.5 bg-[#14FFEC]/20 rounded-lg hover:bg-[#14FFEC]/40 transition-colors"
-                                                            title="Edit Event"
-                                                        >
-                                                            <Edit className="w-3 h-3 text-[#14FFEC]" />
-                                                        </button>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleDeleteEvent(event.id);
-                                                            }}
-                                                            className="p-1.5 bg-red-500/20 rounded-lg hover:bg-red-500/40 transition-colors"
-                                                            disabled={eventCrud.isDeleting}
-                                                            title="Delete Event"
-                                                        >
-                                                            <svg className="w-3 h-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                            </svg>
-                                                        </button>
-                                                    </div>
-
-                                                    <div className="w-20 h-28 bg-[#0D1F1F] rounded-md overflow-hidden ml-4 border border-[#14FFEC]/40">
-                                                        <img
-                                                            src={event.imageUrl || "/event list/Rectangle 1.jpg"}
-                                                            alt="Event Poster"
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="text-center py-8 text-gray-400">
-                                                No upcoming events to display
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <DialogOverlay />
+                <DialogContent className="p-0 border-none bg-transparent max-w-[420px]" showCloseButton={false}>
+                    <div className="w-full p-[20px_21px_20px_22px] bg-[#0D1F1F] overflow-hidden rounded-[17px] flex flex-col items-center gap-[26px]">
+                        {/* Close button in the top-right corner */}
+                        <div className="absolute right-3 top-3">
+                            <button
+                                onClick={handleCancelDeleteEvent}
+                                className="w-8 h-8 flex items-center justify-center text-white bg-transparent rounded-full"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Warning Icon */}
+                        <div className="w-[80px] h-[80px] relative overflow-hidden flex items-center justify-center">
+                            <div className="text-4xl">⚠️</div>
+                        </div>
+
+                        {/* Text Content */}
+                        <div className="flex flex-col items-center gap-[12px]">
+                            <div className="text-[#F9F9F9] text-[20px] font-semibold font-['Manrope']">
+                                Delete Event
+                            </div>
+                            <div className="text-center text-[#9D9C9C] text-[16px] font-['Manrope'] leading-[19.20px]">
+                                Are you sure you want to delete <span className="text-[#14FFEC] font-semibold">"{deleteEventTitle}"</span>?
+                            </div>
+                            <div className="text-center text-[#ff6b6b] text-[14px] font-['Manrope'] leading-[17px]">
+                                This action cannot be undone
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-[14px]">
+                            <button
+                                onClick={handleConfirmDeleteEvent}
+                                className="w-[154px] h-[38px] bg-[#d32f2f] rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-[#b71c1c] transition-all duration-300"
+                            >
+                                <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px]">
+                                    Delete
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={handleCancelDeleteEvent}
+                                className="w-[154px] h-[38px] border border-[#007877] rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-[#012e2e] transition-all duration-300"
+                            >
+                                <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px]">
+                                    Cancel
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

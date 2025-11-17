@@ -21,6 +21,7 @@ export interface UseOrganizedEventsActions {
     }) => Promise<void>;
     refreshOrganizedEvents: () => Promise<void>;
     clearError: () => void;
+    setEvents: (events: EventListItem[]) => void;
 }
 
 export function useOrganizedEvents(): UseOrganizedEventsState & UseOrganizedEventsActions {
@@ -42,20 +43,55 @@ export function useOrganizedEvents(): UseOrganizedEventsState & UseOrganizedEven
         setError(null);
 
         try {
-            const response = await EventService.getMyOrganizedEvents(params);
+            const resAny: any = await EventService.getMyOrganizedEvents(params) as any;
 
-            if (response.success && response.data) {
-                setEvents(response.data.content || []);
-                setTotalElements(response.data.totalElements || 0);
-                setTotalPages(response.data.totalPages || 0);
-                setCurrentPage(response.data.currentPage || 0);
-            } else {
-                throw new Error(response.message || 'Failed to load organized events');
+            // The API may return either a wrapped ApiResponse { success, message, data }
+            // or the payload directly (EventListResponse). Handle both shapes.
+            let payload: any = null;
+
+            if (resAny) {
+                // If wrapped response
+                if (typeof resAny === 'object' && 'data' in resAny && ('success' in resAny || 'message' in resAny)) {
+                    payload = resAny.data;
+                    // If API indicates failure explicitly
+                    if ('success' in resAny && resAny.success === false) {
+                        throw new Error(resAny.message || 'Failed to load organized events');
+                    }
+                } else if (typeof resAny === 'object' && 'content' in resAny) {
+                    // Direct payload
+                    payload = resAny;
+                } else {
+                    // Unknown shape - try to be resilient
+                    payload = resAny.data || resAny;
+                }
             }
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to load organized events';
-            setError(errorMessage);
-            console.error('Error loading organized events:', error);
+
+            if (payload) {
+                setEvents(payload.content || []);
+                setTotalElements(payload.totalElements || payload.total || 0);
+                setTotalPages(payload.totalPages || 0);
+                setCurrentPage(payload.currentPage || payload.page || 0);
+            } else {
+                // No payload - treat as empty
+                setEvents([]);
+                setTotalElements(0);
+                setTotalPages(0);
+                setCurrentPage(0);
+            }
+        } catch (error: any) {
+            // Treat 403 Forbidden as empty state for new users (server may use 403 when user has no organizer access)
+            if (error?.response?.status === 403 || String(error?.message || '').includes('403')) {
+                console.log('No organized events yet or access restricted (403) - showing empty state.');
+                setEvents([]);
+                setTotalElements(0);
+                setTotalPages(0);
+                setCurrentPage(0);
+                setError(null);
+            } else {
+                const errorMessage = error instanceof Error ? error.message : 'Failed to load organized events';
+                setError(errorMessage);
+                console.error('Error loading organized events:', error);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -65,6 +101,11 @@ export function useOrganizedEvents(): UseOrganizedEventsState & UseOrganizedEven
     const refreshOrganizedEvents = useCallback(async () => {
         await loadOrganizedEvents();
     }, [loadOrganizedEvents]);
+
+    // Set events directly (for optimistic updates)
+    const setEventsDirectly = useCallback((newEvents: EventListItem[]) => {
+        setEvents(newEvents);
+    }, []);
 
     // Clear error
     const clearError = useCallback(() => {
@@ -81,5 +122,6 @@ export function useOrganizedEvents(): UseOrganizedEventsState & UseOrganizedEven
         loadOrganizedEvents,
         refreshOrganizedEvents,
         clearError,
+        setEvents: setEventsDirectly,
     };
 }
