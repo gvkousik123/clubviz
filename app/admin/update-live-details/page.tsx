@@ -2,11 +2,11 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Plus } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { EventService, EventDetailsResponse } from '@/lib/services/event.service';
 import '../new-event/styles.css';
 
-export default function UpdateLiveDetailsPage() {
+function UpdateLiveDetailsPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const eventId = searchParams.get('eventId');
@@ -649,5 +649,20 @@ export default function UpdateLiveDetailsPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function UpdateLiveDetailsPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#021313] text-white flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-12 h-12 bg-[#14FFEC] rounded-full mx-auto mb-4 animate-pulse"></div>
+                    <p>Loading...</p>
+                </div>
+            </div>
+        }>
+            <UpdateLiveDetailsPageContent />
+        </Suspense>
     );
 }

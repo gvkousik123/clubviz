@@ -345,7 +345,7 @@ function EventPreviewContent() {
                             />
                         ) : (
                             <h1 className="text-white text-center text-xl font-['Manrope'] leading-8 tracking-[0.24px]">
-                                {eventData?.title || 'Untitled Event'}
+                                {eventData?.title || ''}
                             </h1>
                         )}
                     </div>
@@ -379,7 +379,7 @@ function EventPreviewContent() {
                             />
                         ) : (
                             <p className="text-white font-['Manrope']">
-                                {eventData?.location || eventData?.club?.name || 'TBD'}
+                                {eventData?.location || eventData?.club?.name || ''}
                             </p>
                         )}
                     </div>
@@ -397,8 +397,8 @@ function EventPreviewContent() {
                                 />
                             ) : (
                                 <p className="text-white font-['Manrope']">
-                                    {eventData?.formattedDate || eventData?.startDateTime || 'Date TBD'} |
-                                    {eventData?.formattedTime || 'Time TBD'}
+                                    {eventData?.formattedDate || eventData?.startDateTime || ''} |
+                                    {eventData?.formattedTime || ''}
                                 </p>
                             )}
                         </div>
@@ -483,33 +483,33 @@ function EventPreviewContent() {
                     <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
                 </div>
 
-                {/* Artist */}
-                <div className="px-6 mb-6">
-                    <h2 className="text-white text-xl font-['Manrope'] mb-3">Artist</h2>
-                    <div className="bg-[#0D1F1F] rounded-lg p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center">
-                                <img
-                                    src="/vibemeter/Screenshot_2025-05-24_094641-removebg-preview.png"
-                                    alt="Artist"
-                                    className="w-full h-full rounded-full object-cover"
-                                    onError={(e) => {
-                                        const target = e.target as HTMLImageElement;
-                                        target.src = "/common/avatar-default.jpg";
-                                    }}
-                                />
+                {/* Artist - Only show if artist name exists */}
+                {eventData?.artistName && (
+                    <div className="px-6 mb-6">
+                        <h2 className="text-white text-xl font-['Manrope'] mb-3">Artist</h2>
+                        <div className="bg-[#0D1F1F] rounded-lg p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                {eventData?.artistImage && (
+                                    <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden">
+                                        <img
+                                            src={eventData.artistImage}
+                                            alt="Artist"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                )}
+                                <div>
+                                    <p className="text-white font-['Manrope']">
+                                        {eventData.artistName}
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-white font-['Manrope']">
-                                    {eventData?.artistName || 'Artist TBD'}
-                                </p>
-                            </div>
+                            <button className="text-[#14FFEC]">
+                                <ChevronDown size={20} />
+                            </button>
                         </div>
-                        <button className="text-[#14FFEC]">
-                            <ChevronDown size={20} />
-                        </button>
                     </div>
-                </div>
+                )}
 
                 {/* Separator Line */}
                 <div className="flex justify-center my-4">
@@ -529,12 +529,11 @@ function EventPreviewContent() {
                             />
                         ) : (
                             <p className="text-white/80 text-sm leading-relaxed font-['Manrope']">
-                                {eventData?.description || editData.description ||
-                                    "Join us for an amazing event! Experience great music, atmosphere, and unforgettable moments. Don't miss out on this exciting experience!"}
+                                {eventData?.description || editData.description || ''}
                             </p>
                         )}
                     </div>
-                    {!isEditing && (
+                    {!isEditing && (eventData?.description || editData.description) && (
                         <button className="text-[#14FFEC] flex items-center justify-center w-full">
                             <ChevronDown size={20} />
                         </button>
@@ -546,26 +545,30 @@ function EventPreviewContent() {
                     <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
                 </div>
 
-                {/* Event Organizers */}
-                <div className="px-6 mb-8">
-                    <h2 className="text-white text-xl font-['Manrope'] mb-3">Event Organised & Presented by</h2>
-                    <div className="w-full p-4 bg-[#0D1F1F] rounded-[20px]">
-                        <div className="flex items-center justify-start gap-8">
-                            <div className="flex items-center gap-2">
-                                <img className="w-[51px] h-[51px] rounded-full object-cover" src="/vibemeter/Screenshot_2025-05-16_192139-removebg-preview.png" />
-                                <div className="text-center text-white text-[16px] font-['Manrope'] font-medium leading-5">
-                                    Team<br /> Events
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <img className="w-[51px] h-[51px] rounded-full object-cover" src="/vibemeter/Screenshot_2025-05-16_193232-removebg-preview.png" />
-                                <div className="text-center text-white text-[16px] font-['Manrope'] font-medium leading-5">
-                                    Ark <br />Events
-                                </div>
+                {/* Event Organizers - Only show if organizers data exists */}
+                {eventData?.organizers && eventData.organizers.length > 0 && (
+                    <div className="px-6 mb-8">
+                        <h2 className="text-white text-xl font-['Manrope'] mb-3">Event Organised & Presented by</h2>
+                        <div className="w-full p-4 bg-[#0D1F1F] rounded-[20px]">
+                            <div className="flex items-center justify-start gap-8 flex-wrap">
+                                {eventData.organizers.map((organizer: any, index: number) => (
+                                    <div key={index} className="flex items-center gap-2">
+                                        {organizer.image && (
+                                            <img
+                                                className="w-[51px] h-[51px] rounded-full object-cover"
+                                                src={organizer.image}
+                                                alt={organizer.name}
+                                            />
+                                        )}
+                                        <div className="text-center text-white text-[16px] font-['Manrope'] font-medium leading-5">
+                                            {organizer.name}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {/* Delete Confirmation Dialog */}
