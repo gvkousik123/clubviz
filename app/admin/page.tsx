@@ -9,6 +9,7 @@ import { useAdminClubs } from '@/hooks/use-admin-clubs';
 import { useAdminEvents } from '@/hooks/use-admin-events';
 import { useEventList } from '@/hooks/use-event-list';
 import { useClubList } from '@/hooks/use-club-list';
+import { useOrganizedEvents } from '@/hooks/use-organized-events';
 import { AccessDenied } from '@/components/common/access-denied';
 import { AuthService } from '@/lib/services/auth.service';
 
@@ -34,6 +35,7 @@ export default function AdminDashboard() {
     const eventCrud = useAdminEvents();
     const { eventList, loadEventList, isLoadingList: isLoadingEvents } = useEventList();
     const { clubs: clubsData, loadClubs, loading: isLoadingClubs } = useClubList();
+    const { events: organizedEvents, loadOrganizedEvents, isLoading: isLoadingOrganized } = useOrganizedEvents();
 
     // Load admin data on mount - ONLY ONCE
     useEffect(() => {
@@ -51,6 +53,9 @@ export default function AdminDashboard() {
 
                 // Load admin-specific club data
                 await clubCrud.refreshData();
+
+                // Load organized events (events created by this user)
+                await loadOrganizedEvents({ page: 0, size: 20, sortBy: 'startDateTime', sortOrder: 'asc' });
             } catch (error) {
                 console.error('Error loading admin data:', error);
             }
@@ -134,6 +139,7 @@ export default function AdminDashboard() {
             const success = await eventCrud.deleteEvent(eventId);
             if (success) {
                 await loadEventList(); // Refresh events list
+                await loadOrganizedEvents({ page: 0, size: 20, sortBy: 'startDateTime', sortOrder: 'asc' }); // Refresh organized events
             }
         }
     };
@@ -455,6 +461,78 @@ export default function AdminDashboard() {
                                         <path d="m9 18 6-6-6-6" />
                                     </svg>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* My Organized Events Section */}
+                        <div className="mb-6">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-lg font-semibold">My Organized Events</h3>
+                                {isLoadingOrganized && (
+                                    <div className="text-[#14FFEC] text-sm">Loading...</div>
+                                )}
+                            </div>
+                            <div className="space-y-3">
+                                {organizedEvents && organizedEvents.length > 0 ? (
+                                    organizedEvents.slice(0, 5).map((event) => (
+                                        <div
+                                            key={event.id}
+                                            className="bg-[#0D1F1F] border border-[#14FFEC]/10 rounded-[15px] p-4"
+                                        >
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1">
+                                                    <h4 className="text-white font-medium mb-1">{event.title}</h4>
+                                                    <div className="space-y-1 text-sm text-gray-400">
+                                                        <div className="flex items-center gap-2">
+                                                            <Calendar className="w-4 h-4 text-[#14FFEC]" />
+                                                            <span>{new Date(event.startDateTime).toLocaleDateString()}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Clock className="w-4 h-4 text-[#14FFEC]" />
+                                                            <span>{new Date(event.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Users className="w-4 h-4 text-[#14FFEC]" />
+                                                            <span>{event.attendedCount || 0}/{event.maxAttendees} attendees</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2 ml-4">
+                                                    <button
+                                                        onClick={() => handleEditEvent(event.id)}
+                                                        className="p-2 bg-[#14FFEC]/20 rounded-lg hover:bg-[#14FFEC]/30 transition-colors"
+                                                        title="Edit Event"
+                                                    >
+                                                        <Edit className="w-4 h-4 text-[#14FFEC]" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteEvent(event.id)}
+                                                        className="p-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
+                                                        disabled={eventCrud.isDeleting}
+                                                        title="Delete Event"
+                                                    >
+                                                        <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    !isLoadingOrganized && (
+                                        <div className="text-center py-8">
+                                            <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                                            <p className="text-gray-400">No organized events found</p>
+                                            <button
+                                                onClick={handleCreateEvent}
+                                                className="mt-2 px-4 py-2 bg-[#14FFEC] text-black rounded-lg font-medium"
+                                            >
+                                                Create Your First Event
+                                            </button>
+                                        </div>
+                                    )
+                                )}
                             </div>
                         </div>
 
