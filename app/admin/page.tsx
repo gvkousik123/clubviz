@@ -7,7 +7,6 @@ import Image from 'next/image';
 import { useProfile } from '@/hooks/use-profile';
 import { useAdminClubs } from '@/hooks/use-admin-clubs';
 import { useAdminEvents } from '@/hooks/use-admin-events';
-import { useEventList } from '@/hooks/use-event-list';
 import { useClubList } from '@/hooks/use-club-list';
 import { useOrganizedEvents } from '@/hooks/use-organized-events';
 import { AccessDenied } from '@/components/common/access-denied';
@@ -33,7 +32,6 @@ export default function AdminDashboard() {
     // CRUD hooks for clubs and events
     const clubCrud = useAdminClubs();
     const eventCrud = useAdminEvents();
-    const { eventList, loadEventList, isLoadingList: isLoadingEvents } = useEventList();
     const { clubs: clubsData, loadClubs, loading: isLoadingClubs } = useClubList();
     const { events: organizedEvents, loadOrganizedEvents, isLoading: isLoadingOrganized } = useOrganizedEvents();
 
@@ -45,9 +43,6 @@ export default function AdminDashboard() {
             if (!isMounted) return;
 
             try {
-                // Load events for this admin
-                await loadEventList();
-
                 // Load clubs for this admin
                 await loadClubs();
 
@@ -68,9 +63,9 @@ export default function AdminDashboard() {
         };
     }, []); // Empty dependency array - only run once on mount
 
-    // Calculate stats from real event data
+    // Calculate stats from organized events
     const calculateStats = () => {
-        if (!eventList?.content) {
+        if (!organizedEvents || organizedEvents.length === 0) {
             return {
                 totalRevenue: 'Rs 0',
                 totalTicketSold: '0/0',
@@ -79,14 +74,13 @@ export default function AdminDashboard() {
             };
         }
 
-        const events = eventList.content;
-        const activeEvents = events.filter(e => e.status === 'ONGOING' || e.ongoing);
-        const totalAttendees = events.reduce((sum, event) => sum + event.attendeeCount, 0);
-        const totalCapacity = events.reduce((sum, event) => sum + event.maxAttendees, 0);
+        const activeEvents = organizedEvents.filter(e => e.status === 'ONGOING' || e.ongoing);
+        const totalAttendees = organizedEvents.reduce((sum, event) => sum + event.attendeeCount, 0);
+        const totalCapacity = organizedEvents.reduce((sum, event) => sum + (event.maxAttendees || 0), 0);
 
         return {
             totalRevenue: 'Rs 0', // Fetch from API if available
-            totalTicketSold: `${totalAttendees}/${totalCapacity}`,
+            totalTicketSold: `${totalAttendees}/${totalCapacity || 'Unlimited'}`,
             peopleAttending: totalAttendees.toString(),
             activeEvents: activeEvents.length.toString()
         };
@@ -138,7 +132,6 @@ export default function AdminDashboard() {
         if (confirm('Are you sure you want to delete this event?')) {
             const success = await eventCrud.deleteEvent(eventId);
             if (success) {
-                await loadEventList(); // Refresh events list
                 await loadOrganizedEvents({ page: 0, size: 20, sortBy: 'startDateTime', sortOrder: 'asc' }); // Refresh organized events
             }
         }
@@ -574,17 +567,17 @@ export default function AdminDashboard() {
                             {/* Event Cards */}
                             <div className="pb-24">
                                 {/* Loading State */}
-                                {isLoadingEvents && (
+                                {isLoadingOrganized && (
                                     <div className="text-center py-8 text-gray-400">
                                         Loading events...
                                     </div>
                                 )}
 
                                 {/* Active Events */}
-                                {activeTab === 'active' && !isLoadingEvents && (
+                                {activeTab === 'active' && !isLoadingOrganized && (
                                     <>
-                                        {eventList?.content && eventList.content.filter(event => event.status === 'ONGOING' || event.ongoing).length > 0 ? (
-                                            eventList.content.filter(event => event.status === 'ONGOING' || event.ongoing).map((event) => (
+                                        {organizedEvents && organizedEvents.filter(event => event.status === 'ONGOING' || event.ongoing).length > 0 ? (
+                                            organizedEvents.filter(event => event.status === 'ONGOING' || event.ongoing).map((event) => (
                                                 <div
                                                     key={event.id}
                                                     className="flex items-start justify-between mb-4 cursor-pointer relative group"
@@ -662,10 +655,10 @@ export default function AdminDashboard() {
                                 )}
 
                                 {/* Past Events */}
-                                {activeTab === 'past' && !isLoadingEvents && (
+                                {activeTab === 'past' && !isLoadingOrganized && (
                                     <>
-                                        {eventList?.content && eventList.content.filter(event => event.status === 'COMPLETED' || event.pastEvent).length > 0 ? (
-                                            eventList.content.filter(event => event.status === 'COMPLETED' || event.pastEvent).map((event) => (
+                                        {organizedEvents && organizedEvents.filter(event => event.status === 'COMPLETED' || event.pastEvent).length > 0 ? (
+                                            organizedEvents.filter(event => event.status === 'COMPLETED' || event.pastEvent).map((event) => (
                                                 <div
                                                     key={event.id}
                                                     onClick={() => handleNavigation('/admin/event-analytics')}
@@ -702,10 +695,10 @@ export default function AdminDashboard() {
                                 )}
 
                                 {/* Upcoming Events */}
-                                {activeTab === 'upcoming' && !isLoadingEvents && (
+                                {activeTab === 'upcoming' && !isLoadingOrganized && (
                                     <>
-                                        {eventList && eventList.content.filter(event => event.status === 'UPCOMING' || event.upcoming).length > 0 ? (
-                                            eventList.content.filter(event => event.status === 'UPCOMING' || event.upcoming).map((event) => (
+                                        {organizedEvents && organizedEvents.filter(event => event.status === 'UPCOMING' || event.upcoming).length > 0 ? (
+                                            organizedEvents.filter(event => event.status === 'UPCOMING' || event.upcoming).map((event) => (
                                                 <div
                                                     key={event.id}
                                                     className="flex items-start justify-between mb-4 cursor-pointer relative group"
