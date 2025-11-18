@@ -8,6 +8,7 @@ import { useProfile } from '@/hooks/use-profile';
 import { useAdminClubs } from '@/hooks/use-admin-clubs';
 import { useAdminEvents } from '@/hooks/use-admin-events';
 import { useClubList } from '@/hooks/use-club-list';
+import { useOwnedClubs } from '@/hooks/use-owned-clubs';
 import { useOrganizedEvents } from '@/hooks/use-organized-events';
 import { AccessDenied } from '@/components/common/access-denied';
 import { AuthService } from '@/lib/services/auth.service';
@@ -22,10 +23,15 @@ export default function AdminDashboard() {
     const router = useRouter();
     const [showCreateModal, setShowCreateModal] = useState<'club' | 'event' | null>(null);
 
-    // Delete dialog states
+    // Delete dialog states - Events
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [deleteEventId, setDeleteEventId] = useState<string | null>(null);
     const [deleteEventTitle, setDeleteEventTitle] = useState<string>('');
+
+    // Delete dialog states - Clubs
+    const [showDeleteClubDialog, setShowDeleteClubDialog] = useState(false);
+    const [deleteClubId, setDeleteClubId] = useState<string | null>(null);
+    const [deleteClubName, setDeleteClubName] = useState<string>('');
 
     // Use profile hook for admin profile data
     const {
@@ -37,7 +43,7 @@ export default function AdminDashboard() {
     // CRUD hooks for clubs and events
     const clubCrud = useAdminClubs();
     const eventCrud = useAdminEvents();
-    const { clubs: clubsData, loadClubs, loading: isLoadingClubs } = useClubList();
+    const { clubs: ownedClubs, loadOwnedClubs, isLoading: isLoadingOwnedClubs, deleteClub: deleteOwnedClub, setClubs: setOwnedClubs } = useOwnedClubs();
     const { events: organizedEvents, loadOrganizedEvents, isLoading: isLoadingOrganized, error: organizedEventsError, setEvents } = useOrganizedEvents();
 
     // Load admin data on mount - ONLY ONCE
@@ -48,11 +54,8 @@ export default function AdminDashboard() {
             if (!isMounted) return;
 
             try {
-                // Load clubs for this admin
-                await loadClubs();
-
-                // Load admin-specific club data
-                await clubCrud.refreshData();
+                // Load owned clubs for this admin
+                await loadOwnedClubs();
 
                 // Load organized events (events created by this user)
                 await loadOrganizedEvents({ page: 0, size: 20, sortBy: 'startDateTime', sortOrder: 'asc' });
@@ -92,7 +95,7 @@ export default function AdminDashboard() {
     };
 
     const stats = calculateStats();
-    const clubName = clubsData?.content?.[0]?.name || 'Club';
+    const clubName = ownedClubs?.[0]?.name || 'Club';
 
     const handleNavigation = (path: string) => {
         router.push(path);
@@ -106,16 +109,51 @@ export default function AdminDashboard() {
     };
 
     const handleEditClub = (clubId: string) => {
-        router.push(`/admin/edit-club/${clubId}`);
+        router.push(`/admin/club-preview?clubId=${clubId}&edit=true`);
     };
 
-    const handleDeleteClub = async (clubId: string) => {
-        if (confirm('Are you sure you want to delete this club?')) {
-            const success = await clubCrud.deleteClub(clubId);
-            if (success) {
-                await loadClubs(); // Refresh clubs list
-            }
+    const handleDeleteClub = (clubId: string) => {
+        const club = ownedClubs.find(c => c.id === clubId);
+        if (club) {
+            setDeleteClubId(clubId);
+            setDeleteClubName(club.name);
+            setShowDeleteClubDialog(true);
         }
+    };
+
+    const handleConfirmDeleteClub = async () => {
+        if (!deleteClubId) return;
+
+        try {
+            // Immediately remove from UI (optimistic update)
+            const updatedClubs = ownedClubs.filter(club => club.id !== deleteClubId);
+            setOwnedClubs(updatedClubs);
+
+            // Close the dialog
+            setShowDeleteClubDialog(false);
+            setDeleteClubId(null);
+            setDeleteClubName('');
+
+            // Call API - the hook will handle success/error feedback
+            const success = await deleteOwnedClub(deleteClubId);
+
+            if (!success) {
+                // If API failed, the hook will have already reverted the state
+                // and shown error feedback, so we don't need to do anything
+                console.error('Delete club API failed');
+            }
+
+        } catch (error) {
+            console.error('Error deleting club:', error);
+            // Reload to get correct state
+            loadOwnedClubs();
+        }
+    };
+
+    const handleCancelDeleteClub = () => {
+        setShowDeleteClubDialog(false);
+        setDeleteClubId(null);
+        setDeleteClubName('');
     };
 
     // Handle event operations
@@ -345,7 +383,14 @@ export default function AdminDashboard() {
                         {/* My Organized Events Section - Moved here after Quick Actions */}
                         <div className="mb-6">
                             <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-lg font-semibold">My Organized Events</h3>
+                                <div className="flex items-center gap-3">
+                                    <h3 className="text-lg font-semibold">My Organized Events</h3>
+                                    <div className="px-3 py-1 bg-[#14FFEC]/10 border border-[#14FFEC]/20 rounded-full">
+                                        <span className="text-[#14FFEC] text-sm font-medium">
+                                            {organizedEvents?.length || 0} {organizedEvents?.length === 1 ? 'Event' : 'Events'}
+                                        </span>
+                                    </div>
+                                </div>
                                 {isLoadingOrganized && (
                                     <div className="text-[#14FFEC] text-sm">Loading...</div>
                                 )}
@@ -434,19 +479,27 @@ export default function AdminDashboard() {
                             </div>
                         </div>
 
-                        {/* My Clubs Section */}
+                        {/* Owned Clubs Section */}
                         <div className="mb-6">
                             <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-lg font-semibold">My Clubs</h3>
-                                {isLoadingClubs && (
+                                <div className="flex items-center gap-3">
+                                    <h3 className="text-lg font-semibold">Owned Clubs</h3>
+                                    <div className="px-3 py-1 bg-[#14FFEC]/10 border border-[#14FFEC]/20 rounded-full">
+                                        <span className="text-[#14FFEC] text-sm font-medium">
+                                            {ownedClubs?.length || 0} {ownedClubs?.length === 1 ? 'Club' : 'Clubs'}
+                                        </span>
+                                    </div>
+                                </div>
+                                {isLoadingOwnedClubs && (
                                     <div className="text-[#14FFEC] text-sm">Loading...</div>
                                 )}
                             </div>
                             <div className="space-y-3">
-                                {clubsData?.content?.slice(0, 3).map((club) => (
+                                {ownedClubs?.map((club) => (
                                     <div
                                         key={club.id}
-                                        className="bg-[#0D1F1F] border border-[#14FFEC]/10 rounded-[15px] p-4"
+                                        onClick={() => router.push(`/admin/club-preview?clubId=${club.id}`)}
+                                        className="bg-[#0D1F1F] border border-[#14FFEC]/10 rounded-[15px] p-4 cursor-pointer hover:bg-[#0D1F1F]/80 transition-colors"
                                     >
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
@@ -470,89 +523,6 @@ export default function AdminDashboard() {
                                                     <Edit className="w-4 h-4 text-[#14FFEC]" />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDeleteClub(club.id)}
-                                                    className="p-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
-                                                    disabled={clubCrud.isDeleting}
-                                                >
-                                                    <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                                {clubsData?.content?.length === 0 && (
-                                    <div className="text-center py-8">
-                                        <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                        <p className="text-gray-400">No clubs found</p>
-                                        <button
-                                            onClick={handleCreateClub}
-                                            className="mt-2 px-4 py-2 bg-[#14FFEC] text-black rounded-lg font-medium"
-                                        >
-                                            Create Your First Club
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Club Info Section */}
-                        <div className="mb-6">
-                            <h3 className="text-lg font-semibold mb-3">Club Management</h3>
-                            <div className="space-y-3">
-                                {/* Create New Club */}
-                                <div
-                                    onClick={handleCreateClub}
-                                    className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4 flex items-center justify-between cursor-pointer"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <Plus className="w-5 h-5 text-[#14FFEC]" />
-                                        <p className="text-white font-medium">Create New Club</p>
-                                    </div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#14FFEC]">
-                                        <path d="m9 18 6-6-6-6" />
-                                    </svg>
-                                </div>
-
-                                {/* My Clubs List */}
-                                {isLoadingClubs && (
-                                    <div className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4">
-                                        <p className="text-gray-400">Loading clubs...</p>
-                                    </div>
-                                )}
-
-                                {!isLoadingClubs && clubsData?.content && clubsData.content.length > 0 && clubsData.content.slice(0, 2).map((club) => (
-                                    <div
-                                        key={club.id}
-                                        className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4"
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-[#14FFEC]/20 rounded-lg flex items-center justify-center">
-                                                    {club.logo ? (
-                                                        <img src={club.logo} alt={club.name} className="w-full h-full object-cover rounded-lg" />
-                                                    ) : (
-                                                        <Users className="w-5 h-5 text-[#14FFEC]" />
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <p className="text-white font-medium">{club.name}</p>
-                                                    <p className="text-gray-400 text-sm">{club.memberCount || 0} members</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleEditClub(club.id);
-                                                    }}
-                                                    className="p-2 bg-[#14FFEC]/20 rounded-lg hover:bg-[#14FFEC]/30 transition-colors"
-                                                    title="Edit Club"
-                                                >
-                                                    <Edit className="w-4 h-4 text-[#14FFEC]" />
-                                                </button>
-                                                <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         handleDeleteClub(club.id);
@@ -569,20 +539,39 @@ export default function AdminDashboard() {
                                         </div>
                                     </div>
                                 ))}
-
-                                {!isLoadingClubs && (!clubsData?.content || clubsData.content.length === 0) && (
-                                    <div
-                                        onClick={handleCreateClub}
-                                        className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4 flex items-center justify-between cursor-pointer"
-                                    >
-                                        <p className="text-gray-400">No clubs found. Create your first club!</p>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#14FFEC]">
-                                            <path d="m9 18 6-6-6-6" />
-                                        </svg>
+                                {ownedClubs?.length === 0 && !isLoadingOwnedClubs && (
+                                    <div className="text-center py-8">
+                                        <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                                        <p className="text-gray-400">No clubs found</p>
+                                        <button
+                                            onClick={handleCreateClub}
+                                            className="mt-2 px-4 py-2 bg-[#14FFEC] text-black rounded-lg font-medium"
+                                        >
+                                            Create Your First Club
+                                        </button>
                                     </div>
                                 )}
+                            </div>
+                        </div>
 
-                                {/* Update live Details */}
+                        {/* Club Management Section - Commented out as requested */}
+                        {/*
+                        <div className="mb-6">
+                            <h3 className="text-lg font-semibold mb-3">Club Management</h3>
+                            <div className="space-y-3">
+                                <div
+                                    onClick={handleCreateClub}
+                                    className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4 flex items-center justify-between cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Plus className="w-5 h-5 text-[#14FFEC]" />
+                                        <p className="text-white font-medium">Create New Club</p>
+                                    </div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#14FFEC]">
+                                        <path d="m9 18 6-6-6-6" />
+                                    </svg>
+                                </div>
+
                                 <div
                                     onClick={() => handleNavigation('/admin/update-live-details')}
                                     className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4 flex items-center justify-between cursor-pointer"
@@ -593,7 +582,6 @@ export default function AdminDashboard() {
                                     </svg>
                                 </div>
 
-                                {/* Add Story */}
                                 <div
                                     onClick={() => handleNavigation('/admin/add-story')}
                                     className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4 flex items-center justify-between cursor-pointer"
@@ -605,11 +593,12 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
                         </div>
+                        */}
                     </div>
                 </div>
             </div>
 
-            {/* Delete Confirmation Dialog */}
+            {/* Delete Event Confirmation Dialog */}
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <DialogOverlay />
                 <DialogContent className="p-0 border-none bg-transparent max-w-[420px]" showCloseButton={false}>
@@ -655,6 +644,63 @@ export default function AdminDashboard() {
 
                             <button
                                 onClick={handleCancelDeleteEvent}
+                                className="w-[154px] h-[38px] border border-[#007877] rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-[#012e2e] transition-all duration-300"
+                            >
+                                <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px]">
+                                    Cancel
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Club Confirmation Dialog */}
+            <Dialog open={showDeleteClubDialog} onOpenChange={setShowDeleteClubDialog}>
+                <DialogOverlay />
+                <DialogContent className="p-0 border-none bg-transparent max-w-[420px]" showCloseButton={false}>
+                    <div className="w-full p-[20px_21px_20px_22px] bg-[#0D1F1F] overflow-hidden rounded-[17px] flex flex-col items-center gap-[26px]">
+                        {/* Close button in the top-right corner */}
+                        <div className="absolute right-3 top-3">
+                            <button
+                                onClick={handleCancelDeleteClub}
+                                className="w-8 h-8 flex items-center justify-center text-white bg-transparent rounded-full"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Warning Icon */}
+                        <div className="w-[80px] h-[80px] relative overflow-hidden flex items-center justify-center">
+                            <div className="text-4xl">⚠️</div>
+                        </div>
+
+                        {/* Text Content */}
+                        <div className="flex flex-col items-center gap-[12px]">
+                            <div className="text-[#F9F9F9] text-[20px] font-semibold font-['Manrope']">
+                                Delete Club
+                            </div>
+                            <div className="text-center text-[#9D9C9C] text-[16px] font-['Manrope'] leading-[19.20px]">
+                                Are you sure you want to delete <span className="text-[#14FFEC] font-semibold">"{deleteClubName}"</span>?
+                            </div>
+                            <div className="text-center text-[#ff6b6b] text-[14px] font-['Manrope'] leading-[17px]">
+                                This action cannot be undone
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-[14px]">
+                            <button
+                                onClick={handleConfirmDeleteClub}
+                                className="w-[154px] h-[38px] bg-[#d32f2f] rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-[#b71c1c] transition-all duration-300"
+                            >
+                                <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px]">
+                                    Delete
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={handleCancelDeleteClub}
                                 className="w-[154px] h-[38px] border border-[#007877] rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-[#012e2e] transition-all duration-300"
                             >
                                 <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px]">

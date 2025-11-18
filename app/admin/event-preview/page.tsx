@@ -545,26 +545,43 @@ function EventPreviewContent() {
                     <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
                 </div>
 
-                {/* Event Organizers - Only show if organizers data exists */}
-                {eventData?.organizers && eventData.organizers.length > 0 && (
+                {/* Event Organizers - Show organizer and/or club */}
+                {(eventData?.organizer || eventData?.club) && (
                     <div className="px-6 mb-8">
                         <h2 className="text-white text-xl font-['Manrope'] mb-3">Event Organised & Presented by</h2>
                         <div className="w-full p-4 bg-[#0D1F1F] rounded-[20px]">
                             <div className="flex items-center justify-start gap-8 flex-wrap">
-                                {eventData.organizers.map((organizer: any, index: number) => (
-                                    <div key={index} className="flex items-center gap-2">
-                                        {organizer.image && (
+                                {/* Show Organizer */}
+                                {eventData?.organizer && (
+                                    <div className="flex items-center gap-2">
+                                        {eventData.organizer.avatar && (
                                             <img
                                                 className="w-[51px] h-[51px] rounded-full object-cover"
-                                                src={organizer.image}
-                                                alt={organizer.name}
+                                                src={eventData.organizer.avatar}
+                                                alt={eventData.organizer.fullName || eventData.organizer.displayName}
                                             />
                                         )}
                                         <div className="text-center text-white text-[16px] font-['Manrope'] font-medium leading-5">
-                                            {organizer.name}
+                                            {eventData.organizer.fullName || eventData.organizer.displayName}
                                         </div>
                                     </div>
-                                ))}
+                                )}
+
+                                {/* Show Club */}
+                                {eventData?.club && (
+                                    <div className="flex items-center gap-2">
+                                        {eventData.club.logo && (
+                                            <img
+                                                className="w-[51px] h-[51px] rounded-full object-cover"
+                                                src={eventData.club.logo}
+                                                alt={eventData.club.name}
+                                            />
+                                        )}
+                                        <div className="text-center text-white text-[16px] font-['Manrope'] font-medium leading-5">
+                                            {eventData.club.name}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

@@ -3,7 +3,7 @@ import { STORAGE_KEYS } from './constants/storage';
 
 // API Configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://clubwiz.in/api';
-const API_TIMEOUT = 10000; // 10 seconds
+const API_TIMEOUT = 15000; // 15 seconds
 
 // ============================================================================
 // PUBLIC API CLIENT (No Authentication Required)

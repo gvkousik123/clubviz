@@ -165,6 +165,42 @@ export default function NewClubPage() {
             return;
         }
 
+        // Check if user is logged in and has admin role
+        const token = typeof window !== 'undefined' ? localStorage.getItem('clubviz-accessToken') : null;
+        const userData = typeof window !== 'undefined' ? localStorage.getItem('clubviz-user') : null;
+
+        if (!token) {
+            toast({
+                title: "Authentication Required",
+                description: "Please log in as an admin to create clubs",
+                variant: "destructive",
+            });
+            console.error('❌ No access token found. Please login as admin.');
+            return;
+        }
+
+        if (userData) {
+            const user = JSON.parse(userData);
+            console.log('👤 Current User:', user);
+            console.log('🔑 User Role:', user.role || user.roles);
+
+            // Role can be string, array, or object - check all formats
+            const roleStr = JSON.stringify(user.role || user.roles || '');
+            const hasAdminRole = roleStr.includes('ADMIN');
+
+            console.log('✅ Has Admin Role:', hasAdminRole);
+
+            if (!hasAdminRole) {
+                toast({
+                    title: "Permission Denied",
+                    description: "You need ADMIN or SUPER_ADMIN role to create clubs",
+                    variant: "destructive",
+                });
+                console.error('❌ User does not have admin role:', user.role || user.roles);
+                return;
+            }
+        }
+
         setIsSubmitting(true);
         try {
             // 🔴 REQUIRED: Validate club name
@@ -172,88 +208,32 @@ export default function NewClubPage() {
                 throw new Error('Club name is required');
             }
 
-            // ✅ BUILD COMPLETE CLUB PAYLOAD per API spec
+            // ✅ BUILD MINIMAL PAYLOAD - only send fields with actual values
             const clubData: any = {
-                // REQUIRED FIELDS
-                name: formData.clubName.trim(),
-                description: '',  // Optional but recommended
-                logo: '',          // Optional - image URL
-                category: '',      // Optional - club category
-                maxMembers: 0,     // Optional - member capacity
-
-                // CONTACT INFORMATION
-                contactEmail: adminDetails.email !== 'admin@example.com' ? adminDetails.email : '',
-                contactPhone: adminDetails.phone !== '+91-9876543210' ? adminDetails.phone : '',
-
-                // IMAGES ARRAY
-                images: [],  // Array of {type, url}
-
-                // LOCATION INFORMATION
-                locationText: selectedLocation.lat && selectedLocation.lng && selectedLocation.city && selectedLocation.state ? {
-                    address1: '',
-                    address2: '',
-                    state: selectedLocation.state || '',
-                    city: selectedLocation.city || '',
-                    pincode: selectedLocation.pincode || ''
-                } : {
-                    address1: '',
-                    address2: '',
-                    state: '',
-                    city: '',
-                    pincode: ''
-                },
-
-                locationMap: selectedLocation.lat && selectedLocation.lng ? {
-                    lat: selectedLocation.lat || 0,
-                    lng: selectedLocation.lng || 0
-                } : {
-                    lat: 0,
-                    lng: 0
-                },
-
-                // CUISINE & FACILITIES
-                foodCuisines: lookupData.foodCuisines && lookupData.foodCuisines.length > 0 ? [] : [],
-                facilities: lookupData.facilities && lookupData.facilities.length > 0 ? [] : [],
-                music: lookupData.music && lookupData.music.length > 0 ? [] : [],
-                barOptions: lookupData.barOptions && lookupData.barOptions.length > 0 ? [] : [],
-
-                // ENTRY PRICING
-                entryPricing: {
-                    coupleEntryPrice: 0,
-                    groupEntryPrice: 0,
-                    maleStagEntryPrice: 0,
-                    femaleStagEntryPrice: 0,
-                    coverCharge: 0,
-                    redeemDetails: '',
-                    hasTimeRestriction: false,
-                    timeRestriction: '',
-                    inclusions: [],
-                    exclusions: []
-                }
+                "name": formData.clubName.trim(), // REQUIRED
             };
 
-            console.log('🚀 Creating club with COMPLETE required payload:', JSON.stringify(clubData, null, 2));
-            console.log('📡 API Call: POST /clubs/create-json with all fields per API spec');
-            console.log('📊 Payload structure:', {
-                name: '✅',
-                description: '✅',
-                logo: '✅',
-                category: '✅',
-                maxMembers: '✅',
-                contactEmail: '✅',
-                contactPhone: '✅',
-                images: '✅',
-                locationText: '✅',
-                locationMap: '✅',
-                foodCuisines: '✅',
-                facilities: '✅',
-                music: '✅',
-                barOptions: '✅',
-                entryPricing: '✅'
-            });
+            // Add optional fields only if they have values
+            if (adminDetails.email && adminDetails.email !== 'admin@example.com') {
+                clubData.contactEmail = adminDetails.email;
+            }
+
+            if (adminDetails.phone && adminDetails.phone !== '+91-9876543210') {
+                clubData.contactPhone = adminDetails.phone;
+            }
+
+            // Add location if available
+            if (selectedLocation.state) clubData.locationTextState = selectedLocation.state;
+            if (selectedLocation.city) clubData.locationTextCity = selectedLocation.city;
+            if (selectedLocation.pincode) clubData.locationTextPincode = selectedLocation.pincode;
+            if (selectedLocation.lat) clubData.locationLat = selectedLocation.lat;
+            if (selectedLocation.lng) clubData.locationLng = selectedLocation.lng;
+
+            console.log('🚀 Creating club with minimal payload (only filled fields):', JSON.stringify(clubData, null, 2));
+            console.log('📡 API Call: POST /clubs/create-json-with-images');
 
             // Call the service to create the club
-            const response = await ClubService.createClub(clubData as any);
+            const response = await ClubService.createClub(clubData);
 
             console.log('✅ Club created successfully:', response);
 
@@ -268,13 +248,26 @@ export default function NewClubPage() {
                 router.push('/admin');
             }, 1000);
 
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to create club';
+        } catch (error: any) {
             console.error('❌ Club creation error:', error);
+            console.error('❌ Error response:', error.response?.data);
+            console.error('❌ Error status:', error.response?.status);
+            console.error('❌ Error message:', error.message);
+
+            let errorMessage = 'Failed to create club. Please try again.';
+
+            // Check for specific error responses
+            if (error.response?.status === 403 || error.response?.status === 401) {
+                errorMessage = 'Permission denied. You need ADMIN or SUPER_ADMIN role to create clubs. Please login with admin credentials.';
+            } else if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
 
             toast({
                 title: "Error",
-                description: errorMessage || 'Failed to create club. Please try again.',
+                description: errorMessage,
                 variant: "destructive",
             });
         } finally {

@@ -3,7 +3,7 @@ import { STORAGE_KEYS } from './constants/storage';
 
 // API Configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://clubwiz.in/api';
-const API_TIMEOUT = 5000; // Reduced to 5 seconds for faster response
+const API_TIMEOUT = 15000; // 15 seconds
 
 // Create axios instance with default configuration
 const apiClient: AxiosInstance = axios.create({

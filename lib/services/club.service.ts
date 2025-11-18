@@ -299,14 +299,14 @@ export class ClubService {
   }
 
   /**
-   * Create new club using JSON payload
-   * POST /clubs/create-json
+   * Create new club using JSON payload with base64 images
+   * POST /clubs/create-json-with-images
    */
   static async createClub(clubData: ClubCreateRequest): Promise<ApiResponse<ClubCreateResponse>> {
     try {
       console.log('🎯 ClubService.createClub() called with:', clubData);
-      console.log('📡 API Endpoint: POST /clubs/create-json');
-      const response = await api.post<ApiResponse<ClubCreateResponse>>('/clubs/create-json', clubData);
+      console.log('📡 API Endpoint: POST /clubs/create-json-with-images');
+      const response = await api.post<ApiResponse<ClubCreateResponse>>('/clubs/create-json-with-images', clubData);
       console.log('🎯 ClubService.createClub() response:', response);
       return handleApiResponse(response);
     } catch (error) {
@@ -551,9 +551,9 @@ export class ClubService {
   static async getOwnedClubs(params?: {
     page?: number;
     size?: number;
-  }): Promise<ApiResponse<Club[]>> {
+  }): Promise<ApiResponse<MyClubItem[]>> {
     try {
-      const response = await api.get<ApiResponse<Club[]>>('/clubs/owned', { params });
+      const response = await api.get<ApiResponse<MyClubItem[]>>('/clubs/owned', { params });
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
