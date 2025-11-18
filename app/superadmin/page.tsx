@@ -356,64 +356,6 @@ export default function SuperAdminPage() {
                 </div>
             )}
 
-            {/* Delete Confirmation Dialog for Clubs */}
-            <Dialog open={showDeleteClubDialog} onOpenChange={setShowDeleteClubDialog}>
-                <DialogOverlay />
-                <DialogContent className="p-0 border-none bg-transparent max-w-[420px]" showCloseButton={false}>
-                    <div className="w-full p-[20px_21px_20px_22px] bg-[#0D1F1F] overflow-hidden rounded-[17px] flex flex-col items-center gap-[26px] relative">
-                        <div className="absolute right-3 top-3">
-                            <button
-                                onClick={() => setShowDeleteClubDialog(false)}
-                                className="w-8 h-8 flex items-center justify-center text-white bg-transparent rounded-full hover:bg-white/10 transition-colors"
-                            >
-                                ✕
-                            </button>
-                        </div>
-
-                        <div className="w-[80px] h-[80px] relative overflow-hidden flex items-center justify-center">
-                            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
-                                <Trash2 size={32} className="text-red-400" />
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col items-center gap-[12px]">
-                            <div className="text-[#F9F9F9] text-[20px] font-semibold font-['Manrope']">Delete Club</div>
-                            <div className="text-[#A3A3A3] text-[14px] font-['Manrope'] text-center leading-relaxed">
-                                Are you sure you want to delete "{deleteClubName || 'this club'}"? This action cannot be undone.
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-[14px]">
-                            <button
-                                onClick={async () => {
-                                    if (!deleteClubId) return;
-                                    await deleteClub(deleteClubId);
-                                    setShowDeleteClubDialog(false);
-                                    setDeleteClubId(null);
-                                    setDeleteClubName(null);
-                                }}
-                                disabled={isLoading}
-                                className="w-[154px] h-[38px] bg-red-600 rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-red-700 transition-all duration-300 disabled:opacity-50"
-                            >
-                                <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px] flex items-center gap-2">
-                                    {isLoading && (
-                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    )}
-                                    {isLoading ? 'Deleting...' : 'Yes, Delete'}
-                                </div>
-                            </button>
-
-                            <button
-                                onClick={() => setShowDeleteClubDialog(false)}
-                                className="w-[154px] h-[38px] border border-[#007877] rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-[#012e2e] transition-all duration-300"
-                            >
-                                <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px]">Cancel</div>
-                            </button>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
-            {/* Search and Filter */}
             <div className="flex gap-3">
                 <button
                     onClick={selectedUsers.length === users.length ? clearSelection : selectAllUsers}
@@ -442,7 +384,6 @@ export default function SuperAdminPage() {
                 </select>
             </div>
 
-            {/* Users List */}
             <div className="space-y-3">
                 {filteredUsers.map((user) => (
                     <div key={user.username} className="bg-[#0D1F1F] rounded-[15px] p-4 border border-[#14FFEC]/10">
@@ -735,6 +676,64 @@ export default function SuperAdminPage() {
                     </div>
                 </div>
             )}
+
+            {/* Delete Confirmation Dialog for Clubs */}
+            <Dialog open={showDeleteClubDialog} onOpenChange={setShowDeleteClubDialog}>
+                <DialogOverlay />
+                <DialogContent className="p-0 border-none bg-transparent max-w-[420px]" showCloseButton={false}>
+                    <div className="w-full p-[20px_21px_20px_22px] bg-[#0D1F1F] overflow-hidden rounded-[17px] flex flex-col items-center gap-[26px] relative">
+                        <div className="absolute right-3 top-3">
+                            <button
+                                onClick={() => setShowDeleteClubDialog(false)}
+                                className="w-8 h-8 flex items-center justify-center text-white bg-transparent rounded-full hover:bg-white/10 transition-colors"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="w-[80px] h-[80px] relative overflow-hidden flex items-center justify-center">
+                            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
+                                <Trash2 size={32} className="text-red-400" />
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col items-center gap-[12px]">
+                            <div className="text-[#F9F9F9] text-[20px] font-semibold font-['Manrope']">Delete Club</div>
+                            <div className="text-[#A3A3A3] text-[14px] font-['Manrope'] text-center leading-relaxed">
+                                Are you sure you want to delete "{deleteClubName || 'this club'}"? This action cannot be undone.
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-[14px]">
+                            <button
+                                onClick={async () => {
+                                    if (!deleteClubId) return;
+                                    await deleteClub(deleteClubId);
+                                    setShowDeleteClubDialog(false);
+                                    setDeleteClubId(null);
+                                    setDeleteClubName(null);
+                                }}
+                                disabled={isLoading}
+                                className="w-[154px] h-[38px] bg-red-600 rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-red-700 transition-all duration-300 disabled:opacity-50"
+                            >
+                                <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px] flex items-center gap-2">
+                                    {isLoading && (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    )}
+                                    {isLoading ? 'Deleting...' : 'Yes, Delete'}
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => setShowDeleteClubDialog(false)}
+                                className="w-[154px] h-[38px] border border-[#007877] rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-[#012e2e] transition-all duration-300"
+                            >
+                                <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px]">Cancel</div>
+                            </button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 
