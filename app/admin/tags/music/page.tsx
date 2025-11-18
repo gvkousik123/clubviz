@@ -1,4 +1,8 @@
-'use client';
+"use client";
+
+// Prevent SSR pre-render; this page relies on client-only hooks (useSearchParams)
+// and must bail out to client rendering. See: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+export const dynamic = 'force-dynamic';
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Check } from 'lucide-react';
