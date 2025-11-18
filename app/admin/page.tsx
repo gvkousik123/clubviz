@@ -248,7 +248,7 @@ export default function AdminDashboard() {
                     {/* Club name and logo header section */}
                     <div className="px-6 pt-6 pb-2">
                         <div className="flex items-center justify-between">
-                            <h1 className="text-4xl font-bold tracking-wide uppercase">{clubName}</h1>
+                            <h1 className="text-4xl font-bold tracking-wide uppercase">Club</h1>
                             {/* Club Logo */}
                             <div className="w-16 h-16 bg-black rounded-full border-2 border-[#14FFEC] flex items-center justify-center relative">
                                 <div className="relative w-14 h-14 flex items-center justify-center text-xs text-center text-[#14FFEC]">
