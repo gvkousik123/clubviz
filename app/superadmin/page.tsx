@@ -32,6 +32,7 @@ import { useSuperAdmin } from '@/hooks/use-superadmin';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/use-profile';
 import { AccessDenied } from '@/components/common/access-denied';
+import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
 
 // Types are now imported from the service
 
@@ -76,15 +77,19 @@ export default function SuperAdminPage() {
         isLoading,
         isStatsLoading,
         isUsersLoading,
+        isClubsLoading,
         users,
+        clubs,
         stats,
         selectedUsers,
         loadStats,
         loadUsers,
+        loadClubs,
         refreshData,
         activateUser,
         deactivateUser,
         deleteUser,
+        deleteClub,
         addRole,
         removeRole,
         bulkActivate,
@@ -114,12 +119,16 @@ export default function SuperAdminPage() {
     }
 
     // Local state management
-    const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'roles' | 'stats'>('dashboard');
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'clubs' | 'roles' | 'stats'>('dashboard');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedRole, setSelectedRole] = useState<string>('all');
     const [expandedUser, setExpandedUser] = useState<string | null>(null);
     const [newRoleUsername, setNewRoleUsername] = useState('');
     const [newRole, setNewRole] = useState('USER');
+    // Delete dialog state for clubs
+    const [showDeleteClubDialog, setShowDeleteClubDialog] = useState(false);
+    const [deleteClubId, setDeleteClubId] = useState<string | null>(null);
+    const [deleteClubName, setDeleteClubName] = useState<string | null>(null);
 
     // Load data on mount
     useEffect(() => {
@@ -190,6 +199,16 @@ export default function SuperAdminPage() {
                     <p className="text-yellow-500 text-sm">Admins</p>
                 </div>
 
+                <div className="bg-[#0D1F1F] rounded-[15px] p-4 border border-purple-500/20">
+                    <div className="flex items-center justify-between mb-2">
+                        <Users className="w-6 h-6 text-purple-500" />
+                        <span className="text-2xl font-bold text-white">
+                            {isClubsLoading ? '...' : (clubs?.length || 0)}
+                        </span>
+                    </div>
+                    <p className="text-purple-500 text-sm">Total Clubs</p>
+                </div>
+
                 <div className="bg-[#0D1F1F] rounded-[15px] p-4 border border-red-500/20">
                     <div className="flex items-center justify-between mb-2">
                         <UserX className="w-6 h-6 text-red-500" />
@@ -204,20 +223,27 @@ export default function SuperAdminPage() {
             {/* Quick Actions */}
             <div className="bg-[#0D1F1F] rounded-[15px] p-4">
                 <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                     <button
                         onClick={() => setActiveTab('users')}
                         className="bg-[#14FFEC] text-black font-semibold py-3 rounded-[12px] flex items-center justify-center gap-2"
                     >
                         <Users className="w-4 h-4" />
-                        Manage Users
+                        Users
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('clubs')}
+                        className="bg-[#222831] text-white font-semibold py-3 rounded-[12px] border border-[#14FFEC]/30 flex items-center justify-center gap-2"
+                    >
+                        <Users className="w-4 h-4" />
+                        Clubs
                     </button>
                     <button
                         onClick={() => setActiveTab('roles')}
                         className="bg-[#222831] text-white font-semibold py-3 rounded-[12px] border border-[#14FFEC]/30 flex items-center justify-center gap-2"
                     >
                         <Shield className="w-4 h-4" />
-                        Manage Roles
+                        Roles
                     </button>
                 </div>
             </div>
@@ -232,7 +258,7 @@ export default function SuperAdminPage() {
                             placeholder="Enter username"
                             value={newRoleUsername}
                             onChange={(e) => setNewRoleUsername(e.target.value)}
-                            className="flex-1 bg-[#021313] border border-[#14FFEC]/30 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-[#14FFEC]"
+                            className="flex-1 bg-[#021313] border border-[#14FFEC]/30 rounded-lg px-1 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-[#14FFEC]"
                         />
                         <select
                             value={newRole}
@@ -243,15 +269,15 @@ export default function SuperAdminPage() {
                             <option value="ADMIN">Admin</option>
                             <option value="SUPERADMIN">Super Admin</option>
                         </select>
-                        <button
-                            onClick={handleQuickAddRole}
-                            disabled={isLoading || !newRoleUsername.trim()}
-                            className="bg-[#14FFEC] text-black px-4 py-2 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Add Role
-                        </button>
                     </div>
+                    <button
+                        onClick={handleQuickAddRole}
+                        disabled={isLoading || !newRoleUsername.trim()}
+                        className="bg-[#14FFEC] text-black px-4 py-2 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Add Role
+                    </button>
                 </div>
             </div>
 
@@ -330,6 +356,63 @@ export default function SuperAdminPage() {
                 </div>
             )}
 
+            {/* Delete Confirmation Dialog for Clubs */}
+            <Dialog open={showDeleteClubDialog} onOpenChange={setShowDeleteClubDialog}>
+                <DialogOverlay />
+                <DialogContent className="p-0 border-none bg-transparent max-w-[420px]" showCloseButton={false}>
+                    <div className="w-full p-[20px_21px_20px_22px] bg-[#0D1F1F] overflow-hidden rounded-[17px] flex flex-col items-center gap-[26px] relative">
+                        <div className="absolute right-3 top-3">
+                            <button
+                                onClick={() => setShowDeleteClubDialog(false)}
+                                className="w-8 h-8 flex items-center justify-center text-white bg-transparent rounded-full hover:bg-white/10 transition-colors"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="w-[80px] h-[80px] relative overflow-hidden flex items-center justify-center">
+                            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
+                                <Trash2 size={32} className="text-red-400" />
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col items-center gap-[12px]">
+                            <div className="text-[#F9F9F9] text-[20px] font-semibold font-['Manrope']">Delete Club</div>
+                            <div className="text-[#A3A3A3] text-[14px] font-['Manrope'] text-center leading-relaxed">
+                                Are you sure you want to delete "{deleteClubName || 'this club'}"? This action cannot be undone.
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-[14px]">
+                            <button
+                                onClick={async () => {
+                                    if (!deleteClubId) return;
+                                    await deleteClub(deleteClubId);
+                                    setShowDeleteClubDialog(false);
+                                    setDeleteClubId(null);
+                                    setDeleteClubName(null);
+                                }}
+                                disabled={isLoading}
+                                className="w-[154px] h-[38px] bg-red-600 rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-red-700 transition-all duration-300 disabled:opacity-50"
+                            >
+                                <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px] flex items-center gap-2">
+                                    {isLoading && (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    )}
+                                    {isLoading ? 'Deleting...' : 'Yes, Delete'}
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => setShowDeleteClubDialog(false)}
+                                className="w-[154px] h-[38px] border border-[#007877] rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-[#012e2e] transition-all duration-300"
+                            >
+                                <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px]">Cancel</div>
+                            </button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
             {/* Search and Filter */}
             <div className="flex gap-3">
                 <button
@@ -525,6 +608,136 @@ export default function SuperAdminPage() {
         </div>
     );
 
+    const renderClubs = () => (
+        <div className="space-y-4">
+            {/* Header */}
+            <div className="bg-[#0D1F1F] rounded-[15px] p-4 border border-[#14FFEC]/20">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="text-lg font-semibold text-white">Club Management</h3>
+                        <p className="text-gray-400 text-sm">
+                            Manage all clubs in the system
+                        </p>
+                    </div>
+                    <button
+                        onClick={loadClubs}
+                        disabled={isClubsLoading}
+                        className="p-2 hover:bg-[#021313] rounded-lg transition-colors disabled:opacity-50"
+                    >
+                        <RefreshCw className={`w-4 h-4 text-[#14FFEC] ${isClubsLoading ? 'animate-spin' : ''}`} />
+                    </button>
+                </div>
+            </div>
+
+            {/* Clubs Loading State */}
+            {isClubsLoading && (
+                <div className="bg-[#0D1F1F] rounded-[15px] p-8 text-center">
+                    <RefreshCw className="w-8 h-8 text-[#14FFEC] animate-spin mx-auto mb-4" />
+                    <p className="text-gray-400">Loading clubs...</p>
+                </div>
+            )}
+
+            {/* Clubs List */}
+            {!isClubsLoading && (
+                <div className="space-y-3">
+                    {clubs.length === 0 ? (
+                        <div className="bg-[#0D1F1F] rounded-[15px] p-8 text-center">
+                            <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                            <p className="text-gray-400 mb-2">No clubs found</p>
+                            <p className="text-gray-500 text-sm">There are no clubs in the system yet.</p>
+                        </div>
+                    ) : (
+                        clubs.map((club) => (
+                            <div
+                                key={club.id}
+                                className="bg-[#0D1F1F] border border-[#14FFEC]/20 rounded-[15px] p-4"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 bg-[#14FFEC]/20 rounded-lg flex items-center justify-center">
+                                            {club.logoUrl ? (
+                                                <img
+                                                    src={club.logoUrl}
+                                                    alt={club.name}
+                                                    className="w-full h-full object-cover rounded-lg"
+                                                />
+                                            ) : (
+                                                <Users className="w-6 h-6 text-[#14FFEC]" />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h4 className="text-white font-medium">{club.name}</h4>
+                                            <p className="text-gray-400 text-sm">
+                                                Owner: {club.owner?.fullName || club.owner?.username || 'Unknown'}
+                                            </p>
+                                            <p className="text-gray-500 text-xs">
+                                                {club.members?.length || 0} members • Created {new Date(club.createdAt).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => {
+                                                // Navigate to club preview
+                                                router.push(`/admin/club-preview?clubId=${club.id}`);
+                                            }}
+                                            className="p-2 bg-[#14FFEC]/20 rounded-lg hover:bg-[#14FFEC]/30 transition-colors"
+                                            title="View Club"
+                                        >
+                                            <Eye className="w-4 h-4 text-[#14FFEC]" />
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setDeleteClubId(club.id);
+                                                setDeleteClubName(club.name);
+                                                setShowDeleteClubDialog(true);
+                                            }}
+                                            className="p-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
+                                            disabled={isLoading}
+                                            title="Delete Club"
+                                        >
+                                            <Trash2 className="w-4 h-4 text-red-500" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Additional Club Info */}
+                                {club.description && (
+                                    <div className="mt-3 pt-3 border-t border-[#14FFEC]/10">
+                                        <p className="text-gray-300 text-sm">{club.description}</p>
+                                    </div>
+                                )}
+
+                                {/* Location Info */}
+                                {(club.locationText?.city || club.locationText?.state) && (
+                                    <div className="mt-2">
+                                        <p className="text-gray-400 text-xs">
+                                            📍 {club.locationText.city}{club.locationText.city && club.locationText.state ? ', ' : ''}{club.locationText.state}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        ))
+                    )}
+                </div>
+            )}
+
+            {/* Stats Footer */}
+            {!isClubsLoading && clubs.length > 0 && (
+                <div className="bg-[#0D1F1F] rounded-[15px] p-4 border border-[#14FFEC]/20">
+                    <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-400">
+                            Total Clubs: <span className="text-[#14FFEC] font-medium">{clubs.length}</span>
+                        </span>
+                        <span className="text-gray-400">
+                            Active Clubs: <span className="text-green-400 font-medium">{clubs.filter(c => c.isActive).length}</span>
+                        </span>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+
     const renderRoles = () => (
         <div className="space-y-4">
             <div className="bg-[#0D1F1F] rounded-[15px] p-4">
@@ -664,6 +877,7 @@ export default function SuperAdminPage() {
                         {[
                             { key: 'dashboard', label: 'Dashboard', icon: BarChart3 },
                             { key: 'users', label: 'Users', icon: Users },
+                            { key: 'clubs', label: 'Clubs', icon: Users },
                             { key: 'roles', label: 'Roles', icon: Shield },
                             { key: 'stats', label: 'Stats', icon: Settings }
                         ].map(({ key, label, icon: Icon }) => (
@@ -686,6 +900,7 @@ export default function SuperAdminPage() {
                 <div className="min-h-[60vh]">
                     {activeTab === 'dashboard' && renderDashboard()}
                     {activeTab === 'users' && renderUsers()}
+                    {activeTab === 'clubs' && renderClubs()}
                     {activeTab === 'roles' && renderRoles()}
                     {activeTab === 'stats' && renderStats()}
                 </div>

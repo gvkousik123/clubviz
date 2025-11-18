@@ -28,6 +28,59 @@ export interface AdminStats {
   totalBookings: number;
 }
 
+export interface AdminClub {
+  id: string;
+  name: string;
+  description: string | null;
+  logoUrl: string | null;
+  images: any[];
+  locationText: {
+    address1: string | null;
+    address2: string | null;
+    state: string | null;
+    city: string | null;
+    pincode: string | null;
+    fullAddress: string;
+  };
+  locationMap: { lat: number; lng: number } | null;
+  foodCuisines: any[] | null;
+  facilities: any[] | null;
+  music: any[] | null;
+  barOptions: any[] | null;
+  entryPricing: {
+    coupleEntryPrice: number | null;
+    groupEntryPrice: number | null;
+    maleStagEntryPrice: number | null;
+    femaleStagEntryPrice: number | null;
+    coverCharge: number | null;
+    redeemDetails: any | null;
+    hasTimeRestriction: boolean | null;
+    timeRestriction: any | null;
+    inclusions: any[] | null;
+    exclusions: any[] | null;
+  };
+  category: string | null;
+  owner: {
+    id: string;
+    username: string;
+    email: string;
+    fullName: string;
+    mobileNumber: string;
+    roles: string[];
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
+  members: any[];
+  admins: any[];
+  isActive: boolean;
+  maxMembers: number | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface RoleManagementRequest {
   username: string;
   role: 'USER' | 'ADMIN' | 'SUPERADMIN';
@@ -457,6 +510,43 @@ export class SuperAdminService {
         return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
       default:
         return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+    }
+  }
+
+  // ============================================================================
+  // CLUB MANAGEMENT (SUPER ADMIN)
+  // ============================================================================
+
+  /**
+   * Get all clubs (Super Admin)
+   * GET /clubs/admin/all
+   */
+  static async getAllClubs(): Promise<AdminClub[]> {
+    try {
+      const response = await api.get<AdminClub[]>(`/clubs/admin/all`);
+      const result = handleApiResponse(response);
+      // The API returns an array directly
+      return Array.isArray(result) ? result : [];
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Delete club (Super Admin)
+   * DELETE /clubs/admin/{id}
+   */
+  static async deleteClub(clubId: string): Promise<{ message: string }> {
+    try {
+      const response = await api.delete<{ message: string } | ApiResponse<{ message: string }>>(`/clubs/admin/${clubId}`);
+      const result = handleApiResponse(response);
+      // Handle both wrapped and unwrapped responses
+      const data = (result as any).data || result;
+      return data as { message: string };
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
     }
   }
 }
