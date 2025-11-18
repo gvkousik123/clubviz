@@ -6,9 +6,8 @@ import { useState, useRef, useEffect } from 'react';
 import { LookupService, AllLookupData } from '@/lib/services/lookup.service';
 import { ClubService } from '@/lib/services/club.service';
 import { useToast } from '@/hooks/use-toast';
-import '../new-event/styles.css';
 
-export default function NewClubPage() {
+export default function SuperAdminNewClubPage() {
     const router = useRouter();
     const { toast } = useToast();
     const logoInputRef = useRef<HTMLInputElement>(null);
@@ -166,11 +165,11 @@ export default function NewClubPage() {
     };
 
     const handleNavigate = (path: string) => {
-        // Navigate to specific sections
+        // Navigate to specific sections - use superadmin routes
         if (path === '/location') {
-            router.push('/admin/add-location');
+            router.push('/superadmin/add-location');
         } else if (path === '/tags/music') {
-            router.push('/admin/tags/music');
+            router.push('/superadmin/tags/music');
         } else {
             console.log(`Navigating to ${path}`);
         }
@@ -187,17 +186,17 @@ export default function NewClubPage() {
             return;
         }
 
-        // Check if user is logged in and has admin role
+        // Check if user is logged in and has superadmin role
         const token = typeof window !== 'undefined' ? localStorage.getItem('clubviz-accessToken') : null;
         const userData = typeof window !== 'undefined' ? localStorage.getItem('clubviz-user') : null;
 
         if (!token) {
             toast({
                 title: "Authentication Required",
-                description: "Please log in as an admin to create clubs",
+                description: "Please log in as a superadmin to create clubs",
                 variant: "destructive",
             });
-            console.error('❌ No access token found. Please login as admin.');
+            console.error('❌ No access token found. Please login as superadmin.');
             return;
         }
 
@@ -208,17 +207,17 @@ export default function NewClubPage() {
 
             // Role can be string, array, or object - check all formats
             const roleStr = JSON.stringify(user.role || user.roles || '');
-            const hasAdminRole = roleStr.includes('ADMIN');
+            const hasSuperAdminRole = roleStr.includes('SUPER_ADMIN');
 
-            console.log('✅ Has Admin Role:', hasAdminRole);
+            console.log('✅ Has Super Admin Role:', hasSuperAdminRole);
 
-            if (!hasAdminRole) {
+            if (!hasSuperAdminRole) {
                 toast({
                     title: "Permission Denied",
-                    description: "You need ADMIN or SUPER_ADMIN role to create clubs",
+                    description: "You need SUPER_ADMIN role to create clubs",
                     variant: "destructive",
                 });
-                console.error('❌ User does not have admin role:', user.role || user.roles);
+                console.error('❌ User does not have superadmin role:', user.role || user.roles);
                 return;
             }
         }
@@ -265,9 +264,9 @@ export default function NewClubPage() {
                 variant: "default",
             });
 
-            // Redirect to admin panel after short delay
+            // Redirect to superadmin panel after short delay
             setTimeout(() => {
-                router.push('/admin');
+                router.push('/superadmin');
             }, 1000);
 
         } catch (error: any) {
@@ -280,7 +279,7 @@ export default function NewClubPage() {
 
             // Check for specific error responses
             if (error.response?.status === 403 || error.response?.status === 401) {
-                errorMessage = 'Permission denied. You need ADMIN or SUPER_ADMIN role to create clubs. Please login with admin credentials.';
+                errorMessage = 'Permission denied. You need SUPER_ADMIN role to create clubs. Please login with superadmin credentials.';
             } else if (error.response?.data?.message) {
                 errorMessage = error.response.data.message;
             } else if (error.message) {

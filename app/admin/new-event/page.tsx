@@ -10,6 +10,7 @@ import { ClubService } from '@/lib/services/club.service';
 import { useToast } from '@/hooks/use-toast';
 import DatePicker from '@/components/common/date-picker';
 import { formatDateTimeForAPI } from '@/lib/date-utils';
+import { MusicGenreAutocomplete, MusicGenre } from '@/components/ui/music-genre-autocomplete';
 
 interface Club {
     id: string;
@@ -30,7 +31,7 @@ export default function NewEventPage() {
     const [showClubDropdown, setShowClubDropdown] = useState(false);
     const [loadingClubs, setLoadingClubs] = useState(true);
 
-    const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+    const [selectedGenres, setSelectedGenres] = useState<MusicGenre[]>([]);
     const [activeTab, setActiveTab] = useState('details');
     const [selectedRestriction, setSelectedRestriction] = useState<string | null>(null);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -180,7 +181,8 @@ export default function NewEventPage() {
                 imageUrl: formData.poster ? URL.createObjectURL(formData.poster) : undefined,
                 maxAttendees: undefined,                                // Optional
                 locationText: undefined,                                // Optional
-                locationMap: undefined                                  // Optional
+                locationMap: undefined,                                 // Optional
+                musicGenreTags: selectedGenres.map(g => g.label).join(', ')  // Music genres as comma-separated string
             };
 
             console.log('🚀 Creating event with payload:', JSON.stringify(eventData, null, 2));
@@ -450,18 +452,12 @@ export default function NewEventPage() {
                                     <div className="px-5">
                                         <label className="text-[#14FFEC] font-semibold text-base">Event Music Genre *</label>
                                     </div>
-                                    <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[15px] px-5">
-                                        <div className="flex items-center gap-3">
-                                            <Music size={20} className="text-[#14FFEC]" />
-                                            <input
-                                                type="text"
-                                                value={formData.musicGenre}
-                                                onChange={(e) => handleInputChange('musicGenre', e.target.value)}
-                                                className="flex-1 bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
-                                                placeholder="Type Music genre..."
-                                            />
-                                        </div>
-                                    </div>
+                                    <MusicGenreAutocomplete
+                                        musicGenres={[]}
+                                        selectedGenres={selectedGenres}
+                                        onSelectionChange={setSelectedGenres}
+                                        placeholder="Type to search music genres..."
+                                    />
                                 </div>
 
                                 {/* Event Description */}

@@ -23,7 +23,9 @@ import {
     ChevronDown,
     ChevronUp,
     Plus,
-    Minus
+    Minus,
+    Calendar,
+    Building
 } from 'lucide-react';
 import { AuthService } from '@/lib/services/auth.service';
 import { SuperAdminService } from '@/lib/services/superadmin.service';
@@ -155,6 +157,15 @@ export default function SuperAdminPage() {
         setNewRole('USER');
     };
 
+    // Navigation handlers
+    const handleCreateClub = () => {
+        router.push('/admin/new-club');
+    };
+
+    const handleCreateEvent = () => {
+        router.push('/admin/new-event');
+    };
+
     const filteredUsers = users.filter(user => {
         const matchesSearch = user.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -223,24 +234,43 @@ export default function SuperAdminPage() {
             {/* Quick Actions */}
             <div className="bg-[#0D1F1F] rounded-[15px] p-4">
                 <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
+                <div className="grid grid-cols-1 gap-3 mb-4">
+                    {/* Super Admin exclusive actions */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <button
+                            onClick={handleCreateClub}
+                            className="bg-[#14FFEC] text-black font-semibold py-3 rounded-[12px] flex items-center justify-center gap-2 hover:bg-[#12E6D6] transition-colors"
+                        >
+                            <Building className="w-4 h-4" />
+                            Create Club
+                        </button>
+                        <button
+                            onClick={handleCreateEvent}
+                            className="bg-[#0F6861] text-white font-semibold py-3 rounded-[12px] flex items-center justify-center gap-2 hover:bg-[#0D5451] transition-colors"
+                        >
+                            <Calendar className="w-4 h-4" />
+                            Create Event
+                        </button>
+                    </div>
+                </div>
                 <div className="grid grid-cols-3 gap-3">
                     <button
                         onClick={() => setActiveTab('users')}
-                        className="bg-[#14FFEC] text-black font-semibold py-3 rounded-[12px] flex items-center justify-center gap-2"
+                        className="bg-[#222831] text-white font-semibold py-3 rounded-[12px] border border-[#14FFEC]/30 flex items-center justify-center gap-2 hover:bg-[#14FFEC]/10 transition-colors"
                     >
                         <Users className="w-4 h-4" />
                         Users
                     </button>
                     <button
                         onClick={() => setActiveTab('clubs')}
-                        className="bg-[#222831] text-white font-semibold py-3 rounded-[12px] border border-[#14FFEC]/30 flex items-center justify-center gap-2"
+                        className="bg-[#222831] text-white font-semibold py-3 rounded-[12px] border border-[#14FFEC]/30 flex items-center justify-center gap-2 hover:bg-[#14FFEC]/10 transition-colors"
                     >
                         <Users className="w-4 h-4" />
                         Clubs
                     </button>
                     <button
                         onClick={() => setActiveTab('roles')}
-                        className="bg-[#222831] text-white font-semibold py-3 rounded-[12px] border border-[#14FFEC]/30 flex items-center justify-center gap-2"
+                        className="bg-[#222831] text-white font-semibold py-3 rounded-[12px] border border-[#14FFEC]/30 flex items-center justify-center gap-2 hover:bg-[#14FFEC]/10 transition-colors"
                     >
                         <Shield className="w-4 h-4" />
                         Roles

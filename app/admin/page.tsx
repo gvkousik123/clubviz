@@ -102,11 +102,6 @@ export default function AdminDashboard() {
     };
 
     // Handle club operations
-    const handleCreateClub = () => {
-        setShowCreateModal('club');
-        // Navigate to new club creation page
-        handleNavigation('/admin/new-club');
-    };
 
     const handleEditClub = (clubId: string) => {
         router.push(`/admin/club-preview?clubId=${clubId}&edit=true`);
@@ -310,22 +305,8 @@ export default function AdminDashboard() {
                         {/* Quick Actions Section */}
                         <div className="mb-6">
                             <h3 className="text-lg font-semibold mb-3">Quick Actions</h3>
-                            <div className="grid grid-cols-2 gap-3 mb-4">
-                                {/* Create New Club */}
-                                <div
-                                    onClick={handleCreateClub}
-                                    className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4 flex items-center justify-between cursor-pointer hover:bg-[#14FFEC]/10 transition-colors"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="bg-[#14FFEC] w-10 h-10 rounded-md flex items-center justify-center">
-                                            <Plus className="w-6 h-6 text-black" />
-                                        </div>
-                                        <div>
-                                            <p className="text-white font-medium">Create New Club</p>
-                                            <p className="text-gray-400 text-xs">Add a new club to manage</p>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div className="grid grid-cols-1 gap-3 mb-4">
+                                {/* Note: Create New Club is only available to Super Admin */}
 
                                 {/* Create New Event */}
                                 <div
@@ -543,12 +524,7 @@ export default function AdminDashboard() {
                                     <div className="text-center py-8">
                                         <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                                         <p className="text-gray-400">No clubs found</p>
-                                        <button
-                                            onClick={handleCreateClub}
-                                            className="mt-2 px-4 py-2 bg-[#14FFEC] text-black rounded-lg font-medium"
-                                        >
-                                            Create Your First Club
-                                        </button>
+                                        <p className="text-gray-500 text-sm mt-2">Contact your Super Admin to create clubs</p>
                                     </div>
                                 )}
                             </div>
