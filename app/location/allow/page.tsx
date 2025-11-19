@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { setStoredLocation, DEFAULT_LOCATION } from '@/lib/location';
+import { persistCustomLocation, resolveLocation } from '@/lib/location';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -19,12 +19,12 @@ export default function LocationAllowPage() {
                 (position) => {
                     const { latitude, longitude } = position.coords;
 
-                    setStoredLocation({
-                        latitude,
-                        longitude,
-                        radius: DEFAULT_LOCATION.radius,
-                        label: 'Current Location',
-                    });
+                    persistCustomLocation({
+                        name: 'Current Location',
+                        lat: latitude,
+                        lng: longitude,
+                        city: 'Detected nearby area',
+                    }, 'geo');
 
                     toast({
                         title: 'Location access granted',
@@ -44,9 +44,10 @@ export default function LocationAllowPage() {
                 }
             );
         } else {
+            const fallback = resolveLocation();
             toast({
                 title: 'Location not supported',
-                description: 'Your device doesn\'t support location services.',
+                description: `Using default location ${fallback.label} (${fallback.city ?? ''}).`,
                 variant: 'destructive',
             });
         }

@@ -27,6 +27,10 @@ import { EventService } from '@/lib/services/event.service';
 import { ClubService } from '@/lib/services/club.service';
 import { PublicClubService, PublicEventService, PublicSearchService } from '@/lib/services/public.service';
 import { isGuestMode } from '@/lib/api-client-public';
+import { LocationSuggestionList } from '@/components/common/location-suggestion-list';
+import { NearbyDetailCard } from '@/components/common/nearby-detail-card';
+import { POPULAR_LOCATIONS, selectLocationFromOption, persistCustomLocation } from '@/lib/location';
+import type { NearbyResultSummary } from '@/lib/services/search.service';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/use-profile';
 import type { EventListItem } from '@/lib/services/event.service';
@@ -95,23 +99,138 @@ const HomePage = () => {
         clubs: searchClubs,
         balancedResults,
         nearbyResults,
+        nearbyDetails,
         currentLocation,
         locationError,
         universalSearch,
         searchNearby,
+        fetchNearbyDetails,
         clearResults,
         clearError,
+        refreshLocation,
+        isLoadingNearbyDetails,
+        error: searchError,
     } = useSearch();
 
-    // State to track if we're showing search results
+    const [isLocationDropdownOpen, setLocationDropdownOpen] = useState(false);
+    const [locationConfirmed, setLocationConfirmed] = useState(false);
+    const [isHydrated, setIsHydrated] = useState(false);
+    const locationButtonRef = useRef<HTMLButtonElement | null>(null);
+    const locationDropdownRef = useRef<HTMLDivElement | null>(null);
+
     const [showingSearchResults, setShowingSearchResults] = useState(false);
+    const [isNearbyDropdownOpen, setNearbyDropdownOpen] = useState(false);
+    const searchInputWrapperRef = useRef<HTMLDivElement | null>(null);
+    const searchDropdownRef = useRef<HTMLDivElement | null>(null);
+    const prefetchedCoordsRef = useRef<{ lat: number; lng: number } | null>(null);
 
-    // Search categories state
-    const [searchCategories, setSearchCategories] = useState<Array<string | { id?: string; name?: string; description?: string }>>([]);
-    const [showCategories, setShowCategories] = useState(false);
-    const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+    const [activeSuggestionId, setActiveSuggestionId] = useState<string | null>(null);
+    const [suggestionLoadingId, setSuggestionLoadingId] = useState<string | null>(null);
 
-    // Load profile, venues and events on mount
+    // Hydrate location confirmation from currentLocation when it changes
+    useEffect(() => {
+        setLocationConfirmed(currentLocation?.source !== 'default' ? true : false);
+        setIsHydrated(true);
+    }, [currentLocation]);
+
+    useEffect(() => {
+        if (!isLocationDropdownOpen) {
+            return;
+        }
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                locationDropdownRef.current?.contains(event.target as Node) ||
+                locationButtonRef.current?.contains(event.target as Node)
+            ) {
+                return;
+            }
+            setLocationDropdownOpen(false);
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isLocationDropdownOpen]);
+
+    useEffect(() => {
+        if (!isNearbyDropdownOpen) {
+            return;
+        }
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                searchDropdownRef.current?.contains(event.target as Node) ||
+                searchInputWrapperRef.current?.contains(event.target as Node)
+            ) {
+                return;
+            }
+            setNearbyDropdownOpen(false);
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isNearbyDropdownOpen]);
+
+    useEffect(() => {
+        if (!currentLocation) {
+            return;
+        }
+
+        const { lat, lng } = currentLocation;
+        if (
+            prefetchedCoordsRef.current?.lat === lat &&
+            prefetchedCoordsRef.current?.lng === lng
+        ) {
+            return;
+        }
+
+        prefetchedCoordsRef.current = { lat, lng };
+        (async () => {
+            try {
+                await searchNearby({
+                    lat,
+                    lng,
+                    radius: 5000,
+                });
+            } catch (error) {
+                console.error('Failed to preload nearby suggestions:', error);
+            }
+        })();
+    }, [currentLocation, searchNearby]);
+
+    const activePresetId = useMemo(() => {
+        if (!currentLocation) {
+            return null;
+        }
+        const match = POPULAR_LOCATIONS.find(
+            (location) => location.lat === currentLocation.lat && location.lng === currentLocation.lng
+        );
+        return match?.id ?? null;
+    }, [currentLocation]);
+
+    const locationLabel = isHydrated
+        ? (locationConfirmed
+            ? (currentLocation?.label || currentLocation?.name || 'Selected Location')
+            : 'Select location')
+        : 'Select location';
+
+    const handleLocationButtonClick = () => {
+        setLocationDropdownOpen((prev) => !prev);
+    };
+
+    const handleLocationPresetSelect = async (presetId: string) => {
+        selectLocationFromOption(presetId);
+        try {
+            await refreshLocation();
+        } finally {
+            setLocationDropdownOpen(false);
+        }
+    };
+
     useEffect(() => {
         const loadInitialData = async () => {
             const isGuest = isGuestMode();
@@ -446,75 +565,125 @@ const HomePage = () => {
 
     const handleSearch = async () => {
         const isGuest = isGuestMode();
+        const trimmedQuery = searchQuery.trim();
 
-        // If no search query, load and show categories
-        if (!searchQuery.trim()) {
-            console.log('Loading search categories...');
-            setIsLoadingCategories(true);
-            try {
-                if (isGuest) {
-                    const categoriesResponse = await PublicSearchService.getSearchCategories();
-                    if (categoriesResponse?.success && categoriesResponse.data) {
-                        setSearchCategories(categoriesResponse.data);
-                        setShowCategories(true);
-                        setShowingSearchResults(true);
-                    }
-                } else {
-                    // For authenticated users, try to use existing search functionality
-                    await universalSearch('');
-                    setShowCategories(true);
-                    setShowingSearchResults(true);
+        setActiveSuggestionId(null);
+        setSuggestionLoadingId(null);
+
+        if (!locationConfirmed) {
+            toast({
+                title: 'Select a location',
+                description: 'Please pick one of the preset locations before searching.',
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        try {
+            await searchNearby({
+                category: trimmedQuery || undefined,
+                radius: 5000,
+                lat: currentLocation?.lat,
+                lng: currentLocation?.lng,
+            });
+            setShowingSearchResults(true);
+            setNearbyDropdownOpen(true);
+        } catch (error: any) {
+            console.error('Nearby search failed:', error);
+            toast({
+                title: 'Nearby search failed',
+                description: error.message || 'Could not fetch nearby places.',
+                variant: 'destructive',
+            });
+            setNearbyDropdownOpen(false);
+            return;
+        }
+
+        if (!trimmedQuery) {
+            return;
+        }
+
+        console.log('Searching for:', trimmedQuery);
+        try {
+            if (isGuest) {
+                try {
+                    const searchResult = await PublicSearchService.globalSearch(trimmedQuery);
+                    console.log('Guest search result:', searchResult);
+                } catch (searchError) {
+                    console.log('Global search not available for guests, using club search');
+                    const clubSearchResult = await PublicClubService.searchClubs(trimmedQuery);
+                    console.log('Club search result for guests:', clubSearchResult);
                 }
-            } catch (error) {
-                console.error('Failed to load categories:', error);
-                toast({
-                    title: "Failed to load categories",
-                    description: "Could not fetch search categories",
-                    variant: "destructive",
-                });
-            } finally {
-                setIsLoadingCategories(false);
+            } else {
+                await universalSearch(trimmedQuery);
             }
-        } else {
-            // Perform actual search
-            console.log('Searching for:', searchQuery);
-            try {
-                if (isGuest) {
-                    // For guests, try different search approaches
-                    try {
-                        const searchResult = await PublicSearchService.globalSearch(searchQuery.trim());
-                        console.log('Guest search result:', searchResult);
-                        setShowingSearchResults(true);
-                    } catch (searchError) {
-                        console.log('Global search not available for guests, using club search');
-                        // Fallback to club search for guests
-                        const clubSearchResult = await PublicClubService.searchClubs(searchQuery.trim());
-                        console.log('Club search result for guests:', clubSearchResult);
-                        setShowingSearchResults(true);
-                    }
-                } else {
-                    await universalSearch(searchQuery.trim());
-                    setShowingSearchResults(true);
-                }
-            } catch (error) {
-                console.error('Search failed:', error);
-                toast({
-                    title: "Search failed",
-                    description: "Could not perform search. Please try again.",
-                    variant: "destructive",
-                });
-            }
+            setShowingSearchResults(true);
+        } catch (error) {
+            console.error('Search failed:', error);
+            toast({
+                title: 'Search failed',
+                description: 'Could not perform search. Please try again.',
+                variant: 'destructive',
+            });
         }
     };
 
     const handleClearSearch = () => {
         setSearchQuery('');
         setShowingSearchResults(false);
-        setShowCategories(false);
-        setSearchCategories([]);
-        setIsLoadingCategories(false);
+        setActiveSuggestionId(null);
+        setSuggestionLoadingId(null);
+        setNearbyDropdownOpen(false);
         clearResults();
         clearError();
+    };
+
+    const handleSuggestionSelect = async (suggestion: NearbyResultSummary) => {
+        const suggestionKey = suggestion.id || suggestion.place_id || `${suggestion.lat}-${suggestion.lng}`;
+        setActiveSuggestionId(suggestionKey);
+        setSuggestionLoadingId(suggestionKey);
+
+        if (!suggestion.id && !suggestion.place_id) {
+            persistCustomLocation({
+                name: suggestion.name,
+                lat: suggestion.lat,
+                lng: suggestion.lng,
+                address: suggestion.address,
+            }, 'list');
+            await refreshLocation();
+            toast({
+                title: 'Location updated',
+                description: `${suggestion.name} saved as your active search area.`,
+            });
+            setSuggestionLoadingId(null);
+            return;
+        }
+
+        try {
+            const detail = await fetchNearbyDetails({ id: suggestion.id, placeId: suggestion.place_id });
+            if (detail) {
+                persistCustomLocation({
+                    name: suggestion.name,
+                    lat: suggestion.lat,
+                    lng: suggestion.lng,
+                    address: suggestion.address,
+                }, 'list');
+                await refreshLocation();
+                toast({
+                    title: 'Location updated',
+                    description: `${suggestion.name} set as your active search area.`,
+                });
+            }
+        } catch (error: any) {
+            console.error('Nearby detail lookup failed:', error);
+            toast({
+                title: 'Unable to load place details',
+                description: error.message || 'Please pick another suggestion.',
+                variant: 'destructive',
+            });
+        } finally {
+            setSuggestionLoadingId(null);
+        }
     };
 
     // Helper function to get fallback images
@@ -539,6 +708,9 @@ const HomePage = () => {
         return eventImages[index % eventImages.length];
     };
 
+    const nearbySuggestions = nearbyResults?.results ?? [];
+    const nearbyErrorMessage = showingSearchResults && searchError ? searchError : null;
+
     // Helper function to check if image URL is valid
     const isValidImageUrl = (url: string) => {
         if (!url) return false;
@@ -559,16 +731,48 @@ const HomePage = () => {
                 <header className="fixed top-0 left-0 w-full max-w-[430px] mx-auto h-[16vh] bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-6 pt-4 z-50 flex flex-col justify-between">
                     {/* Location and Profile */}
                     <div className="flex items-center justify-between">
-                        <Link
-                            href="/location/select"
-                            className="flex items-center gap-2 hover:bg-white/10 rounded-lg px-2 py-1 transition-colors"
-                        >
-                            <MapPin className="w-6 h-6 text-[#14FFEC]" />
-                            <div className="text-white text-base font-bold tracking-wide">
-                                {currentLocation?.label || currentLocation?.city || 'Current Location'}
-                            </div>
-                            <ChevronDown className="w-3 h-3 text-white" />
-                        </Link>
+                        <div className="relative">
+                            <button
+                                ref={locationButtonRef}
+                                type="button"
+                                onClick={handleLocationButtonClick}
+                                aria-haspopup="listbox"
+                                aria-expanded={isLocationDropdownOpen}
+                                className="flex items-center gap-2 hover:bg-white/10 rounded-lg px-2 py-1 transition-colors"
+                            >
+                                <MapPin className="w-6 h-6 text-[#14FFEC]" />
+                                <div className="text-white text-base font-bold tracking-wide">
+                                    {locationLabel}
+                                </div>
+                                <ChevronDown className="w-3 h-3 text-white" />
+                            </button>
+                            {isLocationDropdownOpen && (
+                                <div
+                                    ref={locationDropdownRef}
+                                    className="absolute top-full mt-2 left-0 w-[260px] rounded-2xl bg-[#031313] border border-[#14FFEC]/20 shadow-[0px_10px_30px_rgba(0,0,0,0.6)] z-50"
+                                >
+                                    <div className="py-2">
+                                        {POPULAR_LOCATIONS.map((location) => {
+                                            const isActive = location.id === activePresetId;
+                                            return (
+                                                <button
+                                                    key={location.id}
+                                                    type="button"
+                                                    onClick={() => handleLocationPresetSelect(location.id)}
+                                                    className={`w-full flex flex-col gap-1 px-4 py-3 text-left transition-colors ${isActive ? 'bg-white/10' : 'hover:bg-white/10'
+                                                        }`}
+                                                >
+                                                    <span className="text-sm font-semibold">{location.name}</span>
+                                                    {location.address && (
+                                                        <span className="text-[11px] text-white/70">{location.address}</span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                         <Link
                             href="/account"
                             className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
@@ -579,58 +783,70 @@ const HomePage = () => {
 
                     {/* Search Bar */}
                     <div className="flex items-center gap-2 w-full">
-                        <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2 min-w-0">
-                            <button
-                                onClick={handleSearch}
-                                disabled={isSearching || !searchQuery.trim()}
-                                className="disabled:opacity-50 flex-shrink-0"
-                            >
-                                {isSearching ? (
-                                    <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
-                                ) : (
-                                    <Search className="w-[21px] h-[21px] text-white" />
-                                )}
-                            </button>
-                            <input
-                                type="text"
-                                placeholder="Search clubs, events..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onFocus={async () => {
-                                    if (!searchQuery.trim() && !showCategories && !isLoadingCategories) {
-                                        // Load categories when search input is focused and empty
-                                        setIsLoadingCategories(true);
-                                        try {
-                                            const isGuest = isGuestMode();
-                                            const categoriesResponse = isGuest
-                                                ? await PublicSearchService.getSearchCategories()
-                                                : await PublicSearchService.getSearchCategories(); // Same API for both
-                                            if (categoriesResponse?.success && categoriesResponse.data) {
-                                                setSearchCategories(categoriesResponse.data);
-                                                setShowCategories(true);
-                                            }
-                                        } catch (error) {
-                                            console.error('Failed to load categories on focus:', error);
-                                        } finally {
-                                            setIsLoadingCategories(false);
-                                        }
-                                    }
-                                }}
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                        handleSearch();
-                                    }
-                                }}
-                                className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white/70 outline-none min-w-0"
-                                disabled={isSearching}
-                            />
-                            {searchQuery && (
+                        <div className="flex-1 relative" ref={searchInputWrapperRef}>
+                            <div className="h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2 min-w-0">
                                 <button
-                                    onClick={handleClearSearch}
-                                    className="text-white/70 hover:text-white flex-shrink-0"
+                                    onClick={handleSearch}
+                                    disabled={isSearching || isLoadingNearby || !locationConfirmed}
+                                    className="disabled:opacity-50 flex-shrink-0"
                                 >
-                                    <X className="w-4 h-4" />
+                                    {isSearching || isLoadingNearby ? (
+                                        <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
+                                    ) : (
+                                        <Search className="w-[21px] h-[21px] text-white" />
+                                    )}
                                 </button>
+                                <input
+                                    type="text"
+                                    placeholder="Search clubs, events..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onFocus={() => {
+                                        if (locationConfirmed) {
+                                            setNearbyDropdownOpen(true);
+                                        }
+                                    }}
+                                    onKeyPress={(e) => {
+                                        if (e.key === 'Enter') {
+                                            handleSearch();
+                                        }
+                                    }}
+                                    className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white/70 outline-none min-w-0"
+                                    disabled={isSearching || isLoadingNearby}
+                                />
+                                {searchQuery && (
+                                    <button
+                                        onClick={handleClearSearch}
+                                        className="text-white/70 hover:text-white flex-shrink-0"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
+                            {isNearbyDropdownOpen && (
+                                <div
+                                    ref={searchDropdownRef}
+                                    className="absolute left-0 right-0 top-full mt-3 w-full max-h-[85vh] overflow-hidden rounded-[26px] border border-white/20 bg-[#041919] p-4 shadow-[0px_20px_60px_rgba(0,0,0,0.65)] z-50 flex flex-col"
+                                >
+                                    <div className="flex-1 overflow-y-auto pr-1">
+                                        <LocationSuggestionList
+                                            suggestions={nearbySuggestions}
+                                            onSelect={handleSuggestionSelect}
+                                            isLoading={isLoadingNearby}
+                                            error={nearbyErrorMessage}
+                                            selectedId={activeSuggestionId}
+                                            loadingId={suggestionLoadingId}
+                                            emptyStateText="No nearby matches yet. Try adjusting the query."
+                                        />
+                                    </div>
+                                    <div className="mt-3 pt-3 border-t border-white/10">
+                                        <NearbyDetailCard
+                                            detail={nearbyDetails}
+                                            isLoading={isLoadingNearbyDetails || !!suggestionLoadingId}
+                                            title="Place details"
+                                        />
+                                    </div>
+                                </div>
                             )}
                         </div>
                         <button
@@ -670,52 +886,7 @@ const HomePage = () => {
 
                 {/* Main Content */}
                 <main className={`${isGuestMode() ? 'pt-[20vh]' : 'pt-[16vh]'} px-0 space-y-6`}>
-                    {/* Categories Dropdown - shown near search bar */}
-                    {showCategories && !showingSearchResults && searchCategories.length > 0 && (
-                        <div className="fixed top-[17vh] left-5 right-5 z-50 max-w-[390px] mx-auto bg-[#0A2B2A] border border-[#14FFEC]/30 rounded-lg shadow-lg overflow-hidden">
-                            <div className="p-2 max-h-[300px] overflow-y-auto scrollbar-hide">
-                                {isLoadingCategories ? (
-                                    <div className="flex items-center justify-center py-4">
-                                        <Loader2 className="w-6 h-6 text-[#14FFEC] animate-spin" />
-                                        <span className="ml-2 text-white text-sm">Loading...</span>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-1">
-                                        {searchCategories.map((category, index) => {
-                                            const catName = typeof category === 'string' ? category : (category.name || '');
-                                            const catDesc = typeof category === 'string' ? '' : (category.description || '');
-                                            return (
-                                                <button
-                                                    key={typeof category === 'string' ? index : (category.id || index)}
-                                                    onClick={async () => {
-                                                        setSearchQuery(catName);
-                                                        setShowCategories(false);
 
-                                                        // Perform search with the selected category
-                                                        try {
-                                                            const isGuest = isGuestMode();
-                                                            if (isGuest) {
-                                                                await PublicClubService.searchClubs(catName);
-                                                            } else {
-                                                                await universalSearch(catName);
-                                                            }
-                                                            setShowingSearchResults(true);
-                                                        } catch (error) {
-                                                            console.error('Category search failed:', error);
-                                                        }
-                                                    }}
-                                                    className="w-full px-3 py-2 text-left hover:bg-[#14FFEC]/10 rounded transition-colors"
-                                                >
-                                                    <div className="text-white text-sm font-semibold">{catName}</div>
-                                                    {catDesc && <div className="text-gray-400 text-xs mt-0.5">{catDesc}</div>}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
 
                     {/* Search Results or Normal Content */}
                     {showingSearchResults ? (
@@ -742,7 +913,7 @@ const HomePage = () => {
                             )}
 
                             {/* Search Results - Events */}
-                            {!showCategories && searchEvents.length > 0 && (
+                            {searchEvents.length > 0 && (
                                 <div className="space-y-4">
                                     <h3 className="text-white text-base font-semibold">Events</h3>
                                     <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
@@ -785,7 +956,7 @@ const HomePage = () => {
                             )}
 
                             {/* Search Results - Clubs */}
-                            {!showCategories && searchClubs.length > 0 && (
+                            {searchClubs.length > 0 && (
                                 <div className="space-y-4">
                                     <h3 className="text-white text-base font-semibold">Clubs</h3>
                                     <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
@@ -839,7 +1010,7 @@ const HomePage = () => {
                             )}
 
                             {/* Balanced Results */}
-                            {!showCategories && balancedResults?.venues && balancedResults.venues.length > 0 && (
+                            {balancedResults?.venues && balancedResults.venues.length > 0 && (
                                 <div className="space-y-4">
                                     <h3 className="text-white text-base font-semibold">More Venues</h3>
                                     <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
@@ -892,7 +1063,7 @@ const HomePage = () => {
                             )}
 
                             {/* No Results */}
-                            {!showCategories && !isSearching && searchEvents.length === 0 && searchClubs.length === 0 && (!balancedResults?.venues || balancedResults.venues.length === 0) && searchQuery.trim() && (
+                            {!isSearching && searchEvents.length === 0 && searchClubs.length === 0 && (!balancedResults?.venues || balancedResults.venues.length === 0) && searchQuery.trim() && (
                                 <div className="text-center py-8">
                                     <p className="text-gray-400">No results found for "{searchQuery}"</p>
                                     <button

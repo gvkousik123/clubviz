@@ -4,7 +4,7 @@
 // and must bail out to client rendering. See: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
 export const dynamic = 'force-dynamic';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { LookupService } from '@/lib/services/lookup.service';
@@ -13,7 +13,6 @@ import { MusicGenreAutocomplete, MusicGenre } from '@/components/ui/music-genre-
 
 export default function MusicGenresPage() {
     const router = useRouter();
-    const searchParams = useSearchParams();
     const { toast } = useToast();
     const [musicGenres, setMusicGenres] = useState<MusicGenre[]>([]);
     const [selectedGenres, setSelectedGenres] = useState<MusicGenre[]>([]);

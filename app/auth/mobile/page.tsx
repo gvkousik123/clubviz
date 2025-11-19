@@ -184,9 +184,6 @@ export default function MobileVerificationScreen() {
                                     {phoneNumber}
                                 </div>
                             </div>
-                            <div className="text-[0.75rem] text-gray-500 mt-1">
-                                Length: {phoneNumber.length} | X's: {(phoneNumber.match(/X/g) || []).length}
-                            </div>
                         </div>
 
                         {/* Confirmation text */}

@@ -153,6 +153,17 @@ export default function ClubsListPage() {
                     category: club.type || 'Club'
                 }));
                 setClubs(convertedClubs);
+            } else if (nearbyResults?.results && nearbyResults.results.length > 0) {
+                const convertedFromResults: Club[] = nearbyResults.results.map((result, index) => ({
+                    id: result.id || result.place_id || `result-${index}`,
+                    name: result.name,
+                    openTime: 'Open until late',
+                    rating: 4.0,
+                    image: getClubFallbackImage(index),
+                    address: result.address || 'Within 5 km',
+                    category: result.type || 'Club',
+                }));
+                setClubs(convertedFromResults);
             }
         } catch (error) {
             console.error('Nearby search failed:', error);

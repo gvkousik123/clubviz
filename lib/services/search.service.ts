@@ -13,6 +13,8 @@ export interface NearbySearchParams {
   category?: string;
 }
 
+export type NearbyResultType = 'club' | 'event' | 'mixed' | 'unknown' | string;
+
 export interface LocationCoordinates {
   lat: number;
   lng: number;
@@ -174,6 +176,48 @@ export interface NearbyEvent {
   status?: 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
   createdAt: string;
   updatedAt: string;
+}
+
+export interface NearbyResultSummary {
+  id?: string;
+  place_id?: string;
+  name: string;
+  description?: string;
+  address?: string;
+  lat: number;
+  lng: number;
+  distance?: number;
+  category?: string;
+  type?: NearbyResultType;
+  metadata?: Record<string, any>;
+}
+
+export interface NearbySearchMeta {
+  radius?: number;
+  unit?: string;
+  total?: number;
+  category?: string;
+  center?: LocationCoordinates;
+  fetchedAt?: string;
+}
+
+export interface NearbyDetailsResponse {
+  id?: string;
+  place_id?: string;
+  name: string;
+  address?: string;
+  phone?: string;
+  website?: string;
+  opening_hours?: string[];
+  coordinates?: LocationCoordinates;
+  extra?: Record<string, any>;
+}
+
+export interface NearbyAllResponse {
+  results?: NearbyResultSummary[];
+  events?: NearbyEvent[];
+  clubs?: NearbyClub[];
+  meta?: NearbySearchMeta;
 }
 
 export interface VenueSearchResult {
@@ -340,25 +384,39 @@ export class SearchService {
   /**
    * Find all nearby (both events and clubs) (API: GET /search/nearby/all)
    */
-  static async findNearbyAll(params: NearbySearchParams): Promise<ApiResponse<{
-    events?: NearbyEvent[];
-    clubs?: NearbyClub[];
-  }>> {
+  static async findNearbyAll(params: NearbySearchParams): Promise<ApiResponse<NearbyAllResponse>> {
     try {
       const queryParams = new URLSearchParams();
       queryParams.append('lat', params.lat.toString());
       queryParams.append('lng', params.lng.toString());
-      if (params.radius !== undefined) {
-        queryParams.append('radius', params.radius.toString());
-      }
+      queryParams.append('radius', (params.radius ?? 5000).toString());
       if (params.category) {
         queryParams.append('category', params.category);
       }
 
-      const response = await api.get<ApiResponse<{
-        events?: NearbyEvent[];
-        clubs?: NearbyClub[];
-      }>>(`/search/nearby/all?${queryParams.toString()}`);
+      const response = await api.get<ApiResponse<NearbyAllResponse>>(`/search/nearby/all?${queryParams.toString()}`);
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Fetch detail for a specific nearby result (API: GET /search/nearby/details)
+   */
+  static async getNearbyDetails(params: { id?: string; place_id?: string }): Promise<ApiResponse<NearbyDetailsResponse>> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.id) {
+        queryParams.append('id', params.id);
+      }
+      if (params.place_id) {
+        queryParams.append('place_id', params.place_id);
+      }
+
+      const response = await api.get<ApiResponse<NearbyDetailsResponse>>(
+        `/search/nearby/details?${queryParams.toString()}`
+      );
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));

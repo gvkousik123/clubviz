@@ -10,7 +10,6 @@ const nextConfig = {
     unoptimized: true,
     domains: ['storage.googleapis.com'],
   },
-
 }
 
 export default nextConfig

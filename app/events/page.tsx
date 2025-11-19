@@ -163,6 +163,39 @@ export default function EventsListPage() {
                     capacityPercentage: 0,
                 }));
                 setEvents(convertedEvents);
+            } else if (nearbyResults?.results && nearbyResults.results.length > 0) {
+                const fallbackEvents: EventListItem[] = nearbyResults.results.map((result, index) => ({
+                    id: result.id || result.place_id || `nearby-${index}`,
+                    title: result.name.length > 25 ? result.name.substring(0, 25) + '...' : result.name,
+                    shortDescription: 'Nearby result',
+                    imageUrl: getEventFallbackImage(index),
+                    location: result.address || 'Within 5 km',
+                    startDateTime: new Date().toISOString(),
+                    endDateTime: new Date().toISOString(),
+                    formattedDate: new Date().toLocaleDateString(),
+                    formattedTime: new Date().toLocaleTimeString(),
+                    timeUntilEvent: '',
+                    duration: '',
+                    attendeeCount: 0,
+                    maxAttendees: 100,
+                    isRegistered: false,
+                    canRegister: true,
+                    isFull: false,
+                    clubId: '',
+                    clubName: result.category || 'Local venue',
+                    clubLogo: '',
+                    organizerName: '',
+                    status: 'UPCOMING' as const,
+                    isPublic: true,
+                    requiresApproval: false,
+                    attendeeStatus: '',
+                    eventStatusText: '',
+                    pastEvent: false,
+                    upcoming: true,
+                    ongoing: false,
+                    capacityPercentage: 0,
+                }));
+                setEvents(fallbackEvents);
             }
         } catch (error) {
             console.error('Nearby search failed:', error);
