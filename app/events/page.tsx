@@ -8,6 +8,7 @@ import type { EventListItem } from '@/lib/services/event.service';
 import { useToast } from '@/hooks/use-toast';
 
 import { useSearch } from '@/hooks/use-search';
+import { useNearbyEvents } from '@/hooks/use-nearby-events';
 import { useEventList } from '@/hooks/use-event-list';
 import { EventService } from '@/lib/services/event.service';
 
@@ -35,6 +36,18 @@ export default function EventsListPage() {
         clearResults,
         clearError,
     } = useSearch();
+
+    // Nearby events functionality
+    const {
+        events: nearbyEvents,
+        loading: loadingNearbyEvents,
+        error: nearbyEventsError,
+        hasLocation,
+        fetchNearbyEvents,
+        clearEvents: clearNearbyEvents,
+        clearError: clearNearbyError,
+        refetchWithLocation
+    } = useNearbyEvents();
 
     // Event list functionality
     const {
@@ -125,17 +138,26 @@ export default function EventsListPage() {
     };
 
     const handleNearbySearch = async () => {
+        if (!hasLocation) {
+            toast({
+                title: 'Location Required',
+                description: 'Please enable location services or select a location to find nearby events.',
+                variant: 'destructive',
+            });
+            return;
+        }
+
         try {
             setLoading(true);
-            await searchNearby();
+            await fetchNearbyEvents();
 
-            if (nearbyResults?.events && nearbyResults.events.length > 0) {
+            if (nearbyEvents && nearbyEvents.length > 0) {
                 // Convert nearby events to EventListItem[] format
-                const convertedEvents: EventListItem[] = nearbyResults.events.map((event, index) => ({
+                const convertedEvents: EventListItem[] = nearbyEvents.map((event, index) => ({
                     id: event.id,
                     title: event.title.length > 25 ? event.title.substring(0, 25) + '...' : event.title,
                     shortDescription: event.description || '',
-                    imageUrl: getEventFallbackImage(index),
+                    imageUrl: event.imageUrl || getEventFallbackImage(index),
                     location: event.location && event.location.length > 20 ? event.location.substring(0, 20) + '...' : (event.location || ''),
                     startDateTime: event.startDateTime,
                     endDateTime: event.endDateTime,
@@ -144,15 +166,15 @@ export default function EventsListPage() {
                     timeUntilEvent: '',
                     duration: '',
                     attendeeCount: 0,
-                    maxAttendees: 100,
+                    maxAttendees: event.maxAttendees || 100,
                     isRegistered: false,
                     canRegister: true,
                     isFull: false,
                     clubId: event.club?.id || '',
                     clubName: event.club?.name || '',
-                    clubLogo: '',
-                    organizerName: '',
-                    status: 'UPCOMING' as const,
+                    clubLogo: event.club?.logoUrl || '',
+                    organizerName: event.eventOrganizer || '',
+                    status: event.status as 'UPCOMING' || 'UPCOMING',
                     isPublic: event.isPublic,
                     requiresApproval: event.requiresApproval,
                     attendeeStatus: '',
@@ -163,39 +185,12 @@ export default function EventsListPage() {
                     capacityPercentage: 0,
                 }));
                 setEvents(convertedEvents);
-            } else if (nearbyResults?.results && nearbyResults.results.length > 0) {
-                const fallbackEvents: EventListItem[] = nearbyResults.results.map((result, index) => ({
-                    id: result.id || result.place_id || `nearby-${index}`,
-                    title: result.name.length > 25 ? result.name.substring(0, 25) + '...' : result.name,
-                    shortDescription: 'Nearby result',
-                    imageUrl: getEventFallbackImage(index),
-                    location: result.address || 'Within 5 km',
-                    startDateTime: new Date().toISOString(),
-                    endDateTime: new Date().toISOString(),
-                    formattedDate: new Date().toLocaleDateString(),
-                    formattedTime: new Date().toLocaleTimeString(),
-                    timeUntilEvent: '',
-                    duration: '',
-                    attendeeCount: 0,
-                    maxAttendees: 100,
-                    isRegistered: false,
-                    canRegister: true,
-                    isFull: false,
-                    clubId: '',
-                    clubName: result.category || 'Local venue',
-                    clubLogo: '',
-                    organizerName: '',
-                    status: 'UPCOMING' as const,
-                    isPublic: true,
-                    requiresApproval: false,
-                    attendeeStatus: '',
-                    eventStatusText: '',
-                    pastEvent: false,
-                    upcoming: true,
-                    ongoing: false,
-                    capacityPercentage: 0,
-                }));
-                setEvents(fallbackEvents);
+                setLoading(false);
+
+                toast({
+                    title: 'Nearby Events Found',
+                    description: `Found ${convertedEvents.length} events near you.`,
+                });
             }
         } catch (error) {
             console.error('Nearby search failed:', error);
@@ -208,10 +203,6 @@ export default function EventsListPage() {
             setLoading(false);
         }
     };
-
-
-
-
 
     const fetchEvents = async () => {
         setLoading(true);
@@ -431,6 +422,52 @@ export default function EventsListPage() {
         loadFavorites();
     }, []);
 
+    // Auto-fetch nearby events when location is available
+    useEffect(() => {
+        if (hasLocation && nearbyEvents.length === 0 && !loadingNearbyEvents) {
+            fetchNearbyEvents();
+        }
+    }, [hasLocation, fetchNearbyEvents, nearbyEvents.length, loadingNearbyEvents]);
+
+    // Update events when nearby events are fetched
+    useEffect(() => {
+        if (nearbyEvents.length > 0) {
+            const convertedEvents: EventListItem[] = nearbyEvents.map((event, index) => ({
+                id: event.id,
+                title: event.title.length > 25 ? event.title.substring(0, 25) + '...' : event.title,
+                shortDescription: event.description || '',
+                imageUrl: event.imageUrl || getEventFallbackImage(index),
+                location: event.location && event.location.length > 20 ? event.location.substring(0, 20) + '...' : (event.location || ''),
+                startDateTime: event.startDateTime,
+                endDateTime: event.endDateTime,
+                formattedDate: new Date(event.startDateTime).toLocaleDateString(),
+                formattedTime: new Date(event.startDateTime).toLocaleTimeString(),
+                timeUntilEvent: '',
+                duration: '',
+                attendeeCount: 0,
+                maxAttendees: event.maxAttendees || 100,
+                isRegistered: false,
+                canRegister: true,
+                isFull: false,
+                clubId: event.club?.id || '',
+                clubName: event.club?.name || '',
+                clubLogo: event.club?.logoUrl || '',
+                organizerName: event.eventOrganizer || '',
+                status: event.status as 'UPCOMING' || 'UPCOMING',
+                isPublic: event.isPublic,
+                requiresApproval: event.requiresApproval,
+                attendeeStatus: '',
+                eventStatusText: '',
+                pastEvent: false,
+                upcoming: true,
+                ongoing: false,
+                capacityPercentage: 0,
+            }));
+            setEvents(convertedEvents);
+            setLoading(false);
+        }
+    }, [nearbyEvents]);
+
     if (loading) {
         return (
             <div className="min-h-screen bg-[#1e2328] text-white flex items-center justify-center">
@@ -511,11 +548,11 @@ export default function EventsListPage() {
                         </div>
                         <button
                             onClick={handleNearbySearch}
-                            disabled={isLoadingNearby}
+                            disabled={loadingNearbyEvents || loading}
                             className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center disabled:opacity-50 flex-shrink-0"
                             title="Find nearby events"
                         >
-                            {isLoadingNearby ? (
+                            {loadingNearbyEvents || loading ? (
                                 <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
                             ) : (
                                 <MapPin className="w-[21px] h-[21px] text-white" />

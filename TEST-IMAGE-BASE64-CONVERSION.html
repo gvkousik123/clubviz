@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Image Base64 Conversion</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #021313;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .section {
+            background: #0D1F1F;
+            border: 1px solid #14FFEC;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        h2 {
+            color: #14FFEC;
+            margin-top: 0;
+        }
+
+        input {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            background: #0D1F1F;
+            border: 1px solid #14FFEC;
+            color: #fff;
+            border-radius: 5px;
+        }
+
+        button {
+            background: #0F6861;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px 10px 0;
+        }
+
+        button:hover {
+            background: #0D5451;
+        }
+
+        .preview {
+            width: 150px;
+            height: 150px;
+            border: 1px solid #14FFEC;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .log {
+            background: #000;
+            color: #14FFEC;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+            font-family: monospace;
+        }
+
+        .success {
+            color: #00ff00;
+        }
+
+        .error {
+            color: #ff0000;
+        }
+
+        .info {
+            color: #14FFEC;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 style="color: #14FFEC;">Image Base64 Conversion Test</h1>
+
+        <div class="section">
+            <h2>Single Image Test</h2>
+            <input type="file" id="singleImage" accept="image/*">
+            <div class="preview" id="singlePreview"></div>
+            <button onclick="testSingleImage()">Convert to Base64</button>
+            <div class="log" id="singleLog"></div>
+        </div>
+
+        <div class="section">
+            <h2>Multiple Images Test (Food/Drinks)</h2>
+            <div id="multipleContainer">
+                <div style="margin-bottom: 15px;">
+                    <label>Image 1:</label>
+                    <input type="file" id="multi1" accept="image/*">
+                    <div class="preview" id="preview1"></div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label>Image 2:</label>
+                    <input type="file" id="multi2" accept="image/*">
+                    <div class="preview" id="preview2"></div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label>Image 3:</label>
+                    <input type="file" id="multi3" accept="image/*">
+                    <div class="preview" id="preview3"></div>
+                </div>
+            </div>
+            <button onclick="testMultipleImages()">Convert All to Base64</button>
+            <div class="log" id="multipleLog"></div>
+        </div>
+
+        <div class="section">
+            <h2>Payload Preview</h2>
+            <button onclick="generatePayload()">Generate Payload</button>
+            <pre id="payloadPreview"
+                style="background: #000; padding: 10px; border-radius: 5px; overflow-x: auto; max-height: 300px;"></pre>
+        </div>
+    </div>
+
+    <script>
+        function log(elementId, message, type = 'info') {
+            const logElement = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            logElement.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const result = reader.result;
+                    const base64String = result.split(',')[1] || result;
+                    resolve(base64String);
+                };
+                reader.onerror = (error) => {
+                    reject(new Error(`Failed to convert file to base64: ${error}`));
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function testSingleImage() {
+            const singleLog = document.getElementById('singleLog');
+            singleLog.innerHTML = '';
+
+            const file = document.getElementById('singleImage').files[0];
+            if (!file) {
+                log('singleLog', 'No file selected', 'error');
+                return;
+            }
+
+            log('singleLog', `📸 File selected: ${file.name}`, 'info');
+            log('singleLog', `📊 File size: ${(file.size / 1024).toFixed(2)} KB`, 'info');
+            log('singleLog', `📝 File type: ${file.type}`, 'info');
+
+            try {
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('singlePreview').innerHTML = `<img src="${e.target.result}" />`;
+                };
+                reader.readAsDataURL(file);
+
+                // Convert to base64
+                log('singleLog', '⏳ Converting to base64...', 'info');
+                const base64 = await fileToBase64(file);
+
+                log('singleLog', `✅ Conversion successful!`, 'success');
+                log('singleLog', `📏 Base64 length: ${base64.length} characters`, 'info');
+                log('singleLog', `📄 Base64 preview: ${base64.substring(0, 50)}...`, 'info');
+            } catch (error) {
+                log('singleLog', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testMultipleImages() {
+            const multipleLog = document.getElementById('multipleLog');
+            multipleLog.innerHTML = '';
+
+            const files = [
+                document.getElementById('multi1').files[0],
+                document.getElementById('multi2').files[0],
+                document.getElementById('multi3').files[0]
+            ].filter(f => f);
+
+            if (files.length === 0) {
+                log('multipleLog', 'No files selected', 'error');
+                return;
+            }
+
+            log('multipleLog', `📸 ${files.length} files selected`, 'info');
+
+            const allImages = [];
+
+            for (let i = 0; i < files.length; i++) {
+                try {
+                    log('multipleLog', `⏳ Converting image ${i + 1}/${files.length}...`, 'info');
+
+                    // Show preview
+                    const reader = new FileReader();
+                    const previewId = `preview${i + 1}`;
+                    reader.onload = (e) => {
+                        document.getElementById(previewId).innerHTML = `<img src="${e.target.result}" />`;
+                    };
+                    reader.readAsDataURL(files[i]);
+
+                    // Convert to base64
+                    const base64 = await fileToBase64(files[i]);
+
+                    allImages.push({
+                        type: 'foodDrinks',
+                        data: base64,
+                        fileName: files[i].name,
+                        fileSize: files[i].size,
+                        base64Size: base64.length
+                    });
+
+                    log('multipleLog', `✅ Image ${i + 1} converted (${(files[i].size / 1024).toFixed(2)} KB → ${(base64.length / 1024).toFixed(2)} KB)`, 'success');
+                } catch (error) {
+                    log('multipleLog', `❌ Image ${i + 1} failed: ${error.message}`, 'error');
+                }
+            }
+
+            log('multipleLog', `📦 Total images converted: ${allImages.length}`, 'success');
+
+            // Store for payload generation
+            window.testImages = allImages;
+        }
+
+        function generatePayload() {
+            const payloadPreview = document.getElementById('payloadPreview');
+
+            if (!window.testImages || window.testImages.length === 0) {
+                payloadPreview.textContent = 'No images converted yet. Please run "Convert All to Base64" first.';
+                return;
+            }
+
+            const payload = {
+                name: "Test Club",
+                images: window.testImages.map(img => ({
+                    type: img.type,
+                    data: img.data.substring(0, 100) + '...' // Show truncated version
+                })),
+                summary: {
+                    totalImages: window.testImages.length,
+                    totalDataSize: window.testImages.reduce((sum, img) => sum + img.base64Size, 0),
+                    images: window.testImages.map(img => ({
+                        fileName: img.fileName,
+                        originalSize: `${(img.fileSize / 1024).toFixed(2)} KB`,
+                        base64Size: `${(img.base64Size / 1024).toFixed(2)} KB`
+                    }))
+                }
+            };
+
+            payloadPreview.textContent = JSON.stringify(payload, null, 2);
+
+            console.log('✅ Full Payload:', {
+                name: payload.name,
+                images: window.testImages.map(img => ({
+                    type: img.type,
+                    data: img.data,
+                    fileName: img.fileName
+                }))
+            });
+        }
+
+        // Handle image preview on file selection
+        ['singleImage', 'multi1', 'multi2', 'multi3'].forEach(id => {
+            const element = document.getElementById(id);
+            element.addEventListener('change', function (e) {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    const previewId = id === 'singleImage' ? 'singlePreview' : id.replace('multi', 'preview');
+                    reader.onload = (event) => {
+                        const previewDiv = document.getElementById(previewId);
+                        previewDiv.innerHTML = `<img src="${event.target.result}" />`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

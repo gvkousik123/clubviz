@@ -643,6 +643,27 @@ const HomePage = () => {
         setActiveSuggestionId(suggestionKey);
         setSuggestionLoadingId(suggestionKey);
 
+        const completeSelection = async (description: string) => {
+            await refreshLocation();
+            try {
+                await searchNearby({
+                    lat: suggestion.lat,
+                    lng: suggestion.lng,
+                    radius: 5000,
+                });
+            } catch (refreshError) {
+                console.error('Failed to refresh nearby suggestions:', refreshError);
+            }
+            toast({
+                title: 'Location updated',
+                description,
+            });
+            setNearbyDropdownOpen(false);
+            setShowingSearchResults(false);
+            setSearchQuery('');
+            setActiveSuggestionId(null);
+        };
+
         if (!suggestion.id && !suggestion.place_id) {
             persistCustomLocation({
                 name: suggestion.name,
@@ -650,11 +671,7 @@ const HomePage = () => {
                 lng: suggestion.lng,
                 address: suggestion.address,
             }, 'list');
-            await refreshLocation();
-            toast({
-                title: 'Location updated',
-                description: `${suggestion.name} saved as your active search area.`,
-            });
+            await completeSelection(`${suggestion.name} saved as your active search area.`);
             setSuggestionLoadingId(null);
             return;
         }
@@ -668,11 +685,7 @@ const HomePage = () => {
                     lng: suggestion.lng,
                     address: suggestion.address,
                 }, 'list');
-                await refreshLocation();
-                toast({
-                    title: 'Location updated',
-                    description: `${suggestion.name} set as your active search area.`,
-                });
+                await completeSelection(`${suggestion.name} set as your active search area.`);
             }
         } catch (error: any) {
             console.error('Nearby detail lookup failed:', error);
@@ -681,6 +694,7 @@ const HomePage = () => {
                 description: error.message || 'Please pick another suggestion.',
                 variant: 'destructive',
             });
+            setActiveSuggestionId(null);
         } finally {
             setSuggestionLoadingId(null);
         }

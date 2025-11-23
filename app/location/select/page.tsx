@@ -123,6 +123,7 @@ export default function LocationSelectPage() {
                     description: 'Using your current location for recommendations.',
                 });
                 fetchNearbySuggestions({ lat: latitude, lng: longitude });
+                router.push('/home');
             },
             (error) => {
                 console.error('Geolocation error:', error);
@@ -143,6 +144,7 @@ export default function LocationSelectPage() {
             description: updated.label || updated.name,
         });
         fetchNearbySuggestions({ lat: updated.lat, lng: updated.lng });
+        router.push('/home');
     };
 
     const handleMapSelect = (coords: { lat: number; lng: number }) => {
@@ -157,6 +159,7 @@ export default function LocationSelectPage() {
             description: 'Running a fresh nearby search with your custom pin.',
         });
         fetchNearbySuggestions(coords);
+        router.push('/home');
     };
 
     const handleSuggestionSelect = async (suggestion: NearbyResultSummary) => {
@@ -177,7 +180,7 @@ export default function LocationSelectPage() {
                 description: `${suggestion.name} set without extra details.`,
             });
             setLoadingSuggestionId(null);
-            router.back();
+            router.push('/home');
             return;
         }
 
@@ -200,7 +203,7 @@ export default function LocationSelectPage() {
                     title: 'Location locked in',
                     description: `${suggestion.name} saved as your active area.`,
                 });
-                router.back();
+                router.push('/home');
             } else {
                 setDetails(null);
                 toast({
@@ -313,6 +316,7 @@ export default function LocationSelectPage() {
                     center={{ lat: selectedLocation.lat, lng: selectedLocation.lng }}
                     radius={radius}
                     onSelect={handleMapSelect}
+                    height="calc(100vh - 420px)"
                 />
 
                 <div className="space-y-3">

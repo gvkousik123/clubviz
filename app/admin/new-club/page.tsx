@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from 'react';
 import { LookupService, AllLookupData } from '@/lib/services/lookup.service';
 import { ClubService } from '@/lib/services/club.service';
 import { useToast } from '@/hooks/use-toast';
+import { fileToBase64 } from '@/lib/image-utils';
 import '../new-event/styles.css';
 
 export default function NewClubPage() {
@@ -21,6 +22,13 @@ export default function NewClubPage() {
         location: '',
         logo: null as File | null
     });
+    const [foodDrinksImages, setFoodDrinksImages] = useState<File[]>([]);
+    const [ambienceImages, setAmbienceImages] = useState<File[]>([]);
+    const [menuImages, setMenuImages] = useState<File[]>([]);
+    const [foodDrinksPreview, setFoodDrinksPreview] = useState<string[]>(['', '', '']);
+    const [ambiencePreview, setAmbiencePreview] = useState<string[]>(['', '', '']);
+    const [menuPreview, setMenuPreview] = useState<string[]>(['', '', '']);
+    const [logoPreview, setLogoPreview] = useState<string>('');
     const [lookupData, setLookupData] = useState<AllLookupData>({});
     const [isLoadingLookup, setIsLoadingLookup] = useState(true);
     const [selectedMusicGenres, setSelectedMusicGenres] = useState<any[]>([]);
@@ -158,6 +166,74 @@ export default function NewClubPage() {
         const file = e.target.files?.[0];
         if (file) {
             setFormData({ ...formData, logo: file });
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                setLogoPreview(event.target?.result as string);
+                console.log('✅ Logo preview generated');
+            };
+            reader.readAsDataURL(file);
+            console.log('📸 Logo file stored:', file.name, file.size, 'bytes');
+        }
+    };
+
+    const handleFoodDrinksImageChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const newImages = [...foodDrinksImages];
+            newImages[index] = file;
+            setFoodDrinksImages(newImages);
+
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const newPreviews = [...foodDrinksPreview];
+                newPreviews[index] = event.target?.result as string;
+                setFoodDrinksPreview(newPreviews);
+                console.log(`✅ Food/Drinks image ${index} preview generated`);
+            };
+            reader.readAsDataURL(file);
+            console.log(`📸 Food/Drinks image ${index} uploaded:`, file.name, file.size, 'bytes');
+        }
+    };
+
+    const handleAmbienceImageChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const newImages = [...ambienceImages];
+            newImages[index] = file;
+            setAmbienceImages(newImages);
+
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const newPreviews = [...ambiencePreview];
+                newPreviews[index] = event.target?.result as string;
+                setAmbiencePreview(newPreviews);
+                console.log(`✅ Ambience image ${index} preview generated`);
+            };
+            reader.readAsDataURL(file);
+            console.log(`📸 Ambience image ${index} uploaded:`, file.name, file.size, 'bytes');
+        }
+    };
+
+    const handleMenuImageChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const newImages = [...menuImages];
+            newImages[index] = file;
+            setMenuImages(newImages);
+
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const newPreviews = [...menuPreview];
+                newPreviews[index] = event.target?.result as string;
+                setMenuPreview(newPreviews);
+                console.log(`✅ Menu image ${index} preview generated`);
+            };
+            reader.readAsDataURL(file);
+            console.log(`📸 Menu image ${index} uploaded:`, file.name, file.size, 'bytes');
         }
     };
 
@@ -230,10 +306,84 @@ export default function NewClubPage() {
                 throw new Error('Club name is required');
             }
 
-            // ✅ BUILD MINIMAL PAYLOAD - only send fields with actual values
+            // ✅ CONVERT LOGO TO BASE64
+            let logoBase64 = '';
+            if (formData.logo) {
+                try {
+                    logoBase64 = await fileToBase64(formData.logo);
+                    console.log('✅ Logo converted to base64');
+                } catch (error) {
+                    console.warn('⚠️ Failed to convert logo:', error);
+                }
+            }
+
+            // ✅ COLLECT AND CONVERT ALL IMAGES TO BASE64
+            const allImages: Array<{ type: string; data: string }> = [];
+
+            // Process Food/Drinks images
+            for (let i = 0; i < foodDrinksImages.length; i++) {
+                if (foodDrinksImages[i]) {
+                    try {
+                        const base64Data = await fileToBase64(foodDrinksImages[i]);
+                        allImages.push({
+                            type: 'foodDrinks',
+                            data: base64Data
+                        });
+                        console.log(`✅ Food/Drinks image ${i + 1} converted to base64`);
+                    } catch (error) {
+                        console.warn(`⚠️ Failed to convert food/drinks image ${i + 1}:`, error);
+                    }
+                }
+            }
+
+            // Process Ambience images
+            for (let i = 0; i < ambienceImages.length; i++) {
+                if (ambienceImages[i]) {
+                    try {
+                        const base64Data = await fileToBase64(ambienceImages[i]);
+                        allImages.push({
+                            type: 'ambience',
+                            data: base64Data
+                        });
+                        console.log(`✅ Ambience image ${i + 1} converted to base64`);
+                    } catch (error) {
+                        console.warn(`⚠️ Failed to convert ambience image ${i + 1}:`, error);
+                    }
+                }
+            }
+
+            // Process Menu images
+            for (let i = 0; i < menuImages.length; i++) {
+                if (menuImages[i]) {
+                    try {
+                        const base64Data = await fileToBase64(menuImages[i]);
+                        allImages.push({
+                            type: 'menu',
+                            data: base64Data
+                        });
+                        console.log(`✅ Menu image ${i + 1} converted to base64`);
+                    } catch (error) {
+                        console.warn(`⚠️ Failed to convert menu image ${i + 1}:`, error);
+                    }
+                }
+            }
+
+            // ✅ BUILD PAYLOAD WITH BASE64 IMAGES
             const clubData: any = {
                 "name": formData.clubName.trim(), // REQUIRED
             };
+
+            // Add logo if available (base64 format)
+            if (logoBase64) {
+                clubData.logo = logoBase64;
+                console.log('📸 Logo added to payload (base64)');
+            }
+
+            // Add images if available (base64 format)
+            if (allImages.length > 0) {
+                clubData.images = allImages;
+                console.log(`📸 ${allImages.length} images added to payload (base64)`);
+            }
 
             // Add optional fields only if they have values
             if (adminDetails.email && adminDetails.email !== 'admin@example.com') {
@@ -251,8 +401,18 @@ export default function NewClubPage() {
             if (selectedLocation.lat) clubData.locationLat = selectedLocation.lat;
             if (selectedLocation.lng) clubData.locationLng = selectedLocation.lng;
 
-            console.log('🚀 Creating club with minimal payload (only filled fields):', JSON.stringify(clubData, null, 2));
+            console.log('🚀 Creating club with base64 images:', {
+                name: clubData.name,
+                hasLogo: !!clubData.logo,
+                logoSize: clubData.logo ? clubData.logo.length : 0,
+                imageCount: clubData.images?.length || 0,
+                images: clubData.images?.map((img: any) => ({
+                    type: img.type,
+                    dataSize: img.data.length
+                }))
+            });
             console.log('📡 API Call: POST /clubs/create-json-with-images');
+            console.log('📋 Full Payload:', JSON.stringify(clubData, null, 2));
 
             // Call the service to create the club
             const response = await ClubService.createClub(clubData);
@@ -321,16 +481,26 @@ export default function NewClubPage() {
                     {/* Logo Upload */}
                     <div
                         onClick={handleLogoUpload}
-                        className="w-[100px] h-[100px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex flex-col items-center justify-center p-2 cursor-pointer"
+                        className="w-[100px] h-[100px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex flex-col items-center justify-center p-2 cursor-pointer overflow-hidden"
                     >
-                        <img
-                            src="/admin/upload.svg"
-                            alt="Upload"
-                            width={30}
-                            height={30}
-                            className="mb-2"
-                        />
-                        <p className="text-white text-center text-[16px] font-semibold leading-[16px] tracking-[0.5px]">Upload logo here</p>
+                        {logoPreview ? (
+                            <img
+                                src={logoPreview}
+                                alt="Logo Preview"
+                                className="w-full h-full object-cover rounded-[13px]"
+                            />
+                        ) : (
+                            <>
+                                <img
+                                    src="/admin/upload.svg"
+                                    alt="Upload"
+                                    width={30}
+                                    height={30}
+                                    className="mb-2"
+                                />
+                                <p className="text-white text-center text-[12px] font-semibold leading-[12px] tracking-[0.5px]">Upload logo</p>
+                            </>
+                        )}
                     </div>
                     <input
                         ref={logoInputRef}
@@ -375,15 +545,24 @@ export default function NewClubPage() {
                                         <div
                                             key={`food-drink-${index}`}
                                             onClick={() => handleImageUpload(foodDrinksRefs[index])}
-                                            className="w-[100px] h-[100px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex items-center justify-center cursor-pointer"
+                                            className="w-[100px] h-[100px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex items-center justify-center cursor-pointer overflow-hidden"
                                         >
-                                            <div className="w-[25px] h-[25px] bg-[#14FFEC] rounded-full flex items-center justify-center">
-                                                <Plus className="w-[12px] h-[12px] text-[#004342]" />
-                                            </div>
+                                            {foodDrinksPreview[index] ? (
+                                                <img
+                                                    src={foodDrinksPreview[index]}
+                                                    alt={`Food/Drinks ${index + 1}`}
+                                                    className="w-full h-full object-cover rounded-[13px]"
+                                                />
+                                            ) : (
+                                                <div className="w-[25px] h-[25px] bg-[#14FFEC] rounded-full flex items-center justify-center">
+                                                    <Plus className="w-[12px] h-[12px] text-[#004342]" />
+                                                </div>
+                                            )}
                                             <input
                                                 ref={foodDrinksRefs[index]}
                                                 type="file"
                                                 accept="image/*"
+                                                onChange={(e) => handleFoodDrinksImageChange(e, index)}
                                                 className="hidden"
                                             />
                                         </div>
@@ -403,15 +582,24 @@ export default function NewClubPage() {
                                         <div
                                             key={`ambience-${index}`}
                                             onClick={() => handleImageUpload(ambienceRefs[index])}
-                                            className="w-[100px] h-[100px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex items-center justify-center cursor-pointer"
+                                            className="w-[100px] h-[100px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex items-center justify-center cursor-pointer overflow-hidden"
                                         >
-                                            <div className="w-[25px] h-[25px] bg-[#14FFEC] rounded-full flex items-center justify-center">
-                                                <Plus className="w-[12px] h-[12px] text-[#004342]" />
-                                            </div>
+                                            {ambiencePreview[index] ? (
+                                                <img
+                                                    src={ambiencePreview[index]}
+                                                    alt={`Ambience ${index + 1}`}
+                                                    className="w-full h-full object-cover rounded-[13px]"
+                                                />
+                                            ) : (
+                                                <div className="w-[25px] h-[25px] bg-[#14FFEC] rounded-full flex items-center justify-center">
+                                                    <Plus className="w-[12px] h-[12px] text-[#004342]" />
+                                                </div>
+                                            )}
                                             <input
                                                 ref={ambienceRefs[index]}
                                                 type="file"
                                                 accept="image/*"
+                                                onChange={(e) => handleAmbienceImageChange(e, index)}
                                                 className="hidden"
                                             />
                                         </div>
@@ -431,15 +619,24 @@ export default function NewClubPage() {
                                         <div
                                             key={`menu-${index}`}
                                             onClick={() => handleImageUpload(menuRefs[index])}
-                                            className="w-[100px] h-[100px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex items-center justify-center cursor-pointer"
+                                            className="w-[100px] h-[100px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex items-center justify-center cursor-pointer overflow-hidden"
                                         >
-                                            <div className="w-[25px] h-[25px] bg-[#14FFEC] rounded-full flex items-center justify-center">
-                                                <Plus className="w-[12px] h-[12px] text-[#004342]" />
-                                            </div>
+                                            {menuPreview[index] ? (
+                                                <img
+                                                    src={menuPreview[index]}
+                                                    alt={`Menu ${index + 1}`}
+                                                    className="w-full h-full object-cover rounded-[13px]"
+                                                />
+                                            ) : (
+                                                <div className="w-[25px] h-[25px] bg-[#14FFEC] rounded-full flex items-center justify-center">
+                                                    <Plus className="w-[12px] h-[12px] text-[#004342]" />
+                                                </div>
+                                            )}
                                             <input
                                                 ref={menuRefs[index]}
                                                 type="file"
                                                 accept="image/*"
+                                                onChange={(e) => handleMenuImageChange(e, index)}
                                                 className="hidden"
                                             />
                                         </div>

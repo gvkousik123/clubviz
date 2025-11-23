@@ -10,6 +10,7 @@ import { ClubCard } from '@/components/clubs/club-card';
 import { ClubListCard } from '@/components/clubs/club-list-card';
 
 import { useSearch } from '@/hooks/use-search';
+import { useNearbyClubs } from '@/hooks/use-nearby-clubs';
 import { ClubService } from '@/lib/services/club.service';
 import { PublicClubService } from '@/lib/services/public.service';
 import { isGuestMode } from '@/lib/api-client-public';
@@ -86,6 +87,18 @@ export default function ClubsListPage() {
         clearError,
     } = useSearch();
 
+    // Nearby clubs functionality
+    const {
+        clubs: nearbyClubs,
+        loading: loadingNearbyClubs,
+        error: nearbyClubsError,
+        hasLocation,
+        fetchNearbyClubs,
+        clearClubs: clearNearbyClubs,
+        clearError: clearNearbyError,
+        refetchWithLocation
+    } = useNearbyClubs();
+
     // Club images for fallbacks
     const clubImages = [
         '/venue/Screenshot 2024-12-10 195651.png',
@@ -135,35 +148,37 @@ export default function ClubsListPage() {
     };
 
     const handleNearbySearch = async () => {
+        if (!hasLocation) {
+            toast({
+                title: 'Location Required',
+                description: 'Please enable location services or select a location to find nearby clubs.',
+                variant: 'destructive',
+            });
+            return;
+        }
+
         try {
             setLoading(true);
-            await searchNearby();
+            await fetchNearbyClubs();
 
-            if (nearbyResults?.clubs && nearbyResults.clubs.length > 0) {
+            if (nearbyClubs && nearbyClubs.length > 0) {
                 // Convert nearby clubs to Club[] format
-                const convertedClubs: Club[] = nearbyResults.clubs.map((club, index) => ({
+                const convertedClubs: Club[] = nearbyClubs.map((club, index) => ({
                     id: club.id,
                     name: club.name,
                     openTime: 'Open until 1:30 am', // Default since API doesn't provide this
-                    rating: club.rating || 4.0,
-                    image: typeof club.images?.[0] === 'string'
-                        ? club.images[0]
-                        : club.images?.[0]?.url || club.logoUrl || getClubFallbackImage(index),
-                    address: club.fullAddress || club.address || club.location,
-                    category: club.type || 'Club'
+                    rating: 4.0, // Default rating
+                    image: club.images?.[0]?.url || club.logoUrl || getClubFallbackImage(index),
+                    address: club.locationText?.fullAddress || club.locationText?.address1 || 'Location not specified',
+                    category: club.category || 'Club'
                 }));
                 setClubs(convertedClubs);
-            } else if (nearbyResults?.results && nearbyResults.results.length > 0) {
-                const convertedFromResults: Club[] = nearbyResults.results.map((result, index) => ({
-                    id: result.id || result.place_id || `result-${index}`,
-                    name: result.name,
-                    openTime: 'Open until late',
-                    rating: 4.0,
-                    image: getClubFallbackImage(index),
-                    address: result.address || 'Within 5 km',
-                    category: result.type || 'Club',
-                }));
-                setClubs(convertedFromResults);
+                setLoading(false);
+
+                toast({
+                    title: 'Nearby Clubs Found',
+                    description: `Found ${convertedClubs.length} clubs near you.`,
+                });
             }
         } catch (error) {
             console.error('Nearby search failed:', error);
@@ -183,6 +198,30 @@ export default function ClubsListPage() {
         loadClubs();
         loadFavorites();
     }, []);
+
+    // Auto-fetch nearby clubs when location is available
+    useEffect(() => {
+        if (hasLocation && nearbyClubs.length === 0 && !loadingNearbyClubs) {
+            fetchNearbyClubs();
+        }
+    }, [hasLocation, fetchNearbyClubs, nearbyClubs.length, loadingNearbyClubs]);
+
+    // Update clubs when nearby clubs are fetched
+    useEffect(() => {
+        if (nearbyClubs.length > 0) {
+            const convertedClubs: Club[] = nearbyClubs.map((club, index) => ({
+                id: club.id,
+                name: club.name,
+                openTime: 'Open until 1:30 am',
+                rating: 4.0,
+                image: club.images?.[0]?.url || club.logoUrl || getClubFallbackImage(index),
+                address: club.locationText?.fullAddress || club.locationText?.address1 || 'Location not specified',
+                category: club.category || 'Club'
+            }));
+            setClubs(convertedClubs);
+            setLoading(false);
+        }
+    }, [nearbyClubs]);
 
     const loadClubs = async () => {
         setLoading(true);
@@ -348,11 +387,11 @@ export default function ClubsListPage() {
                         </div>
                         <button
                             onClick={handleNearbySearch}
-                            disabled={isLoadingNearby}
+                            disabled={loadingNearbyClubs || loading}
                             className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center disabled:opacity-50 flex-shrink-0"
                             title="Find nearby clubs"
                         >
-                            {isLoadingNearby ? (
+                            {loadingNearbyClubs || loading ? (
                                 <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
                             ) : (
                                 <MapPin className="w-[21px] h-[21px] text-white" />

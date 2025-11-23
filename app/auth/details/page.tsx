@@ -19,6 +19,8 @@ export default function DetailsPage() {
 
     // Check if user should be on this page
     useEffect(() => {
+        if (typeof window === 'undefined') return;
+
         const phoneNumber = localStorage.getItem('tempPhoneNumber');
         const firebaseToken = localStorage.getItem('tempFirebaseToken');
 
@@ -62,6 +64,10 @@ export default function DetailsPage() {
         setIsLoading(true);
 
         try {
+            if (typeof window === 'undefined') {
+                throw new Error('This operation requires client-side rendering');
+            }
+
             console.log("🔄 Starting registration flow...");
 
             // Get stored data from Firebase verification
@@ -88,7 +94,7 @@ export default function DetailsPage() {
             }
 
             // Check if user already exists
-            const isExistingUser = tokenVerificationResult?.existingUser === true;
+            const isExistingUser = tokenVerificationResult?.data?.existingUser === true;
             console.log("👤 User status:", isExistingUser ? "EXISTING USER" : "NEW USER");
 
             let registrationResult = null;
@@ -123,11 +129,11 @@ export default function DetailsPage() {
                     accessToken: registrationResult.data.accessToken,
                     refreshToken: registrationResult.data.refreshToken
                 };
-            } else if ((tokenVerificationResult?.jwtTokens?.accessToken)) {
+            } else if (tokenVerificationResult?.data?.accessToken) {
                 console.log("✅ Using tokens from Step 1 (verify-firebase-token)");
                 finalTokens = {
-                    accessToken: tokenVerificationResult.jwtTokens.accessToken,
-                    refreshToken: tokenVerificationResult.jwtTokens.refreshToken
+                    accessToken: tokenVerificationResult.data.accessToken,
+                    refreshToken: tokenVerificationResult.data.refreshToken
                 };
             }
 
@@ -149,15 +155,12 @@ export default function DetailsPage() {
             if (registrationResult?.data?.user) {
                 // New user registration response
                 userData = registrationResult.data.user;
-            } else if (isExistingUser) {
+            } else if (isExistingUser && tokenVerificationResult?.data?.user) {
                 // Existing user - build from verify-firebase-token response
                 userData = {
-                    id: tokenVerificationResult?.jwtTokens?.id,
-                    email: tokenVerificationResult?.jwtTokens?.email,
-                    username: tokenVerificationResult?.jwtTokens?.username,
-                    mobileNumber: tokenVerificationResult?.mobileNumber,
-                    roles: tokenVerificationResult?.jwtTokens?.roles,
-                    verified: tokenVerificationResult?.verified,
+                    id: tokenVerificationResult.data.user.id,
+                    phoneNumber: tokenVerificationResult.data.user.phoneNumber,
+                    isVerified: tokenVerificationResult.data.user.isVerified,
                 };
             }
 
@@ -212,7 +215,11 @@ export default function DetailsPage() {
 
             // Navigate to appropriate dashboard based on role
             setTimeout(() => {
-                router.push(redirectRoute);
+                if (redirectRoute === '/home') {
+                    router.push('/location/allow');
+                } else {
+                    router.push(redirectRoute);
+                }
             }, 800);
 
         } catch (error: any) {
