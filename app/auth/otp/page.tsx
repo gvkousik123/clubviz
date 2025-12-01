@@ -6,10 +6,9 @@ import { AuthLink } from "@/components/auth/auth-link";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { firebasePhoneAuth } from "@/lib/firebase/phone-auth";
+import { MobileAuthService } from '@/lib/services/mobile-auth.service';
 import { useToast } from "@/hooks/use-toast";
 import { STORAGE_KEYS } from "@/lib/constants/storage";
-import { User } from "firebase/auth";
 
 export default function OTPVerificationScreen() {
     const router = useRouter();
@@ -21,16 +20,19 @@ export default function OTPVerificationScreen() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
+    const [email, setEmail] = useState<string | null>(null);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     useEffect(() => {
-        // Get phone number from localStorage
+        // Get phone number and email from localStorage
         const savedPhone = localStorage.getItem(STORAGE_KEYS.pendingPhone);
+        const savedEmail = localStorage.getItem('pendingEmail');
         if (!savedPhone) {
             router.push('/auth/mobile');
             return;
         }
         setPhoneNumber(savedPhone);
+        setEmail(savedEmail);
 
         const interval = setInterval(() => {
             setTimer((prev) => {
@@ -71,7 +73,7 @@ export default function OTPVerificationScreen() {
     };
 
     const handleVerifyOTP = async (otpCode?: string) => {
-        if (!phoneNumber) return;
+        if (!email || !phoneNumber) return;
 
         const otpValue = otpCode || otp.join('');
         if (otpValue.length !== 6) {
@@ -84,188 +86,56 @@ export default function OTPVerificationScreen() {
 
         try {
             console.log("🔍 Verifying OTP:", otpValue);
+            console.log("📧 Using email:", email);
 
-            // Step 1: Verify OTP using Firebase
-            const user = await firebasePhoneAuth.verifyOTP(otpValue);
-            console.log("✅ Firebase OTP verification successful, user:", user.phoneNumber);
+            // Call backend /validate with email and OTP
+            const response = await MobileAuthService.validateOtp(email, otpValue);
+            console.log('✅ /validate response:', response);
 
-            // Step 2: Get Firebase ID token for backend authentication
-            const idToken = await user.getIdToken();
-            console.log("🔑 Got Firebase ID token");
-
-            // Step 3: Call verify-firebase-token API immediately to check user status
-            console.log("🔐 Step 1: Calling verify-firebase-token API to check user status...");
-            const { MobileAuthService } = await import('@/lib/services/mobile-auth.service');
-
-            let tokenVerificationResult: any;
-            try {
-                tokenVerificationResult = await MobileAuthService.verifyFirebaseToken(idToken);
-                console.log("✅ Step 1 Response:", tokenVerificationResult);
-                console.log("✅ Step 1 Response (full structure):", JSON.stringify(tokenVerificationResult, null, 2));
-            } catch (error: any) {
-                console.error("❌ Step 1 Error:", error.message);
-                throw new Error(`Token verification failed: ${error.message}`);
+            // Check if validation was successful
+            if (!response.success) {
+                throw new Error(response.message || 'OTP validation failed');
             }
 
-            // Check if user already exists
-            // NOTE: API returns data directly, NOT wrapped in ApiResponse.data
-            console.log("🔍 Full tokenVerificationResult:", tokenVerificationResult);
-            console.log("🔍 Raw existingUser value:", tokenVerificationResult?.existingUser);
-            console.log("🔍 Type of existingUser:", typeof tokenVerificationResult?.existingUser);
-            const existingUser = tokenVerificationResult?.existingUser === true || tokenVerificationResult?.existingUser === "true";
-
-            // Also check if user has roles (existing users will have roles)
-            const hasRoles = Array.isArray(tokenVerificationResult?.jwtTokens?.roles) && tokenVerificationResult.jwtTokens.roles.length > 0;
-            const isExistingUserWithRoles = existingUser || hasRoles;
-
-            console.log("👤 User status:", isExistingUserWithRoles ? "EXISTING USER" : "NEW USER");
-            console.log("🔍 Boolean check result:", existingUser);
-            console.log("🔍 Has roles:", hasRoles);
-            console.log("🔍 Final decision:", isExistingUserWithRoles);            // Step 4: Handle based on user status
-            if (isExistingUserWithRoles) {
-                // EXISTING USER: Store tokens and user data directly
-                console.log("💾 Storing tokens and user data for existing user...");
-
-                try {
-                    // Store tokens synchronously and verify storage
-                    if (tokenVerificationResult?.jwtTokens?.accessToken) {
-                        localStorage.setItem(STORAGE_KEYS.accessToken, tokenVerificationResult.jwtTokens.accessToken);
-                        console.log("✅ Stored accessToken");
-                    }
-                    if (tokenVerificationResult?.jwtTokens?.refreshToken) {
-                        localStorage.setItem(STORAGE_KEYS.refreshToken, tokenVerificationResult.jwtTokens.refreshToken);
-                        console.log("✅ Stored refreshToken");
-                    }
-
-                    // Store user data (id, email, username, mobileNumber, roles, verified)
-                    if (tokenVerificationResult?.jwtTokens) {
-                        const userData = {
-                            id: tokenVerificationResult.jwtTokens.id,
-                            email: tokenVerificationResult.jwtTokens.email,
-                            username: tokenVerificationResult.jwtTokens.username,
-                            mobileNumber: tokenVerificationResult.mobileNumber,
-                            roles: tokenVerificationResult.jwtTokens.roles,
-                            verified: tokenVerificationResult.verified,
-                            // Add accessToken to user data for auth checks
-                            accessToken: tokenVerificationResult.jwtTokens.accessToken,
-                            refreshToken: tokenVerificationResult.jwtTokens.refreshToken,
-                        };
-                        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(userData));
-                        console.log("✅ Stored user data:", userData);
-                    }
-
-                    // Clear any temp data
-                    localStorage.removeItem('tempFirebaseToken');
-                    localStorage.removeItem('tempPhoneNumber');
-                    localStorage.removeItem('verificationResult');
-                    localStorage.removeItem(STORAGE_KEYS.pendingPhone);
-                    console.log("🧹 Cleared temporary data");
-
-                    // Verify all data is stored correctly
-                    const verificationCheck = {
-                        accessToken: !!localStorage.getItem(STORAGE_KEYS.accessToken),
-                        refreshToken: !!localStorage.getItem(STORAGE_KEYS.refreshToken),
-                        userData: !!localStorage.getItem(STORAGE_KEYS.user),
-                        userRoles: (() => {
-                            try {
-                                const user = JSON.parse(localStorage.getItem(STORAGE_KEYS.user) || '{}');
-                                return user.roles || [];
-                            } catch {
-                                return [];
-                            }
-                        })()
-                    };
-                    console.log("🔍 Storage verification:", verificationCheck);
-
-                } catch (storageError) {
-                    console.error("❌ Error storing auth data:", storageError);
-                    throw new Error("Failed to store authentication data");
-                }
-
-                console.log("✅ Existing user authenticated! Redirecting based on role...");
-
-                // Determine redirect route based on role
-                let redirectRoute = '/home'; // Default for ROLE_USER
-                const roles = tokenVerificationResult.jwtTokens.roles || [];
-
-                if (roles.includes('ROLE_SUPERADMIN')) {
-                    redirectRoute = '/superadmin';
-                    console.log("🔑 Redirecting SUPERADMIN to /superadmin");
-                } else if (roles.includes('ROLE_ADMIN')) {
-                    redirectRoute = '/admin';
-                    console.log("🔑 Redirecting ADMIN to /admin");
-                } else if (roles.includes('ROLE_USER')) {
-                    redirectRoute = '/home';
-                    console.log("🔑 Redirecting USER to /home");
-                } else {
-                    // Default behavior
-                    console.log("ℹ️ No specific role found, defaulting to /home");
-                }
-
-                toast({
-                    title: "Welcome back!",
-                    description: "You're all set!",
-                });
-
-                // Force localStorage sync and immediate redirect
-                console.log("🔄 Force syncing localStorage before redirect...");
-
-                // Ensure localStorage operations are complete with a small delay for browser sync
-                const verifyStorage = () => {
-                    const storedToken = localStorage.getItem(STORAGE_KEYS.accessToken);
-                    const storedUser = localStorage.getItem(STORAGE_KEYS.user);
-
-                    console.log("🔍 Verifying storage - Token:", !!storedToken, "User:", !!storedUser);
-
-                    if (storedToken && storedUser) {
-                        console.log("✅ Storage verified, redirecting immediately to:", redirectRoute);
-                        // Use replace to prevent back navigation issues
-                        router.replace(redirectRoute);
-                        return true;
-                    }
-                    return false;
-                };
-
-                // Give a tiny delay to ensure localStorage operations complete
-                setTimeout(() => {
-                    if (!verifyStorage()) {
-                        console.error("❌ Storage verification failed, trying once more...");
-                        setTimeout(() => {
-                            if (!verifyStorage()) {
-                                console.error("❌ Final storage verification failed, falling back to home");
-                                router.replace('/home');
-                            }
-                        }, 200);
-                    }
-                }, 50);
-            } else {
-                // NEW USER: Store temp data for details page
-                console.log("📝 Storing temp data for new user registration...");
-
-                localStorage.setItem('tempFirebaseToken', idToken);
-                if (user.phoneNumber) {
-                    localStorage.setItem('tempPhoneNumber', user.phoneNumber);
-                }
-
-                // Also store the verification result for use in details page
-                localStorage.setItem('verificationResult', JSON.stringify(tokenVerificationResult));
-                localStorage.removeItem(STORAGE_KEYS.pendingPhone);
-
-                console.log("✅ Redirecting to details page for registration...");
-
-                toast({
-                    title: "Phone verified!",
-                    description: "Please complete your profile to continue",
-                });
-
-                // Immediate redirect without delay
-                router.replace('/auth/details');
+            // Extract token from response data
+            const token = response.data?.accessToken || response.data?.token;
+            if (!token) {
+                throw new Error('No access token received from server');
             }
+
+            // Store token in localStorage
+            localStorage.setItem(STORAGE_KEYS.accessToken, token);
+            console.log("✅ Stored accessToken");
+
+            // Store user data if provided
+            if (response.data?.user) {
+                localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.data.user));
+                console.log("✅ Stored user data:", response.data.user);
+            }
+
+            // Store refresh token if provided
+            if (response.data?.refreshToken) {
+                localStorage.setItem(STORAGE_KEYS.refreshToken, response.data.refreshToken);
+                console.log("✅ Stored refreshToken");
+            }
+
+            // Clear temporary data
+            localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+            localStorage.removeItem('pendingEmail');
+            console.log("🧹 Cleared temporary data");
+
+            // Show success message
+            toast({
+                title: "Success!",
+                description: "You have been logged in successfully",
+            });
+
+            // Redirect to home page
+            console.log("🔄 Redirecting to home page...");
+            router.replace('/home');
 
         } catch (error: any) {
-            console.error("❌ OTP verification process failed:", error);
-
-            // Handle Firebase or other errors
+            console.error("❌ OTP verification failed:", error);
             setError(error.message || 'Invalid OTP. Please try again.');
 
             toast({
@@ -281,18 +151,18 @@ export default function OTPVerificationScreen() {
             setIsLoading(false);
         }
     }; const handleResendOTP = async () => {
-        if (!phoneNumber || !canResend) return;
+        if (!email || !phoneNumber || !canResend) return;
 
         setIsLoading(true);
         setError(null);
 
         try {
-            console.log("Resending OTP to:", phoneNumber);
+            console.log("Resending OTP to:", email, phoneNumber);
 
-            // Resend OTP using Firebase
-            const success = await firebasePhoneAuth.sendOTP(phoneNumber);
+            // Resend OTP using backend with email and phone
+            const sendResult = await MobileAuthService.sendOtp(email, phoneNumber);
 
-            if (success) {
+            if (sendResult && (sendResult.success || sendResult.data)) {
                 // Show success toast
                 toast({
                     title: "OTP sent",

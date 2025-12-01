@@ -75,6 +75,17 @@ const HomePage = () => {
     const [startX, setStartX] = useState(0);
     const [dragThreshold] = useState(50);
 
+    const router = useRouter();
+
+    // Token guard: Check if user is authenticated
+    useEffect(() => {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            // No token found, redirect to mobile login
+            router.replace('/auth/mobile');
+        }
+    }, [router]);
+
     // API data state
     const [venues, setVenues] = useState<ClubListItem[]>([]);
     const [allClubs, setAllClubs] = useState<ClubListItem[]>([]);

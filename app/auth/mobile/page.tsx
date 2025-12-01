@@ -6,7 +6,7 @@ import { AuthLink } from "@/components/auth/auth-link";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
-import { firebasePhoneAuth } from "@/lib/firebase/phone-auth";
+import { MobileAuthService } from '@/lib/services/mobile-auth.service';
 import { useToast } from "@/hooks/use-toast";
 import { STORAGE_KEYS } from "@/lib/constants/storage";
 
@@ -19,6 +19,7 @@ export default function MobileVerificationScreen() {
         console.log("Initial phone state:", initialPhone, "Length:", initialPhone.length);
         return initialPhone;
     });
+    const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -40,19 +41,7 @@ export default function MobileVerificationScreen() {
         router.push('/home');
     };
 
-    // Setup reCAPTCHA on component mount
-    useEffect(() => {
-        try {
-            firebasePhoneAuth.setupRecaptcha('recaptcha-container', 'normal');
-        } catch (error) {
-            console.error("Error setting up reCAPTCHA:", error);
-        }
-
-        // Cleanup on unmount
-        return () => {
-            firebasePhoneAuth.cleanup();
-        };
-    }, []);
+    // No client-side reCAPTCHA when using backend OTP endpoints
 
     const handleNumberPress = (num: string) => {
         console.log("Number pressed:", num, "Current phone:", phoneNumber, "Has X?", phoneNumber.includes('X'));
@@ -82,12 +71,26 @@ export default function MobileVerificationScreen() {
     const handleSubmit = async () => {
         console.log("=== Mobile Login: handleSubmit called ===");
         console.log("Current phone number:", phoneNumber);
+        console.log("Current email:", email);
 
         setIsLoading(true);
         setError(null);
 
         try {
-            // Clean phone number and format for Firebase
+            // Validate email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email.trim()) {
+                setError('Please enter email address');
+                setIsLoading(false);
+                return;
+            }
+            if (!emailRegex.test(email.trim())) {
+                setError('Please enter a valid email address');
+                setIsLoading(false);
+                return;
+            }
+
+            // Clean phone number and format
             const cleanPhone = phoneNumber.replace(/[^0-9]/g, '');
 
             if (cleanPhone.length !== 12) { // Should be 12 digits (91 + 10 digits)
@@ -96,29 +99,34 @@ export default function MobileVerificationScreen() {
                 return;
             }
 
-            // Convert to international format for Firebase
+            // Convert to international format
             const formattedPhone = `+${cleanPhone}`;
-            console.log("Formatted phone for Firebase:", formattedPhone);
+            console.log("Formatted phone:", formattedPhone);
 
+            // Send OTP using backend endpoint with both email and mobile
+            const sendResult = await MobileAuthService.sendOtp(email.trim(), formattedPhone);
 
-
-            // Send OTP using Firebase
-            const success = await firebasePhoneAuth.sendOTP(formattedPhone);
-
-            if (success) {
-                // Store phone number for OTP verification
+            if (sendResult && (sendResult.success || sendResult.data)) {
+                // Store email and phone number for OTP verification
                 localStorage.setItem(STORAGE_KEYS.pendingPhone, formattedPhone);
+                localStorage.setItem('pendingEmail', email.trim());
 
-                // Show success toast
+                // If server returned session or id, persist it for later validate call
+                try {
+                    if (sendResult.data?.sessionId) {
+                        localStorage.setItem('otpSessionId', sendResult.data.sessionId);
+                    }
+                } catch { }
+
                 toast({
                     title: "OTP sent successfully",
-                    description: "Please check your mobile for the verification code",
+                    description: `OTP sent to ${email.trim()}`,
                 });
 
                 // Navigate to OTP verification page
-                setTimeout(() => {
-                    router.push('/auth/otp');
-                }, 800);
+                setTimeout(() => router.push('/auth/otp'), 600);
+            } else {
+                throw new Error(sendResult?.message || 'Failed to send OTP');
             }
         } catch (error: any) {
             console.error("Error sending OTP:", error);
@@ -134,7 +142,7 @@ export default function MobileVerificationScreen() {
         }
     };
 
-    const canSubmit = !phoneNumber.includes('X') && !isLoading;
+    const canSubmit = !phoneNumber.includes('X') && email.trim().length > 0 && !isLoading;
 
     return (
         <div className="min-h-screen bg-[#031313] relative">
@@ -174,11 +182,28 @@ export default function MobileVerificationScreen() {
                     <div className="bg-white rounded-t-3xl w-full px-[1.5rem] pt-[2rem] pb-[2rem] overflow-y-auto flex flex-col">
                         {/* Header */}
                         <div className="mb-[1.5rem]">
-                            <h1 className="text-[1.5rem] font-semibold text-[#2C1945] mb-[1.25rem] text-center">Enter your Mobile Number</h1>
+                            <h1 className="text-[1.5rem] font-semibold text-[#2C1945] mb-[1.25rem] text-center">Enter Your Details</h1>
+                        </div>
+
+                        {/* Email input field */}
+                        <div className="mb-[1.5rem]">
+                            <label className="block text-[#2C1945] text-[0.9375rem] font-medium mb-[0.5rem]">
+                                Email Address
+                            </label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Enter your email"
+                                className="w-full px-[1rem] py-[0.875rem] border-2 border-[#0C898B] rounded-[3.25rem] bg-[#EFEFEF] text-[#2C1945] placeholder:text-[#999999] focus:outline-none focus:border-[#0A5A5D]"
+                            />
                         </div>
 
                         {/* Phone number display */}
                         <div className="mb-[0.75rem] text-center">
+                            <label className="block text-[#2C1945] text-[0.9375rem] font-medium mb-[0.5rem]">
+                                Mobile Number
+                            </label>
                             <div className="w-full max-w-[23.75rem] h-[4.75rem] mx-auto bg-[#EFEFEF] rounded-[3.25rem] border border-[#0C898B] flex items-center justify-center p-2">
                                 <div className="text-[1.125rem] font-mono font-medium text-[#666666] text-center whitespace-nowrap">
                                     {phoneNumber}
