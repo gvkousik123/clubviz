@@ -92,20 +92,25 @@ export default function OTPVerificationScreen() {
             const response = await MobileAuthService.validateOtp(email, otpValue);
             console.log('✅ /validate response:', response);
 
-            // Check if validation was successful
-            if (!response.success) {
-                throw new Error(response.message || 'OTP validation failed');
+            // Check if validation was successful - check for returnCode 100 or success flag
+            const returnCode = response.returnCode || response.code;
+            const isSuccess = response.success || returnCode === 100;
+
+            if (!isSuccess) {
+                throw new Error(response.returnMessage || response.message || 'OTP validation failed');
             }
 
             // Extract token from response data
-            const token = response.data?.accessToken || response.data?.token;
+            const token = response.data?.accessToken || response.data?.token || response.accessToken;
             if (!token) {
-                throw new Error('No access token received from server');
+                console.warn('⚠️ No token in response, but validation succeeded');
             }
 
-            // Store token in localStorage
-            localStorage.setItem(STORAGE_KEYS.accessToken, token);
-            console.log("✅ Stored accessToken");
+            // Store token in localStorage if available
+            if (token) {
+                localStorage.setItem(STORAGE_KEYS.accessToken, token);
+                console.log("✅ Stored accessToken");
+            }
 
             // Store user data if provided
             if (response.data?.user) {

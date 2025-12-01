@@ -217,7 +217,6 @@ export class MobileAuthService {
         console.log('✅ OTP operation successful');
         return { ...result, success: true };
       }
-
       return result;
     } catch (error) {
       console.error('❌ Send OTP error:', error);
