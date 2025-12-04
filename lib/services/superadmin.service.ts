@@ -1,5 +1,6 @@
 import { api, handleApiResponse, handleApiError } from '../api-client';
 import { ApiResponse } from '../api-types';
+import { UsersService } from './users.service';
 
 // ============================================================================
 // SUPER ADMIN SERVICE TYPES
@@ -384,65 +385,64 @@ export class SuperAdminService {
   }
 
   // ============================================================================
-  // NEW ROLE MANAGEMENT ENDPOINTS (from API screenshots)
+  // NEW ROLE MANAGEMENT ENDPOINTS (Using Users Service - https://clubwiz.in/users/)
   // ============================================================================
 
   /**
-   * Add role to user (Alternative endpoint)
-   * POST /admin/users/{username}/roles/{role}
+   * Add role to user (Using Users Service)
+   * POST /auth/roles/{username}/add/{role}
    */
   static async addRole(username: string, role: 'USER' | 'ADMIN' | 'SUPERADMIN'): Promise<{ message: string }> {
     try {
-      const response = await api.post<ApiResponse<{ message: string }> | { message: string }>(
-        `/admin/users/${username}/roles/${role}`,
-        { username, role }
-      );
-      const result = handleApiResponse(response);
-      // Handle both wrapped and unwrapped responses
-      const data = (result as any).data || result;
-      return data as { message: string };
+      const result = await UsersService.addRoleToUser(username, role);
+      if (result.success) {
+        return { message: result.message || `Role ${role} added to user ${username}` };
+      }
+      throw new Error(result.error || 'Failed to add role');
     } catch (error) {
-      const errorMessage = handleApiError(error);
+      const errorMessage = error instanceof Error ? error.message : handleApiError(error);
       throw new Error(errorMessage);
     }
   }
 
   /**
-   * Remove role from user (Alternative endpoint)
+   * Remove role from user (Using Users Service)
    * POST /auth/roles/{username}/remove/{role}
    */
   static async removeRole(username: string, role: 'USER' | 'ADMIN' | 'SUPERADMIN'): Promise<{ message: string }> {
     try {
-      const response = await api.post<ApiResponse<{ message: string }> | { message: string }>(
-        `/auth/roles/${username}/remove/${role}`,
-        { username, role }
-      );
-      const result = handleApiResponse(response);
-      // Handle both wrapped and unwrapped responses
-      const data = (result as any).data || result;
-      return data as { message: string };
+      const result = await UsersService.removeRoleFromUser(username, role);
+      if (result.success) {
+        return { message: result.message || `Role ${role} removed from user ${username}` };
+      }
+      throw new Error(result.error || 'Failed to remove role');
     } catch (error) {
-      const errorMessage = handleApiError(error);
+      const errorMessage = error instanceof Error ? error.message : handleApiError(error);
       throw new Error(errorMessage);
     }
   }
 
   /**
-   * Add role to user (Alternative endpoint)
+   * Add role to user (Alternative - Using Users Service)
    * POST /auth/roles/{username}/add/{role}
    */
   static async addRoleToUserAlt(username: string, role: 'USER' | 'ADMIN' | 'SUPERADMIN'): Promise<{ message: string }> {
+    return this.addRole(username, role);
+  }
+
+  /**
+   * Get user roles (Using Users Service)
+   * GET /auth/users/{username}/roles
+   */
+  static async getUserRolesFromUsersService(username: string): Promise<string[]> {
     try {
-      const response = await api.post<ApiResponse<{ message: string }> | { message: string }>(
-        `/auth/roles/${username}/add/${role}`,
-        { username, role }
-      );
-      const result = handleApiResponse(response);
-      // Handle both wrapped and unwrapped responses
-      const data = (result as any).data || result;
-      return data as { message: string };
+      const result = await UsersService.getUserRoles(username);
+      if (result.success && result.data) {
+        return result.data;
+      }
+      throw new Error(result.error || 'Failed to get user roles');
     } catch (error) {
-      const errorMessage = handleApiError(error);
+      const errorMessage = error instanceof Error ? error.message : handleApiError(error);
       throw new Error(errorMessage);
     }
   }

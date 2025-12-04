@@ -67,6 +67,10 @@ export default function IntroScreen() {
         router.push("/auth/signup");
     };
 
+    const handleLogin = () => {
+        router.push("/auth/login");
+    };
+
     return (
         <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#031313] text-white">
             <div className="pointer-events-none absolute inset-0">

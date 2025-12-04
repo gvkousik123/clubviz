@@ -11,7 +11,7 @@ import { ApiResponse, User } from '../api-types';
  * These endpoints require ADMIN or SUPERADMIN role
  */
 export class AdminService {
-  
+
   // ============================================================================
   // USER MANAGEMENT
   // ============================================================================

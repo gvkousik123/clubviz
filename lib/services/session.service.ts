@@ -1,9 +1,10 @@
 import { api, handleApiResponse, handleApiError } from '../api-client';
-import { 
-  ApiResponse, 
-  SessionInfo, 
-  CORSOriginsResponse 
+import {
+  ApiResponse,
+  SessionInfo,
+  CORSOriginsResponse
 } from '../api-types';
+import { UsersService } from './users.service';
 
 // ============================================================================
 // SESSION SERVICE TYPES
@@ -21,6 +22,7 @@ export interface SessionDeleteResponse {
 /**
  * Session Management Service
  * Handles session management, CORS settings, and related operations
+ * NOTE: Session APIs now use the Users Service (https://clubwiz.in/users/)
  */
 export class SessionService {
 
@@ -42,55 +44,54 @@ export class SessionService {
   }
 
   // ============================================================================
-  // SESSION MANAGEMENT
+  // SESSION MANAGEMENT (Using Users Service)
   // ============================================================================
 
   /**
    * Get all active sessions for authenticated user
-   * GET /auth/sessions
+   * GET /auth/sessions (Users Service)
    */
   static async getUserSessions(): Promise<SessionInfo[]> {
     try {
-      const response = await api.get<ApiResponse<SessionInfo[]>>('/auth/sessions');
-      const result = handleApiResponse(response);
-      return result.data;
+      const result = await UsersService.getActiveSessions();
+      if (result.success && result.data) {
+        return result.data as unknown as SessionInfo[];
+      }
+      throw new Error(result.error || 'Failed to fetch sessions');
     } catch (error) {
-      throw new Error(handleApiError(error));
+      throw new Error(error instanceof Error ? error.message : 'Failed to fetch sessions');
     }
   }
 
   /**
    * Delete specific session by ID
-   * DELETE /auth/sessions/{id}
+   * DELETE /auth/sessions/{id} (Users Service)
    */
   static async deleteSession(sessionId: string): Promise<SessionDeleteResponse> {
     try {
-      const response = await api.delete<ApiResponse<SessionDeleteResponse>>(`/auth/sessions/${sessionId}`);
-      const result = handleApiResponse(response);
-      return result.data;
+      const result = await UsersService.revokeSession(sessionId);
+      return {
+        success: result.success,
+        message: result.message || 'Session deleted successfully'
+      };
     } catch (error) {
-      throw new Error(handleApiError(error));
+      throw new Error(error instanceof Error ? error.message : 'Failed to delete session');
     }
   }
 
   /**
    * Revoke all sessions for authenticated user (logout from all devices)
-   * DELETE /auth/sessions
+   * DELETE /auth/sessions (Users Service)
    */
   static async revokeAllSessions(): Promise<SessionDeleteResponse> {
     try {
-      const response = await api.delete<ApiResponse<SessionDeleteResponse>>('/auth/sessions');
-      const result = handleApiResponse(response);
-      
-      // Clear local storage when all sessions are revoked
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('user');
-      }
-      
-      return result.data;
+      const result = await UsersService.logoutFromAllDevices();
+      return {
+        success: result.success,
+        message: result.message || 'All sessions revoked successfully'
+      };
     } catch (error) {
-      throw new Error(handleApiError(error));
+      throw new Error(error instanceof Error ? error.message : 'Failed to revoke sessions');
     }
   }
 
@@ -103,13 +104,13 @@ export class SessionService {
    */
   static getCurrentSession(): SessionInfo | null {
     if (typeof window === 'undefined') return null;
-    
+
     try {
       const userData = localStorage.getItem('user');
       if (!userData) return null;
-      
+
       const user = JSON.parse(userData);
-      
+
       // Create session info from stored user data
       return {
         sessionId: 'current',
@@ -134,7 +135,7 @@ export class SessionService {
   static hasRole(role: string): boolean {
     const session = this.getCurrentSession();
     if (!session) return false;
-    
+
     return session.roles.includes(role.toUpperCase());
   }
 
@@ -143,10 +144,10 @@ export class SessionService {
    */
   static isAuthenticated(): boolean {
     if (typeof window === 'undefined') return false;
-    
+
     const token = localStorage.getItem('accessToken');
     const user = localStorage.getItem('user');
-    
+
     return !!(token && user);
   }
 
@@ -182,11 +183,11 @@ export class SessionService {
    */
   static getSessionStatusColor(session: SessionInfo): string {
     if (!session.isActive) return 'text-red-500';
-    
+
     const lastActivity = new Date(session.lastActivity);
     const now = new Date();
     const hoursSinceActivity = (now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60);
-    
+
     if (hoursSinceActivity < 1) return 'text-green-500';
     if (hoursSinceActivity < 24) return 'text-yellow-500';
     return 'text-orange-500';
@@ -197,15 +198,15 @@ export class SessionService {
    */
   static getBrowserInfo(userAgent: string): { browser: string; os: string } {
     const browser = userAgent.includes('Chrome') ? 'Chrome' :
-                   userAgent.includes('Firefox') ? 'Firefox' :
-                   userAgent.includes('Safari') ? 'Safari' :
-                   userAgent.includes('Edge') ? 'Edge' : 'Unknown';
+      userAgent.includes('Firefox') ? 'Firefox' :
+        userAgent.includes('Safari') ? 'Safari' :
+          userAgent.includes('Edge') ? 'Edge' : 'Unknown';
 
     const os = userAgent.includes('Windows') ? 'Windows' :
-               userAgent.includes('Mac') ? 'macOS' :
-               userAgent.includes('Linux') ? 'Linux' :
-               userAgent.includes('Android') ? 'Android' :
-               userAgent.includes('iOS') ? 'iOS' : 'Unknown';
+      userAgent.includes('Mac') ? 'macOS' :
+        userAgent.includes('Linux') ? 'Linux' :
+          userAgent.includes('Android') ? 'Android' :
+            userAgent.includes('iOS') ? 'iOS' : 'Unknown';
 
     return { browser, os };
   }

@@ -280,6 +280,19 @@ export default function MobileVerificationScreen() {
                             Current number: {phoneNumber}
                         </div>
 
+                        {/* Login with Password Option */}
+                        <div className="text-center py-2">
+                            <p className="text-[#6A6A6A] text-[0.875rem] mb-2">
+                                Already have an account?
+                            </p>
+                            <Link
+                                href="/auth/login"
+                                className="text-[#0D7377] font-semibold text-[0.9375rem] hover:underline"
+                            >
+                                Login with Password
+                            </Link>
+                        </div>
+
                         {/* Forgot Password Link */}
                         <div className="text-center py-2">
                             <AuthLink

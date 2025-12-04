@@ -13,6 +13,7 @@ export { PasswordService } from './password.service';
 export { LookupService } from './lookup.service';
 export { MobileAuthService } from './mobile-auth.service';
 export { SessionService } from './session.service';
+export { UsersService } from './users.service'; // Users API service (https://clubwiz.in/users/)
 
 // Export API client and utilities
 export { api, handleApiResponse, handleApiError } from '../api-client';

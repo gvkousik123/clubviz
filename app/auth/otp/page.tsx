@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { MobileAuthService } from '@/lib/services/mobile-auth.service';
+import { JWTService } from '@/lib/services/jwt.service';
 import { useToast } from "@/hooks/use-toast";
 import { STORAGE_KEYS } from "@/lib/constants/storage";
 
@@ -100,44 +101,64 @@ export default function OTPVerificationScreen() {
                 throw new Error(response.returnMessage || response.message || 'OTP validation failed');
             }
 
-            // Extract token from response data
-            const token = response.data?.accessToken || response.data?.token || response.accessToken;
-            if (!token) {
-                console.warn('⚠️ No token in response, but validation succeeded');
+            // Store OTP validation data for signup
+            localStorage.setItem('otpValidated', 'true');
+            localStorage.setItem('validatedEmail', email);
+            localStorage.setItem('validatedPhone', phoneNumber);
+
+            // If JWT token is returned (existing user), store it and go to home
+            if (response.jwtToken || response.data?.jwtToken) {
+                // Use JWTService to handle the response and store token
+                const tokenStored = JWTService.handleOTPValidationResponse({
+                    returnCode: response.returnCode,
+                    returnMessage: response.returnMessage,
+                    transactionId: response.transactionId,
+                    jwtToken: response.jwtToken || response.data?.jwtToken,
+                    email: email || undefined,
+                });
+
+                if (tokenStored) {
+                    // Also store user data if provided
+                    if (response.data?.user) {
+                        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.data.user));
+                        console.log("✅ Stored user data:", response.data.user);
+                    }
+
+                    // Store refresh token if provided
+                    if (response.data?.refreshToken) {
+                        localStorage.setItem(STORAGE_KEYS.refreshToken, response.data.refreshToken);
+                        console.log("✅ Stored refreshToken");
+                    }
+
+                    // Clear temporary data
+                    localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+                    localStorage.removeItem('pendingEmail');
+                    localStorage.removeItem('otpValidated');
+                    localStorage.removeItem('validatedEmail');
+                    localStorage.removeItem('validatedPhone');
+                    console.log("🧹 Cleared temporary data");
+
+                    // Show success message
+                    toast({
+                        title: "Welcome back!",
+                        description: "You have been logged in successfully",
+                    });
+
+                    // Redirect to home page (existing user)
+                    console.log("🔄 Existing user - Redirecting to home page...");
+                    router.replace('/home');
+                    return;
+                }
             }
 
-            // Store token in localStorage if available
-            if (token) {
-                localStorage.setItem(STORAGE_KEYS.accessToken, token);
-                console.log("✅ Stored accessToken");
-            }
-
-            // Store user data if provided
-            if (response.data?.user) {
-                localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.data.user));
-                console.log("✅ Stored user data:", response.data.user);
-            }
-
-            // Store refresh token if provided
-            if (response.data?.refreshToken) {
-                localStorage.setItem(STORAGE_KEYS.refreshToken, response.data.refreshToken);
-                console.log("✅ Stored refreshToken");
-            }
-
-            // Clear temporary data
-            localStorage.removeItem(STORAGE_KEYS.pendingPhone);
-            localStorage.removeItem('pendingEmail');
-            console.log("🧹 Cleared temporary data");
-
-            // Show success message
+            // New user - redirect to signup page to complete registration
             toast({
-                title: "Success!",
-                description: "You have been logged in successfully",
+                title: "OTP Verified!",
+                description: "Please complete your registration",
             });
 
-            // Redirect to home page
-            console.log("🔄 Redirecting to home page...");
-            router.replace('/home');
+            console.log("🔄 New user - Redirecting to signup page...");
+            router.replace('/auth/signup');
 
         } catch (error: any) {
             console.error("❌ OTP verification failed:", error);
