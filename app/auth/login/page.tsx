@@ -58,14 +58,18 @@ export default function LoginPage() {
                 });
 
                 // Redirect based on user role
-                const user = result.data?.user;
-                const roles = user?.roles || [];
+                // Check roles from both direct response and nested user object
+                const roles = result.data?.roles || result.data?.user?.roles || [];
+
+                console.log("👤 User roles:", roles);
 
                 let redirectPath = '/home';
                 if (roles.includes('ROLE_SUPERADMIN')) {
                     redirectPath = '/superadmin';
                 } else if (roles.includes('ROLE_ADMIN')) {
                     redirectPath = '/admin';
+                } else if (roles.includes('ROLE_USER')) {
+                    redirectPath = '/home';
                 }
 
                 console.log("🔄 Redirecting to:", redirectPath);
@@ -218,8 +222,8 @@ export default function LoginPage() {
                             onClick={handleSubmit}
                             disabled={!canSubmit}
                             className={`w-full py-[0.875rem] rounded-[3.25rem] font-semibold text-white transition-colors ${canSubmit
-                                    ? 'bg-[#0D7377] hover:bg-[#0A5A5D]'
-                                    : 'bg-gray-400 cursor-not-allowed'
+                                ? 'bg-[#0D7377] hover:bg-[#0A5A5D]'
+                                : 'bg-gray-400 cursor-not-allowed'
                                 }`}
                         >
                             {isLoading ? 'Logging in...' : 'Login'}

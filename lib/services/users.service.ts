@@ -77,7 +77,18 @@ export interface RefreshTokenRequest {
 export interface AuthResponse {
     accessToken: string;
     refreshToken: string;
+    type?: string;
     expiresIn?: number;
+    // User data comes directly in response, not nested
+    id?: string;
+    username?: string;
+    email?: string;
+    fullName?: string;
+    phoneNumber?: string;
+    mobileNumber?: string;
+    roles?: string[];
+    profilePicture?: string;
+    // Some responses may have nested user object
     user?: {
         id: string;
         username?: string;
@@ -133,15 +144,34 @@ const handleUsersApiError = (error: any): string => {
 const storeAuthSession = (data: AuthResponse) => {
     if (typeof window === 'undefined') return;
 
+    // Store access token
     if (data.accessToken) {
         localStorage.setItem(STORAGE_KEYS.accessToken, data.accessToken);
     }
+
+    // Store refresh token
     if (data.refreshToken) {
         localStorage.setItem(STORAGE_KEYS.refreshToken, data.refreshToken);
     }
-    if (data.user) {
-        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(data.user));
-    }
+
+    // Build user object from response
+    // API returns user data directly in response (id, username, email, roles, etc.)
+    // Not nested under a "user" property
+    const userData = {
+        id: data.id || data.user?.id,
+        username: data.username || data.user?.username,
+        email: data.email || data.user?.email,
+        fullName: data.fullName || data.user?.fullName,
+        phoneNumber: data.phoneNumber || data.mobileNumber || data.user?.phoneNumber || data.user?.mobileNumber,
+        roles: data.roles || data.user?.roles || [],
+        profilePicture: data.profilePicture || data.user?.profilePicture,
+        // Also store tokens in user object for easy access
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+    };
+
+    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(userData));
+    console.log('✅ Auth session stored:', { hasToken: !!data.accessToken, user: userData });
 };
 
 const clearAuthSession = () => {
@@ -205,6 +235,7 @@ export class UsersService {
     // 2. USER LOGIN
     // POST /auth/signin - Authenticate user and return JWT tokens
     // Request body: { usernameOrEmail, password }
+    // Response: { accessToken, refreshToken, type, id, username, email, roles }
     // ==========================================================================
     static async signIn(data: SignInRequest): Promise<ApiResult<AuthResponse>> {
         try {
@@ -222,9 +253,23 @@ export class UsersService {
                 storeAuthSession(result);
             }
 
+            // Build user object for the response (API returns user data directly, not nested)
+            const userFromResponse = result.id ? {
+                id: result.id,
+                username: result.username,
+                email: result.email || '',
+                fullName: result.fullName || '',
+                phoneNumber: result.phoneNumber || result.mobileNumber,
+                roles: result.roles || [],
+                profilePicture: result.profilePicture,
+            } : undefined;
+
             return {
                 success: true,
-                data: result,
+                data: {
+                    ...result,
+                    user: userFromResponse,
+                },
                 message: 'Login successful!',
             };
         } catch (error: any) {
