@@ -206,17 +206,6 @@ export class AuthService {
     }
   }
 
-      return {
-  success: true,
-  data,
-  message: 'Sessions fetched successfully'
-};
-    } catch (error: any) {
-  const errorMessage = handleApiError(error);
-  throw new Error(errorMessage);
-}
-  }
-
   // --------------------------------------------------------------------------
   // 7. REVOKE ALL SESSIONS (Logout from all devices) - MOVED TO BOTTOM
   // 8. REVOKE SESSION BY ID - MOVED TO BOTTOM
@@ -229,94 +218,94 @@ export class AuthService {
   /**
    * @deprecated Use signIn instead
    */
-  static async login(data: LoginRequest): Promise < ApiResponse < AuthResponse >> {
-  try {
-    const usernameOrEmail = data.usernameOrEmail || data.email || data.phone || '';
-    const password = data.password || '';
+  static async login(data: LoginRequest): Promise<ApiResponse<AuthResponse>> {
+    try {
+      const usernameOrEmail = data.usernameOrEmail || data.email || data.phone || '';
+      const password = data.password || '';
 
-    const result = await this.signIn(usernameOrEmail, password);
+      const result = await this.signIn(usernameOrEmail, password);
 
-    return {
-      success: result.success,
-      message: result.message,
-      data: {
-        token: result.data?.accessToken || '',
-        refreshToken: result.data?.refreshToken || '',
-        expiresIn: result.data?.expiresIn,
-        user: result.data?.user,
-        raw: result.data
-      }
-    } as ApiResponse<AuthResponse>;
-  } catch(error) {
-    throw new Error(handleApiError(error));
+      return {
+        success: result.success,
+        message: result.message,
+        data: {
+          token: result.data?.accessToken || '',
+          refreshToken: result.data?.refreshToken || '',
+          expiresIn: result.data?.expiresIn,
+          user: result.data?.user,
+          raw: result.data
+        }
+      } as ApiResponse<AuthResponse>;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   }
-}
 
   /**
    * @deprecated Use signUp instead
    */
-  static async register(data: RegisterRequest): Promise < ApiResponse < any >> {
-  try {
-    const result = await this.signUp(
-      data.fullName,
-      data.email,
-      data.password,
-      data.phoneNumber
-    );
-
-    return {
-      success: result.success,
-      message: result.message,
-      data: result.data
-    } as ApiResponse<any>;
-  } catch(error) {
-    throw new Error(handleApiError(error));
-  }
-}
-
-  // OTP methods - keeping as is since they're not in the API documentation
-  static async sendOTP(data: OTPRequest): Promise < ApiResponse < { otpSent: boolean; message: string } >> {
-  try {
-    const response = await api.post<ApiResponse<{ otpSent: boolean; message: string }>>(
-      '/auth/send-otp',
-      data
-    );
-    return handleApiResponse(response);
-  } catch(error) {
-    throw new Error(handleApiError(error));
-  }
-}
-
-  static async verifyOTP(data: OTPVerifyRequest): Promise < ApiResponse < { verified: boolean; token?: string } >> {
-  try {
-    const response = await api.post<ApiResponse<{ verified: boolean; token?: string }>>(
-      '/auth/verify-otp',
-      data
-    );
-    return handleApiResponse(response);
-  } catch(error) {
-    throw new Error(handleApiError(error));
-  }
-}
-
-  static async loginWithOTP(data: LoginRequest): Promise < ApiResponse < AuthResponse >> {
-  try {
-    const response = await api.post<ApiResponse<AuthResponse>>('/auth/login-otp', data);
-    const result = handleApiResponse(response);
-
-    if(result) {
-      storeAuthSession(result);
-    }
+  static async register(data: RegisterRequest): Promise<ApiResponse<any>> {
+    try {
+      const result = await this.signUp(
+        data.fullName,
+        data.email,
+        data.password,
+        data.phoneNumber
+      );
 
       return {
-      success: true,
-      message: 'OTP login successful',
-      data: result as any
-    } as ApiResponse<AuthResponse>;
-  } catch(error) {
-    throw new Error(handleApiError(error));
+        success: result.success,
+        message: result.message,
+        data: result.data
+      } as ApiResponse<any>;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   }
-}
+
+  // OTP methods - keeping as is since they're not in the API documentation
+  static async sendOTP(data: OTPRequest): Promise<ApiResponse<{ otpSent: boolean; message: string }>> {
+    try {
+      const response = await api.post<ApiResponse<{ otpSent: boolean; message: string }>>(
+        '/auth/send-otp',
+        data
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  static async verifyOTP(data: OTPVerifyRequest): Promise<ApiResponse<{ verified: boolean; token?: string }>> {
+    try {
+      const response = await api.post<ApiResponse<{ verified: boolean; token?: string }>>(
+        '/auth/verify-otp',
+        data
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  static async loginWithOTP(data: LoginRequest): Promise<ApiResponse<AuthResponse>> {
+    try {
+      const response = await api.post<ApiResponse<AuthResponse>>('/auth/login-otp', data);
+      const result = handleApiResponse(response);
+
+      if (result) {
+        storeAuthSession(result);
+      }
+
+      return {
+        success: true,
+        message: 'OTP login successful',
+        data: result as any
+      } as ApiResponse<AuthResponse>;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
 
   // --------------------------------------------------------------------------
   // UTILITY METHODS
@@ -326,265 +315,265 @@ export class AuthService {
    * Check if user is authenticated
    */
   static isAuthenticated(): boolean {
-  if (typeof window === 'undefined') return false;
+    if (typeof window === 'undefined') return false;
 
-  // First check direct token storage
-  let token = localStorage.getItem(STORAGE_KEYS.accessToken);
+    // First check direct token storage
+    let token = localStorage.getItem(STORAGE_KEYS.accessToken);
 
-  // If no direct token, check user data object
-  if (!token) {
-    try {
-      const userStr = localStorage.getItem(STORAGE_KEYS.user);
-      if (userStr) {
-        const userData = JSON.parse(userStr);
-        token = userData.accessToken;
+    // If no direct token, check user data object
+    if (!token) {
+      try {
+        const userStr = localStorage.getItem(STORAGE_KEYS.user);
+        if (userStr) {
+          const userData = JSON.parse(userStr);
+          token = userData.accessToken;
+        }
+      } catch (error) {
+        console.error('Error parsing user data for auth check:', error);
       }
-    } catch (error) {
-      console.error('Error parsing user data for auth check:', error);
     }
-  }
 
-  console.log('🔍 AuthService.isAuthenticated check:', !!token);
-  return !!token;
-}
+    console.log('🔍 AuthService.isAuthenticated check:', !!token);
+    return !!token;
+  }
 
   /**
    * Get stored auth token
    */
   static getStoredToken(): string | null {
-  if (typeof window === 'undefined') return null;
+    if (typeof window === 'undefined') return null;
 
-  return localStorage.getItem(STORAGE_KEYS.accessToken);
-}
+    return localStorage.getItem(STORAGE_KEYS.accessToken);
+  }
 
   /**
    * Get current user profile
    */
-  static async getCurrentUser(): Promise < ApiResponse < User >> {
-  try {
-    const response = await api.get<ApiResponse<User>>('/auth/me');
-    const result = handleApiResponse(response);
+  static async getCurrentUser(): Promise<ApiResponse<User>> {
+    try {
+      const response = await api.get<ApiResponse<User>>('/auth/me');
+      const result = handleApiResponse(response);
 
-    // Update user in localStorage
-    if(result.success) {
-  storeAuthSession({ user: result.data });
-}
+      // Update user in localStorage
+      if (result.success) {
+        storeAuthSession({ user: result.data });
+      }
 
-return result;
+      return result;
     } catch (error) {
-  throw new Error(handleApiError(error));
-}
+      throw new Error(handleApiError(error));
+    }
   }
 
   /**
    * Update user password
    */
-  static async updatePassword(data: { currentPassword: string; newPassword: string }): Promise < ApiResponse < { message: string } >> {
-  try {
-    const response = await api.put<ApiResponse<{ message: string }>>(
-      '/auth/update-password',
-      data
-    );
-    return handleApiResponse(response);
-  } catch(error) {
-    throw new Error(handleApiError(error));
+  static async updatePassword(data: { currentPassword: string; newPassword: string }): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await api.put<ApiResponse<{ message: string }>>(
+        '/auth/update-password',
+        data
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   }
-}
 
   // ============================================================================
   // FIREBASE MOBILE AUTH ENDPOINTS
   // ============================================================================
 
-  static async verifyFirebaseToken(idToken: string): Promise < ApiResponse < any >> {
-  try {
-    const response = await api.post<ApiResponse<any>>(
-      '/auth/mobile/verify-firebase-token',
-      { idToken }
-    );
-    return handleApiResponse(response);
-  } catch(error) {
-    throw new Error(handleApiError(error));
+  static async verifyFirebaseToken(idToken: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.post<ApiResponse<any>>(
+        '/auth/mobile/verify-firebase-token',
+        { idToken }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   }
-}
 
-  static async sendMobileOTP(mobileNumber: string): Promise < ApiResponse < any >> {
-  try {
-    const response = await api.post<ApiResponse<any>>(
-      '/auth/mobile/send-otp',
-      { mobileNumber }
-    );
-    return handleApiResponse(response);
-  } catch(error) {
-    throw new Error(handleApiError(error));
+  static async sendMobileOTP(mobileNumber: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.post<ApiResponse<any>>(
+        '/auth/mobile/send-otp',
+        { mobileNumber }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   }
-}
 
   // ============================================================================
   // PASSWORD RESET ENDPOINTS
   // ============================================================================
 
-  static async initiatePasswordResetMobile(mobileNumber: string): Promise < ApiResponse < any >> {
-  try {
-    const response = await api.post<ApiResponse<any>>(
-      '/auth/password-reset/initiate/mobile',
-      { mobileNumber }
-    );
-    return handleApiResponse(response);
-  } catch(error) {
-    throw new Error(handleApiError(error));
+  static async initiatePasswordResetMobile(mobileNumber: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.post<ApiResponse<any>>(
+        '/auth/password-reset/initiate/mobile',
+        { mobileNumber }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   }
-}
 
-  static async initiatePasswordResetEmail(email: string): Promise < ApiResponse < any >> {
-  try {
-    const response = await api.post<ApiResponse<any>>(
-      '/auth/password-reset/initiate/email',
-      { email }
-    );
-    return handleApiResponse(response);
-  } catch(error) {
-    throw new Error(handleApiError(error));
+  static async initiatePasswordResetEmail(email: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.post<ApiResponse<any>>(
+        '/auth/password-reset/initiate/email',
+        { email }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   }
-}
 
-  static async verifyPasswordResetToken(token: string): Promise < ApiResponse < any >> {
-  try {
-    const response = await api.post<ApiResponse<any>>(
-      '/auth/password-reset/verify/token',
-      { token }
-    );
-    return handleApiResponse(response);
-  } catch(error) {
-    throw new Error(handleApiError(error));
+  static async verifyPasswordResetToken(token: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.post<ApiResponse<any>>(
+        '/auth/password-reset/verify/token',
+        { token }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   }
-}
 
-  static async verifyPasswordResetOTP(mobileNumber: string, otp: string): Promise < ApiResponse < any >> {
-  try {
-    const response = await api.post<ApiResponse<any>>(
-      '/auth/password-reset/verify/otp',
-      { mobileNumber, otp }
-    );
-    return handleApiResponse(response);
-  } catch(error) {
-    throw new Error(handleApiError(error));
+  static async verifyPasswordResetOTP(mobileNumber: string, otp: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.post<ApiResponse<any>>(
+        '/auth/password-reset/verify/otp',
+        { mobileNumber, otp }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   }
-}
 
-  static async resetPasswordWithToken(token: string, newPassword: string): Promise < ApiResponse < any >> {
-  try {
-    const response = await api.post<ApiResponse<any>>(
-      '/auth/password-reset/reset/token',
-      { token, newPassword }
-    );
-    return handleApiResponse(response);
-  } catch(error) {
-    throw new Error(handleApiError(error));
+  static async resetPasswordWithToken(token: string, newPassword: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.post<ApiResponse<any>>(
+        '/auth/password-reset/reset/token',
+        { token, newPassword }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   }
-}
 
-  static async resetPasswordWithMobile(mobileNumber: string, newPassword: string): Promise < ApiResponse < any >> {
-  try {
-    const response = await api.post<ApiResponse<any>>(
-      '/auth/password-reset/reset/mobile',
-      { mobileNumber, newPassword }
-    );
-    return handleApiResponse(response);
-  } catch(error) {
-    throw new Error(handleApiError(error));
+  static async resetPasswordWithMobile(mobileNumber: string, newPassword: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.post<ApiResponse<any>>(
+        '/auth/password-reset/reset/mobile',
+        { mobileNumber, newPassword }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   }
-}
 
 
   /**
    * Get stored user data
    */
   static getStoredUser(): User | null {
-  if (typeof window === 'undefined') return null;
+    if (typeof window === 'undefined') return null;
 
-  const userStr = localStorage.getItem(STORAGE_KEYS.user);
-  if (userStr) {
-    try {
-      return JSON.parse(userStr);
-    } catch {
-      return null;
+    const userStr = localStorage.getItem(STORAGE_KEYS.user);
+    if (userStr) {
+      try {
+        return JSON.parse(userStr);
+      } catch {
+        return null;
+      }
     }
+    return null;
   }
-  return null;
-}
 
   /**
    * Get user roles from stored auth data
    */
   static getUserRolesFromStorage(): string[] {
-  const user: any = this.getStoredUser();
-  return user?.roles || [];
-}
+    const user: any = this.getStoredUser();
+    return user?.roles || [];
+  }
 
   /**
    * Check if user has specific role
    */
   static hasRole(role: string): boolean {
-  const roles = this.getUserRolesFromStorage();
-  return roles.includes(role);
-}
+    const roles = this.getUserRolesFromStorage();
+    return roles.includes(role);
+  }
 
   /**
    * Get the highest priority route based on user roles
    */
   static getRouteBasedOnRoles(): string {
-  const roles = this.getUserRolesFromStorage();
+    const roles = this.getUserRolesFromStorage();
 
-  // Priority order: SUPERADMIN > ADMIN > USER
-  if (roles.includes('ROLE_SUPERADMIN')) {
-    return '/superadmin';
-  }
+    // Priority order: SUPERADMIN > ADMIN > USER
+    if (roles.includes('ROLE_SUPERADMIN')) {
+      return '/superadmin';
+    }
 
-  if (roles.includes('ROLE_ADMIN')) {
-    return '/admin';
-  }
+    if (roles.includes('ROLE_ADMIN')) {
+      return '/admin';
+    }
 
-  if (roles.includes('ROLE_USER')) {
+    if (roles.includes('ROLE_USER')) {
+      return '/home';
+    }
+
+    // Default fallback
     return '/home';
   }
-
-  // Default fallback
-  return '/home';
-}
 
 
   /**
    * Verify phone number exists
    */
-  static async checkPhoneExists(phone: string): Promise < ApiResponse < { exists: boolean } >> {
-  try {
-    const response = await api.post<ApiResponse<{ exists: boolean }>>(
-      '/auth/check-phone',
-      { phone }
-    );
-    return handleApiResponse(response);
-  } catch(error) {
-    throw new Error(handleApiError(error));
+  static async checkPhoneExists(phone: string): Promise<ApiResponse<{ exists: boolean }>> {
+    try {
+      const response = await api.post<ApiResponse<{ exists: boolean }>>(
+        '/auth/check-phone',
+        { phone }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   }
-}
 
   /**
    * Delete user account
    */
-  static async deleteAccount(password: string): Promise < ApiResponse < { message: string } >> {
-  try {
-    const response = await api.delete<ApiResponse<{ message: string }>>(
-      '/auth/delete-account',
-      { data: { password } }
-    );
+  static async deleteAccount(password: string): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await api.delete<ApiResponse<{ message: string }>>(
+        '/auth/delete-account',
+        { data: { password } }
+      );
 
-    clearAuthSession();
+      clearAuthSession();
 
       return handleApiResponse(response);
-  } catch(error) {
-    throw new Error(handleApiError(error));
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   }
-}
 
   // ============================================================================
   // USER ROLE MANAGEMENT ENDPOINTS (Admin Only)
@@ -601,18 +590,18 @@ return result;
    * @param role - The role to add (e.g., 'ADMIN', 'USER', 'MODERATOR')
    * @returns Success response
    */
-  static async addRoleToUser(username: string, role: string): Promise < ApiResponse < any >> {
-  try {
-    const result = await UsersService.addRoleToUser(username, role);
-    return {
-      success: result.success,
-      message: result.message,
-      data: null
-    } as ApiResponse<any>;
-  } catch(error) {
-    throw new Error(error instanceof Error ? error.message : handleApiError(error));
+  static async addRoleToUser(username: string, role: string): Promise<ApiResponse<any>> {
+    try {
+      const result = await UsersService.addRoleToUser(username, role);
+      return {
+        success: result.success,
+        message: result.message,
+        data: null
+      } as ApiResponse<any>;
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : handleApiError(error));
+    }
   }
-}
 
   /**
    * Remove role from user (Admin only)
@@ -624,18 +613,18 @@ return result;
    * @param role - The role to remove
    * @returns Success response
    */
-  static async removeRoleFromUser(username: string, role: string): Promise < ApiResponse < any >> {
-  try {
-    const result = await UsersService.removeRoleFromUser(username, role);
-    return {
-      success: result.success,
-      message: result.message,
-      data: null
-    } as ApiResponse<any>;
-  } catch(error) {
-    throw new Error(error instanceof Error ? error.message : handleApiError(error));
+  static async removeRoleFromUser(username: string, role: string): Promise<ApiResponse<any>> {
+    try {
+      const result = await UsersService.removeRoleFromUser(username, role);
+      return {
+        success: result.success,
+        message: result.message,
+        data: null
+      } as ApiResponse<any>;
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : handleApiError(error));
+    }
   }
-}
 
   // ============================================================================
   // UTILITY / TEST ENDPOINTS
@@ -647,18 +636,18 @@ return result;
    * 
    * Public test endpoint to verify API is working
    */
-  static async testAuth(): Promise < ApiResponse < { message: string } >> {
-  try {
-    const result = await UsersService.testAuth();
-    return {
-      success: result.success,
-      message: result.message || 'Authenticated',
-      data: result.data as any
-    } as ApiResponse<{ message: string }>;
-  } catch(error) {
-    throw new Error(error instanceof Error ? error.message : handleApiError(error));
+  static async testAuth(): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const result = await UsersService.testAuth();
+      return {
+        success: result.success,
+        message: result.message || 'Authenticated',
+        data: result.data as any
+      } as ApiResponse<{ message: string }>;
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : handleApiError(error));
+    }
   }
-}
 
   // ============================================================================
   // ROLE MANAGEMENT (Using Users Service)
@@ -668,35 +657,35 @@ return result;
    * Add role to user
    * POST /auth/roles/{username}/add/{role} (Users Service)
    */
-  static async addUserRole(username: string, role: string): Promise < ApiResponse < void>> {
-  try {
-    const result = await UsersService.addRoleToUser(username, role);
-    return {
-      success: result.success,
-      message: result.message,
-      data: undefined
-    } as ApiResponse<void>;
-  } catch(error) {
-    throw new Error(error instanceof Error ? error.message : handleApiError(error));
+  static async addUserRole(username: string, role: string): Promise<ApiResponse<void>> {
+    try {
+      const result = await UsersService.addRoleToUser(username, role);
+      return {
+        success: result.success,
+        message: result.message,
+        data: undefined
+      } as ApiResponse<void>;
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : handleApiError(error));
+    }
   }
-}
 
   /**
    * Remove role from user
    * POST /auth/roles/{username}/remove/{role} (Users Service)
    */
-  static async removeUserRole(username: string, role: string): Promise < ApiResponse < void>> {
-  try {
-    const result = await UsersService.removeRoleFromUser(username, role);
-    return {
-      success: result.success,
-      message: result.message,
-      data: undefined
-    } as ApiResponse<void>;
-  } catch(error) {
-    throw new Error(error instanceof Error ? error.message : handleApiError(error));
+  static async removeUserRole(username: string, role: string): Promise<ApiResponse<void>> {
+    try {
+      const result = await UsersService.removeRoleFromUser(username, role);
+      return {
+        success: result.success,
+        message: result.message,
+        data: undefined
+      } as ApiResponse<void>;
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : handleApiError(error));
+    }
   }
-}
 
   // ============================================================================
   // GOOGLE AUTHENTICATION
@@ -706,19 +695,19 @@ return result;
    * Google Sign-In
    * POST /auth/google
    */
-  static async googleSignIn(idToken: string): Promise < any > {
-  try {
-    const response = await api.post('/auth/google', { idToken });
-    const result = handleApiResponse(response);
+  static async googleSignIn(idToken: string): Promise<any> {
+    try {
+      const response = await api.post('/auth/google', { idToken });
+      const result = handleApiResponse(response);
 
-    if(result.success && result.data) {
-  storeAuthSession(result.data);
-}
+      if (result.success && result.data) {
+        storeAuthSession(result.data);
+      }
 
-return result;
+      return result;
     } catch (error) {
-  throw new Error(handleApiError(error));
-}
+      throw new Error(handleApiError(error));
+    }
   }
 
   // ============================================================================
@@ -729,48 +718,48 @@ return result;
    * Revoke all sessions (logout from all devices)
    * DELETE /auth/sessions (Users Service)
    */
-  static async revokeAllSessions(): Promise < ApiResponse < void>> {
-  try {
-    const result = await UsersService.logoutFromAllDevices();
-    return {
-      success: result.success,
-      message: result.message,
-      data: undefined
-    } as ApiResponse<void>;
-  } catch(error) {
-    throw new Error(error instanceof Error ? error.message : handleApiError(error));
+  static async revokeAllSessions(): Promise<ApiResponse<void>> {
+    try {
+      const result = await UsersService.logoutFromAllDevices();
+      return {
+        success: result.success,
+        message: result.message,
+        data: undefined
+      } as ApiResponse<void>;
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : handleApiError(error));
+    }
   }
-}
 
   /**
    * Revoke specific session by ID  
    * DELETE /auth/sessions/{id} (Users Service)
    */
-  static async revokeSessionById(sessionId: string): Promise < ApiResponse < void>> {
-  try {
-    const result = await UsersService.revokeSession(sessionId);
-    return {
-      success: result.success,
-      message: result.message,
-      data: undefined
-    } as ApiResponse<void>;
-  } catch(error) {
-    throw new Error(error instanceof Error ? error.message : handleApiError(error));
+  static async revokeSessionById(sessionId: string): Promise<ApiResponse<void>> {
+    try {
+      const result = await UsersService.revokeSession(sessionId);
+      return {
+        success: result.success,
+        message: result.message,
+        data: undefined
+      } as ApiResponse<void>;
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : handleApiError(error));
+    }
   }
-}
 
   /**
    * Get CORS origins
    * GET /auth/cors-origins
    */
-  static async getCorsOrigins(): Promise < ApiResponse < string[] >> {
-  try {
-    const response = await api.get<ApiResponse<string[]>>('/auth/cors-origins');
-    return handleApiResponse(response);
-  } catch(error) {
-    throw new Error(handleApiError(error));
+  static async getCorsOrigins(): Promise<ApiResponse<string[]>> {
+    try {
+      const response = await api.get<ApiResponse<string[]>>('/auth/cors-origins');
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   }
-}
 
   // --------------------------------------------------------------------------
   // GOOGLE AUTHENTICATION
