@@ -107,48 +107,43 @@ export default function OTPVerificationScreen() {
             localStorage.setItem('validatedPhone', phoneNumber);
 
             // If JWT token is returned (existing user), store it and go to home
-            if (response.jwtToken || response.data?.jwtToken) {
-                // Use JWTService to handle the response and store token
-                const tokenStored = JWTService.handleOTPValidationResponse({
-                    returnCode: response.returnCode,
-                    returnMessage: response.returnMessage,
-                    transactionId: response.transactionId,
-                    jwtToken: response.jwtToken || response.data?.jwtToken,
-                    email: email || undefined,
+            if (response.jwtToken) {
+                console.log("✅ JWT Token found - Existing user detected");
+
+                // Store the JWT token directly
+                localStorage.setItem(STORAGE_KEYS.accessToken, response.jwtToken);
+                console.log("✅ Stored accessToken from OTP validation");
+
+                // Also store user data if provided
+                if (response.data?.user) {
+                    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.data.user));
+                    console.log("✅ Stored user data:", response.data.user);
+                }
+
+                // Store refresh token if provided
+                if (response.data?.refreshToken) {
+                    localStorage.setItem(STORAGE_KEYS.refreshToken, response.data.refreshToken);
+                    console.log("✅ Stored refreshToken");
+                }
+
+                // Clear temporary data
+                localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+                localStorage.removeItem('pendingEmail');
+                localStorage.removeItem('otpValidated');
+                localStorage.removeItem('validatedEmail');
+                localStorage.removeItem('validatedPhone');
+                console.log("🧹 Cleared temporary data");
+
+                // Show success message
+                toast({
+                    title: "Welcome back!",
+                    description: "You have been logged in successfully",
                 });
 
-                if (tokenStored) {
-                    // Also store user data if provided
-                    if (response.data?.user) {
-                        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.data.user));
-                        console.log("✅ Stored user data:", response.data.user);
-                    }
-
-                    // Store refresh token if provided
-                    if (response.data?.refreshToken) {
-                        localStorage.setItem(STORAGE_KEYS.refreshToken, response.data.refreshToken);
-                        console.log("✅ Stored refreshToken");
-                    }
-
-                    // Clear temporary data
-                    localStorage.removeItem(STORAGE_KEYS.pendingPhone);
-                    localStorage.removeItem('pendingEmail');
-                    localStorage.removeItem('otpValidated');
-                    localStorage.removeItem('validatedEmail');
-                    localStorage.removeItem('validatedPhone');
-                    console.log("🧹 Cleared temporary data");
-
-                    // Show success message
-                    toast({
-                        title: "Welcome back!",
-                        description: "You have been logged in successfully",
-                    });
-
-                    // Redirect to home page (existing user)
-                    console.log("🔄 Existing user - Redirecting to home page...");
-                    router.replace('/home');
-                    return;
-                }
+                // Redirect to home page (existing user)
+                console.log("🔄 Existing user - Redirecting to /home...");
+                router.replace('/home');
+                return;
             }
 
             // New user - redirect to signup page to complete registration

@@ -33,6 +33,7 @@ import { POPULAR_LOCATIONS, selectLocationFromOption, persistCustomLocation } fr
 import type { NearbyResultSummary } from '@/lib/services/search.service';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/use-profile';
+import { STORAGE_KEYS } from '@/lib/constants/storage';
 import type { EventListItem } from '@/lib/services/event.service';
 import type { ClubListItem } from '@/lib/services/club.service';
 
@@ -79,7 +80,7 @@ const HomePage = () => {
 
     // Token guard: Check if user is authenticated
     useEffect(() => {
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem(STORAGE_KEYS.accessToken);
         if (!token) {
             // No token found, redirect to mobile login
             router.replace('/auth/mobile');
