@@ -64,7 +64,7 @@ export default function IntroScreen() {
     };
 
     const handleRegister = () => {
-        router.push("/auth/signup");
+        router.push("/auth/register");
     };
 
     const handleLogin = () => {

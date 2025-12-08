@@ -90,7 +90,7 @@ export default function OTPVerificationScreen() {
             console.log("📧 Using email:", email);
 
             // Call backend /validate with email and OTP
-            const response = await MobileAuthService.validateOtp(email, otpValue);
+            const response: any = await MobileAuthService.validateOtp(email, otpValue);
             console.log('✅ /validate response:', response);
 
             // Check if validation was successful - check for returnCode 100 or success flag
@@ -107,7 +107,7 @@ export default function OTPVerificationScreen() {
             localStorage.setItem('validatedPhone', phoneNumber);
 
             // If JWT token is returned (existing user), store it and go to home
-            if (response.jwtToken) {
+            if (response.jwtToken && response.jwtToken !== 'null' && response.jwtToken !== '') {
                 console.log("✅ JWT Token found - Existing user detected");
 
                 // Store the JWT token directly
@@ -145,6 +145,10 @@ export default function OTPVerificationScreen() {
                 router.replace('/home');
                 return;
             }
+            else {
+                console.log("ℹ️ No JWT Token - New user registration required");
+                router.replace('/auth/register');
+            }
 
             // New user - redirect to signup page to complete registration
             toast({
@@ -152,8 +156,8 @@ export default function OTPVerificationScreen() {
                 description: "Please complete your registration",
             });
 
-            console.log("🔄 New user - Redirecting to signup page...");
-            router.replace('/auth/signup');
+            console.log("🔄 New user - Redirecting to register page...");
+            router.replace('/auth/register');
 
         } catch (error: any) {
             console.error("❌ OTP verification failed:", error);
