@@ -1,0 +1,170 @@
+{
+  "stories": {
+    "GET_/stories/my-stories": {
+      "description": "Get all active stories uploaded by the authenticated user",
+      "success": {
+        "code": 101,
+        "message": "User stories retrieved successfully"
+      },
+      "errors": {
+        "401": {
+          "code": 401,
+          "message": "User not authenticated"
+        },
+        "404": {
+          "code": 404,
+          "message": "User not found"
+        }
+      }
+    },
+
+    "PUT_/stories/{storyId}": {
+      "description": "Update story details (Admin/SuperAdmin only)",
+      "params": {
+        "storyId": "string",
+        "caption": "string"
+      },
+      "success": {
+        "code": 102,
+        "message": "Story updated successfully"
+      },
+      "errors": {
+        "401": {
+          "code": 401,
+          "message": "User not authenticated"
+        },
+        "403": {
+          "code": 403,
+          "message": "Access denied - Admin or SuperAdmin role required"
+        },
+        "404": {
+          "code": 404,
+          "message": "Story not found"
+        }
+      }
+    },
+
+    "DELETE_/stories/{storyId}": {
+      "description": "Delete a story (Admin/SuperAdmin only)",
+      "params": {
+        "storyId": "string"
+      },
+      "success": {
+        "code": 103,
+        "message": "Story deleted successfully"
+      },
+      "errors": {
+        "401": {
+          "code": 401,
+          "message": "User not authenticated"
+        },
+        "403": {
+          "code": 403,
+          "message": "Access denied - Admin or SuperAdmin role required"
+        },
+        "404": {
+          "code": 404,
+          "message": "Story not found"
+        }
+      }
+    },
+
+    "POST_/stories/{storyId}/view": {
+      "description": "Mark a story as viewed and increment view count",
+      "params": {
+        "storyId": "string"
+      },
+      "success": {
+        "code": 104,
+        "message": "Story viewed successfully"
+      },
+      "errors": {
+        "401": {
+          "code": 401,
+          "message": "User not authenticated"
+        },
+        "404": {
+          "code": 404,
+          "message": "Story not found or expired"
+        }
+      }
+    },
+
+    "POST_/stories/upload": {
+      "description": "Upload a story from base64 data (Admin/SuperAdmin only)",
+      "requestBody": {
+        "base64Data": "string",
+        "caption": "string",
+        "fileName": "string"
+      },
+      "success": {
+        "code": 105,
+        "message": "Story uploaded successfully"
+      },
+      "errors": {
+        "400": {
+          "code": 400,
+          "message": "Invalid base64 data or format"
+        },
+        "401": {
+          "code": 401,
+          "message": "User not authenticated"
+        },
+        "403": {
+          "code": 403,
+          "message": "Access denied - Admin or SuperAdmin role required"
+        },
+        "500": {
+          "code": 500,
+          "message": "Internal server error during upload"
+        }
+      }
+    },
+
+    "POST_/stories/cleanup": {
+      "description": "Trigger manual cleanup of expired stories",
+      "success": {
+        "code": 106,
+        "message": "Cleanup triggered successfully"
+      },
+      "errors": {
+        "401": {
+          "code": 401,
+          "message": "User not authenticated"
+        }
+      }
+    },
+
+    "GET_/stories": {
+      "description": "Get all active stories (Instagram-like feed)",
+      "queryParams": {
+        "page": "number",
+        "size": "number"
+      },
+      "success": {
+        "code": 107,
+        "message": "Stories retrieved successfully"
+      },
+      "errors": {
+        "401": {
+          "code": 401,
+          "message": "User not authenticated"
+        }
+      }
+    },
+
+    "GET_/stories/stats": {
+      "description": "Get statistics about the authenticated user's stories",
+      "success": {
+        "code": 108,
+        "message": "Statistics retrieved successfully"
+      },
+      "errors": {
+        "401": {
+          "code": 401,
+          "message": "User not authenticated"
+        }
+      }
+    }
+  }
+}

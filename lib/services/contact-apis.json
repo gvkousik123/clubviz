@@ -1,0 +1,47 @@
+{
+  "contact": {
+    "POST_/contact/clubwiz_business": {
+      "description": "Submit business enquiry to ClubWiz",
+      "requestBody": {
+        "name": "string",
+        "contactNumber": "string",
+        "instagramLink": "string",
+        "whatsAppLink": "string",
+        "message": "string"
+      },
+      "success": {
+        "code": 201,
+        "message": "Business enquiry submitted successfully"
+      }
+    },
+
+    "POST_/contact/rating_feedback": {
+      "description": "Submit user rating and feedback",
+      "requestBody": {
+        "username": "string",
+        "rating": 0,
+        "review": "string",
+        "feedback": "string",
+        "photoOrVideo": "string"
+      },
+      "success": {
+        "status": "string",
+        "message": "string",
+        "timestamp": "string"
+      }
+    },
+
+    "POST_/contact/customer_support": {
+      "description": "Submit customer support message",
+      "requestBody": {
+        "name": "string",
+        "email": "string",
+        "message": "string"
+      },
+      "success": {
+        "code": 202,
+        "message": "Customer support request submitted successfully"
+      }
+    }
+  }
+}
