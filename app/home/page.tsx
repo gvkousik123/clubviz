@@ -30,9 +30,11 @@ import { isGuestMode } from '@/lib/api-client-public';
 import { LocationSuggestionList } from '@/components/common/location-suggestion-list';
 import { NearbyDetailCard } from '@/components/common/nearby-detail-card';
 import { POPULAR_LOCATIONS, selectLocationFromOption, persistCustomLocation } from '@/lib/location';
-import type { NearbyResultSummary } from '@/lib/services/search.service';
+import type { NearbyResultSummary } from '@/hooks/use-search';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/use-profile';
+import { SEARCH_AUTOCOMPLETE_STYLES } from '@/components/common/autocomplete-styles';
+import { AutocompleteSuggestion } from '@/lib/services/search.service';
 import { STORAGE_KEYS } from '@/lib/constants/storage';
 import type { EventListItem } from '@/lib/services/event.service';
 import type { ClubListItem } from '@/lib/services/club.service';
@@ -122,6 +124,8 @@ const HomePage = () => {
         refreshLocation,
         isLoadingNearbyDetails,
         error: searchError,
+        getAutocompleteSuggestions,
+        autocompleteSuggestions,
     } = useSearch();
 
     const [isLocationDropdownOpen, setLocationDropdownOpen] = useState(false);
@@ -165,6 +169,15 @@ const HomePage = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isLocationDropdownOpen]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery.length >= 2) {
+                getAutocompleteSuggestions(searchQuery);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery, getAutocompleteSuggestions]);
 
     useEffect(() => {
         if (!isNearbyDropdownOpen) {
@@ -262,11 +275,11 @@ const HomePage = () => {
                         sortBy: 'name',
                         sortDirection: 'ASC'
                     })
-                    : await ClubService.getPublicClubsList({
+                    : await ClubService.getClubsList({
                         page: 0,
                         size: 5,
                         sortBy: 'name',
-                        sortDirection: 'ASC'
+                        sortDirection: 'asc'
                     });
 
                 // Handle clubs data based on API response
@@ -326,11 +339,11 @@ const HomePage = () => {
                         sortBy: 'name',
                         sortDirection: 'ASC'
                     })
-                    : await ClubService.getPublicClubsList({
+                    : await ClubService.getClubsList({
                         page: 0,
                         size: 20,
                         sortBy: 'name',
-                        sortDirection: 'ASC'
+                        sortDirection: 'asc'
                     });
 
                 if (allClubsResponse.success && allClubsResponse.data?.content && allClubsResponse.data.content.length > 0) {
@@ -576,7 +589,6 @@ const HomePage = () => {
     };
 
     const handleSearch = async () => {
-        const isGuest = isGuestMode();
         const trimmedQuery = searchQuery.trim();
 
         setActiveSuggestionId(null);
@@ -593,7 +605,6 @@ const HomePage = () => {
 
         try {
             await searchNearby({
-                category: trimmedQuery || undefined,
                 radius: 5000,
                 lat: currentLocation?.lat,
                 lng: currentLocation?.lng,
@@ -617,18 +628,7 @@ const HomePage = () => {
 
         console.log('Searching for:', trimmedQuery);
         try {
-            if (isGuest) {
-                try {
-                    const searchResult = await PublicSearchService.globalSearch(trimmedQuery);
-                    console.log('Guest search result:', searchResult);
-                } catch (searchError) {
-                    console.log('Global search not available for guests, using club search');
-                    const clubSearchResult = await PublicClubService.searchClubs(trimmedQuery);
-                    console.log('Club search result for guests:', clubSearchResult);
-                }
-            } else {
-                await universalSearch(trimmedQuery);
-            }
+            await universalSearch(trimmedQuery);
             setShowingSearchResults(true);
         } catch (error) {
             console.error('Search failed:', error);
@@ -855,23 +855,54 @@ const HomePage = () => {
                                     className="absolute left-0 right-0 top-full mt-3 w-full max-h-[85vh] overflow-hidden rounded-[26px] border border-white/20 bg-[#041919] p-4 shadow-[0px_20px_60px_rgba(0,0,0,0.65)] z-50 flex flex-col"
                                 >
                                     <div className="flex-1 overflow-y-auto pr-1">
-                                        <LocationSuggestionList
-                                            suggestions={nearbySuggestions}
-                                            onSelect={handleSuggestionSelect}
-                                            isLoading={isLoadingNearby}
-                                            error={nearbyErrorMessage}
-                                            selectedId={activeSuggestionId}
-                                            loadingId={suggestionLoadingId}
-                                            emptyStateText="No nearby matches yet. Try adjusting the query."
-                                        />
+                                        {searchQuery.length >= 2 && autocompleteSuggestions && autocompleteSuggestions.length > 0 ? (
+                                            <div className="flex flex-col gap-2">
+                                                <h3 className="text-xs text-white/50 px-2 font-bold uppercase tracking-wider mb-2">Suggestions</h3>
+                                                {autocompleteSuggestions.map((suggestion, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        onClick={() => {
+                                                            setSearchQuery(suggestion.text);
+                                                            // Close dropdown and show results
+                                                            setNearbyDropdownOpen(false);
+                                                            setShowingSearchResults(true);
+                                                            // Trigger main search with the suggestion text
+                                                            universalSearch(suggestion.text);
+                                                        }}
+                                                        className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg transition-colors text-left group w-full"
+                                                    >
+                                                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#14FFEC] group-hover:bg-[#14FFEC]/10">
+                                                            <Search className="w-4 h-4" />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <p className="text-white text-sm font-semibold">{suggestion.text}</p>
+                                                            <p className="text-white/50 text-xs capitalize">{suggestion.type.toLowerCase()}</p>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <LocationSuggestionList
+                                                suggestions={nearbySuggestions}
+                                                onSelect={handleSuggestionSelect}
+                                                isLoading={isLoadingNearby}
+                                                error={nearbyErrorMessage}
+                                                selectedId={activeSuggestionId}
+                                                loadingId={suggestionLoadingId}
+                                                emptyStateText="No nearby matches yet. Try adjusting the query."
+                                            />
+                                        )}
                                     </div>
-                                    <div className="mt-3 pt-3 border-t border-white/10">
-                                        <NearbyDetailCard
-                                            detail={nearbyDetails}
-                                            isLoading={isLoadingNearbyDetails || !!suggestionLoadingId}
-                                            title="Place details"
-                                        />
-                                    </div>
+                                    {/* Only show details if NOT showing autocomplete suggestions (i.e. if showing nearby stuff) */}
+                                    {!(searchQuery.length >= 2 && autocompleteSuggestions && autocompleteSuggestions.length > 0) && (
+                                        <div className="mt-3 pt-3 border-t border-white/10">
+                                            <NearbyDetailCard
+                                                detail={nearbyDetails}
+                                                isLoading={isLoadingNearbyDetails || !!suggestionLoadingId}
+                                                title="Place details"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -968,7 +999,7 @@ const HomePage = () => {
                                                     <div className="p-4 h-[145px] flex flex-col justify-between">
                                                         <div>
                                                             <h3 className="text-white font-bold text-sm mb-2 line-clamp-2">{event.title}</h3>
-                                                            <p className="text-gray-300 text-xs mb-1">{event.club?.name || event.location}</p>
+                                                            <p className="text-gray-300 text-xs mb-1">{event.clubName || event.club?.name || event.location}</p>
                                                         </div>
                                                         <div className="flex justify-between items-center mt-auto">
                                                             <span className="text-[#14FFEC] text-xs">View Details</span>
@@ -987,7 +1018,8 @@ const HomePage = () => {
                                     <h3 className="text-white text-base font-semibold">Clubs</h3>
                                     <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                                         {searchClubs.slice(0, 5).map((club, index) => {
-                                            const imageUrl = club.images?.[0]?.url || club.logoUrl;
+                                            const img = club.images?.[0];
+                                            const imageUrl = (typeof img === 'string' ? img : img?.url) || club.logoUrl;
                                             const fallbackImage = getVenueFallbackImage(index);
                                             return (
                                                 <div key={club.id} className="w-[336px] h-[201px] relative flex-shrink-0 mr-1">
@@ -1024,7 +1056,7 @@ const HomePage = () => {
                                                                 {club.name && club.name.length > 12 ? club.name.substring(0, 12) + '...' : club.name}
                                                             </div>
                                                             <div className="self-stretch h-5 text-white text-[13px] font-semibold font-['Manrope'] leading-5 tracking-[0.01em] truncate overflow-hidden whitespace-nowrap">
-                                                                {(club.locationText?.city || 'Open now').length > 20 ? (club.locationText?.city || 'Open now').substring(0, 20) + '...' : (club.locationText?.city || 'Open now')}
+                                                                {((club.address || club.locationText?.city || 'Open now').length > 20 ? (club.address || club.locationText?.city || 'Open now').substring(0, 20) + '...' : (club.address || club.locationText?.city || 'Open now'))}
                                                             </div>
                                                         </div>
                                                     </div>

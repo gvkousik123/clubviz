@@ -1,78 +1,55 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { SearchService, NearbySearchParams, NearbyEvent } from '@/lib/services/search.service';
-import { PublicSearchService } from '@/lib/services/public.service';
-import { isGuestMode } from '@/lib/api-client-public';
+import { SearchService, NearbySearchParamsV2, SearchEventV2 } from '@/lib/services/search.service';
 import { resolveLocation, getStoredLocation, DEFAULT_RADIUS } from '@/lib/location';
 import { useToast } from '@/hooks/use-toast';
 
 interface UseNearbyEventsState {
-    events: NearbyEvent[];
+    events: SearchEventV2[];
     loading: boolean;
     error: string | null;
     hasLocation: boolean;
 }
 
 interface UseNearbyEventsActions {
-    fetchNearbyEvents: (params?: Partial<NearbySearchParams>) => Promise<void>;
+    fetchNearbyEvents: (params?: Partial<NearbySearchParamsV2> & { radius?: number }) => Promise<void>;
     clearEvents: () => void;
     clearError: () => void;
     refetchWithLocation: () => Promise<void>;
 }
 
 export function useNearbyEvents(): UseNearbyEventsState & UseNearbyEventsActions {
-    const [events, setEvents] = useState<NearbyEvent[]>([]);
+    const [events, setEvents] = useState<SearchEventV2[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [hasLocation, setHasLocation] = useState(false);
     const { toast } = useToast();
 
-    // Check for location on mount
     useEffect(() => {
         const location = getStoredLocation();
         setHasLocation(!!location && location.lat !== undefined && location.lng !== undefined);
     }, []);
 
-    const fetchNearbyEvents = useCallback(async (params: Partial<NearbySearchParams> = {}) => {
+    const fetchNearbyEvents = useCallback(async (params: Partial<NearbySearchParamsV2> & { radius?: number } = {}) => {
         setLoading(true);
         setError(null);
 
         try {
-            // Get current location
             const currentLocation = getStoredLocation() || resolveLocation();
 
             if (!currentLocation?.lat || !currentLocation?.lng) {
                 throw new Error('Location not available. Please enable location services or select a location.');
             }
 
-            const searchParams: NearbySearchParams = {
+            const searchParams: NearbySearchParamsV2 = {
                 lat: params.lat || currentLocation.lat,
                 lng: params.lng || currentLocation.lng,
-                radius: params.radius || currentLocation.radius || DEFAULT_RADIUS,
-                category: params.category
+                radiusKm: params.radiusKm ?? (params.radius ? params.radius / 1000 : 5)
             };
 
-            let eventsData: NearbyEvent[] = [];
-
-            if (isGuestMode()) {
-                // Use public API for guests
-                eventsData = await PublicSearchService.findNearbyEvents(searchParams);
-            } else {
-                // Use authenticated API
-                const response = await SearchService.findNearbyEvents(searchParams);
-                if (response.success && response.data) {
-                    eventsData = response.data;
-                } else {
-                    throw new Error(response.message || 'Failed to fetch nearby events');
-                }
-            }
-
-            setEvents(eventsData || []);
-
-            if (eventsData.length === 0) {
-                setError('No events found in your area. Try increasing the search radius.');
-            }
+            const response = await SearchService.nearbySearch(searchParams);
+            setEvents(response.events || []);
 
         } catch (err: any) {
             console.error('Error fetching nearby events:', err);

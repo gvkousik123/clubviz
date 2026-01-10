@@ -2,535 +2,288 @@
 
 import { useState, useCallback } from 'react';
 import {
-  SearchService,
-  NearbySearchParams,
-  SearchEvent,
-  SearchClub,
-  BalancedSearchResponse,
-  NearbyAllResponse,
-  NearbyDetailsResponse,
+    SearchService,
+    SearchV2Response,
+    SearchClubV2,
+    SearchEventV2,
+    NearbySearchParamsV2,
+    AutocompleteSuggestion,
+    AdvancedSearchParams
 } from '@/lib/services/search.service';
 import { resolveLocation, getStoredLocation, SavedLocation, DEFAULT_RADIUS, persistCustomLocation } from '@/lib/location';
 import { toast } from '@/hooks/use-toast';
 
+// Export types compatible with UI
+export interface NearbyResultSummary {
+    id: string;
+    name: string;
+    description?: string;
+    address?: string;
+    lat: number;
+    lng: number;
+    type: 'CLUB' | 'EVENT';
+    imageUrl?: string;
+    place_id?: string; // For compatibility
+    metadata?: any;
+}
+
 export interface UseSearchState {
-  // Loading states
-  isSearching: boolean;
-  isLoadingNearby: boolean;
-  isLoadingCategories: boolean;
-  isGettingLocation: boolean;
+    isSearching: boolean;
+    isLoadingNearby: boolean;
+    isLoadingCategories: boolean; // keep for compat
+    isGettingLocation: boolean; // keep for compat
 
-  // Data states
-  events: SearchEvent[];
-  clubs: SearchClub[];
-  categories: string[];
-  balancedResults: BalancedSearchResponse | null;
-  nearbyResults: NearbyAllResponse | null;
-  nearbyDetails: NearbyDetailsResponse | null;
+    searchResults: SearchV2Response | null;
+    autocompleteSuggestions: AutocompleteSuggestion[];
 
-  // Location state
-  currentLocation: SavedLocation | null;
+    // Adapted for UI
+    nearbyResults: { results: NearbyResultSummary[] } | null;
+    nearbyDetails: any | null; // compat
 
-  // Error states
-  error: string | null;
-  locationError: string | null;
-  isLoadingNearbyDetails: boolean;
+    events: SearchEventV2[];
+    clubs: SearchClubV2[];
+    categories: string[]; // compat
+    balancedResults: any | null; // compat
+
+    currentLocation: SavedLocation | null;
+    error: string | null;
+    locationError: string | null; // compat
+    isLoadingNearbyDetails: boolean; // compat
 }
 
 export interface UseSearchActions {
-  // Search actions
-  searchEvents: (query: string) => Promise<void>;
-  searchClubs: (query: string) => Promise<void>;
-  searchBalanced: (query: string) => Promise<void>;
-  searchNearby: (params?: Partial<NearbySearchParams>) => Promise<void>;
-
-  // Location actions
-  getCurrentLocation: () => Promise<SavedLocation>;
-  refreshLocation: () => Promise<void>;
-
-  // Category actions
-  loadCategories: () => Promise<void>;
-
-  // Universal search
-  universalSearch: (query: string) => Promise<void>;
-  fetchNearbyDetails: (params: { id?: string; placeId?: string }) => Promise<NearbyDetailsResponse | null>;
-
-  // Utility actions
-  clearResults: () => void;
-  clearError: () => void;
+    searchNearby: (params?: Partial<NearbySearchParamsV2> & { radius?: number, category?: string }) => Promise<void>;
+    universalSearch: (query: string) => Promise<void>;
+    searchAdvanced: (params: AdvancedSearchParams) => Promise<void>;
+    getAutocompleteSuggestions: (query: string) => Promise<void>;
+    getCurrentLocation: () => Promise<SavedLocation>;
+    refreshLocation: () => Promise<void>;
+    clearResults: () => void;
+    clearError: () => void;
+    loadCategories: () => Promise<void>; // compat
+    fetchNearbyDetails: (params: { id?: string; placeId?: string }) => Promise<any | null>;
+    searchEvents: (query: string) => Promise<void>; // compat
+    searchClubs: (query: string) => Promise<void>; // compat
+    searchBalanced: (query: string) => Promise<void>; // compat
 }
 
 export function useSearch(): UseSearchState & UseSearchActions {
-  // State
-  const [isSearching, setIsSearching] = useState(false);
-  const [isLoadingNearby, setIsLoadingNearby] = useState(false);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
+    const [isLoadingNearby, setIsLoadingNearby] = useState(false);
+    const [searchResults, setSearchResults] = useState<SearchV2Response | null>(null);
+    const [nearbyResults, setNearbyResults] = useState<{ results: NearbyResultSummary[] } | null>(null);
+    const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<AutocompleteSuggestion[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
-  const [events, setEvents] = useState<SearchEvent[]>([]);
-  const [clubs, setClubs] = useState<SearchClub[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [balancedResults, setBalancedResults] = useState<BalancedSearchResponse | null>(null);
-  const [nearbyResults, setNearbyResults] = useState<NearbyAllResponse | null>(null);
-  const [nearbyDetails, setNearbyDetails] = useState<NearbyDetailsResponse | null>(null);
+    const [currentLocation, setCurrentLocation] = useState<SavedLocation | null>(
+        getStoredLocation() || (typeof window === 'undefined' ? null : resolveLocation())
+    );
+    const [isGettingLocation, setIsGettingLocation] = useState(false);
+    const [locationError, setLocationError] = useState<string | null>(null);
 
-  const [currentLocation, setCurrentLocation] = useState<SavedLocation | null>(
-    getStoredLocation() || (typeof window === 'undefined' ? null : resolveLocation())
-  );
-
-  const [error, setError] = useState<string | null>(null);
-  const [locationError, setLocationError] = useState<string | null>(null);
-  const [isLoadingNearbyDetails, setIsLoadingNearbyDetails] = useState(false);
-
-  // Get current location with geolocation fallback
-  const getCurrentLocation = useCallback(async (): Promise<SavedLocation> => {
-    setIsGettingLocation(true);
-    setLocationError(null);
-
-    try {
-      // First try stored location
-      const stored = getStoredLocation();
-      if (stored) {
-        setCurrentLocation(stored);
-        setIsGettingLocation(false);
-        return stored;
-      }
-
-      // Try to get current geolocation
-      if (typeof window !== 'undefined' && 'geolocation' in navigator) {
-        return new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              const location = persistCustomLocation({
-                name: 'Current Location',
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-              }, 'geo');
-              setCurrentLocation(location);
-              setIsGettingLocation(false);
-              resolve(location);
-            },
-            (geoError) => {
-              console.warn('Geolocation failed:', geoError);
-              const fallback = resolveLocation();
-              setCurrentLocation(fallback);
-              setLocationError('Unable to get your exact location. Using default location.');
-              setIsGettingLocation(false);
-              resolve(fallback);
-            },
-            {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 300000 // 5 minutes
-            }
-          );
-        });
-      } else {
-        // Geolocation not supported
-        const fallback = resolveLocation();
-        setCurrentLocation(fallback);
-        setLocationError('Geolocation not supported. Using default location.');
-        setIsGettingLocation(false);
-        return fallback;
-      }
-    } catch (error) {
-      console.error('Error getting location:', error);
-      const fallback = resolveLocation();
-      setCurrentLocation(fallback);
-      setLocationError('Failed to get location. Using default location.');
-      setIsGettingLocation(false);
-      return fallback;
-    }
-  }, []);
-
-  // Refresh location
-  const refreshLocation = useCallback(async (): Promise<void> => {
-    await getCurrentLocation();
-  }, [getCurrentLocation]);
-
-  // Search events
-  const searchEvents = useCallback(async (query: string): Promise<void> => {
-    if (!query.trim()) {
-      setError('Search query is required');
-      return;
-    }
-
-    setIsSearching(true);
-    setError(null);
-
-    try {
-      const response = await SearchService.searchEvents(query.trim());
-      if (response.success && response.data) {
-        setEvents(response.data);
-      } else {
-        setEvents([]);
-        if (response.message) {
-          setError(response.message);
-        }
-      }
-    } catch (error: any) {
-      console.error('Search events error:', error);
-      setError(error.message || 'Failed to search events');
-      setEvents([]);
-    } finally {
-      setIsSearching(false);
-    }
-  }, []);
-
-  // Search clubs
-  const searchClubs = useCallback(async (query: string): Promise<void> => {
-    if (!query.trim()) {
-      setError('Search query is required');
-      return;
-    }
-
-    setIsSearching(true);
-    setError(null);
-
-    try {
-      const response = await SearchService.searchClubs(query.trim());
-      if (response.success && response.data) {
-        setClubs(response.data);
-      } else {
-        setClubs([]);
-        if (response.message) {
-          setError(response.message);
-        }
-      }
-    } catch (error: any) {
-      console.error('Search clubs error:', error);
-      setError(error.message || 'Failed to search clubs');
-      setClubs([]);
-    } finally {
-      setIsSearching(false);
-    }
-  }, []);
-
-  // Balanced search
-  const searchBalanced = useCallback(async (query: string): Promise<void> => {
-    if (!query.trim()) {
-      setError('Search query is required');
-      return;
-    }
-
-    setIsSearching(true);
-    setError(null);
-
-    try {
-      const response = await SearchService.searchBalanced(query.trim());
-      if (response.success && response.data) {
-        setBalancedResults(response.data);
-      } else {
-        setBalancedResults(null);
-        if (response.message) {
-          setError(response.message);
-        }
-      }
-    } catch (error: any) {
-      console.error('Balanced search error:', error);
-      setError(error.message || 'Failed to perform balanced search');
-      setBalancedResults(null);
-    } finally {
-      setIsSearching(false);
-    }
-  }, []);
-
-  // Search nearby with location
-  const searchNearby = useCallback(async (params: Partial<NearbySearchParams> = {}): Promise<void> => {
-    setIsLoadingNearby(true);
-    setError(null);
-
-    try {
-      // Get location if not provided
-      const location = await getCurrentLocation();
-      const lat = params.lat ?? location?.lat ?? location?.latitude;
-      const lng = params.lng ?? location?.lng ?? location?.longitude;
-      if (typeof lat !== 'number' || typeof lng !== 'number') {
-        throw new Error('Unable to determine coordinates for nearby search');
-      }
-
-      const searchParams: NearbySearchParams = {
-        lat,
-        lng,
-        radius: params.radius || location?.radius || DEFAULT_RADIUS,
-        category: params.category
-      };
-
-      // Simple in-memory/localStorage cache (5 min TTL) to avoid refetching identical coordinates repeatedly
-      const CACHE_KEY = 'clubviz.nearbyCache';
-      const now = Date.now();
-      const cacheId = `${searchParams.lat}:${searchParams.lng}:${searchParams.radius}:${searchParams.category || 'all'}`;
-      if (typeof window !== 'undefined') {
+    const getCurrentLocation = useCallback(async (): Promise<SavedLocation> => {
+        setIsGettingLocation(true);
         try {
-          const rawCache = window.localStorage.getItem(CACHE_KEY);
-          if (rawCache) {
-            const parsed: { id: string; timestamp: number; payload: NearbyAllResponse } = JSON.parse(rawCache);
-            // Reuse cache only if id matches and data is fresh (<5 minutes) AND has results
-            if (parsed.id === cacheId && (now - parsed.timestamp) < 5 * 60 * 1000) {
-              if (parsed.payload?.results?.length > 0) {
-                console.log('[searchNearby] Using cached results:', parsed.payload.results.length);
-                setNearbyResults(parsed.payload);
-                setIsLoadingNearby(false);
-                return;
-              }
+            const stored = getStoredLocation();
+            if (stored) {
+                setCurrentLocation(stored);
+                return stored;
             }
-          }
-        } catch (e) {
-          console.warn('Nearby cache read failed:', e);
+            if (typeof window !== 'undefined' && 'geolocation' in navigator) {
+                return new Promise((resolve) => {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const loc = persistCustomLocation({
+                                name: 'Current Location',
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude
+                            }, 'geo');
+                            setCurrentLocation(loc);
+                            setIsGettingLocation(false);
+                            resolve(loc);
+                        },
+                        () => {
+                            const fallback = resolveLocation();
+                            setCurrentLocation(fallback);
+                            setIsGettingLocation(false);
+                            resolve(fallback);
+                        }
+                    );
+                });
+            }
+            const fallback = resolveLocation();
+            setCurrentLocation(fallback);
+            return fallback;
+        } finally {
+            setIsGettingLocation(false);
         }
-      }
+    }, []);
 
-      const response = await SearchService.findNearbyAll(searchParams);
-      if (response) {
-        // API returns data directly, not wrapped in ApiResponse structure
-        const raw: any = (response as any).data || response;
-        console.log('[searchNearby] API response:', { clubs: raw.clubs?.length, events: raw.events?.length, metadata: raw.metadata });
-        // Normalize metadata (API may return `metadata` instead of `meta`)
-        const metadata = raw.metadata || raw.meta || {};
-        const meta: NearbySearchMeta = {
-          radius: metadata.radius ?? searchParams.radius,
-          category: metadata.category ?? searchParams.category,
-          center: {
-            lat: metadata.latitude ?? searchParams.lat,
-            lng: metadata.longitude ?? searchParams.lng,
-          },
-          total: (metadata.clubsCount || 0) + (metadata.eventsCount || 0),
-          fetchedAt: new Date().toISOString(),
-        };
+    const refreshLocation = useCallback(async (): Promise<void> => {
+        await getCurrentLocation();
+    }, [getCurrentLocation]);
 
-        // Build unified summary list for UI
-        const results: NearbyResultSummary[] = [];
-        if (Array.isArray(raw.clubs)) {
-          raw.clubs.forEach((club: any) => {
-            const map = club.locationMap;
-            const summary: NearbyResultSummary = {
-              id: club.id,
-              name: club.name,
-              description: club.description,
-              address: club.locationText?.fullAddress || club.locationText?.address1,
-              lat: typeof map?.[1] === 'number' ? map[1] : meta.center.lat,
-              lng: typeof map?.[0] === 'number' ? map[0] : meta.center.lng,
-              type: 'club',
-              category: club.category || 'Club',
-              metadata: { rating: club.rating, isActive: club.isActive },
+    const getAutocompleteSuggestions = useCallback(async (query: string) => {
+        if (!query || query.length < 2) {
+            setAutocompleteSuggestions([]);
+            return;
+        }
+        try {
+            const response = await SearchService.autocomplete(query);
+            setAutocompleteSuggestions(response.suggestions || []);
+        } catch (error) {
+            console.error(error);
+            setAutocompleteSuggestions([]);
+        }
+    }, []);
+
+    const searchNearby = useCallback(async (params: Partial<NearbySearchParamsV2> & { radius?: number, category?: string } = {}) => {
+        setIsLoadingNearby(true);
+        setError(null);
+        try {
+            const location = await getCurrentLocation();
+            const lat = params.lat ?? location?.lat;
+            const lng = params.lng ?? location?.lng;
+
+            if (!lat || !lng) throw new Error("Location required");
+
+            const radiusKm = params.radiusKm ?? (params.radius ? params.radius / 1000 : 5);
+
+            const apiParams: NearbySearchParamsV2 = {
+                lat,
+                lng,
+                radiusKm
             };
-            results.push(summary);
-          });
-        }
-        if (Array.isArray(raw.events)) {
-          raw.events.forEach((event: any) => {
-            const map = event.locationMap;
-            const summary: NearbyResultSummary = {
-              id: event.id,
-              name: event.title,
-              description: event.description,
-              address: event.location || event.locationText,
-              lat: typeof map?.[1] === 'number' ? map[1] : meta.center.lat,
-              lng: typeof map?.[0] === 'number' ? map[0] : meta.center.lng,
-              type: 'event',
-              category: 'Event',
-              metadata: { start: event.startDateTime, end: event.endDateTime },
-            };
-            results.push(summary);
-          });
-        }
 
-        console.log('[searchNearby] Normalized results:', results.length, results.map((r: NearbyResultSummary) => r.name));
+            const response = await SearchService.nearbySearch(apiParams);
+            setSearchResults(response);
 
-        const normalized: NearbyAllResponse = {
-          clubs: raw.clubs || [],
-          events: raw.events || [],
-          results,
-          meta,
-        };
-        setNearbyResults(normalized);
-        console.log('[searchNearby] State updated with', results.length, 'results');
+            // Adapt to nearbyResults
+            const summaries: NearbyResultSummary[] = [];
+            response.clubs.forEach(c => {
+                summaries.push({
+                    id: c.id,
+                    name: c.name,
+                    description: c.description,
+                    address: c.address,
+                    lat: c.coordinates.latitude,
+                    lng: c.coordinates.longitude,
+                    type: 'CLUB',
+                    imageUrl: c.logoUrl || c.images?.[0],
+                    metadata: { rating: c.rating, isActive: true }
+                });
+            });
+            response.events.forEach(e => {
+                summaries.push({
+                    id: e.id,
+                    name: e.title,
+                    description: e.description,
+                    address: e.location,
+                    lat: e.coordinates.latitude,
+                    lng: e.coordinates.longitude,
+                    type: 'EVENT',
+                    imageUrl: e.imageUrl || e.images?.[0],
+                    metadata: { start: e.startDateTime }
+                });
+            });
 
-        // Persist cache
-        if (typeof window !== 'undefined') {
-          try {
-            window.localStorage.setItem(CACHE_KEY, JSON.stringify({ id: cacheId, timestamp: now, payload: normalized }));
-            console.log('[searchNearby] Cache written for:', cacheId);
-          } catch (e) {
-            console.warn('Nearby cache write failed:', e);
-          }
+            setNearbyResults({ results: summaries });
+
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message);
+        } finally {
+            setIsLoadingNearby(false);
         }
-      } else {
+    }, [getCurrentLocation]);
+
+    const searchAdvanced = useCallback(async (params: AdvancedSearchParams) => {
+        setIsSearching(true);
+        try {
+            const response = await SearchService.advancedSearch(params);
+            setSearchResults(response);
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message);
+        } finally {
+            setIsSearching(false);
+        }
+    }, []);
+
+    const universalSearch = useCallback(async (query: string) => {
+        if (!query.trim()) return;
+
+        try {
+            await searchAdvanced({
+                query: query.trim()
+            });
+        } catch (error: any) {
+            console.error(error);
+            setError(error.message);
+        }
+    }, [searchAdvanced]);
+
+    const clearResults = useCallback(() => {
+        setSearchResults(null);
         setNearbyResults(null);
-        // response is the unwrapped data, not ApiResponse
-        console.warn('[searchNearby] No data in response');
-      }
-    } catch (error: any) {
-      console.error('Nearby search error:', error);
-      setError(error.message || 'Failed to search nearby locations');
-      setNearbyResults(null);
-    } finally {
-      setIsLoadingNearby(false);
-    }
-  }, [getCurrentLocation]);
+        setAutocompleteSuggestions([]);
+    }, []);
 
-  // Load categories
-  const loadCategories = useCallback(async (): Promise<void> => {
-    setIsLoadingCategories(true);
-    setError(null);
+    const clearError = useCallback(() => {
+        setError(null);
+        setLocationError(null);
+    }, []);
 
-    try {
-      const response = await SearchService.getSearchCategories();
-      if (response.success && response.data) {
-        setCategories(response.data);
-      } else {
-        // Set default categories if API fails
-        setCategories(['CLUBS', 'EVENTS']);
-        if (response.message) {
-          console.warn('Categories API failed:', response.message);
+    // Stubs for backward compatibility
+    const fetchNearbyDetails = useCallback(async (params: { id?: string }) => {
+        // Return data from searchResults if available
+        if (searchResults) {
+            const club = searchResults.clubs.find(c => c.id === params.id);
+            if (club) return club;
+            const event = searchResults.events.find(e => e.id === params.id);
+            if (event) return event;
         }
-      }
-    } catch (error: any) {
-      console.error('Load categories error:', error);
-      // Set default categories on error
-      setCategories(['CLUBS', 'EVENTS']);
-      toast({
-        title: 'Categories Error',
-        description: 'Failed to load categories. Using defaults.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoadingCategories(false);
-    }
-  }, []);
+        return null;
+    }, [searchResults]);
 
-  // Universal search (search events, clubs, and balanced results)
-  const universalSearch = useCallback(async (query: string): Promise<void> => {
-    if (!query.trim()) {
-      setError('Search query is required');
-      return;
-    }
+    const loadCategories = useCallback(async () => { }, []);
+    const searchEvents = useCallback(async (q: string) => { await universalSearch(q); }, [universalSearch]);
+    const searchClubs = useCallback(async (q: string) => { await universalSearch(q); }, [universalSearch]);
+    const searchBalanced = useCallback(async (q: string) => { await universalSearch(q); }, [universalSearch]);
 
-    setIsSearching(true);
-    setError(null);
+    return {
+        isSearching,
+        isLoadingNearby,
+        isLoadingCategories: false,
+        isGettingLocation,
 
-    try {
-      // Execute all searches in parallel
-      const [eventsResponse, clubsResponse, balancedResponse] = await Promise.allSettled([
-        SearchService.searchEvents(query.trim()),
-        SearchService.searchClubs(query.trim()),
-        SearchService.searchBalanced(query.trim())
-      ]);
+        searchResults,
+        autocompleteSuggestions,
 
-      // Handle events results
-      if (eventsResponse.status === 'fulfilled' && eventsResponse.value.success) {
-        setEvents(eventsResponse.value.data || []);
-      } else {
-        setEvents([]);
-      }
+        nearbyResults,
+        events: searchResults?.events || [],
+        clubs: searchResults?.clubs || [],
+        categories: [],
+        balancedResults: null,
+        nearbyDetails: null,
 
-      // Handle clubs results
-      if (clubsResponse.status === 'fulfilled' && clubsResponse.value.success) {
-        setClubs(clubsResponse.value.data || []);
-      } else {
-        setClubs([]);
-      }
+        currentLocation,
+        error,
+        locationError,
+        isLoadingNearbyDetails: false,
 
-      // Handle balanced results
-      if (balancedResponse.status === 'fulfilled' && balancedResponse.value.success) {
-        setBalancedResults(balancedResponse.value.data || null);
-      } else {
-        setBalancedResults(null);
-      }
-
-      // Show success message
-      toast({
-        title: 'Search Complete',
-        description: `Found results for "${query}"`,
-      });
-
-    } catch (error: any) {
-      console.error('Universal search error:', error);
-      setError(error.message || 'Failed to perform search');
-      setEvents([]);
-      setClubs([]);
-      setBalancedResults(null);
-    } finally {
-      setIsSearching(false);
-    }
-  }, []);
-
-  // Clear results
-  const clearResults = useCallback((): void => {
-    setEvents([]);
-    setClubs([]);
-    setBalancedResults(null);
-    setNearbyResults(null);
-    setNearbyDetails(null);
-    setError(null);
-    setLocationError(null);
-  }, []);
-
-  // Clear error
-  const clearError = useCallback((): void => {
-    setError(null);
-    setLocationError(null);
-  }, []);
-
-  const fetchNearbyDetails = useCallback(async (params: { id?: string; placeId?: string }): Promise<NearbyDetailsResponse | null> => {
-    if (!params.id && !params.placeId) {
-      setError('Missing place identifier');
-      return null;
-    }
-
-    setIsLoadingNearbyDetails(true);
-    try {
-      const response = await SearchService.getNearbyDetails({
-        id: params.id,
-        place_id: params.placeId,
-      });
-      if (response.success && response.data) {
-        setNearbyDetails(response.data);
-        return response.data;
-      }
-      setNearbyDetails(null);
-      if (response.message) {
-        setError(response.message);
-      }
-      return null;
-    } catch (error: any) {
-      console.error('Nearby details error:', error);
-      setNearbyDetails(null);
-      setError(error.message || 'Failed to load nearby details');
-      throw error;
-    } finally {
-      setIsLoadingNearbyDetails(false);
-    }
-  }, []);
-
-  return {
-    // State
-    isSearching,
-    isLoadingNearby,
-    isLoadingCategories,
-    isGettingLocation,
-    events,
-    clubs,
-    categories,
-    balancedResults,
-    nearbyResults,
-    nearbyDetails,
-    currentLocation,
-    error,
-    locationError,
-    isLoadingNearbyDetails,
-
-    // Actions
-    searchEvents,
-    searchClubs,
-    searchBalanced,
-    searchNearby,
-    getCurrentLocation,
-    refreshLocation,
-    loadCategories,
-    universalSearch,
-    clearResults,
-    clearError,
-    fetchNearbyDetails,
-  };
+        searchNearby,
+        universalSearch,
+        searchAdvanced,
+        getAutocompleteSuggestions,
+        getCurrentLocation,
+        refreshLocation,
+        clearResults,
+        clearError,
+        loadCategories,
+        fetchNearbyDetails,
+        searchEvents,
+        searchClubs,
+        searchBalanced
+    };
 }

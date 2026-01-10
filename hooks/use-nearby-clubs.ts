@@ -1,78 +1,55 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { SearchService, NearbySearchParams, NearbyClub } from '@/lib/services/search.service';
-import { PublicSearchService } from '@/lib/services/public.service';
-import { isGuestMode } from '@/lib/api-client-public';
+import { SearchService, NearbySearchParamsV2, SearchClubV2 } from '@/lib/services/search.service';
 import { resolveLocation, getStoredLocation, DEFAULT_RADIUS } from '@/lib/location';
 import { useToast } from '@/hooks/use-toast';
 
 interface UseNearbyClubsState {
-    clubs: NearbyClub[];
+    clubs: SearchClubV2[];
     loading: boolean;
     error: string | null;
     hasLocation: boolean;
 }
 
 interface UseNearbyClubsActions {
-    fetchNearbyClubs: (params?: Partial<NearbySearchParams>) => Promise<void>;
+    fetchNearbyClubs: (params?: Partial<NearbySearchParamsV2> & { radius?: number }) => Promise<void>;
     clearClubs: () => void;
     clearError: () => void;
     refetchWithLocation: () => Promise<void>;
 }
 
 export function useNearbyClubs(): UseNearbyClubsState & UseNearbyClubsActions {
-    const [clubs, setClubs] = useState<NearbyClub[]>([]);
+    const [clubs, setClubs] = useState<SearchClubV2[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [hasLocation, setHasLocation] = useState(false);
     const { toast } = useToast();
 
-    // Check for location on mount
     useEffect(() => {
         const location = getStoredLocation();
         setHasLocation(!!location && location.lat !== undefined && location.lng !== undefined);
     }, []);
 
-    const fetchNearbyClubs = useCallback(async (params: Partial<NearbySearchParams> = {}) => {
+    const fetchNearbyClubs = useCallback(async (params: Partial<NearbySearchParamsV2> & { radius?: number } = {}) => {
         setLoading(true);
         setError(null);
 
         try {
-            // Get current location
             const currentLocation = getStoredLocation() || resolveLocation();
 
             if (!currentLocation?.lat || !currentLocation?.lng) {
                 throw new Error('Location not available. Please enable location services or select a location.');
             }
 
-            const searchParams: NearbySearchParams = {
+            const searchParams: NearbySearchParamsV2 = {
                 lat: params.lat || currentLocation.lat,
                 lng: params.lng || currentLocation.lng,
-                radius: params.radius || currentLocation.radius || DEFAULT_RADIUS,
-                category: params.category
+                radiusKm: params.radiusKm ?? (params.radius ? params.radius / 1000 : 5)
             };
 
-            let clubsData: NearbyClub[] = [];
-
-            if (isGuestMode()) {
-                // Use public API for guests
-                clubsData = await PublicSearchService.findNearbyClubs(searchParams);
-            } else {
-                // Use authenticated API
-                const response = await SearchService.findNearbyClubs(searchParams);
-                if (response.success && response.data) {
-                    clubsData = response.data;
-                } else {
-                    throw new Error(response.message || 'Failed to fetch nearby clubs');
-                }
-            }
-
-            setClubs(clubsData || []);
-
-            if (clubsData.length === 0) {
-                setError('No clubs found in your area. Try increasing the search radius.');
-            }
+            const response = await SearchService.nearbySearch(searchParams);
+            setClubs(response.clubs || []);
 
         } catch (err: any) {
             console.error('Error fetching nearby clubs:', err);

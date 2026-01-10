@@ -1,0 +1,189 @@
+{
+  "basePath": "/search/v2",
+  "commonErrorResponse": {
+    "timestamp": "string (ISO-8601)",
+    "status": 400,
+    "error": "string",
+    "message": "string",
+    "path": "string",
+    "details": [
+      {
+        "field": "string",
+        "issue": "string"
+      }
+    ]
+  },
+  "endpoints": {
+    "POST /search/v2": {
+      "description": "Unified advanced search for clubs and events with filters, sorting, geo search, facets, and pagination.",
+      "requestBody": {
+        "contentType": "application/json",
+        "schema": {
+          "query": "string",
+          "latitude": "number",
+          "longitude": "number",
+          "radiusKm": "number",
+          "cuisines": ["string"],
+          "facilities": ["string"],
+          "musicGenres": ["string"],
+          "barOptions": ["string"],
+          "eventMusicGenres": ["string"],
+          "eventArtist": "string",
+          "minPrice": "number",
+          "maxPrice": "number",
+          "minRating": "number",
+          "sortBy": "RELEVANCE | DISTANCE | PRICE | RATING | POPULARITY",
+          "sortOrder": "ASC | DESC",
+          "searchType": "ALL | CLUBS_ONLY | EVENTS_ONLY",
+          "page": "integer (0-based)",
+          "size": "integer"
+        }
+      },
+      "successResponse": {
+        "query": "string",
+        "totalResults": "integer",
+        "page": "integer",
+        "size": "integer",
+        "totalPages": "integer",
+        "clubs": [
+          {
+            "id": "string",
+            "name": "string",
+            "description": "string",
+            "logoUrl": "string",
+            "images": ["string"],
+            "address": "string",
+            "distanceKm": "number",
+            "coordinates": {
+              "latitude": "number",
+              "longitude": "number"
+            },
+            "cuisines": ["string"],
+            "facilities": ["string"],
+            "musicGenres": ["string"],
+            "barOptions": ["string"],
+            "coupleEntryPrice": "number",
+            "groupEntryPrice": "number",
+            "priceRange": "BUDGET | MID_RANGE | PREMIUM | LUXURY",
+            "rating": "number",
+            "reviewCount": "integer",
+            "isPopular": "boolean",
+            "isNew": "boolean",
+            "openingHours": "string",
+            "isOpenNow": "boolean",
+            "tags": ["string"]
+          }
+        ],
+        "events": [
+          {
+            "id": "string",
+            "title": "string",
+            "description": "string",
+            "imageUrl": "string",
+            "images": ["string"],
+            "eventArtistName": "string",
+            "aboutEventArtist": "string",
+            "musicGenre": "string",
+            "eventOrganizer": "string",
+            "eventOrganizerLogo": "string",
+            "startDateTime": "string (ISO-8601)",
+            "endDateTime": "string (ISO-8601)",
+            "isUpcoming": "boolean",
+            "timeUntilEvent": "string",
+            "clubName": "string",
+            "location": "string",
+            "distanceKm": "number",
+            "coordinates": {
+              "latitude": "number",
+              "longitude": "number"
+            },
+            "ticketTypes": [
+              {
+                "typeName": "string",
+                "price": "number",
+                "isAvailable": "boolean"
+              }
+            ],
+            "minTicketPrice": "number",
+            "maxTicketPrice": "number",
+            "hasAvailableTickets": "boolean",
+            "totalTickets": "integer",
+            "instagramHandle": "string",
+            "spotifyHandle": "string",
+            "attendeeCount": "integer",
+            "isTrending": "boolean",
+            "tags": ["string"]
+          }
+        ],
+        "facets": {
+          "cuisines": [{ "name": "string", "count": "integer" }],
+          "musicGenres": [{ "name": "string", "count": "integer" }],
+          "facilities": [{ "name": "string", "count": "integer" }],
+          "priceRanges": [{ "name": "string", "count": "integer" }],
+          "areas": [{ "name": "string", "count": "integer" }]
+        },
+        "suggestions": ["string"]
+      },
+      "errorResponses": {
+        "400": "commonErrorResponse",
+        "500": "commonErrorResponse"
+      }
+    },
+    "GET /search/v2/quick": {
+      "description": "Quick search using query parameters for lightweight search scenarios.",
+      "queryParams": {
+        "query": "string (required)",
+        "lat": "number",
+        "lng": "number",
+        "radiusKm": "number",
+        "searchType": "ALL | CLUBS_ONLY | EVENTS_ONLY",
+        "page": "integer",
+        "size": "integer"
+      },
+      "successResponse": "$ref: POST /search/v2 successResponse",
+      "errorResponses": {
+        "400": "commonErrorResponse",
+        "500": "commonErrorResponse"
+      }
+    },
+    "GET /search/v2/nearby": {
+      "description": "Discover nearby clubs and events based on user location.",
+      "queryParams": {
+        "lat": "number (required)",
+        "lng": "number (required)",
+        "radiusKm": "number (default: 10)",
+        "cuisines": ["string"],
+        "musicGenres": ["string"],
+        "page": "integer",
+        "size": "integer"
+      },
+      "successResponse": "$ref: POST /search/v2 successResponse",
+      "errorResponses": {
+        "400": "commonErrorResponse",
+        "500": "commonErrorResponse"
+      }
+    },
+    "GET /search/v2/autocomplete": {
+      "description": "Autocomplete suggestions for clubs, events, cuisines, artists, and locations.",
+      "queryParams": {
+        "query": "string (min 2 characters, required)"
+      },
+      "successResponse": {
+        "query": "string",
+        "suggestions": [
+          {
+            "text": "string",
+            "type": "CLUB | EVENT | CUISINE | ARTIST | LOCATION",
+            "icon": "string",
+            "metadata": "string",
+            "relevanceScore": "number"
+          }
+        ]
+      },
+      "errorResponses": {
+        "400": "commonErrorResponse",
+        "500": "commonErrorResponse"
+      }
+    }
+  }
+}

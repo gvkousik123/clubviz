@@ -239,11 +239,11 @@ export default function ClubsListPage() {
                 });
             } else {
                 // Use regular club service for authenticated users
-                response = await ClubService.getPublicClubsList({
+                response = await ClubService.getClubsList({
                     page: 0,
                     size: 20,
                     sortBy: 'name',
-                    sortDirection: 'ASC'
+                    sortDirection: 'asc'
                 });
             }
 
