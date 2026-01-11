@@ -31,13 +31,10 @@ export default function RegisterPage() {
         const validatedEmail = localStorage.getItem("validatedEmail");
         const validatedPhone = localStorage.getItem("validatedPhone");
 
-        if (!isOtpValidated || !validatedEmail || !validatedPhone) {
-            router.replace("/auth/mobile");
-            return;
+        if (isOtpValidated && validatedEmail && validatedPhone) {
+            setEmail(validatedEmail);
+            setMobileNumber(validatedPhone);
         }
-
-        setEmail(validatedEmail);
-        setMobileNumber(validatedPhone);
     }, [router]);
 
     const validateForm = (): boolean => {
@@ -191,8 +188,8 @@ export default function RegisterPage() {
                                 <input
                                     type="email"
                                     value={email}
-                                    readOnly
-                                    placeholder="Email required"
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="Enter your email"
                                     className={`w-full pl-12 pr-4 py-[0.75rem] border-2 ${errors.email ? "border-red-500" : "border-[#0C898B]"} rounded-[3.25rem] bg-[#EFEFEF] text-[#2C1945] placeholder:text-[#999999] focus:outline-none focus:border-[#0A5A5D]`}
                                 />
                             </div>
@@ -208,8 +205,8 @@ export default function RegisterPage() {
                                 <input
                                     type="tel"
                                     value={mobileNumber}
-                                    readOnly
-                                    placeholder="Mobile required"
+                                    onChange={(e) => setMobileNumber(e.target.value)}
+                                    placeholder="Enter your mobile number"
                                     className={`w-full pl-12 pr-4 py-[0.75rem] border-2 ${errors.mobileNumber ? "border-red-500" : "border-[#0C898B]"} rounded-[3.25rem] bg-[#EFEFEF] text-[#2C1945] placeholder:text-[#999999] focus:outline-none focus:border-[#0A5A5D]`}
                                 />
                             </div>

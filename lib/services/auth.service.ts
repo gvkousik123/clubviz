@@ -224,16 +224,17 @@ export class AuthService {
 
     // --------------------------------------------------------------------------
     // 2. SIGN UP (Register new user)
-    // Endpoint: POST /auth/signup (Users Service)
+    // Endpoint: POST /auth/signup
+    // Body: { fullName, email, password, mobileNumber }
     // --------------------------------------------------------------------------
-    static async signUp(fullName: string, email: string, password: string, phoneNumber: string): Promise<ApiResponse<UsersApiAuthResponse>> {
+    static async signUp(fullName: string, email: string, password: string, mobileNumber: string): Promise<ApiResponse<UsersApiAuthResponse>> {
         try {
             console.log('📝 Signing up user:', email);
             const response = await usersApiClient.post('/auth/signup', {
                 fullName,
                 email,
                 password,
-                mobileNumber: phoneNumber,
+                mobileNumber,
             });
 
             const result = handleUsersApiResponse<UsersApiAuthResponse>(response);
