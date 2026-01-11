@@ -100,16 +100,14 @@ export default function MobileVerificationScreen() {
                 return;
             }
 
-            // Convert to international format
-            const formattedPhone = `+${cleanPhone}`;
-            console.log("Formatted phone:", formattedPhone);
+            console.log("Clean phone:", cleanPhone);
 
             // Send OTP using backend endpoint with both email and mobile
-            const sendResult = await MobileAuthService.sendOtp(email.trim(), formattedPhone);
+            const sendResult = await MobileAuthService.sendOtp(email.trim(), cleanPhone);
 
             if (sendResult && (sendResult.success || sendResult.data)) {
                 // Store email and phone number for OTP verification
-                localStorage.setItem(STORAGE_KEYS.pendingPhone, formattedPhone);
+                localStorage.setItem(STORAGE_KEYS.pendingPhone, cleanPhone);
                 localStorage.setItem('pendingEmail', email.trim());
 
                 // If server returned session or id, persist it for later validate call
