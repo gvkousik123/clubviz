@@ -4,7 +4,7 @@ import {
   SessionInfo,
   CORSOriginsResponse
 } from '../api-types';
-import { UsersService } from './users.service';
+import { AuthService } from './auth.service';
 
 // ============================================================================
 // SESSION SERVICE TYPES
@@ -53,7 +53,7 @@ export class SessionService {
    */
   static async getUserSessions(): Promise<SessionInfo[]> {
     try {
-      const result = await UsersService.getActiveSessions();
+      const result = await AuthService.getActiveSessions();
       if (result.success && result.data) {
         return result.data as unknown as SessionInfo[];
       }
@@ -69,7 +69,7 @@ export class SessionService {
    */
   static async deleteSession(sessionId: string): Promise<SessionDeleteResponse> {
     try {
-      const result = await UsersService.revokeSession(sessionId);
+      const result = await AuthService.revokeSessionById(sessionId);
       return {
         success: result.success,
         message: result.message || 'Session deleted successfully'
@@ -85,7 +85,7 @@ export class SessionService {
    */
   static async revokeAllSessions(): Promise<SessionDeleteResponse> {
     try {
-      const result = await UsersService.logoutFromAllDevices();
+      const result = await AuthService.revokeAllSessions();
       return {
         success: result.success,
         message: result.message || 'All sessions revoked successfully'

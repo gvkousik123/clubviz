@@ -25,6 +25,15 @@ const TagComponent = ({ icon, label, iconPath }: { icon?: React.ReactNode, label
     </div>
 );
 
+// Icon components
+const UtensilsIcon = ({ className }: { className?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg>
+);
+
+const MusicIcon = ({ className }: { className?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
+);
+
 export default function ClubDetailPage() {
     const router = useRouter();
     const params = useParams();
@@ -215,92 +224,88 @@ export default function ClubDetailPage() {
                 <div className="w-[85px] h-[85px] rounded-full border-4 border-[#08C2B3] overflow-hidden shadow-xl bg-black">
                     <img
                         src={(club as any).logo || (club as any).logoUrl || heroImageUrls[0]}
-            </div>
-
-                {/* Main content */}
-                <div className="bg-gradient-to-b from-[#021313] to-[rgba(2,19,19,0)] mt-[-5vh] rounded-t-[40px] relative z-0 px-4 pb-[18px] w-full">
-                    <div className="flex flex-col items-center w-full" style={{ paddingTop: 'calc(6vh + 30px)' }}>
-                        {/* Title */}
-                        <h1 className="text-white text-[30px] tracking-[0.36px] text-center font-normal leading-[35px] mb-3 uppercase" style={{ fontFamily: "'Anton', sans-serif" }}>
-                            {club.name}
-                        </h1>
-                        <p className="text-white/70 text-sm text-center mb-4 px-4">{club.description}</p>
-
-                        {/* Action buttons */}
-                        <div className="w-full flex flex-col items-center gap-3 mb-4">
-                            <div className="flex justify-center items-center gap-3">
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10" onClick={handleShare}>
-                                    <img src="/club/ShareNetwork (1).svg" alt="Share" className="w-5 h-5" onError={(e) => (e.currentTarget.src = "")} />
-                                </button>
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10" onClick={handleToggleLike} disabled={isJoinLoading}>
-                                    {isJoinLoading ? (
-                                        <Loader2 className="w-5 h-5 text-[#14FFEC] animate-spin" />
-                                    ) : isLiked ? (
-                                        <Heart className="w-5 h-5 fill-[#14FFEC] text-[#14FFEC]" />
-                                    ) : (
-                                        <img src="/club/BookmarkSimple (1).svg" alt="Bookmark" className="w-5 h-5" onError={(e) => (e.currentTarget.src = "")} />
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Location Section */}
-                        <div className="w-full mt-5 mb-5">
-                            <h3 className="text-white text-xl font-semibold mb-4">Location</h3>
-                            <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[20px] p-4">
-                                <div className="flex items-start gap-3 mb-4">
-                                    <MapPin className="w-5 h-5 text-[#FF3B3B] flex-shrink-0" />
-                                    <p className="text-white text-sm">{getAddress()}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Facilities Section */}
-                        {club.facilities && club.facilities.length > 0 && (
-                            <div className="w-full mt-5 mb-5">
-                                <h3 className="text-white text-xl font-semibold mb-4">Facilities</h3>
-                                <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
-                                    {club.facilities.map((facility, i) => (
-                                        <TagComponent key={i} label={facility} icon={<Star className="w-3 h-3" />} />
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Food Section */}
-                        {club.foodCuisines && club.foodCuisines.length > 0 && (
-                            <div className="w-full mt-5 mb-5">
-                                <h3 className="text-white text-xl font-semibold mb-4">Cuisines</h3>
-                                <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
-                                    {club.foodCuisines.map((item, i) => (
-                                        <TagComponent key={i} label={item} icon={<UtensilsIcon className="w-3 h-3" />} />
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Music Section */}
-                        {club.music && club.music.length > 0 && (
-                            <div className="w-full mt-5 mb-5">
-                                <h3 className="text-white text-xl font-semibold mb-4">Music</h3>
-                                <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
-                                    {club.music.map((item, i) => (
-                                        <TagComponent key={i} label={item} icon={<MusicIcon className="w-3 h-3" />} />
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                    </div>
+                        alt={club.name}
+                        className="w-full h-full object-cover"
+                    />
                 </div>
             </div>
-            );
-}
 
-            // Simple Icons since we removed imports for brevity in string creation
-            const UtensilsIcon = ({className}: {className ?: string}) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg>
-            );
-            const MusicIcon = ({className}: {className ?: string}) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
-            );
+            {/* Main content */}
+            <div className="bg-gradient-to-b from-[#021313] to-[rgba(2,19,19,0)] mt-[-5vh] rounded-t-[40px] relative z-0 px-4 pb-[18px] w-full">
+                <div className="flex flex-col items-center w-full" style={{ paddingTop: 'calc(6vh + 30px)' }}>
+                    {/* Title */}
+                    <h1 className="text-white text-[30px] tracking-[0.36px] text-center font-normal leading-[35px] mb-3 uppercase" style={{ fontFamily: "'Anton', sans-serif" }}>
+                        {club.name}
+                    </h1>
+                    <p className="text-white/70 text-sm text-center mb-4 px-4">{club.description}</p>
+
+                    {/* Action buttons */}
+                    <div className="w-full flex flex-col items-center gap-3 mb-4">
+                        <div className="flex justify-center items-center gap-3">
+                            <button className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10" onClick={handleShare}>
+                                <img src="/club/ShareNetwork (1).svg" alt="Share" className="w-5 h-5" onError={(e) => (e.currentTarget.src = "")} />
+                            </button>
+                            <button className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10" onClick={handleToggleLike} disabled={isJoinLoading}>
+                                {isJoinLoading ? (
+                                    <Loader2 className="w-5 h-5 text-[#14FFEC] animate-spin" />
+                                ) : isLiked ? (
+                                    <Heart className="w-5 h-5 fill-[#14FFEC] text-[#14FFEC]" />
+                                ) : (
+                                    <img src="/club/BookmarkSimple (1).svg" alt="Bookmark" className="w-5 h-5" onError={(e) => (e.currentTarget.src = "")} />
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Location Section */}
+                    <div className="w-full mt-5 mb-5">
+                        <h3 className="text-white text-xl font-semibold mb-4">Location</h3>
+                        <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[20px] p-4">
+                            <div className="flex items-start gap-3 mb-4">
+                                <MapPin className="w-5 h-5 text-[#FF3B3B] flex-shrink-0" />
+                                <p className="text-white text-sm">{getAddress()}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Facilities Section */}
+                    {club.facilities && club.facilities.length > 0 && (
+                        <div className="w-full mt-5 mb-5">
+                            <h3 className="text-white text-xl font-semibold mb-4">Facilities</h3>
+                            <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
+                                {club.facilities.map((facility, i) => (
+                                    <TagComponent key={i} label={facility} icon={<Star className="w-3 h-3" />} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Food Section */}
+                    {club.foodCuisines && club.foodCuisines.length > 0 && (
+                        <div className="w-full mt-5 mb-5">
+                            <h3 className="text-white text-xl font-semibold mb-4">Cuisines</h3>
+                            <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
+                                {club.foodCuisines.map((item, i) => (
+                                    <TagComponent key={i} label={item} icon={<UtensilsIcon className="w-3 h-3" />} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Music Section */}
+                    {club.music && club.music.length > 0 && (
+                        <div className="w-full mt-5 mb-5">
+                            <h3 className="text-white text-xl font-semibold mb-4">Music</h3>
+                            <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
+                                {club.music.map((item, i) => (
+                                    <TagComponent key={i} label={item} icon={<MusicIcon className="w-3 h-3" />} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                </div>
+            </div>
+        </div>
+    );
+}

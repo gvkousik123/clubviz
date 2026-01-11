@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Eye, EyeOff, User, Mail, Phone, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { STORAGE_KEYS } from "@/lib/constants/storage";
-import { UsersService } from "@/lib/services/users.service";
+import { AuthService } from "@/lib/services/auth.service";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -86,12 +86,12 @@ export default function RegisterPage() {
                 cleanMobile = "+" + cleanMobile;
             }
 
-            const result = await UsersService.signUp({
-                fullName: fullName.trim(),
-                email: email.trim(),
+            const result = await AuthService.signUp(
+                fullName.trim(),
+                email.trim(),
                 password,
-                mobileNumber: cleanMobile,
-            });
+                cleanMobile
+            );
 
             if (result.success) {
                 localStorage.removeItem("otpValidated");

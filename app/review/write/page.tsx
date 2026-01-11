@@ -2,11 +2,18 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Star } from 'lucide-react';
+import { Star, Loader2 } from 'lucide-react';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
+import { useContact } from '@/hooks/use-contact';
+import { useProfile } from '@/hooks/use-profile';
+import { useToast } from '@/hooks/use-toast';
 
 export default function WriteReviewPage() {
     const router = useRouter();
+    const { toast } = useToast();
+    const { submitReview, loading } = useContact();
+    const { profile } = useProfile();
+
     const [rating, setRating] = useState(0);
     const [reviewText, setReviewText] = useState('');
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -19,10 +26,42 @@ export default function WriteReviewPage() {
         }
     };
 
-    const handleSubmit = () => {
-        // Handle review submission here
-        console.log('Submitting review:', { rating, reviewText, files: selectedFiles });
-        router.back();
+    const convertFileToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = error => reject(error);
+        });
+    };
+
+    const handleSubmit = async () => {
+        if (rating === 0) {
+            toast({ title: "Rating required", description: "Please select a rating", variant: "destructive" });
+            return;
+        }
+
+        let photoOrVideo = '';
+        if (selectedFiles.length > 0) {
+            try {
+                // Taking the first file for now as API expects single string
+                photoOrVideo = await convertFileToBase64(selectedFiles[0]);
+            } catch (e) {
+                console.error("Error converting file", e);
+            }
+        }
+
+        const success = await submitReview({
+            username: profile?.username || 'Anonymous',
+            rating,
+            review: reviewText,
+            feedback: reviewText,
+            photoOrVideo
+        });
+
+        if (success) {
+            router.back();
+        }
     };
 
     const wordCount = reviewText.trim().split(/\s+/).filter(word => word.length > 0).length;
@@ -148,11 +187,15 @@ export default function WriteReviewPage() {
             </div>
 
             {/* Bottom Submit Button */}
-            <BottomContinueButton
-                text="Submit"
-                onClick={handleSubmit}
-                disabled={rating === 0 || reviewText.trim().length === 0}
-            />
+            <div className="fixed bottom-0 left-0 right-0 p-6 bg-[#021313]/80 backdrop-blur-sm z-50">
+                <button
+                    onClick={handleSubmit}
+                    disabled={rating === 0 || loading}
+                    className="w-full h-[54px] bg-[#0C898B] rounded-[30px] flex justify-center items-center gap-2 hover:bg-[#0e9ea0] active:scale-95 transition-all text-white font-bold text-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {loading ? <Loader2 className="animate-spin mr-2" /> : 'Submit'}
+                </button>
+            </div>
         </div>
     );
 }

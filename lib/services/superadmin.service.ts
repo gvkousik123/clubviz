@@ -1,6 +1,6 @@
 import { api, handleApiResponse, handleApiError } from '../api-client';
 import { ApiResponse } from '../api-types';
-import { UsersService } from './users.service';
+import { AuthService } from './auth.service';
 
 // ============================================================================
 // SUPER ADMIN SERVICE TYPES
@@ -394,7 +394,7 @@ export class SuperAdminService {
    */
   static async addRole(username: string, role: 'USER' | 'ADMIN' | 'SUPERADMIN'): Promise<{ message: string }> {
     try {
-      const result = await UsersService.addRoleToUser(username, role);
+      const result = await AuthService.addRoleToUser(username, role);
       if (result.success) {
         return { message: result.message || `Role ${role} added to user ${username}` };
       }
@@ -411,7 +411,7 @@ export class SuperAdminService {
    */
   static async removeRole(username: string, role: 'USER' | 'ADMIN' | 'SUPERADMIN'): Promise<{ message: string }> {
     try {
-      const result = await UsersService.removeRoleFromUser(username, role);
+      const result = await AuthService.removeRoleFromUser(username, role);
       if (result.success) {
         return { message: result.message || `Role ${role} removed from user ${username}` };
       }
@@ -436,7 +436,7 @@ export class SuperAdminService {
    */
   static async getUserRolesFromUsersService(username: string): Promise<string[]> {
     try {
-      const result = await UsersService.getUserRoles(username);
+      const result = await AuthService.getUserRoles(username);
       if (result.success && result.data) {
         return result.data;
       }

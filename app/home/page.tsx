@@ -38,6 +38,8 @@ import { AutocompleteSuggestion } from '@/lib/services/search.service';
 import { STORAGE_KEYS } from '@/lib/constants/storage';
 import type { EventListItem } from '@/lib/services/event.service';
 import type { ClubListItem } from '@/lib/services/club.service';
+import { useStories } from '@/hooks/use-stories';
+import { StoriesSection } from '@/components/story';
 
 // Dummy data
 const heroSlides = [
@@ -96,6 +98,8 @@ const HomePage = () => {
     const [isLoadingVenues, setIsLoadingVenues] = useState(false);
     const [isLoadingAllClubs, setIsLoadingAllClubs] = useState(false);
     const [isLoadingEvents, setIsLoadingEvents] = useState(false);
+
+    const { stories, fetchStories, loading: storiesLoading } = useStories();
 
     const { toast } = useToast();
 
@@ -263,6 +267,8 @@ const HomePage = () => {
             // Load profile data (only for authenticated users)
             if (!isGuest) {
                 await loadProfile();
+                // Load stories for authenticated users
+                fetchStories();
             }
 
             // Load venues (clubs) - Use appropriate service based on auth status
@@ -1194,17 +1200,45 @@ const HomePage = () => {
                                         </div>
                                     </div>
                                 </div>
-                            </section>                    {/* Vibe Meter */}
-                            <section className="px-5 pt-2">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-white text-lg font-medium">Vibe Meter</h2>
-                                </div>
-                                <div className="overflow-x-auto scrollbar-hide -mx-5 px-5">
-                                    <div className="flex items-center justify-center py-8">
-                                        <p className="text-gray-400 text-sm">No stories available right now</p>
-                                    </div>
-                                </div>
                             </section>
+
+                            {/* Vibe Meter / Stories */}
+                            {!isGuestMode() && (storiesLoading || stories.length > 0) && (
+                                <section className="pt-2 mb-2">
+                                    {storiesLoading ? (
+                                        <div className="px-5 flex items-center gap-2 text-white/50 py-4">
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            <span className="text-sm">Loading stories...</span>
+                                        </div>
+                                    ) : (
+                                        <StoriesSection
+                                            className="px-1"
+                                            stories={stories.map(s => ({
+                                                id: s.id,
+                                                image: s.mediaUrl,
+                                                title: s.title || s.club?.name || 'Story',
+                                                timestamp: new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                                                clubName: s.club?.name,
+                                                isViewed: false,
+                                                duration: s.duration
+                                            }))}
+                                        />
+                                    )}
+                                </section>
+                            )}
+
+                            {!isGuestMode() && !storiesLoading && stories.length === 0 && (
+                                <section className="px-5 pt-2">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h2 className="text-white text-lg font-medium">Vibe Meter</h2>
+                                    </div>
+                                    <div className="overflow-x-auto scrollbar-hide -mx-5 px-5">
+                                        <div className="flex items-center justify-center py-8">
+                                            <p className="text-gray-400 text-sm">No stories available right now</p>
+                                        </div>
+                                    </div>
+                                </section>
+                            )}
 
 
 

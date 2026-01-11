@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { STORAGE_KEYS } from "@/lib/constants/storage";
-import { UsersService } from "@/lib/services/users.service";
+import { AuthService } from "@/lib/services/auth.service";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -46,10 +46,10 @@ export default function LoginPage() {
         try {
             console.log("🔐 Attempting login...");
 
-            const result = await UsersService.signIn({
-                usernameOrEmail: usernameOrEmail.trim(),
-                password: password,
-            });
+            const result = await AuthService.signIn(
+                usernameOrEmail.trim(),
+                password
+            );
 
             if (result.success) {
                 toast({

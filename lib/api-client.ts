@@ -21,8 +21,10 @@ apiClient.interceptors.request.use(
     // Get auth token from localStorage or your preferred storage
     const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (token && token !== 'null' && token !== 'undefined') {
+      // Ensure the token doesn't already have the prefix (rare but possible with some libraries)
+      const authValue = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+      config.headers.Authorization = authValue;
     }
 
     // Log all requests for debugging

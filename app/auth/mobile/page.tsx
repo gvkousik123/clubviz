@@ -21,6 +21,7 @@ export default function MobileVerificationScreen() {
     });
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [showKeypad, setShowKeypad] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     // Handle guest login
@@ -200,15 +201,17 @@ export default function MobileVerificationScreen() {
                         </div>
 
                         {/* Phone number display */}
-                        <div className="mb-[0.75rem] text-center">
+                        <div className="mb-[1.5rem]">
                             <label className="block text-[#2C1945] text-[0.9375rem] font-medium mb-[0.5rem]">
                                 Mobile Number
                             </label>
-                            <div className="w-full max-w-[23.75rem] h-[4.75rem] mx-auto bg-[#EFEFEF] rounded-[3.25rem] border border-[#0C898B] flex items-center justify-center p-2">
-                                <div className="text-[1.125rem] font-mono font-medium text-[#666666] text-center whitespace-nowrap">
-                                    {phoneNumber}
-                                </div>
-                            </div>
+                            <input
+                                type="text"
+                                value={phoneNumber}
+                                readOnly
+                                onClick={() => setShowKeypad(true)}
+                                className="w-full px-[1rem] py-[0.875rem] border-2 border-[#0C898B] rounded-[3.25rem] bg-[#EFEFEF] text-[#2C1945] font-mono text-center placeholder:text-[#999999] focus:outline-none focus:border-[#0A5A5D] cursor-pointer"
+                            />
                         </div>
 
                         {/* Confirmation text */}
@@ -217,50 +220,62 @@ export default function MobileVerificationScreen() {
                         </div>
 
                         {/* Number Keypad */}
-                        <div className="mx-auto w-[17.5rem] space-y-[1rem] mb-[1.5rem]">
-                            {/* Keypad Grid */}
-                            <div className="grid grid-cols-3 gap-[1rem]">
-                                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                        {showKeypad && (
+                            <div className="mx-auto w-[17.5rem] space-y-[1rem] mb-[1.5rem] animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                {/* Keypad Grid */}
+                                <div className="grid grid-cols-3 gap-[1rem]">
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                                        <button
+                                            key={num}
+                                            onClick={() => handleNumberPress(num.toString())}
+                                            className="w-[4.375rem] h-[4.375rem] rounded-full border border-[#0C898B] 
+                                                 bg-white text-[#42353B] text-[1.875rem] font-semibold
+                                                 hover:bg-gray-50 active:bg-gray-100 
+                                                 flex items-center justify-center transition-colors"
+                                        >
+                                            {num}
+                                        </button>
+                                    ))}
+
+                                    {/* Bottom Row */}
                                     <button
-                                        key={num}
-                                        onClick={() => handleNumberPress(num.toString())}
-                                        className="w-[4.375rem] h-[4.375rem] rounded-full border border-[#0C898B] 
-                                             bg-white text-[#42353B] text-[1.875rem] font-semibold
-                                             hover:bg-gray-50 active:bg-gray-100 
-                                             flex items-center justify-center"
+                                        onClick={handleDelete}
+                                        className="w-[4.375rem] h-[4.375rem] rounded-full bg-[#EFEFEF] 
+                                            text-gray-900 flex items-center justify-center hover:bg-gray-200 transition-colors"
                                     >
-                                        {num}
+                                        <X className="w-[1.25rem] h-[1.25rem]" />
                                     </button>
-                                ))}
 
-                                {/* Bottom Row */}
-                                <button
-                                    onClick={handleDelete}
-                                    className="w-[4.375rem] h-[4.375rem] rounded-full bg-[#EFEFEF] 
-                                        text-gray-900 flex items-center justify-center"
-                                >
-                                    <X className="w-[1rem] h-[1rem]" />
-                                </button>
+                                    <button
+                                        onClick={() => handleNumberPress('0')}
+                                        className="w-[4.375rem] h-[4.375rem] rounded-full border border-[#0C898B] 
+                                            bg-white text-[#42353B] text-[1.875rem] font-semibold
+                                            hover:bg-gray-50 active:bg-gray-100
+                                            flex items-center justify-center transition-colors"
+                                    >
+                                        0
+                                    </button>
 
-                                <button
-                                    onClick={() => handleNumberPress('0')}
-                                    className="w-[4.375rem] h-[4.375rem] rounded-full border border-[#0C898B] 
-                                        bg-white text-[#42353B] text-[1.875rem] font-semibold
-                                        hover:bg-gray-50 active:bg-gray-100
-                                        flex items-center justify-center"
-                                >
-                                    0
-                                </button>
-
-                                <button
-                                    onClick={handleSubmit}
-                                    disabled={!canSubmit}
-                                    className="w-[4.375rem] h-[4.375rem] rounded-full bg-[#0D7377] 
-                                        text-white flex items-center justify-center"
-                                >
-                                    <ArrowRight className="w-[1.5rem] h-[1.5rem] text-white" />
-                                </button>
+                                    <button
+                                        onClick={() => setShowKeypad(false)}
+                                        className="w-[4.375rem] h-[4.375rem] rounded-full bg-[#0D7377] 
+                                            text-white flex items-center justify-center hover:bg-[#0A5A5D] transition-colors"
+                                    >
+                                        <span className="text-sm font-bold">DONE</span>
+                                    </button>
+                                </div>
                             </div>
+                        )}
+
+                        {/* Get Verification Code Button */}
+                        <div className="mb-[1.5rem]">
+                            <button
+                                onClick={handleSubmit}
+                                disabled={!canSubmit}
+                                className="w-full py-[1rem] bg-[#0D7377] text-white rounded-[3.25rem] font-semibold text-[1.125rem] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0A5A5D] transition-colors shadow-lg shadow-[#0D7377]/20"
+                            >
+                                Get Verification Code
+                            </button>
                         </div>
 
                         {/* reCAPTCHA Container - Visible for user interaction */}
@@ -290,6 +305,19 @@ export default function MobileVerificationScreen() {
                                 className="text-[#0D7377] font-semibold text-[0.9375rem] hover:underline"
                             >
                                 Login with Password
+                            </Link>
+                        </div>
+
+                        {/* Sign Up Option */}
+                        <div className="text-center py-2">
+                            <p className="text-[#6A6A6A] text-[0.875rem] mb-2">
+                                Don't have an account?
+                            </p>
+                            <Link
+                                href="/auth/signup"
+                                className="text-[#0D7377] font-semibold text-[0.9375rem] hover:underline"
+                            >
+                                Sign Up
                             </Link>
                         </div>
 

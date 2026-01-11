@@ -191,7 +191,7 @@ export class MobileAuthService {
   /**
    * Send OTP using backend endpoint
    * POST /notification/api/otp/send
-   * Query params: { email, mobile }
+   * Body: { email, mobile }
    * 
    * Status Codes:
    * 101 - OTP sent successfully
@@ -200,7 +200,7 @@ export class MobileAuthService {
    */
   static async sendOtp(email: string, mobile: string): Promise<ApiResponse<any>> {
     try {
-      const response = await api.post(`../notification/api/otp/send?email=${encodeURIComponent(email)}&mobile=${encodeURIComponent(mobile)}`);
+      const response = await api.post(`../notification/api/otp/send`, { email, mobile });
       const result = handleApiResponse(response);
 
       // Handle different status codes
@@ -227,7 +227,7 @@ export class MobileAuthService {
   /**
    * Validate OTP using backend endpoint
    * POST /notification/api/otp/validate
-   * Query params: { email, otp }
+   * Body: { email, otp }
    * 
    * Status Codes:
    * 100 - OTP verified successfully
@@ -237,7 +237,7 @@ export class MobileAuthService {
    */
   static async validateOtp(email: string, otp: string): Promise<ApiResponse<any>> {
     try {
-      const response = await api.post(`../notification/api/otp/validate?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`);
+      const response = await api.post(`../notification/api/otp/validate`, { email, otp });
       const result = handleApiResponse(response);
 
       // Handle different status codes
