@@ -200,30 +200,38 @@ export class MobileAuthService {
    */
   static async sendOtp(email: string, mobile: string): Promise<ApiResponse<any>> {
     try {
-      const response = await api.post(`../notification/api/otp/send`, { email, mobile });
-      const result = handleApiResponse(response);
+      const response = await api.post(
+        "/notification/api/otp/send",
+        null, // 🚫 NO request body
+        {
+          params: {
+            email: email.trim().toLowerCase(),
+            mobile: mobile.replace(/\D/g, "").slice(-10)
+          }
+        }
+      );
 
-      // Handle different status codes
+      const result = handleApiResponse(response);
       const statusCode = result.returnCode || result.code;
 
       if (statusCode === OTP_STATUS_CODES.OTP_SENT) {
-        console.log('✅ OTP sent successfully:', OTP_STATUS_MESSAGES.OTP_SENT);
         return { ...result, success: true, message: OTP_STATUS_MESSAGES.OTP_SENT };
-      } else if (statusCode === OTP_STATUS_CODES.EMAIL_NOT_FOUND) {
-        throw new Error(OTP_STATUS_MESSAGES.EMAIL_NOT_FOUND);
-      } else if (statusCode === OTP_STATUS_CODES.MOBILE_NOT_FOUND) {
-        throw new Error(OTP_STATUS_MESSAGES.MOBILE_NOT_FOUND);
-      } else if (statusCode === OTP_STATUS_CODES.SUCCESS) {
-        console.log('✅ OTP operation successful');
-        return { ...result, success: true };
       }
-      return result;
+
+      if (statusCode === OTP_STATUS_CODES.EMAIL_NOT_FOUND) {
+        throw new Error(OTP_STATUS_MESSAGES.EMAIL_NOT_FOUND);
+      }
+
+      if (statusCode === OTP_STATUS_CODES.MOBILE_NOT_FOUND) {
+        throw new Error(OTP_STATUS_MESSAGES.MOBILE_NOT_FOUND);
+      }
+
+      return { ...result, success: true };
     } catch (error) {
-      console.error('❌ Send OTP error:', error);
+      console.error("❌ Send OTP error:", error);
       throw new Error(handleApiError(error));
     }
   }
-
   /**
    * Validate OTP using backend endpoint
    * POST /notification/api/otp/validate
