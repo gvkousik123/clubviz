@@ -78,7 +78,11 @@ export default function RegisterPage() {
         try {
             console.log("📝 Submitting registration from OTP flow");
 
-            const cleanMobile = mobileNumber.replace(/[^0-9]/g, "");
+            // Extract 10 digits
+            let cleanMobile = mobileNumber.replace(/[^0-9]/g, "");
+            if (cleanMobile.length === 12 && cleanMobile.startsWith('91')) {
+                cleanMobile = cleanMobile.substring(2);
+            }
 
             const result = await AuthService.signUp(
                 fullName.trim(),

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { MobileAuthService } from '@/lib/services/mobile-auth.service';
+import { AuthService } from "@/lib/services/auth.service";
 import { useToast } from "@/hooks/use-toast";
 import { STORAGE_KEYS } from "@/lib/constants/storage";
 
@@ -40,6 +41,20 @@ export default function MobileVerificationScreen() {
 
         // Navigate to home page as guest
         router.push('/home');
+    };
+
+    const handleMockLogin = async (role: 'USER' | 'ADMIN') => {
+        try {
+            await AuthService.mockLogin(role);
+            toast({
+                title: `Mock Login Successful (${role})`,
+                description: "Redirecting...",
+            });
+            // Force reload to ensure auth state is picked up
+            window.location.href = role === 'ADMIN' ? '/admin/dashboard' : '/home';
+        } catch (error) {
+            console.error("Mock login failed", error);
+        }
     };
 
     // No client-side reCAPTCHA when using backend OTP endpoints
@@ -91,16 +106,22 @@ export default function MobileVerificationScreen() {
                 return;
             }
 
-            // Clean phone number and format
-            const cleanPhone = phoneNumber.replace(/[^0-9]/g, '');
+            // Clean phone number and format (remove + and any non-digits)
+            let cleanPhone = phoneNumber.replace(/[^0-9]/g, '');
 
-            if (cleanPhone.length !== 12) { // Should be 12 digits (91 + 10 digits)
+            // For this specific API, we want the 10-digit number without the '91' prefix
+            // If it's 12 digits and starts with 91, take only the last 10
+            if (cleanPhone.length === 12 && cleanPhone.startsWith('91')) {
+                cleanPhone = cleanPhone.substring(2);
+            }
+
+            if (cleanPhone.length !== 10) {
                 setError('Please enter a valid 10-digit mobile number');
                 setIsLoading(false);
                 return;
             }
 
-            console.log("Clean phone:", cleanPhone);
+            console.log("Cleaned 10-digit phone for API:", cleanPhone);
 
             // Send OTP using backend endpoint with both email and mobile
             const sendResult = await MobileAuthService.sendOtp(email.trim(), cleanPhone);
@@ -181,7 +202,26 @@ export default function MobileVerificationScreen() {
                     <div className="bg-white rounded-t-3xl w-full px-[1.5rem] pt-[2rem] pb-[2rem] overflow-y-auto flex flex-col">
                         {/* Header */}
                         <div className="mb-[1.5rem]">
-                            <h1 className="text-[1.5rem] font-semibold text-[#2C1945] mb-[1.25rem] text-center">Enter Your Details</h1>
+                            <h1 className="text-[1.5rem] font-semibold text-[#2C1945] mb-[0.5rem] text-center">Enter Your Details</h1>
+
+                            {/* Development Quick Access - High Visibility */}
+                            <div className="flex flex-col gap-2 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200 shadow-inner">
+                                <p className="text-center text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Developer Fast Login</p>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        onClick={() => handleMockLogin('USER')}
+                                        className="py-3 bg-[#0D7377] text-white text-sm font-bold rounded-lg shadow hover:bg-[#0A5A5D] hover:shadow-md transition-all active:scale-95"
+                                    >
+                                        USER LOGIN
+                                    </button>
+                                    <button
+                                        onClick={() => handleMockLogin('ADMIN')}
+                                        className="py-3 bg-[#8B5CF6] text-white text-sm font-bold rounded-lg shadow hover:bg-[#7C3AED] hover:shadow-md transition-all active:scale-95"
+                                    >
+                                        ADMIN LOGIN
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Email input field */}
@@ -340,6 +380,25 @@ export default function MobileVerificationScreen() {
                                     <span className="text-black"> and </span>
                                     <AuthLink href="/privacy" className="text-[#0095FF] font-semibold underline">Privacy Policy</AuthLink>
                                 </p>
+                            </div>
+                        </div>
+
+                        {/* Dummy Login Options (Dev Only) */}
+                        <div className="mt-4 border-t border-gray-100 pt-4 pb-2">
+                            <p className="text-center text-xs text-gray-400 mb-2">Development Access</p>
+                            <div className="flex justify-center gap-2">
+                                <button
+                                    onClick={() => handleMockLogin('USER')}
+                                    className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs rounded-full border border-gray-200"
+                                >
+                                    Login as User
+                                </button>
+                                <button
+                                    onClick={() => handleMockLogin('ADMIN')}
+                                    className="px-3 py-1 bg-purple-50 hover:bg-purple-100 text-purple-600 text-xs rounded-full border border-purple-200"
+                                >
+                                    Login as Admin
+                                </button>
                             </div>
                         </div>
                     </div>

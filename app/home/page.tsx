@@ -600,42 +600,42 @@ const HomePage = () => {
         setActiveSuggestionId(null);
         setSuggestionLoadingId(null);
 
-        if (!locationConfirmed) {
-            toast({
-                title: 'Select a location',
-                description: 'Please pick one of the preset locations before searching.',
-                variant: 'destructive',
-            });
-            return;
-        }
-
-        try {
-            await searchNearby({
-                radius: 5000,
-                lat: currentLocation?.lat,
-                lng: currentLocation?.lng,
-            });
-            setShowingSearchResults(true);
-            setNearbyDropdownOpen(true);
-        } catch (error: any) {
-            console.error('Nearby search failed:', error);
-            toast({
-                title: 'Nearby search failed',
-                description: error.message || 'Could not fetch nearby places.',
-                variant: 'destructive',
-            });
-            setNearbyDropdownOpen(false);
-            return;
-        }
-
+        // If no query, just do nearby search (current behavior)
         if (!trimmedQuery) {
+            if (!locationConfirmed) {
+                toast({
+                    title: 'Select a location',
+                    description: 'Please pick one of the preset locations before searching.',
+                    variant: 'destructive',
+                });
+                return;
+            }
+
+            try {
+                await searchNearby({
+                    radius: 5000,
+                    lat: currentLocation?.lat,
+                    lng: currentLocation?.lng,
+                });
+                setShowingSearchResults(true);
+                setNearbyDropdownOpen(true);
+            } catch (error: any) {
+                console.error('Nearby search failed:', error);
+                toast({
+                    title: 'Nearby search failed',
+                    description: error.message || 'Could not fetch nearby places.',
+                    variant: 'destructive',
+                });
+            }
             return;
         }
 
+        // If there is a query, use quick search (universalSearch)
         console.log('Searching for:', trimmedQuery);
         try {
-            await universalSearch(trimmedQuery);
             setShowingSearchResults(true);
+            setNearbyDropdownOpen(false); // Close suggestions on enter
+            await universalSearch(trimmedQuery);
         } catch (error) {
             console.error('Search failed:', error);
             toast({

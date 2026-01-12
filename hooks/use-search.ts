@@ -54,6 +54,7 @@ export interface UseSearchState {
 export interface UseSearchActions {
     searchNearby: (params?: Partial<NearbySearchParamsV2> & { radius?: number, category?: string }) => Promise<void>;
     universalSearch: (query: string) => Promise<void>;
+    searchQuick: (query: string, searchType?: 'ALL' | 'CLUBS_ONLY' | 'EVENTS_ONLY') => Promise<void>;
     searchAdvanced: (params: AdvancedSearchParams) => Promise<void>;
     getAutocompleteSuggestions: (query: string) => Promise<void>;
     getCurrentLocation: () => Promise<SavedLocation>;
@@ -210,18 +211,31 @@ export function useSearch(): UseSearchState & UseSearchActions {
         }
     }, []);
 
-    const universalSearch = useCallback(async (query: string) => {
+    const searchQuick = useCallback(async (query: string, searchType: 'ALL' | 'CLUBS_ONLY' | 'EVENTS_ONLY' = 'ALL') => {
         if (!query.trim()) return;
-
+        setIsSearching(true);
+        setError(null);
         try {
-            await searchAdvanced({
-                query: query.trim()
+            const loc = currentLocation;
+            const response = await SearchService.quickSearch({
+                query: query.trim(),
+                lat: loc?.lat,
+                lng: loc?.lng,
+                radiusKm: 50,
+                searchType
             });
-        } catch (error: any) {
-            console.error(error);
-            setError(error.message);
+            setSearchResults(response);
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message);
+        } finally {
+            setIsSearching(false);
         }
-    }, [searchAdvanced]);
+    }, [currentLocation]);
+
+    const universalSearch = useCallback(async (query: string) => {
+        await searchQuick(query);
+    }, [searchQuick]);
 
     const clearResults = useCallback(() => {
         setSearchResults(null);
@@ -274,6 +288,7 @@ export function useSearch(): UseSearchState & UseSearchActions {
 
         searchNearby,
         universalSearch,
+        searchQuick,
         searchAdvanced,
         getAutocompleteSuggestions,
         getCurrentLocation,
