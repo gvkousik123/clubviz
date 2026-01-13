@@ -62,12 +62,6 @@ export default function OTPVerificationScreen() {
             if (value && index < otp.length - 1) {
                 inputRefs.current[index + 1]?.focus();
             }
-
-            // Auto-submit when all 6 digits are entered
-            if (newOtp.every(digit => digit !== '') && newOtp.join('').length === 6) {
-                console.log("✅ All 6 digits entered. Auto-verifying...");
-                handleVerifyOTP(newOtp.join(''));
-            }
         }
     };
 
@@ -367,8 +361,8 @@ export default function OTPVerificationScreen() {
                                     onClick={() => handleVerifyOTP()}
                                     disabled={!canSubmit}
                                     className={`w-[70px] h-[70px] rounded-full flex items-center justify-center transition-all duration-300 ${canSubmit
-                                        ? "bg-[#0D7377] text-white shadow-lg active:scale-95 cursor-pointer"
-                                        : "bg-gray-200 text-gray-400 cursor-not-allowed opacity-70"
+                                        ? "bg-[#0D7377] text-white shadow-lg active:scale-95 cursor-pointer opacity-100"
+                                        : "bg-gray-200 text-gray-400 cursor-not-allowed opacity-0 pointer-events-none"
                                         }`}
                                 >
                                     <ArrowRight className="w-6 h-6" />
