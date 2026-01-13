@@ -55,14 +55,18 @@ export default function OTPVerificationScreen() {
             newOtp[index] = value;
             setOtp(newOtp);
 
+            // Clear error when user types
+            if (error) setError(null);
+
             // Auto-focus next input (only if not on last input)
             if (value && index < otp.length - 1) {
                 inputRefs.current[index + 1]?.focus();
             }
 
-            // Show message when all 6 digits are entered
+            // Auto-submit when all 6 digits are entered
             if (newOtp.every(digit => digit !== '') && newOtp.join('').length === 6) {
-                console.log("✅ All 6 digits entered. Click the arrow button to verify.");
+                console.log("✅ All 6 digits entered. Auto-verifying...");
+                handleVerifyOTP(newOtp.join(''));
             }
         }
     };
@@ -74,7 +78,7 @@ export default function OTPVerificationScreen() {
     };
 
     const handleVerifyOTP = async (otpCode?: string) => {
-        if (!email || !phoneNumber) return;
+        if (isLoading || !email || !phoneNumber) return;
 
         const otpValue = otpCode || otp.join('');
         if (otpValue.length !== 6) {
@@ -106,48 +110,29 @@ export default function OTPVerificationScreen() {
             localStorage.setItem('validatedEmail', email);
             localStorage.setItem('validatedPhone', phoneNumber);
 
-            // If JWT token is returned (existing user), store it and go to home
+            // If JWT token is returned (existing user OR pre-auth token), store it
             if (response.jwtToken && response.jwtToken !== 'null' && response.jwtToken !== '') {
-                console.log("✅ JWT Token found - Existing user detected");
+                console.log("✅ Token received from OTP validation");
 
-                // Store the JWT token directly
+                // Store this token as a temporary "pre-auth" token for the next step (Signin/Signup)
+                // The backend requires this token in the Authorization header for signin/signup
                 localStorage.setItem(STORAGE_KEYS.accessToken, response.jwtToken);
-                console.log("✅ Stored accessToken from OTP validation");
 
-                // Also store user data if provided
-                if (response.data?.user) {
-                    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.data.user));
-                    console.log("✅ Stored user data:", response.data.user);
-                }
+                // Also update other validation flags
+                localStorage.setItem('otpValidated', 'true');
+                localStorage.setItem('validatedEmail', email);
+                localStorage.setItem('validatedPhone', phoneNumber);
 
-                // Store refresh token if provided
-                if (response.data?.refreshToken) {
-                    localStorage.setItem(STORAGE_KEYS.refreshToken, response.data.refreshToken);
-                    console.log("✅ Stored refreshToken");
-                }
-
-                // Clear temporary data
-                localStorage.removeItem(STORAGE_KEYS.pendingPhone);
-                localStorage.removeItem('pendingEmail');
-                localStorage.removeItem('otpValidated');
-                localStorage.removeItem('validatedEmail');
-                localStorage.removeItem('validatedPhone');
-                console.log("🧹 Cleared temporary data");
-
-                // Show success message
-                toast({
-                    title: "Welcome back!",
-                    description: "You have been logged in successfully",
-                });
-
-                // Redirect to home page (existing user)
-                console.log("🔄 Existing user - Redirecting to /home...");
-                router.replace('/home');
+                // IMPORTANT: Navigate to Signup by default as requested
+                // User can switch to Signin from there if needed
+                console.log("🔄 Redirecting to /auth/signup...");
+                router.replace('/auth/signup');
                 return;
             }
             else {
-                console.log("ℹ️ No JWT Token - New user registration required");
-                router.replace('/auth/register');
+                // Should not happen if API is correct, but safe fallback
+                console.log("ℹ️ No Token - Redirecting to signup");
+                router.replace('/auth/signup');
             }
 
             // New user - redirect to signup page to complete registration
@@ -309,6 +294,13 @@ export default function OTPVerificationScreen() {
                             )}
                         </div>
 
+                        {/* Error Message */}
+                        {error && (
+                            <div className="text-red-500 text-sm text-center mb-4 font-medium animate-pulse p-2 bg-red-50 rounded-lg">
+                                {error}
+                            </div>
+                        )}
+
                         {/* Number Keypad */}
                         <div className="mx-auto w-[280px] space-y-4 mb-6">
                             {/* Keypad Grid */}
@@ -365,10 +357,12 @@ export default function OTPVerificationScreen() {
                                 <button
                                     onClick={() => handleVerifyOTP()}
                                     disabled={!canSubmit}
-                                    className="w-[70px] h-[70px] rounded-full bg-[#0D7377] 
-                                        text-white flex items-center justify-center"
+                                    className={`w-[70px] h-[70px] rounded-full flex items-center justify-center transition-all duration-300 ${canSubmit
+                                        ? "bg-[#0D7377] text-white shadow-lg active:scale-95 cursor-pointer"
+                                        : "bg-gray-200 text-gray-400 cursor-not-allowed opacity-70"
+                                        }`}
                                 >
-                                    <ArrowRight className="w-6 h-6 text-white" />
+                                    <ArrowRight className="w-6 h-6" />
                                 </button>
                             </div>
                         </div>

@@ -154,11 +154,11 @@ export interface AutocompleteResponse {
 export const SearchService = {
   /**
    * Advanced search
-   * POST /search/v2
+   * POST /search/search/v2
    */
   async advancedSearch(params: AdvancedSearchParams): Promise<SearchV2Response> {
     try {
-      const response = await api.post('/search/v2', params);
+      const response = await api.post('/search/search/v2', params);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -167,11 +167,11 @@ export const SearchService = {
 
   /**
    * Autocomplete suggestions
-   * GET /search/v2/autocomplete
+   * GET /search/search/v2/autocomplete
    */
   async autocomplete(query: string): Promise<AutocompleteResponse> {
     try {
-      const response = await api.get(`/search/v2/autocomplete?query=${encodeURIComponent(query)}`);
+      const response = await api.get(`/search/search/v2/autocomplete?query=${encodeURIComponent(query)}`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -180,7 +180,7 @@ export const SearchService = {
 
   /**
    * Quick search with query parameters
-   * GET /search/v2/quick
+   * GET /search/search/v2/quick
    */
   async quickSearch(params: QuickSearchParams): Promise<SearchV2Response> {
     try {
@@ -193,7 +193,7 @@ export const SearchService = {
       if (params.page !== undefined) queryParams.append('page', params.page.toString());
       if (params.size !== undefined) queryParams.append('size', params.size.toString());
 
-      const response = await api.get(`/search/v2/quick?${queryParams.toString()}`);
+      const response = await api.get(`/search/search/v2/quick?${queryParams.toString()}`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -202,7 +202,7 @@ export const SearchService = {
 
   /**
    * Discover nearby clubs and events
-   * GET /search/v2/nearby
+   * GET /search/search/v2/nearby
    */
   async nearbySearch(params: NearbySearchParamsV2): Promise<SearchV2Response> {
     try {
@@ -215,7 +215,7 @@ export const SearchService = {
       if (params.page !== undefined) queryParams.append('page', params.page.toString());
       if (params.size !== undefined) queryParams.append('size', params.size.toString());
 
-      const response = await api.get(`/search/v2/nearby?${queryParams.toString()}`);
+      const response = await api.get(`/search/search/v2/nearby?${queryParams.toString()}`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));

@@ -145,7 +145,7 @@ export default function RegisterPage() {
                         onClick={handleLoginRedirect}
                         className="px-[1rem] py-[0.375rem] rounded-full border border-teal-400/30 text-[0.875rem] text-teal-300 hover:bg-teal-500/10 transition"
                     >
-                        Login
+                        Sign In
                     </button>
                 </div>
 
@@ -155,11 +155,14 @@ export default function RegisterPage() {
                     </div>
 
                     <div className="bg-white rounded-t-3xl w-full px-[1.5rem] pt-[1.5rem] pb-[2rem] overflow-y-auto flex flex-col">
-                        <h1 className="text-[1.5rem] font-semibold text-[#2C1945] mb-[1.5rem] text-center">
+                        <h1 className="text-[1.5rem] font-semibold text-[#2C1945] mb-2 text-center">
                             Complete Your Registration
                         </h1>
-
                         <p className="text-center text-[#6A6A6A] text-[0.875rem] mb-[1.5rem]">
+                            Already have an account? <Link href="/auth/login" className="text-[#0D7377] font-semibold">Sign In</Link>
+                        </p>
+
+                        <p className="text-center text-[#6A6A6A] text-[0.875rem] mb-[1.5rem] hidden">
                             Email and mobile were verified via OTP. Just add your name and password.
                         </p>
 

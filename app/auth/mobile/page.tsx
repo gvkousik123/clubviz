@@ -205,7 +205,7 @@ export default function MobileVerificationScreen() {
                             <h1 className="text-[1.5rem] font-semibold text-[#2C1945] mb-[0.5rem] text-center">Enter Your Details</h1>
 
                             {/* Development Quick Access - High Visibility */}
-                            <div className="flex flex-col gap-2 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200 shadow-inner">
+                            {/* <div className="flex flex-col gap-2 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200 shadow-inner">
                                 <p className="text-center text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Developer Fast Login</p>
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
@@ -221,7 +221,7 @@ export default function MobileVerificationScreen() {
                                         ADMIN LOGIN
                                     </button>
                                 </div>
-                            </div>
+                            </div> */}
                         </div>
 
                         {/* Email input field */}

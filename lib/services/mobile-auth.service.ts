@@ -198,15 +198,21 @@ export class MobileAuthService {
    * 104 - Email not found
    * 105 - Mobile not found
    */
-  static async sendOtp(email: string, mobile: string): Promise<ApiResponse<any>> {
+  static async sendOtp(
+    email: string,
+    mobile: string
+  ): Promise<ApiResponse<any>> {
     try {
       const response = await api.post(
-        "/notification/api/otp/send",
-        null, // 🚫 NO request body
+        "https://clubwiz.in/notification/api/otp/send",
+        null, // 🚫 No request body
         {
           params: {
             email: email.trim().toLowerCase(),
             mobile: mobile.replace(/\D/g, "").slice(-10)
+          },
+          headers: {
+            Authorization: undefined // 🔥 VERY IMPORTANT
           }
         }
       );
@@ -215,7 +221,11 @@ export class MobileAuthService {
       const statusCode = result.returnCode || result.code;
 
       if (statusCode === OTP_STATUS_CODES.OTP_SENT) {
-        return { ...result, success: true, message: OTP_STATUS_MESSAGES.OTP_SENT };
+        return {
+          ...result,
+          success: true,
+          message: OTP_STATUS_MESSAGES.OTP_SENT
+        };
       }
 
       if (statusCode === OTP_STATUS_CODES.EMAIL_NOT_FOUND) {
@@ -226,7 +236,11 @@ export class MobileAuthService {
         throw new Error(OTP_STATUS_MESSAGES.MOBILE_NOT_FOUND);
       }
 
-      return { ...result, success: true };
+      return {
+        ...result,
+        success: true
+      };
+
     } catch (error) {
       console.error("❌ Send OTP error:", error);
       throw new Error(handleApiError(error));
@@ -245,7 +259,13 @@ export class MobileAuthService {
    */
   static async validateOtp(email: string, otp: string): Promise<ApiResponse<any>> {
     try {
-      const response = await api.post(`../notification/api/otp/validate`, { email, otp });
+      console.log(`📡 Calling validateOtp for ${email} with OTP ${otp}`);
+      const response = await api.post(`https://clubwiz.in/notification/api/otp/validate`, null, {
+        params: {
+          email: email.trim().toLowerCase(),
+          otp: parseInt(otp, 10)
+        }
+      });
       const result = handleApiResponse(response);
 
       // Handle different status codes
