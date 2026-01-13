@@ -123,10 +123,19 @@ export default function OTPVerificationScreen() {
                 localStorage.setItem('validatedEmail', email);
                 localStorage.setItem('validatedPhone', phoneNumber);
 
+                // Show success toast
+                toast({
+                    title: "OTP Verified Successfully",
+                    description: "Redirecting to complete registration...",
+                    className: "bg-green-50 border-green-200 text-green-900",
+                });
+
                 // IMPORTANT: Navigate to Signup by default as requested
                 // User can switch to Signin from there if needed
-                console.log("🔄 Redirecting to /auth/signup...");
-                router.replace('/auth/signup');
+                setTimeout(() => {
+                    console.log("🔄 Redirecting to /auth/signup...");
+                    router.replace('/auth/signup');
+                }, 1000); // Small delay to let user see toast
                 return;
             }
             else {

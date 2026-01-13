@@ -189,25 +189,6 @@ export default function MobileVerificationScreen() {
                         {/* Header */}
                         <div className="mb-[1.5rem]">
                             <h1 className="text-[1.5rem] font-semibold text-[#2C1945] mb-[0.5rem] text-center">Enter Your Details</h1>
-
-                            {/* Development Quick Access - High Visibility */}
-                            {/* <div className="flex flex-col gap-2 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200 shadow-inner">
-                                <p className="text-center text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Developer Fast Login</p>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button
-                                        onClick={() => handleMockLogin('USER')}
-                                        className="py-3 bg-[#0D7377] text-white text-sm font-bold rounded-lg shadow hover:bg-[#0A5A5D] hover:shadow-md transition-all active:scale-95"
-                                    >
-                                        USER LOGIN
-                                    </button>
-                                    <button
-                                        onClick={() => handleMockLogin('ADMIN')}
-                                        className="py-3 bg-[#8B5CF6] text-white text-sm font-bold rounded-lg shadow hover:bg-[#7C3AED] hover:shadow-md transition-all active:scale-95"
-                                    >
-                                        ADMIN LOGIN
-                                    </button>
-                                </div>
-                            </div> */}
                         </div>
 
                         {/* Email input field */}
