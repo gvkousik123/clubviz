@@ -16,31 +16,6 @@ import { STORAGE_KEYS } from '../constants/storage';
 // ============================================================================
 const USERS_API_BASE_URL = 'https://clubwiz.in/users';
 
-// MOCK USER DATA FOR RELIABLE FALLBACK
-const MOCK_USER_SESSION = {
-    "accessToken": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2ZW5rYXRha291c2lrY3NlMDFAZ21haWwuY29tIiwidHlwZSI6ImFjY2VzcyIsInJvbGVzIjpbIlJPTEVfVVNFUiJdLCJpYXQiOjE3NjgxMzk1NjMsImV4cCI6MTc2ODE0MDc2M30.5hh40hIRNMq9tYYFPJPW-MjyE8v0nzoHyZfE9ZwHyVOvPaBe-J2F7osvFoCNUVj7JIjFtyY2uJaiK2pNf0sa3Q",
-    "refreshToken": "0de94ef8-1f91-49e7-8a54-4b5450509557.1bdb9f73-e033-4efc-adc3-3bfcaf9dcd47",
-    "type": "Bearer",
-    "id": "6963ab18b0104a00fd4620b0",
-    "username": "venkatakousikcse01-2410",
-    "email": "venkatakousikcse01@gmail.com",
-    "roles": [
-        "ROLE_USER"
-    ]
-};
-
-const MOCK_ADMIN_SESSION = {
-    "accessToken": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJrYXVzaGlrY2hhbmQuYmF1cmFzaUBnbWFpbC5jb20iLCJ0eXBlIjoiYWNjZXNzIiwicm9sZXMiOlsiUk9MRV9BRE1JTiJdLCJpYXQiOjE3NjgxMzk5MzcsImV4cCI6MTc2ODE0MTEzN30.EuVdV6lRSLW1XSQRy1uTg5tw6zsqy0x8_t-0rDWID7tsnylsbYqPTUXG0EqWAx5RhyMEL7VG2acTCn5YKpd5mg",
-    "refreshToken": "debb771a-ce2b-4864-ba96-2b781f3f83f4.f9b961d9-9ca2-4e59-8840-9a616d7483c2",
-    "type": "Bearer",
-    "id": "6946ef9c728bb70987702a2f",
-    "username": "kaushikchand.baurasi-4956",
-    "email": "kaushikchand.baurasi@gmail.com",
-    "roles": [
-        "ROLE_ADMIN"
-    ]
-};
-
 const usersApiClient: AxiosInstance = axios.create({
     baseURL: USERS_API_BASE_URL,
     timeout: 15000,
@@ -221,20 +196,9 @@ export class AuthService {
     // 1. SIGN IN (Login with Email/Username & Password)
     // Endpoint: POST /auth/signin (Users Service)
     // --------------------------------------------------------------------------
-    static async mockLogin(role: 'USER' | 'ADMIN'): Promise<ApiResponse<UsersApiAuthResponse>> {
-        const mockResult = role === 'ADMIN' ? MOCK_ADMIN_SESSION : MOCK_USER_SESSION;
-        storeAuthSession(mockResult);
-        return {
-            success: true,
-            data: mockResult,
-            message: `Mock Login Successful (${role})`
-        };
-    }
-
     static async signIn(usernameOrEmail: string, password: string): Promise<ApiResponse<UsersApiAuthResponse>> {
         try {
             console.log('🔐 Signing in user:', usernameOrEmail);
-            console.log(' Using Mock Fallback if API fails');
 
             const response = await usersApiClient.post('/auth/signin', {
                 usernameOrEmail,
@@ -254,25 +218,9 @@ export class AuthService {
                 message: 'Login successful'
             };
         } catch (error: any) {
-            console.error('❌ Login failed, using MOCK SESSION:', error);
-
-            // EMERGENCY MOCK FALLBACK
-            let mockResult = MOCK_USER_SESSION;
-
-            // Allow selecting admin role for testing
-            if (typeof window !== 'undefined') {
-                if (window.confirm("Login API failed. Use ADMIN Mock Account? (Cancel for USER)")) {
-                    mockResult = MOCK_ADMIN_SESSION;
-                }
-            }
-
-            storeAuthSession(mockResult);
-
-            return {
-                success: true,
-                data: mockResult,
-                message: `Login Successful (Mock ${mockResult.roles[0]})`
-            };
+            console.error('❌ Login failed:', error);
+            const errorMessage = handleUsersApiError(error);
+            throw new Error(errorMessage);
         }
     }
 
@@ -303,25 +251,9 @@ export class AuthService {
                 message: 'User registered successfully!'
             };
         } catch (error: any) {
-            console.error('❌ Signup failed, using MOCK SESSION:', error);
-
-            // EMERGENCY MOCK FALLBACK for Signup too
-            let mockResult = MOCK_USER_SESSION;
-
-            // Allow selecting admin role for testing
-            if (typeof window !== 'undefined') {
-                if (window.confirm("Signup API failed. Use ADMIN Mock Account? (Cancel for USER)")) {
-                    mockResult = MOCK_ADMIN_SESSION;
-                }
-            }
-
-            storeAuthSession(mockResult);
-
-            return {
-                success: true,
-                data: mockResult,
-                message: `User registered successfully (Mock ${mockResult.roles[0]})`
-            };
+            console.error('❌ Signup failed:', error);
+            const errorMessage = handleUsersApiError(error);
+            throw new Error(errorMessage);
         }
     }
 

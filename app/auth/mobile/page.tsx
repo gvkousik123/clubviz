@@ -43,20 +43,6 @@ export default function MobileVerificationScreen() {
         router.push('/home');
     };
 
-    const handleMockLogin = async (role: 'USER' | 'ADMIN') => {
-        try {
-            await AuthService.mockLogin(role);
-            toast({
-                title: `Mock Login Successful (${role})`,
-                description: "Redirecting...",
-            });
-            // Force reload to ensure auth state is picked up
-            window.location.href = role === 'ADMIN' ? '/admin/dashboard' : '/home';
-        } catch (error) {
-            console.error("Mock login failed", error);
-        }
-    };
-
     // No client-side reCAPTCHA when using backend OTP endpoints
 
     const handleNumberPress = (num: string) => {
@@ -380,25 +366,6 @@ export default function MobileVerificationScreen() {
                                     <span className="text-black"> and </span>
                                     <AuthLink href="/privacy" className="text-[#0095FF] font-semibold underline">Privacy Policy</AuthLink>
                                 </p>
-                            </div>
-                        </div>
-
-                        {/* Dummy Login Options (Dev Only) */}
-                        <div className="mt-4 border-t border-gray-100 pt-4 pb-2">
-                            <p className="text-center text-xs text-gray-400 mb-2">Development Access</p>
-                            <div className="flex justify-center gap-2">
-                                <button
-                                    onClick={() => handleMockLogin('USER')}
-                                    className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs rounded-full border border-gray-200"
-                                >
-                                    Login as User
-                                </button>
-                                <button
-                                    onClick={() => handleMockLogin('ADMIN')}
-                                    className="px-3 py-1 bg-purple-50 hover:bg-purple-100 text-purple-600 text-xs rounded-full border border-purple-200"
-                                >
-                                    Login as Admin
-                                </button>
                             </div>
                         </div>
                     </div>
