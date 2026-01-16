@@ -75,29 +75,31 @@ export default function NewEventPage() {
         const loadClubs = async () => {
             try {
                 setLoadingClubs(true);
-                console.log('📡 Loading manageable clubs...');
-                const response = await ClubService.getManageableClubs({ page: 0, size: 100 });
+                console.log('📡 Loading admin clubs from /clubs/admin/all...');
+                const response = await ClubService.getAllClubsAdmin();
 
-                // Handle both array and object with content property
+                // Handle API response
                 let clubsList: Club[] = [];
-                if (Array.isArray(response)) {
+                if (response.success && response.data) {
+                    clubsList = Array.isArray(response.data) ? response.data : [];
+                } else if (Array.isArray(response)) {
                     clubsList = response;
-                } else if (response && typeof response === 'object') {
-                    clubsList = Array.isArray((response as any).content) ? (response as any).content : Array.isArray(response) ? response : [];
                 }
 
-                console.log('✅ Clubs loaded:', clubsList);
+                console.log('✅ Admin clubs loaded:', clubsList);
                 setClubs(clubsList);
 
-                // Auto-select club if passed in URL
+                // Check if clubId is in URL (navigated from club page)
                 const urlClubId = searchParams.get('clubId');
                 if (urlClubId) {
                     const found = clubsList.find(c => c.id === urlClubId);
                     if (found) {
                         setSelectedClubId(urlClubId);
+                        // Hide dropdown when navigating from club page
+                        setShowClubDropdown(false);
                         console.log('📌 Pre-selected club from URL:', found.name);
                     } else if (clubsList.length > 0) {
-                        // Fallback if ID not found in list (weird but possible if permissions mismatch)
+                        // Fallback if ID not found
                         setSelectedClubId(clubsList[0].id);
                     }
                 }
@@ -123,6 +125,13 @@ export default function NewEventPage() {
 
     const handleGoBack = () => {
         router.back();
+    };
+
+    const handlePreviewEvent = () => {
+        // Close dialog and go back to edit
+        setShowConfirmDialog(false);
+        setDialogStage('confirm');
+        // Could also navigate to a preview page if needed
     };
 
     const handleInputChange = (field: string, value: string) => {
@@ -181,6 +190,10 @@ export default function NewEventPage() {
 
             if (!formData.description.trim()) {
                 throw new Error('Event description is required');
+            }
+
+            if (!formData.organizer.trim()) {
+                throw new Error('Event organizer is required');
             }
 
             if (!selectedClubId) {
@@ -315,56 +328,58 @@ export default function NewEventPage() {
                 <div className="w-full bg-[#021313] rounded-t-[40px] flex flex-col">
                     {/* Fixed header section that stays in place */}
                     <div className="w-full bg-[#021313] rounded-t-[40px]">
-                        {/* Club Selector */}
-                        <div className="w-full px-6 pt-6 pb-2">
-                            <label className="block text-[#14FFEC] font-semibold text-base mb-2">Select Club *</label>
-                            <div className="relative">
-                                <button
-                                    onClick={() => setShowClubDropdown(!showClubDropdown)}
-                                    className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[20px] p-[12px] px-4 flex items-center justify-between text-white hover:bg-[#0F2525] transition-colors"
-                                    disabled={loadingClubs}
-                                >
-                                    <span className="flex items-center gap-2">
-                                        <Building2 size={18} className="text-[#14FFEC]" />
-                                        {loadingClubs ? 'Loading clubs...' : (selectedClubId ? clubs.find(c => c.id === selectedClubId)?.name || 'Select a club' : 'Select a club')}
-                                    </span>
-                                    <ChevronDown size={18} className={`text-[#14FFEC] transition-transform ${showClubDropdown ? 'rotate-180' : ''}`} />
-                                </button>
+                        {/* Club Selector - Only show if not navigated from a club page */}
+                        {!searchParams.get('clubId') && (
+                            <div className="w-full px-6 pt-6 pb-2">
+                                <label className="block text-[#14FFEC] font-semibold text-base mb-2">Select Club *</label>
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowClubDropdown(!showClubDropdown)}
+                                        className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[20px] p-[12px] px-4 flex items-center justify-between text-white hover:bg-[#0F2525] transition-colors"
+                                        disabled={loadingClubs}
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            <Building2 size={18} className="text-[#14FFEC]" />
+                                            {loadingClubs ? 'Loading clubs...' : (selectedClubId ? clubs.find(c => c.id === selectedClubId)?.name || 'Select a club' : 'Select a club')}
+                                        </span>
+                                        <ChevronDown size={18} className={`text-[#14FFEC] transition-transform ${showClubDropdown ? 'rotate-180' : ''}`} />
+                                    </button>
 
-                                {/* Dropdown Menu */}
-                                {showClubDropdown && !loadingClubs && clubs.length > 0 && (
-                                    <div className="absolute top-full left-0 right-0 mt-2 bg-[#0D1F1F] border border-[#0C898B] rounded-[15px] z-50 shadow-lg max-h-64 overflow-y-auto">
-                                        {clubs.map((club) => (
-                                            <button
-                                                key={club.id}
-                                                onClick={() => {
-                                                    setSelectedClubId(club.id);
-                                                    setShowClubDropdown(false);
-                                                    console.log('✅ Selected club:', club.name, '(ID:', club.id + ')');
-                                                }}
-                                                className={`w-full px-4 py-3 text-left flex items-center gap-3 border-b border-[#0C898B] last:border-0 hover:bg-[#0F2525] transition-colors ${selectedClubId === club.id ? 'bg-[#0F2525] border-l-4 border-l-[#14FFEC]' : ''
-                                                    }`}
-                                            >
-                                                {club.logo && (
-                                                    <img src={club.logo} alt={club.name} className="w-8 h-8 rounded-full object-cover" />
-                                                )}
-                                                <span className="text-white font-semibold">{club.name}</span>
-                                                {selectedClubId === club.id && (
-                                                    <span className="ml-auto text-[#14FFEC]">✓</span>
-                                                )}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
+                                    {/* Dropdown Menu */}
+                                    {showClubDropdown && !loadingClubs && clubs.length > 0 && (
+                                        <div className="absolute top-full left-0 right-0 mt-2 bg-[#0D1F1F] border border-[#0C898B] rounded-[15px] z-50 shadow-lg max-h-64 overflow-y-auto">
+                                            {clubs.map((club) => (
+                                                <button
+                                                    key={club.id}
+                                                    onClick={() => {
+                                                        setSelectedClubId(club.id);
+                                                        setShowClubDropdown(false);
+                                                        console.log('✅ Selected club:', club.name, '(ID:', club.id + ')');
+                                                    }}
+                                                    className={`w-full px-4 py-3 text-left flex items-center gap-3 border-b border-[#0C898B] last:border-0 hover:bg-[#0F2525] transition-colors ${selectedClubId === club.id ? 'bg-[#0F2525] border-l-4 border-l-[#14FFEC]' : ''
+                                                        }`}
+                                                >
+                                                    {club.logo && (
+                                                        <img src={club.logo} alt={club.name} className="w-8 h-8 rounded-full object-cover" />
+                                                    )}
+                                                    <span className="text-white font-semibold">{club.name}</span>
+                                                    {selectedClubId === club.id && (
+                                                        <span className="ml-auto text-[#14FFEC]">✓</span>
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
 
-                                {/* Empty State */}
-                                {showClubDropdown && !loadingClubs && clubs.length === 0 && (
-                                    <div className="absolute top-full left-0 right-0 mt-2 bg-[#0D1F1F] border border-[#0C898B] rounded-[15px] p-4 text-center text-gray-400">
-                                        No clubs available. Please create a club first.
-                                    </div>
-                                )}
+                                    {/* Empty State */}
+                                    {showClubDropdown && !loadingClubs && clubs.length === 0 && (
+                                        <div className="absolute top-full left-0 right-0 mt-2 bg-[#0D1F1F] border border-[#0C898B] rounded-[15px] p-4 text-center text-gray-400">
+                                            No clubs available. Please create a club first.
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Heading container */}
                         <div className="w-full pb-2">
@@ -530,7 +545,7 @@ export default function NewEventPage() {
                                 {/* Event Organizer */}
                                 <div className="space-y-3">
                                     <div className="px-5">
-                                        <label className="text-[#14FFEC] font-semibold text-base">Event Organizer</label>
+                                        <label className="text-[#14FFEC] font-semibold text-base">Event Organizer *</label>
                                     </div>
                                     <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
                                         <div className="flex items-center gap-3">

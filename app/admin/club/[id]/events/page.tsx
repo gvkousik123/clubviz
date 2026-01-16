@@ -4,8 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Calendar, Clock, MapPin, Edit, Users, Trash } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { ClubService, Club } from '@/lib/services/club.service';
-import { EventService } from '@/lib/services/event.service';
-import { Event } from '@/lib/api-types';
+import { EventService, EventListItem } from '@/lib/services/event.service';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ClubEventsPage() {
@@ -15,7 +14,7 @@ export default function ClubEventsPage() {
     const { toast } = useToast();
 
     const [club, setClub] = useState<Club | null>(null);
-    const [events, setEvents] = useState<Event[]>([]);
+    const [events, setEvents] = useState<EventListItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -35,16 +34,14 @@ export default function ClubEventsPage() {
                 }
 
                 // Fetch Club Events
-                const eventsResponse = await EventService.getEventsByClub(clubId, { size: 100, sortOrder: 'desc', sortBy: 'startDateTime' });
+                const eventsResponse = await EventService.getEventsByClub(clubId, { page: 0, size: 100, sortOrder: 'asc', sortBy: 'startDateTime' });
 
-                // Handle different response formats
+                // Handle EventListResponse format
                 if (eventsResponse.success !== false && eventsResponse.data) {
-                    if (eventsResponse.data.events) {
-                        setEvents(eventsResponse.data.events);
+                    if ((eventsResponse.data as any).content) {
+                        setEvents((eventsResponse.data as any).content);
                     } else if (Array.isArray(eventsResponse.data)) {
                         setEvents(eventsResponse.data);
-                    } else if ((eventsResponse.data as any).content) {
-                        setEvents((eventsResponse.data as any).content);
                     }
                 } else if (Array.isArray((eventsResponse as any).content)) {
                     setEvents((eventsResponse as any).content);
@@ -95,20 +92,30 @@ export default function ClubEventsPage() {
         try {
             setIsDeleting(true);
             const response = await EventService.deleteEvent(eventId);
-            if (response.success !== false) {
+
+            if (response.success) {
                 toast({
                     title: "Success",
-                    description: "Event deleted successfully",
+                    description: response.message || "Event deleted successfully",
                 });
                 // Remove from local state
                 setEvents(prev => prev.filter(e => e.id !== eventId));
             } else {
-                throw new Error(response.message || 'Failed to delete');
+                throw new Error(response.message || 'Failed to delete event');
             }
         } catch (error: any) {
             console.error('Error deleting event:', error);
+
+            // Extract error message from different possible formats
+            let errorMessage = 'Failed to delete event';
+
+            if (error?.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error?.message) {
+                errorMessage = error.message;
+            }
+
             // Check for JWT token expiration
-            const errorMessage = error?.message || error?.response?.data?.error || '';
             if (errorMessage.toLowerCase().includes('jwt token') || errorMessage.toLowerCase().includes('token expired')) {
                 toast({
                     title: "Session Expired",
@@ -119,9 +126,11 @@ export default function ClubEventsPage() {
                 router.push('/auth/login');
                 return;
             }
+
+            // Show exact error message from API
             toast({
                 title: "Error",
-                description: "Failed to delete event",
+                description: errorMessage,
                 variant: "destructive",
             });
         } finally {
@@ -180,21 +189,19 @@ export default function ClubEventsPage() {
                                             <div className="flex flex-col gap-2 text-gray-400 text-sm">
                                                 <div className="flex items-center gap-2">
                                                     <Calendar className="w-4 h-4 text-[#14FFEC]" />
-                                                    <span>{(event as any).formattedDate || new Date(event.startDateTime).toLocaleDateString()}</span>
+                                                    <span>{event.formattedDate}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <Clock className="w-4 h-4 text-[#14FFEC]" />
-                                                    <span>{event.formattedTime || new Date(event.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                    <span>{event.formattedTime}</span>
                                                 </div>
-                                                {event.locationText && (
-                                                    <div className="flex items-center gap-2">
-                                                        <MapPin className="w-4 h-4 text-[#14FFEC]" />
-                                                        <span className="line-clamp-1">{typeof event.locationText === 'object' ? (event.locationText as any).fullAddress : event.locationText}</span>
-                                                    </div>
-                                                )}
+                                                <div className="flex items-center gap-2">
+                                                    <MapPin className="w-4 h-4 text-[#14FFEC]" />
+                                                    <span className="line-clamp-1">{event.location}</span>
+                                                </div>
                                                 <div className="flex items-center gap-2">
                                                     <Users className="w-4 h-4 text-[#14FFEC]" />
-                                                    <span>{(event as any).attendeeCount || event.attendedCount || 0} attendees</span>
+                                                    <span>{event.attendeeStatus}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -218,11 +225,12 @@ export default function ClubEventsPage() {
 
                                     {/* Status Badge */}
                                     <div className="flex gap-2 mt-2">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${(event as any).status === 'ONGOING' ? 'bg-green-500/20 text-green-400' :
-                                                (event as any).status === 'COMPLETED' ? 'bg-gray-500/20 text-gray-400' :
-                                                    'bg-blue-500/20 text-blue-400'
+                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${event.ongoing ? 'bg-green-500/20 text-green-400' :
+                                            event.pastEvent ? 'bg-gray-500/20 text-gray-400' :
+                                                event.upcoming ? 'bg-blue-500/20 text-blue-400' :
+                                                    'bg-[#14FFEC]/20 text-[#14FFEC]'
                                             }`}>
-                                            {(event as any).status || (new Date(event.endDateTime) < new Date() ? 'COMPLETED' : 'UPCOMING')}
+                                            {event.eventStatusText}
                                         </span>
                                         {event.isPublic && (
                                             <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#14FFEC]/10 text-[#14FFEC]">

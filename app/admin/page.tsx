@@ -139,25 +139,25 @@ export default function AdminDashboard() {
         if (!deleteClubId) return;
 
         try {
-            // Immediately remove from UI (optimistic update)
-            const updatedClubs = ownedClubs.filter(club => club.id !== deleteClubId);
-            setOwnedClubs(updatedClubs);
-
             // Close the dialog
             setShowDeleteClubDialog(false);
+            const clubIdToDelete = deleteClubId;
+            const clubNameToDelete = deleteClubName;
             setDeleteClubId(null);
             setDeleteClubName('');
 
-            // Call API - the hook will handle success/error feedback
-            const success = await deleteOwnedClub(deleteClubId);
+            // Call API and wait for response
+            const success = await deleteOwnedClub(clubIdToDelete);
 
-            if (!success) {
-                // If API failed, the hook will have already reverted the state
-                // and shown error feedback, so we don't need to do anything
-                console.error('Delete club API failed');
+            if (success) {
+                // Remove from UI after successful API call
+                const updatedClubs = ownedClubs.filter(club => club.id !== clubIdToDelete);
+                setOwnedClubs(updatedClubs);
+            } else {
+                // Reload to get correct state if deletion failed
+                loadOwnedClubs();
             }
-
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error deleting club:', error);
             // Reload to get correct state
             loadOwnedClubs();
@@ -198,47 +198,48 @@ export default function AdminDashboard() {
         if (!deleteEventId) return;
 
         try {
-            // Immediately remove from UI (optimistic update)
-            const updatedEvents = organizedEvents.filter(event => event.id !== deleteEventId);
-            setEvents(updatedEvents);
-
             // Close the dialog
             setShowDeleteDialog(false);
+            const eventIdToDelete = deleteEventId;
+            const eventTitleToDelete = deleteEventTitle;
             setDeleteEventId(null);
             setDeleteEventTitle('');
 
-            // Show success feedback
-            const toastDiv = document.createElement('div');
-            toastDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-            toastDiv.textContent = '✓ Event deleted successfully!';
-            document.body.appendChild(toastDiv);
-            setTimeout(() => {
-                if (document.body.contains(toastDiv)) {
-                    document.body.removeChild(toastDiv);
-                }
-            }, 3000);
+            // Call API and wait for response
+            const response = await EventService.deleteEvent(eventIdToDelete);
 
-            // Call API in background (don't wait for it)
-            eventCrud.deleteEvent(deleteEventId).then(success => {
-                if (!success) {
-                    // If API failed, revert the optimistic update
-                    console.error('API delete failed, reverting...');
-                    loadOrganizedEvents({ page: 0, size: 20, sortBy: 'startDateTime', sortOrder: 'asc' });
-                }
+            if (response.success) {
+                // Remove from UI after successful API call
+                const updatedEvents = organizedEvents.filter(event => event.id !== eventIdToDelete);
+                setEvents(updatedEvents);
+
+                // Show success toast
+                toast({
+                    title: "Success",
+                    description: response.message || `Event "${eventTitleToDelete}" deleted successfully`,
+                });
+            } else {
+                throw new Error(response.message || 'Failed to delete event');
+            }
+        } catch (error: any) {
+            console.error('Error deleting event:', error);
+
+            // Extract error message from different possible formats
+            let errorMessage = 'Failed to delete event';
+
+            if (error?.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error?.message) {
+                errorMessage = error.message;
+            }
+
+            // Show exact error message from API
+            toast({
+                title: "Error",
+                description: errorMessage,
+                variant: "destructive",
             });
 
-        } catch (error) {
-            console.error('Error deleting event:', error);
-            // Show error toast
-            const errorToast = document.createElement('div');
-            errorToast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-            errorToast.textContent = '⚠️ Failed to delete event';
-            document.body.appendChild(errorToast);
-            setTimeout(() => {
-                if (document.body.contains(errorToast)) {
-                    document.body.removeChild(errorToast);
-                }
-            }, 3000);
             // Reload to get correct state
             loadOrganizedEvents({ page: 0, size: 20, sortBy: 'startDateTime', sortOrder: 'asc' });
         }
@@ -422,6 +423,108 @@ export default function AdminDashboard() {
                                         <Edit className="w-5 h-5 text-black" />
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* My Organised Events Section */}
+                        <div className="mb-6">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                    <h3 className="text-lg font-semibold">My Organised Events</h3>
+                                    <div className="px-3 py-1 bg-[#14FFEC]/10 border border-[#14FFEC]/20 rounded-full">
+                                        <span className="text-[#14FFEC] text-sm font-medium">
+                                            {organizedEvents?.length || 0} {organizedEvents?.length === 1 ? 'Event' : 'Events'}
+                                        </span>
+                                    </div>
+                                </div>
+                                {isLoadingOrganized && (
+                                    <div className="text-[#14FFEC] text-sm">Loading...</div>
+                                )}
+                            </div>
+                            <p className="text-gray-400 text-sm mb-3">Manage your organized events</p>
+                            <div className="space-y-3">
+                                {organizedEvents?.map((event) => (
+                                    <div
+                                        key={event.id}
+                                        className="bg-[#0D1F1F] border border-[#14FFEC]/10 rounded-[15px] p-4"
+                                    >
+                                        <div className="flex gap-3">
+                                            {/* Event Image */}
+                                            {event.imageUrl && (
+                                                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                                                    <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
+                                                </div>
+                                            )}
+                                            {!event.imageUrl && (
+                                                <div className="w-16 h-16 bg-[#14FFEC]/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                    <Calendar className="w-8 h-8 text-[#14FFEC]" />
+                                                </div>
+                                            )}
+
+                                            {/* Event Details */}
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="text-white font-medium mb-1 truncate">{event.title}</h4>
+                                                <div className="space-y-1 text-xs text-gray-400">
+                                                    <div className="flex items-center gap-2">
+                                                        <Calendar className="w-3 h-3 text-[#14FFEC]" />
+                                                        <span>{event.formattedDate}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Clock className="w-3 h-3 text-[#14FFEC]" />
+                                                        <span>{event.formattedTime}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Users className="w-3 h-3 text-[#14FFEC]" />
+                                                        <span>{event.attendeeStatus}</span>
+                                                    </div>
+                                                </div>
+                                                {/* Status Badge */}
+                                                <div className="mt-2">
+                                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${event.ongoing ? 'bg-green-500/20 text-green-400' :
+                                                        event.upcoming ? 'bg-blue-500/20 text-blue-400' :
+                                                            event.pastEvent ? 'bg-gray-500/20 text-gray-400' :
+                                                                'bg-[#14FFEC]/20 text-[#14FFEC]'
+                                                        }`}>
+                                                        {event.eventStatusText}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Action Buttons */}
+                                            <div className="flex flex-col gap-2">
+                                                <button
+                                                    onClick={() => handleEditEvent(event.id)}
+                                                    className="p-2 bg-[#14FFEC]/20 rounded-lg hover:bg-[#14FFEC]/30 transition-colors"
+                                                    title="Edit Event"
+                                                >
+                                                    <Edit className="w-4 h-4 text-[#14FFEC]" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteEvent(event.id)}
+                                                    className="p-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
+                                                    disabled={eventCrud.isDeleting}
+                                                    title="Delete Event"
+                                                >
+                                                    <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                {organizedEvents?.length === 0 && !isLoadingOrganized && (
+                                    <div className="text-center py-8">
+                                        <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                                        <p className="text-gray-400">No organized events found</p>
+                                        <button
+                                            onClick={handleCreateEvent}
+                                            className="mt-4 px-6 py-2 bg-[#14FFEC] text-black font-semibold rounded-full hover:bg-opacity-90 transition-colors"
+                                        >
+                                            Create Your First Event
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

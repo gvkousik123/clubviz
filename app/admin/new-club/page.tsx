@@ -172,7 +172,7 @@ export default function NewClubPage() {
     };
 
     const handleGoBack = () => {
-        router.back();
+        router.push('/admin');
     };
 
     const handleInputChange = (field: string, value: string) => {
@@ -300,25 +300,14 @@ export default function NewClubPage() {
         try {
 
             // ✅ BUILD PAYLOAD EXACTLY AS REQUESTED
-            // Omitting images even if uploaded
+            // Omitting all image-related fields
 
-            const clubData = {
+            const clubData: any = {
                 "name": formData.clubName.trim(),
                 "description": formData.description.trim() || "",
-                "logoFile": formData.logo ? formData.logo.name : "",
-                "logo": null, // Intentionally null as requested to omit image data
-                "category": formData.category.trim() || "NIGHT_CLUB",
                 "maxMembers": parseInt(formData.maxMembers) || 0,
                 "contactEmail": formData.contactEmail.trim() || adminDetails.email,
                 "contactPhone": formData.contactPhone.trim() || adminDetails.phone,
-
-                // Image arrays - sent as empty/null as requested to omit
-                "foodImages": [],
-                "foodImageData": [],
-                "ambianceImages": [],
-                "ambianceImageData": [],
-                "menuImages": [],
-                "menuImageData": [],
 
                 // Location
                 "locationTextAddress1": formData.address1.trim() || "",
@@ -349,6 +338,11 @@ export default function NewClubPage() {
                 "inclusions": formData.inclusions || "",
                 "exclusions": formData.exclusions || ""
             };
+
+            // Only add category if user has entered a value
+            if (formData.category.trim()) {
+                clubData.category = formData.category.trim();
+            }
 
             console.log('🚀 Creating Club Payload:', clubData);
             console.log('📡 API Call: POST /clubs/create-json-with-images');

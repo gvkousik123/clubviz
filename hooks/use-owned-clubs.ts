@@ -153,30 +153,44 @@ export function useOwnedClubs(): UseOwnedClubsState & UseOwnedClubsActions {
 
             console.log('✅ Raw delete response:', response);
 
-            // ClubService.deleteClub returns void on success usually, or the response object
-            // Just assume success if no error was thrown
+            // Check if response indicates success
+            if (response && (response as any).success === false) {
+                throw new Error((response as any).message || 'Failed to delete club');
+            }
 
             // Reload all clubs to ensure consistency
             await loadOwnedClubs();
 
             console.log('✅ Club deleted successfully from UI');
             toast({
-                title: "Club Deleted",
-                description: "Club has been deleted successfully",
-                variant: "default",
+                title: "Success",
+                description: (response as any)?.message || "Club has been deleted successfully",
             });
             return true;
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('❌ Error deleting club:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Failed to delete club';
+
+            // Extract error message from different possible formats
+            let errorMessage = 'Failed to delete club';
+
+            if (error?.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error?.message) {
+                errorMessage = error.message;
+            }
+
             setError(errorMessage);
-            showErrorToast('Delete Failed', errorMessage);
+            toast({
+                title: "Error",
+                description: errorMessage,
+                variant: "destructive",
+            });
             return false;
         } finally {
             setIsDeleting(false);
         }
-    }, [showErrorToast, toast, loadOwnedClubs]);
+    }, [toast, loadOwnedClubs]);
 
     const setClubsDirectly = useCallback((newClubs: MyClubItem[]) => {
         setClubs(newClubs);

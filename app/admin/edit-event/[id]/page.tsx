@@ -3,7 +3,6 @@
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Upload, Calendar, Clock, Music, User, Building2, Instagram, Music2, ImageIcon, VideoIcon, ChevronDown, Plus, Trash2 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import '../styles.css';
 import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
 import { EventService } from '@/lib/services/event.service';
 import { ClubService } from '@/lib/services/club.service';
@@ -85,7 +84,7 @@ export default function EditEventPage() {
                 const response = await EventService.getEventDetails(eventId);
 
                 if (response.success && response.data) {
-                    const event = response.data;
+                    const event = response.data as any;
                     console.log('✅ Event loaded:', event);
 
                     // Parse date and time from startDateTime
@@ -108,7 +107,7 @@ export default function EditEventPage() {
                         eventTime: eventTime,
                         musicGenre: event.musicGenre || '',
                         description: event.description || '',
-                        organizer: event.eventOrganizer || '',
+                        organizer: event.eventOrganizer || event.organizer || '',
                         organizerLogo: null,
                         poster: null,
                         reel: null,
@@ -125,7 +124,14 @@ export default function EditEventPage() {
 
                     // Set ticket types if available
                     if (event.ticketTypes && event.ticketTypes.length > 0) {
-                        setTicketTypes(event.ticketTypes);
+                        const mappedTickets = event.ticketTypes.map((t: any) => ({
+                            name: t.name || '',
+                            price: t.price || 0,
+                            currency: t.currency || 'INR',
+                            quantity: t.quantity || 0,
+                            isActive: t.isActive ?? true
+                        }));
+                        setTicketTypes(mappedTickets);
                     }
 
                     // Set music genres
@@ -395,56 +401,8 @@ export default function EditEventPage() {
                 <div className="w-full bg-[#021313] rounded-t-[40px] flex flex-col">
                     {/* Fixed header section that stays in place */}
                     <div className="w-full bg-[#021313] rounded-t-[40px]">
-                        {/* Club Selector */}
-                        <div className="w-full px-6 pt-6 pb-2">
-                            <label className="block text-[#14FFEC] font-semibold text-base mb-2">Select Club *</label>
-                            <div className="relative">
-                                <button
-                                    onClick={() => setShowClubDropdown(!showClubDropdown)}
-                                    className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[20px] p-[12px] px-4 flex items-center justify-between text-white hover:bg-[#0F2525] transition-colors"
-                                    disabled={loadingClubs}
-                                >
-                                    <span className="flex items-center gap-2">
-                                        <Building2 size={18} className="text-[#14FFEC]" />
-                                        {loadingClubs ? 'Loading clubs...' : (selectedClubId ? clubs.find(c => c.id === selectedClubId)?.name || 'Select a club' : 'Select a club')}
-                                    </span>
-                                    <ChevronDown size={18} className={`text-[#14FFEC] transition-transform ${showClubDropdown ? 'rotate-180' : ''}`} />
-                                </button>
-
-                                {/* Dropdown Menu */}
-                                {showClubDropdown && !loadingClubs && clubs.length > 0 && (
-                                    <div className="absolute top-full left-0 right-0 mt-2 bg-[#0D1F1F] border border-[#0C898B] rounded-[15px] z-50 shadow-lg max-h-64 overflow-y-auto">
-                                        {clubs.map((club) => (
-                                            <button
-                                                key={club.id}
-                                                onClick={() => {
-                                                    setSelectedClubId(club.id);
-                                                    setShowClubDropdown(false);
-                                                    console.log('✅ Selected club:', club.name, '(ID:', club.id + ')');
-                                                }}
-                                                className={`w-full px-4 py-3 text-left flex items-center gap-3 border-b border-[#0C898B] last:border-0 hover:bg-[#0F2525] transition-colors ${selectedClubId === club.id ? 'bg-[#0F2525] border-l-4 border-l-[#14FFEC]' : ''
-                                                    }`}
-                                            >
-                                                {club.logo && (
-                                                    <img src={club.logo} alt={club.name} className="w-8 h-8 rounded-full object-cover" />
-                                                )}
-                                                <span className="text-white font-semibold">{club.name}</span>
-                                                {selectedClubId === club.id && (
-                                                    <span className="ml-auto text-[#14FFEC]">✓</span>
-                                                )}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {/* Empty State */}
-                                {showClubDropdown && !loadingClubs && clubs.length === 0 && (
-                                    <div className="absolute top-full left-0 right-0 mt-2 bg-[#0D1F1F] border border-[#0C898B] rounded-[15px] p-4 text-center text-gray-400">
-                                        No clubs available. Please create a club first.
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        {/* Club Selector - Hidden in edit mode */}
+                        {/* Editing events should not allow changing the club */}
 
                         {/* Heading container */}
                         <div className="w-full pb-2">
