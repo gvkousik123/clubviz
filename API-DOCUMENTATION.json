@@ -1,0 +1,503 @@
+{
+  "baseUrl": "https://clubwiz.in",
+  "apis": {
+    "clubs": {
+      "description": "Public club APIs - No authentication required",
+      "endpoints": [
+        {
+          "name": "Get Public Clubs List",
+          "method": "GET",
+          "endpoint": "/clubs/public/list",
+          "description": "Retrieve a paginated list of active clubs with optional filtering by category, location, and search query.",
+          "parameters": {
+            "page": {
+              "type": "integer($int32)",
+              "required": false,
+              "default": 0,
+              "description": "Page number (0-indexed)"
+            },
+            "size": {
+              "type": "integer($int32)",
+              "required": false,
+              "default": 10,
+              "description": "Number of items per page"
+            },
+            "sortBy": {
+              "type": "string",
+              "required": false,
+              "default": "createdAt",
+              "description": "Field to sort by (e.g., 'createdAt', 'name')"
+            },
+            "sortDirection": {
+              "type": "string",
+              "required": false,
+              "default": "desc",
+              "enum": ["asc", "desc"],
+              "description": "Sort direction"
+            },
+            "category": {
+              "type": "string",
+              "required": false,
+              "description": "Filter by category"
+            },
+            "location": {
+              "type": "string",
+              "required": false,
+              "description": "Filter by location"
+            },
+            "query": {
+              "type": "string",
+              "required": false,
+              "description": "Search query"
+            },
+            "hasSpace": {
+              "type": "boolean",
+              "required": false,
+              "description": "Filter clubs with available space"
+            }
+          },
+          "exampleRequest": "https://clubwiz.in/clubs/public/list?page=0&size=10&sortBy=createdAt&sortDirection=desc",
+          "responseExample": {
+            "content": [
+              {
+                "id": "696a67d25d8fad751e37fbd5",
+                "name": "testtt11111",
+                "description": "",
+                "logo": null,
+                "category": null,
+                "location": "",
+                "memberCount": 1,
+                "maxMembers": 0,
+                "isJoined": false,
+                "isFull": true,
+                "isActive": true,
+                "ownerName": "Unknown",
+                "createdAt": "2026-01-16T16:31:14.216",
+                "shortDescription": "",
+                "memberStatus": "1/0 members",
+                "capacityPercentage": 0
+              },
+              {
+                "id": "696a57365d8fad751e37fbd3",
+                "name": "Neon Nights with DJ Kairo",
+                "description": "Experience a high-energy nightlife event featuring pulsating beats, immersive lights, and signature cocktails.",
+                "logo": null,
+                "category": null,
+                "location": null,
+                "memberCount": 1,
+                "maxMembers": null,
+                "isJoined": false,
+                "isFull": false,
+                "isActive": true,
+                "ownerName": "Unknown",
+                "createdAt": "2026-01-16T15:20:22.659",
+                "shortDescription": "Experience a high-energy nightlife event featuring pulsating beats, immersive lights, and signatu...",
+                "memberStatus": "1 members",
+                "capacityPercentage": 0
+              },
+              {
+                "id": "694e7cd802c7880e7f3e6c08",
+                "name": "DABO",
+                "description": "A premium nightclub offering excellent ambiance, great food & drinks with a vibrant music scene",
+                "logo": "https://clubwiz-images.s3.us-east-1.amazonaws.com/clubs/694e7cd802c7880e7f3e6c08/logo/694e7cd802c7880e7f3e6c08_logo_20251226_174728_74100928.jpg",
+                "category": "Nightclub",
+                "location": "Plot No. 15, Bandra Reclamation, Near Worli Sea Link, Mumbai, Maharashtra - 400050",
+                "memberCount": 0,
+                "maxMembers": 500,
+                "isJoined": false,
+                "isFull": false,
+                "isActive": true,
+                "ownerName": "Unknown",
+                "createdAt": "2025-12-26T12:17:28.849",
+                "shortDescription": "A premium nightclub offering excellent ambiance, great food & drinks with a vibrant music scene",
+                "memberStatus": "0/500 members",
+                "capacityPercentage": 0
+              }
+            ],
+            "totalElements": 3,
+            "totalPages": 1,
+            "currentPage": 0,
+            "size": 10,
+            "hasNext": false,
+            "hasPrevious": false,
+            "first": true,
+            "last": true,
+            "paginationInfo": "Page 1 of 1",
+            "resultsInfo": "Showing 1-3 of 3 clubs"
+          }
+        },
+        {
+          "name": "Get Public Club Details",
+          "method": "GET",
+          "endpoint": "/clubs/public/{id}",
+          "description": "Retrieve detailed information about a specific active club by its ID. No authentication required.",
+          "parameters": {
+            "id": {
+              "type": "string",
+              "required": true,
+              "in": "path",
+              "description": "Club ID"
+            }
+          },
+          "exampleRequest": "https://clubwiz.in/clubs/public/696a67d25d8fad751e37fbd5",
+          "responseExample": {
+            "id": "696a67d25d8fad751e37fbd5",
+            "name": "testtt11111",
+            "description": "",
+            "logo": null,
+            "images": [],
+            "category": null,
+            "locationText": {
+              "address1": "",
+              "address2": "",
+              "state": "",
+              "city": "",
+              "pincode": ""
+            },
+            "locationMap": {
+              "lat": 0,
+              "lng": 0
+            },
+            "contactEmail": "kaushikchand.baurasi@gmail.com",
+            "contactPhone": "+91-9876543210",
+            "foodCuisines": null,
+            "facilities": null,
+            "music": null,
+            "barOptions": null,
+            "entryPricing": null,
+            "memberCount": 1,
+            "maxMembers": 0,
+            "isJoined": false,
+            "canJoin": false,
+            "isFull": false,
+            "isActive": true,
+            "owner": null,
+            "recentMembers": [null],
+            "admins": [null],
+            "createdAt": "2026-01-16T16:31:14.216",
+            "updatedAt": "2026-01-16T16:31:14.216",
+            "memberStatus": "1/0 members",
+            "capacityPercentage": 0,
+            "joinButtonText": "Join Club",
+            "canPerformAction": true
+          }
+        },
+        {
+          "name": "Get Club Categories",
+          "method": "GET",
+          "endpoint": "/clubs/public/categories",
+          "description": "Retrieve a list of all available club categories for filtering purposes.",
+          "parameters": {},
+          "exampleRequest": "https://clubwiz.in/clubs/public/categories",
+          "responseExample": [
+            "Nightclub"
+          ]
+        },
+        {
+          "name": "Get Club Locations",
+          "method": "GET",
+          "endpoint": "/clubs/public/locations",
+          "description": "Retrieve a list of all available club locations for filtering purposes.",
+          "parameters": {},
+          "exampleRequest": "https://clubwiz.in/clubs/public/locations",
+          "responseExample": [
+            "Plot No. 15, Bandra Reclamation, Near Worli Sea Link, Mumbai, Maharashtra - 400050"
+          ]
+        }
+      ]
+    },
+    "events": {
+      "description": "Public event APIs - Most endpoints work without authentication",
+      "endpoints": [
+        {
+          "name": "Get Event List",
+          "method": "GET",
+          "endpoint": "/event-management/events/list",
+          "description": "Retrieve a paginated list of events with filtering options. Public access for browsing events, with optional authentication for personalized data.",
+          "parameters": {
+            "page": {
+              "type": "integer($int32)",
+              "required": false,
+              "default": 0,
+              "description": "Page number (0-indexed)"
+            },
+            "size": {
+              "type": "integer($int32)",
+              "required": false,
+              "default": 20,
+              "description": "Number of items per page"
+            },
+            "sortBy": {
+              "type": "string",
+              "required": false,
+              "default": "startDateTime",
+              "description": "Field to sort by"
+            },
+            "sortOrder": {
+              "type": "string",
+              "required": false,
+              "default": "asc",
+              "enum": ["asc", "desc"],
+              "description": "Sort order"
+            },
+            "category": {
+              "type": "string",
+              "required": false,
+              "description": "Filter by category"
+            },
+            "search": {
+              "type": "string",
+              "required": false,
+              "description": "Search query"
+            },
+            "status": {
+              "type": "string",
+              "required": false,
+              "description": "Event status filter"
+            },
+            "startDate": {
+              "type": "string",
+              "required": false,
+              "description": "Filter by start date"
+            },
+            "endDate": {
+              "type": "string",
+              "required": false,
+              "description": "Filter by end date"
+            }
+          },
+          "exampleRequest": "https://clubwiz.in/event-management/events/list?page=0&size=20&sortBy=startDateTime&sortOrder=asc",
+          "responseExample": {
+            "content": [
+              {
+                "id": "694fc45160e31f425dd6171f",
+                "title": "Summer Electronic Music Festival",
+                "shortDescription": "Join us for an incredible night of electronic music with world-class DJs and performers. Experience cutting-edge sound systems, mesmerizing visuals...",
+                "imageUrl": "https://clubwiz-images.s3.us-east-1.amazonaws.com/events/694fc45160e31f425dd6171f/poster/694fc45160e31f425dd6171f_poster_20251227_170441_48220a8c.jpg",
+                "location": "Grand Event Venue, Downtown",
+                "startDateTime": "2025-06-15T16:30:00",
+                "endDateTime": "2026-06-16T00:30:00",
+                "formattedDate": "Jun 15, 2025",
+                "formattedTime": "4:30 PM - 12:30 AM",
+                "timeUntilEvent": "Started",
+                "duration": "8768 hours",
+                "attendeeCount": 0,
+                "maxAttendees": 500,
+                "isRegistered": false,
+                "canRegister": false,
+                "isFull": false,
+                "clubId": null,
+                "clubName": null,
+                "clubLogo": null,
+                "organizerName": null,
+                "status": "UPCOMING",
+                "isPublic": true,
+                "requiresApproval": false,
+                "capacityPercentage": 0,
+                "attendeeStatus": "0/500 attending",
+                "eventStatusText": "Happening now",
+                "pastEvent": false,
+                "upcoming": false,
+                "ongoing": true
+              },
+              {
+                "id": "696a6ac64415ea17aa0140fe",
+                "title": "test-event111",
+                "shortDescription": "testt",
+                "imageUrl": null,
+                "location": "testt",
+                "startDateTime": "2026-01-17T22:13:00",
+                "endDateTime": "2026-01-17T22:13:00",
+                "formattedDate": "Jan 17, 2026",
+                "formattedTime": "10:13 PM - 10:13 PM",
+                "timeUntilEvent": "Tomorrow",
+                "duration": "0 minutes",
+                "attendeeCount": 0,
+                "maxAttendees": 500,
+                "isRegistered": false,
+                "canRegister": true,
+                "isFull": false,
+                "clubId": null,
+                "clubName": null,
+                "clubLogo": null,
+                "organizerName": null,
+                "status": "UPCOMING",
+                "isPublic": true,
+                "requiresApproval": false,
+                "capacityPercentage": 0,
+                "attendeeStatus": "0/500 attending",
+                "eventStatusText": "Starts in 1 days",
+                "pastEvent": false,
+                "upcoming": true,
+                "ongoing": false
+              },
+              {
+                "id": "696a5a364415ea17aa0140fd",
+                "title": "Neon Nights with DJ Kairo",
+                "shortDescription": "A test nightclub created for validation via Swagger.",
+                "imageUrl": null,
+                "location": "Neon Vault Social Club, Mumbai",
+                "startDateTime": "2026-01-20T21:00:00",
+                "endDateTime": "2026-01-21T01:30:00",
+                "formattedDate": "Jan 20, 2026",
+                "formattedTime": "9:00 PM - 1:30 AM",
+                "timeUntilEvent": "In 4 days",
+                "duration": "4h 30m",
+                "attendeeCount": 0,
+                "maxAttendees": 350,
+                "isRegistered": false,
+                "canRegister": true,
+                "isFull": false,
+                "clubId": null,
+                "clubName": null,
+                "clubLogo": null,
+                "organizerName": null,
+                "status": "UPCOMING",
+                "isPublic": true,
+                "requiresApproval": false,
+                "capacityPercentage": 0,
+                "attendeeStatus": "0/350 attending",
+                "eventStatusText": "Starts in 4 days",
+                "pastEvent": false,
+                "upcoming": true,
+                "ongoing": false
+              }
+            ],
+            "totalElements": 3,
+            "totalPages": 1,
+            "currentPage": 0,
+            "size": 20,
+            "hasNext": false,
+            "hasPrevious": false,
+            "first": true,
+            "last": true
+          }
+        },
+        {
+          "name": "Get User Registered Events",
+          "method": "GET",
+          "endpoint": "/event-management/events/my-registrations",
+          "description": "Retrieve a paginated list of events that the authenticated user has registered to attend.",
+          "authentication": "Required - Bearer token",
+          "parameters": {
+            "page": {
+              "type": "integer($int32)",
+              "required": false,
+              "default": 0,
+              "description": "Page number (0-indexed)"
+            },
+            "size": {
+              "type": "integer($int32)",
+              "required": false,
+              "default": 20,
+              "description": "Number of items per page"
+            },
+            "sortBy": {
+              "type": "string",
+              "required": false,
+              "default": "startDateTime",
+              "description": "Field to sort by"
+            },
+            "sortOrder": {
+              "type": "string",
+              "required": false,
+              "default": "asc",
+              "enum": ["asc", "desc"],
+              "description": "Sort order"
+            }
+          },
+          "exampleRequest": "https://clubwiz.in/event-management/events/my-registrations?page=0&size=20&sortBy=startDateTime&sortOrder=asc",
+          "responseExample": {
+            "content": [],
+            "totalElements": 0,
+            "totalPages": 1,
+            "currentPage": 0,
+            "size": 20,
+            "hasNext": false,
+            "hasPrevious": false,
+            "first": true,
+            "last": true,
+            "paginationInfo": "Page 1 of 1",
+            "resultsInfo": "Showing 1-0 of 0 events"
+          }
+        },
+        {
+          "name": "Get Event Details",
+          "method": "GET",
+          "endpoint": "/event-management/events/{id}/details",
+          "description": "Retrieve detailed information about a specific event. Public events are accessible without authentication, private events require authentication.",
+          "parameters": {
+            "id": {
+              "type": "string",
+              "required": true,
+              "in": "path",
+              "description": "Event ID"
+            }
+          },
+          "exampleRequest": "https://clubwiz.in/event-management/events/694fc45160e31f425dd6171f/details",
+          "responseExample": {
+            "id": "694fc45160e31f425dd6171f",
+            "title": "Summer Electronic Music Festival",
+            "description": "Join us for an incredible night of electronic music with world-class DJs and performers. Experience cutting-edge sound systems, mesmerizing visuals, and an unforgettable atmosphere.",
+            "imageUrl": "https://clubwiz-images.s3.us-east-1.amazonaws.com/events/694fc45160e31f425dd6171f/poster/694fc45160e31f425dd6171f_poster_20251227_170441_48220a8c.jpg",
+            "images": null,
+            "location": "Grand Event Venue, Downtown",
+            "startDateTime": "2025-06-15T16:30:00",
+            "endDateTime": "2026-06-16T00:30:00",
+            "formattedDate": "Sunday, June 15, 2025",
+            "formattedTime": "4:30 PM - 12:30 AM",
+            "timeUntilEvent": "Started",
+            "duration": "8768 hours",
+            "attendeeCount": 0,
+            "maxAttendees": 500,
+            "isRegistered": false,
+            "canRegister": false,
+            "isFull": false,
+            "rsvpStatus": "NOT_REGISTERED",
+            "club": null,
+            "organizer": null,
+            "recentAttendees": [],
+            "status": "UPCOMING",
+            "isPublic": true,
+            "requiresApproval": false,
+            "createdAt": "2025-12-27T11:34:41.524",
+            "updatedAt": "2025-12-27T11:34:46.204",
+            "capacityPercentage": 0,
+            "canPerformAction": false,
+            "attendeeStatus": "0/500 attending",
+            "registerButtonText": "Register"
+          }
+        }
+      ]
+    }
+  },
+  "commonHeaders": {
+    "accept": "*/*",
+    "content-type": "application/json"
+  },
+  "authenticationHeaders": {
+    "Authorization": "Bearer {token}",
+    "description": "Required for endpoints marked with authentication"
+  },
+  "responseHeaders": {
+    "access-control-allow-headers": "Content-Type,Accept,origin,X-Requested-With,Authorization",
+    "access-control-allow-methods": "GET,POST,PUT,DELETE,OPTIONS,PATCH",
+    "access-control-allow-origin": "*",
+    "cache-control": "no-cache,no-store,max-age=0,must-revalidate",
+    "content-encoding": "gzip",
+    "content-type": "application/json"
+  },
+  "statusCodes": {
+    "200": {
+      "description": "Successful response",
+      "examples": "See individual endpoint response examples"
+    },
+    "401": {
+      "description": "Authentication required for private events",
+      "example": "Authentication required for private events"
+    },
+    "404": {
+      "description": "Resource not found"
+    }
+  }
+}

@@ -16,11 +16,29 @@ interface UseDirectLoginResult {
 const clearAuthSession = () => {
     if (typeof window === 'undefined') return;
 
+    // Clear all auth-related storage keys
     localStorage.removeItem(STORAGE_KEYS.accessToken);
     localStorage.removeItem(STORAGE_KEYS.refreshToken);
     localStorage.removeItem(STORAGE_KEYS.user);
     localStorage.removeItem(STORAGE_KEYS.userDetails);
     localStorage.removeItem(STORAGE_KEYS.pendingPhone);
+
+    // Clear user info keys
+    localStorage.removeItem('user-email');
+    localStorage.removeItem('user-phone');
+    localStorage.removeItem('user-name');
+    localStorage.removeItem('user-id');
+    localStorage.removeItem('user-role');
+
+    // Clear Firebase user data
+    localStorage.removeItem('firebaseUser');
+
+    // Clear any other clubviz-related storage
+    Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('clubviz-') || key.startsWith('user-')) {
+            localStorage.removeItem(key);
+        }
+    });
 };
 
 /**

@@ -23,9 +23,7 @@ import {
 } from 'lucide-react';
 import Sidebar from '@/components/common/sidebar';
 import { useSearch } from '@/hooks/use-search';
-import { EventService } from '@/lib/services/event.service';
-import { ClubService } from '@/lib/services/club.service';
-import { PublicClubService, PublicEventService, PublicSearchService } from '@/lib/services/public.service';
+import { PublicClubService, PublicEventService } from '@/lib/services/public.service';
 import { isGuestMode } from '@/lib/api-client-public';
 import { LocationSuggestionList } from '@/components/common/location-suggestion-list';
 import { NearbyDetailCard } from '@/components/common/nearby-detail-card';
@@ -33,11 +31,8 @@ import { POPULAR_LOCATIONS, selectLocationFromOption, persistCustomLocation } fr
 import type { NearbyResultSummary } from '@/hooks/use-search';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/use-profile';
-import { SEARCH_AUTOCOMPLETE_STYLES } from '@/components/common/autocomplete-styles';
 import { AutocompleteSuggestion } from '@/lib/services/search.service';
 import { STORAGE_KEYS } from '@/lib/constants/storage';
-import type { EventListItem } from '@/lib/services/event.service';
-import type { ClubListItem } from '@/lib/services/club.service';
 import { useStories } from '@/hooks/use-stories';
 import { StoriesSection } from '@/components/story';
 
@@ -91,10 +86,10 @@ const HomePage = () => {
         }
     }, [router]);
 
-    // API data state
-    const [venues, setVenues] = useState<ClubListItem[]>([]);
-    const [allClubs, setAllClubs] = useState<ClubListItem[]>([]);
-    const [events, setEvents] = useState<EventListItem[]>([]);
+    // API data state - Using public API responses directly
+    const [venues, setVenues] = useState<any[]>([]);
+    const [allClubs, setAllClubs] = useState<any[]>([]);
+    const [events, setEvents] = useState<any[]>([]);
     const [isLoadingVenues, setIsLoadingVenues] = useState(false);
     const [isLoadingAllClubs, setIsLoadingAllClubs] = useState(false);
     const [isLoadingEvents, setIsLoadingEvents] = useState(false);
@@ -271,33 +266,27 @@ const HomePage = () => {
                 fetchStories();
             }
 
-            // Load venues (clubs) - Use appropriate service based on auth status
+            // Load venues (clubs) - ALWAYS use Public API: /clubs/public/list
             setIsLoadingVenues(true);
             try {
-                const clubResponse = isGuest
-                    ? await PublicClubService.getPublicClubsList({
-                        page: 0,
-                        size: 5,
-                        sortBy: 'createdAt',
-                        sortDirection: 'desc'
-                    })
-                    : await ClubService.getClubsList({
-                        page: 0,
-                        size: 5,
-                        sortBy: 'name',
-                        sortDirection: 'asc'
-                    });
+                // Use PublicClubService for all users to get data from /clubs/public/list
+                const clubData = await PublicClubService.getPublicClubsList({
+                    page: 0,
+                    size: 5,
+                    sortBy: 'createdAt',
+                    sortDirection: 'desc'
+                });
 
                 // Handle clubs data based on API response
-                if (clubResponse && clubResponse.content && clubResponse.content.length > 0) {
-                    console.log('API Clubs Response:', clubResponse.content);
+                if (clubData?.content && clubData.content.length > 0) {
+                    console.log('API Clubs Response:', clubData.content);
                     // Map API clubs with proper length limits and static images
-                    const mappedClubs = clubResponse.content.map((club: any, index: number) => ({
+                    const mappedClubs = clubData.content.map((club: any, index: number) => ({
                         id: club.id || '',
                         name: club.name ? (club.name.length > 20 ? club.name.substring(0, 20) + '...' : club.name) : '',
                         description: club.description ? (club.description.length > 50 ? club.description.substring(0, 50) + '...' : club.description) : '',
                         location: club.location ? (club.location.length > 30 ? club.location.substring(0, 30) + '...' : club.location) : '',
-                        imageUrl: venueFallback[index % venueFallback.length]?.image || '/dabo ambience main dabo page/Rectangle 5.jpg',
+                        imageUrl: club.logo || venueFallback[index % venueFallback.length]?.image || '/dabo ambience main dabo page/Rectangle 5.jpg',
                         isActive: club.isActive !== undefined ? club.isActive : true,
                         logo: club.logo || '',
                         category: club.category || 'NIGHTCLUB',
@@ -313,13 +302,9 @@ const HomePage = () => {
                     }));
                     console.log('Mapped Clubs:', mappedClubs);
                     setVenues(mappedClubs);
-                } else if (clubResponse && (!clubResponse.content || clubResponse.content.length === 0)) {
-                    // API success but no clubs available - show empty state
-                    console.log('No clubs data from API, showing empty state');
-                    setVenues([]);
                 } else {
-                    // API failed - show empty state (no fallback for consistency)
-                    console.log('API error loading clubs');
+                    // No clubs available - show empty state
+                    console.log('No clubs data from API, showing empty state');
                     setVenues([]);
                 }
             } catch (error: any) {
@@ -335,31 +320,25 @@ const HomePage = () => {
                 setIsLoadingVenues(false);
             }
 
-            // Load all clubs for "All Clubs" section
+            // Load all clubs for "All Clubs" section - ALWAYS use Public API: /clubs/public/list
             setIsLoadingAllClubs(true);
             try {
-                const allClubsResponse = isGuest
-                    ? await PublicClubService.getPublicClubsList({
-                        page: 0,
-                        size: 20,
-                        sortBy: 'createdAt',
-                        sortDirection: 'desc'
-                    })
-                    : await ClubService.getClubsList({
-                        page: 0,
-                        size: 20,
-                        sortBy: 'name',
-                        sortDirection: 'asc'
-                    });
+                // Use PublicClubService for all users
+                const allClubsData = await PublicClubService.getPublicClubsList({
+                    page: 0,
+                    size: 20,
+                    sortBy: 'createdAt',
+                    sortDirection: 'desc'
+                });
 
-                if (allClubsResponse && allClubsResponse.content && allClubsResponse.content.length > 0) {
-                    console.log('All Clubs API Response:', allClubsResponse.content);
-                    const mappedAllClubs = allClubsResponse.content.map((club: any, index: number) => ({
+                if (allClubsData?.content && allClubsData.content.length > 0) {
+                    console.log('All Clubs API Response:', allClubsData.content);
+                    const mappedAllClubs = allClubsData.content.map((club: any, index: number) => ({
                         id: club.id || '',
                         name: club.name ? (club.name.length > 20 ? club.name.substring(0, 20) + '...' : club.name) : '',
                         description: club.description ? (club.description.length > 50 ? club.description.substring(0, 50) + '...' : club.description) : '',
                         location: club.location ? (club.location.length > 30 ? club.location.substring(0, 30) + '...' : club.location) : '',
-                        imageUrl: venueFallback[index % venueFallback.length]?.image || '/dabo ambience main dabo page/Rectangle 5.jpg',
+                        imageUrl: club.logo || venueFallback[index % venueFallback.length]?.image || '/dabo ambience main dabo page/Rectangle 5.jpg',
                         isActive: club.isActive !== undefined ? club.isActive : true,
                         logo: club.logo || '',
                         category: club.category || 'NIGHTCLUB',
@@ -386,33 +365,25 @@ const HomePage = () => {
                 setIsLoadingAllClubs(false);
             }
 
-            // Load events - Handle differently for guest vs authenticated users
+            // Load events - ALWAYS use Public API: /event-management/events/list
             setIsLoadingEvents(true);
             try {
-                const eventResponse = isGuest
-                    ? await PublicEventService.getPublicEvents({
-                        page: 0,
-                        size: 5,
-                        sortBy: 'startDateTime',
-                        sortOrder: 'asc',
-                        status: 'UPCOMING'
-                    })
-                    : await EventService.getEventList({
-                        page: 0,
-                        size: 5,
-                        sortBy: 'startDateTime',
-                        sortOrder: 'asc',
-                        status: 'UPCOMING'
-                    });
+                // Use PublicEventService for all users to get data from /event-management/events/list
+                const eventData = await PublicEventService.getPublicEvents({
+                    page: 0,
+                    size: 5,
+                    sortBy: 'startDateTime',
+                    sortOrder: 'asc'
+                });
 
-                if (eventResponse && eventResponse.content && eventResponse.content.length > 0) {
-                    console.log('API Events Response:', eventResponse.content);
+                if (eventData?.content && eventData.content.length > 0) {
+                    console.log('API Events Response:', eventData.content);
                     // Map API events with proper length limits and static images
-                    const mappedEvents = eventResponse.content.map((event: any, index: number) => ({
+                    const mappedEvents = eventData.content.map((event: any, index: number) => ({
                         id: event.id,
-                        title: event.title.length > 20 ? event.title.substring(0, 20) + '...' : event.title,
+                        title: event.title ? (event.title.length > 20 ? event.title.substring(0, 20) + '...' : event.title) : '',
                         shortDescription: event.shortDescription || event.clubName || '',
-                        imageUrl: eventFallback[index % eventFallback.length]?.image || '/event list/Rectangle 1.jpg',
+                        imageUrl: event.imageUrl || eventFallback[index % eventFallback.length]?.image || '/event list/Rectangle 1.jpg',
                         location: event.location && event.location.length > 25 ?
                             event.location.substring(0, 25) + '...' :
                             (event.location || event.clubName || ''),
@@ -425,13 +396,13 @@ const HomePage = () => {
                         attendeeCount: event.attendeeCount || 0,
                         maxAttendees: event.maxAttendees || 100,
                         isRegistered: event.isRegistered || false,
-                        canRegister: event.canRegister || true,
+                        canRegister: event.canRegister !== undefined ? event.canRegister : true,
                         isFull: event.isFull || false,
                         clubId: event.clubId || '',
                         clubName: event.clubName ? (event.clubName.length > 15 ? event.clubName.substring(0, 15) + '...' : event.clubName) : '',
                         clubLogo: event.clubLogo || '',
                         organizerName: event.organizerName || '',
-                        status: event.status || 'UPCOMING' as const,
+                        status: event.status || 'UPCOMING',
                         isPublic: event.isPublic !== undefined ? event.isPublic : true,
                         requiresApproval: event.requiresApproval || false,
                         attendeeStatus: event.attendeeStatus || '',
@@ -444,13 +415,16 @@ const HomePage = () => {
                     console.log('Mapped Events:', mappedEvents);
                     setEvents(mappedEvents);
                 } else {
-                    // No events available - show empty state
                     console.log('No events data from API');
                     setEvents([]);
                 }
             } catch (error: any) {
                 console.error('Failed to load events:', error);
-                // Show empty state on error
+                toast({
+                    title: "Failed to load events",
+                    description: error.message || "Could not fetch events.",
+                    variant: "destructive",
+                });
                 setEvents([]);
             } finally {
                 setIsLoadingEvents(false);

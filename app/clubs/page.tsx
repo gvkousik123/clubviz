@@ -9,11 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { ClubCard } from '@/components/clubs/club-card';
 import { ClubListCard } from '@/components/clubs/club-list-card';
 
-import { useSearch } from '@/hooks/use-search';
-import { useNearbyClubs } from '@/hooks/use-nearby-clubs';
-import { ClubService } from '@/lib/services/club.service';
 import { PublicClubService } from '@/lib/services/public.service';
-import { isGuestMode } from '@/lib/api-client-public';
+import { usePublicClubs } from '@/hooks/use-public-clubs';
 
 // Dummy clubs data for local development
 const DUMMY_CLUBS: Club[] = [
@@ -85,32 +82,8 @@ export default function ClubsListPage() {
     const [totalPages, setTotalPages] = useState(1);
     const [hasMore, setHasMore] = useState(false);
 
-    // Search functionality
-    const {
-        isSearching,
-        isLoadingNearby,
-        clubs: searchClubs,
-        nearbyResults,
-        currentLocation,
-        locationError,
-        searchClubs: performClubSearch,
-        searchNearby,
-        getCurrentLocation,
-        clearResults,
-        clearError,
-    } = useSearch();
-
-    // Nearby clubs functionality
-    const {
-        clubs: nearbyClubs,
-        loading: loadingNearbyClubs,
-        error: nearbyClubsError,
-        hasLocation,
-        fetchNearbyClubs,
-        clearClubs: clearNearbyClubs,
-        clearError: clearNearbyError,
-        refetchWithLocation
-    } = useNearbyClubs();
+    // Public clubs hook - uses only public APIs from API-DOCUMENTATION.json
+    const publicClubs = usePublicClubs();
 
     // Club images for fallbacks
     const clubImages = [
@@ -128,81 +101,8 @@ export default function ClubsListPage() {
     };
 
     const handleSearch = async () => {
-        if (searchQuery.trim()) {
-            console.log('Searching for:', searchQuery);
-            try {
-                await performClubSearch(searchQuery.trim());
-                // Update the local clubs state with search results
-                if (searchClubs.length > 0) {
-                    // Convert NearbyClub[] to Club[] format for compatibility
-                    const convertedClubs: Club[] = searchClubs.map((club, index) => ({
-                        id: club.id,
-                        name: club.name,
-                        openTime: 'Open until 1:30 am', // Default since API doesn't provide this
-                        rating: club.rating || 4.0,
-                        image: typeof club.images?.[0] === 'string'
-                            ? club.images[0]
-                            : club.images?.[0]?.url || club.logoUrl || getClubFallbackImage(index),
-                        address: club.fullAddress || club.address || club.location,
-                        category: club.type || 'Club'
-                    }));
-                    setClubs(convertedClubs);
-                    setLoading(false);
-                }
-            } catch (error) {
-                console.error('Search failed:', error);
-                toast({
-                    title: 'Search Failed',
-                    description: 'Unable to search clubs. Please try again.',
-                    variant: 'destructive',
-                });
-            }
-        }
-    };
-
-    const handleNearbySearch = async () => {
-        if (!hasLocation) {
-            toast({
-                title: 'Location Required',
-                description: 'Please enable location services or select a location to find nearby clubs.',
-                variant: 'destructive',
-            });
-            return;
-        }
-
-        try {
-            setLoading(true);
-            await fetchNearbyClubs();
-
-            if (nearbyClubs && nearbyClubs.length > 0) {
-                // Convert nearby clubs to Club[] format
-                const convertedClubs: Club[] = nearbyClubs.map((club, index) => ({
-                    id: club.id,
-                    name: club.name,
-                    openTime: 'Open until 1:30 am', // Default since API doesn't provide this
-                    rating: 4.0, // Default rating
-                    image: club.images?.[0]?.url || club.logoUrl || getClubFallbackImage(index),
-                    address: club.locationText?.fullAddress || club.locationText?.address1 || 'Location not specified',
-                    category: club.category || 'Club'
-                }));
-                setClubs(convertedClubs);
-                setLoading(false);
-
-                toast({
-                    title: 'Nearby Clubs Found',
-                    description: `Found ${convertedClubs.length} clubs near you.`,
-                });
-            }
-        } catch (error) {
-            console.error('Nearby search failed:', error);
-            toast({
-                title: 'Nearby Search Failed',
-                description: 'Unable to find nearby clubs. Please try again.',
-                variant: 'destructive',
-            });
-        } finally {
-            setLoading(false);
-        }
+        // Use public API for search
+        loadClubs(true);
     };
 
 
@@ -219,30 +119,6 @@ export default function ClubsListPage() {
             loadClubs(true);
         }
     }, [selectedCategory, selectedLocation]);
-
-    // Auto-fetch nearby clubs when location is available
-    useEffect(() => {
-        if (hasLocation && nearbyClubs.length === 0 && !loadingNearbyClubs) {
-            fetchNearbyClubs();
-        }
-    }, [hasLocation, fetchNearbyClubs, nearbyClubs.length, loadingNearbyClubs]);
-
-    // Update clubs when nearby clubs are fetched
-    useEffect(() => {
-        if (nearbyClubs.length > 0) {
-            const convertedClubs: Club[] = nearbyClubs.map((club, index) => ({
-                id: club.id,
-                name: club.name,
-                openTime: 'Open until 1:30 am',
-                rating: 4.0,
-                image: club.images?.[0]?.url || club.logoUrl || getClubFallbackImage(index),
-                address: club.locationText?.fullAddress || club.locationText?.address1 || 'Location not specified',
-                category: club.category || 'Club'
-            }));
-            setClubs(convertedClubs);
-            setLoading(false);
-        }
-    }, [nearbyClubs]);
 
     const loadFilterOptions = async () => {
         setLoadingFilters(true);
@@ -263,7 +139,6 @@ export default function ClubsListPage() {
     const loadClubs = async (resetPage = false) => {
         setLoading(true);
         try {
-            const isGuest = isGuestMode();
             const page = resetPage ? 0 : currentPage;
 
             const params: any = {
@@ -288,57 +163,31 @@ export default function ClubsListPage() {
                 setCurrentPage(0);
             }
 
-            // Call the appropriate API based on auth status
-            if (isGuest) {
-                // PublicClubService returns data directly (no wrapper)
-                const response = await PublicClubService.getPublicClubsList(params);
+            // ONLY use Public API - defined in API-DOCUMENTATION.json
+            // Endpoint: GET /clubs/public/list
+            const response = await PublicClubService.getPublicClubsList(params);
 
-                if (response && response.content && response.content.length > 0) {
-                    const apiClubs: Club[] = response.content.map((club: any, index: number) => ({
-                        id: club.id,
-                        name: club.name || '',
-                        openTime: 'Hours not available',
-                        rating: 4.0,
-                        image: getClubFallbackImage(index),
-                        address: club.location || club.description || '',
-                        category: club.category || 'Club'
-                    }));
-                    setClubs(apiClubs);
-                    setTotalPages(response.totalPages || 1);
-                    setHasMore(response.hasNext || false);
-                } else {
-                    console.log('No clubs available from API');
-                    setClubs([]);
-                    setTotalPages(1);
-                    setHasMore(false);
-                }
+            if (response && response.content && response.content.length > 0) {
+                const apiClubs: Club[] = response.content.map((club: any, index: number) => ({
+                    id: club.id,
+                    name: club.name || '',
+                    openTime: 'Hours not available',
+                    rating: 4.0,
+                    image: getClubFallbackImage(index),
+                    address: club.location || club.description || '',
+                    category: club.category || 'Club'
+                }));
+                setClubs(apiClubs);
+                setTotalPages(response.totalPages || 1);
+                setHasMore(response.hasNext || false);
             } else {
-                // ClubService returns wrapped response
-                const response = await ClubService.getClubsList(params);
-
-                if (response.success && response.data?.content && response.data.content.length > 0) {
-                    const apiClubs: Club[] = response.data.content.map((club: any, index: number) => ({
-                        id: club.id,
-                        name: club.name || '',
-                        openTime: 'Hours not available',
-                        rating: 4.0,
-                        image: getClubFallbackImage(index),
-                        address: club.location || club.description || '',
-                        category: club.category || 'Club'
-                    }));
-                    setClubs(apiClubs);
-                    setTotalPages(response.data.totalPages || 1);
-                    setHasMore(response.data.hasNext || false);
-                } else {
-                    console.log('No clubs available from API');
-                    setClubs([]);
-                    setTotalPages(1);
-                    setHasMore(false);
-                }
+                console.log('No clubs available from API');
+                setClubs([]);
+                setTotalPages(1);
+                setHasMore(false);
             }
         } catch (error: any) {
             console.error('Error loading clubs:', error);
-            // Show empty state on error instead of dummy data
             setClubs([]);
             toast({
                 title: 'Failed to load clubs',
@@ -431,10 +280,10 @@ export default function ClubsListPage() {
                         <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2 min-w-0">
                             <button
                                 onClick={handleSearch}
-                                disabled={isSearching || !searchQuery.trim()}
+                                disabled={loading || !searchQuery.trim()}
                                 className="disabled:opacity-50 flex-shrink-0"
                             >
-                                {isSearching ? (
+                                {loading ? (
                                     <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
                                 ) : (
                                     <Search className="w-[21px] h-[21px] text-white" />
@@ -451,21 +300,9 @@ export default function ClubsListPage() {
                                     }
                                 }}
                                 className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white outline-none min-w-0"
-                                disabled={isSearching}
+                                disabled={loading}
                             />
                         </div>
-                        <button
-                            onClick={handleNearbySearch}
-                            disabled={loadingNearbyClubs || loading}
-                            className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center disabled:opacity-50 flex-shrink-0"
-                            title="Find nearby clubs"
-                        >
-                            {loadingNearbyClubs || loading ? (
-                                <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
-                            ) : (
-                                <MapPin className="w-[21px] h-[21px] text-white" />
-                            )}
-                        </button>
                         <button
                             onClick={() => setShowFilters(!showFilters)}
                             className={`w-10 h-10 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center flex-shrink-0 transition-colors ${showFilters || selectedCategory || selectedLocation
@@ -540,22 +377,6 @@ export default function ClubsListPage() {
                         </div>
                     )}
                 </header>
-
-                {/* Location & Error Information */}
-                {(currentLocation || locationError) && (
-                    <div className="fixed top-[15vh] left-0 w-full max-w-[430px] mx-auto z-40 px-5">
-                        {currentLocation && (
-                            <div className="text-xs text-white/70 text-center mb-1">
-                                📍 {currentLocation.label || currentLocation.city || `${currentLocation.latitude.toFixed(2)}, ${currentLocation.longitude.toFixed(2)}`}
-                            </div>
-                        )}
-                        {locationError && (
-                            <div className="text-xs text-yellow-300 text-center mb-1">
-                                ⚠️ {locationError}
-                            </div>
-                        )}
-                    </div>
-                )}
 
 
 

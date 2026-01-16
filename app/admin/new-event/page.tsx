@@ -242,9 +242,9 @@ function NewEventPageContent() {
             console.log('📡 API Call: POST /events/create-json-with-images');
 
             // Use the specific endpoint for JSON+Images (even if images are omitted, the structure is expected)
-            const response = await EventService.createEventWithImages(eventData);
+            const response: any = await EventService.createEventWithImages(eventData);
 
-            if (response && (response.id || (response as any).success)) {
+            if (response && (response.id || response.success || response.data)) {
                 console.log('✅ Event created successfully:', response);
 
                 toast({

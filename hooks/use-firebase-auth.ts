@@ -32,9 +32,27 @@ export const useFirebaseAuth = () => {
   const signOut = async () => {
     try {
       await firebasePhoneAuth.signOut();
-      // Clear local storage
+
+      // Clear all local storage on logout
       localStorage.removeItem('firebaseUser');
       localStorage.removeItem('accessToken');
+      localStorage.removeItem('clubviz-accessToken');
+      localStorage.removeItem('clubviz-refreshToken');
+      localStorage.removeItem('clubviz-user');
+      localStorage.removeItem('clubviz-userDetails');
+      localStorage.removeItem('clubviz-pendingPhone');
+      localStorage.removeItem('user-email');
+      localStorage.removeItem('user-phone');
+      localStorage.removeItem('user-name');
+      localStorage.removeItem('user-id');
+      localStorage.removeItem('user-role');
+
+      // Clear any other user-related or clubviz-related storage
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('clubviz-') || key.startsWith('user-')) {
+          localStorage.removeItem(key);
+        }
+      });
     } catch (error: any) {
       console.error('Error signing out:', error);
       setAuthState(prev => ({ ...prev, error: error.message }));
