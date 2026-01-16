@@ -299,6 +299,54 @@ export class ClubService {
   }
 
   /**
+   * Get all clubs for admin
+   * GET /clubs/admin/all
+   */
+  static async getAllClubsAdmin(): Promise<ApiResponse<AdminClubFull[]>> {
+    try {
+      console.log('📡 API Call: GET /clubs/admin/all');
+      const response = await api.get<ApiResponse<AdminClubFull[]>>('/clubs/admin/all');
+      console.log('✅ Admin clubs retrieved:', response);
+      return handleApiResponse(response);
+    } catch (error) {
+      console.error('❌ Error getting admin clubs:', error);
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Update club
+   * PUT /clubs/{id}
+   */
+  static async updateClub(id: string, clubData: ClubUpdateRequest): Promise<ApiResponse<Club>> {
+    try {
+      console.log(`📡 API Call: PUT /clubs/${id}`, clubData);
+      const response = await api.put<ApiResponse<Club>>(`/clubs/${id}`, clubData);
+      console.log(`✅ Club ${id} updated:`, response);
+      return handleApiResponse(response);
+    } catch (error) {
+      console.error(`❌ Error updating club ${id}:`, error);
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Delete club
+   * DELETE /clubs/{id}
+   */
+  static async deleteClub(id: string): Promise<ApiResponse<void>> {
+    try {
+      console.log(`📡 API Call: DELETE /clubs/${id}`);
+      const response = await api.delete<ApiResponse<void>>(`/clubs/${id}`);
+      console.log(`✅ Club ${id} deleted:`, response);
+      return handleApiResponse(response);
+    } catch (error) {
+      console.error(`❌ Error deleting club ${id}:`, error);
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
    * Create new club using JSON payload with base64 images
    * POST /clubs/create-json-with-images
    */

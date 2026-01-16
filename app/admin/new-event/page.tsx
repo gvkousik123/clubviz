@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Upload, Calendar, Clock, Music, User, Building2, Instagram, Music2, ImageIcon, VideoIcon, ChevronDown } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ArrowLeft, Upload, Calendar, Clock, Music, User, Building2, Instagram, Music2, ImageIcon, VideoIcon, ChevronDown, Plus, Trash2 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import './styles.css';
 import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
@@ -18,8 +18,17 @@ interface Club {
     logo?: string;
 }
 
+interface TicketType {
+    name: string;
+    price: number;
+    currency: string;
+    quantity: number;
+    isActive: boolean;
+}
+
 export default function NewEventPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { toast } = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const posterInputRef = useRef<HTMLInputElement>(null);
@@ -50,8 +59,16 @@ export default function NewEventPage() {
         organizer: '',
         organizerLogo: null as File | null,
         poster: null as File | null,
-        reel: null as File | null
+        reel: null as File | null,
+        hasLimitedTickets: true,
+        totalTickets: 0
     });
+
+    const [ticketTypes, setTicketTypes] = useState<TicketType[]>([
+        { name: 'General Entry', price: 999, currency: 'INR', quantity: 100, isActive: true }
+    ]);
+    const [newTicket, setNewTicket] = useState<TicketType>({ name: '', price: 0, currency: 'INR', quantity: 0, isActive: true });
+    const [isAddingTicket, setIsAddingTicket] = useState(false);
 
     // Load manageable clubs on component mount
     useEffect(() => {
@@ -72,8 +89,20 @@ export default function NewEventPage() {
                 console.log('✅ Clubs loaded:', clubsList);
                 setClubs(clubsList);
 
-                // Auto-select first club if available
-                if (clubsList.length > 0) {
+                // Auto-select club if passed in URL
+                const urlClubId = searchParams.get('clubId');
+                if (urlClubId) {
+                    const found = clubsList.find(c => c.id === urlClubId);
+                    if (found) {
+                        setSelectedClubId(urlClubId);
+                        console.log('📌 Pre-selected club from URL:', found.name);
+                    } else if (clubsList.length > 0) {
+                        // Fallback if ID not found in list (weird but possible if permissions mismatch)
+                        setSelectedClubId(clubsList[0].id);
+                    }
+                }
+                // Auto-select first club if available and no URL param
+                else if (clubsList.length > 0) {
                     setSelectedClubId(clubsList[0].id);
                     console.log('📌 Auto-selected club:', clubsList[0].name);
                 }
@@ -90,7 +119,7 @@ export default function NewEventPage() {
         };
 
         loadClubs();
-    }, [toast]);
+    }, [toast, searchParams]);
 
     const handleGoBack = () => {
         router.back();
@@ -165,42 +194,44 @@ export default function NewEventPage() {
                 throw new Error('Invalid date or time format');
             }
 
-            // 🔴 REQUIRED FIELDS per EventCreateRequest interface
+            // Construct payload matching the required JSON structure
+            // Note: Image fields are displayed in UI but NOT sent to API
             const eventData: any = {
-                // Required fields
-                title: formData.eventName.trim(),                        // REQUIRED
-                description: formData.description.trim(),               // REQUIRED
-                startDateTime: startDateTime,                           // REQUIRED
-                endDateTime: startDateTime,                             // REQUIRED (currently same as start - should calculate duration)
-                location: formData.organizer || 'TBD',                 // REQUIRED
-                clubId: selectedClubId,                                 // REQUIRED - Selected from dropdown
-                isPublic: true,                                         // REQUIRED - Default events to public
-                requiresApproval: false,                                // REQUIRED - Events auto-approved by default
-
-                // Optional fields
-                imageUrl: formData.poster ? URL.createObjectURL(formData.poster) : undefined,
-                maxAttendees: undefined,                                // Optional
-                locationText: undefined,                                // Optional
-                locationMap: undefined,                                 // Optional
-                musicGenreTags: selectedGenres.map(g => g.label).join(', ')  // Music genres as comma-separated string
+                title: formData.eventName.trim(),
+                name: formData.eventName.trim(),
+                description: formData.description.trim(),
+                startDateTime: startDateTime,
+                endDateTime: startDateTime, // Ideally this should be calculated if duration is known
+                location: formData.organizer || "Club Location",
+                locationText: "Club Location Text",
+                locationMap: {
+                    lat: 0,
+                    lng: 0
+                },
+                clubId: selectedClubId,
+                maxAttendees: formData.totalTickets || 500,
+                isPublic: true,
+                requiresApproval: false,
+                eventArtistName: formData.artistName,
+                aboutEventArtist: formData.aboutArtist,
+                instagramHandle: formData.instagramHandle,
+                spotifyHandle: formData.spotifyHandle,
+                musicGenre: selectedGenres.map(g => g.label).join(', '),
+                eventOrganizer: formData.organizer,
+                ticketTypes: ticketTypes,
+                hasLimitedTickets: formData.hasLimitedTickets,
+                totalTickets: formData.totalTickets
+                // NOTE: Image fields (eventImage, eventReel, eventOrganizerLogo, galleryImages, performerImages) 
+                // are intentionally NOT sent to the API - they are display-only in the UI
             };
 
-            console.log('🚀 Creating event with payload:', JSON.stringify(eventData, null, 2));
-            console.log('📡 API Call: POST /events/create-json-with-images with clubId:', selectedClubId);
+            console.log('🚀 Creating event with JSON payload:', JSON.stringify(eventData, null, 2));
+            console.log('📡 API Call: POST /events/create-json-with-images');
 
-            // Use the new endpoint if images are provided, otherwise use regular endpoint
-            let response;
-            if (formData.poster || formData.reel || formData.organizerLogo) {
-                console.log('📸 Images detected - using /events/create-json-with-images');
-                response = await EventService.createEventWithImages(eventData);
-            } else {
-                console.log('No images - using regular /events endpoint');
-                response = await EventService.createEvent(eventData);
-            }
+            // Use the specific endpoint for JSON+Images (even if images are omitted, the structure is expected)
+            const response = await EventService.createEventWithImages(eventData);
 
-            // 🟢 Response is already unwrapped by handleApiResponse
-            // response is now the Event object directly
-            if (response && response.id) {
+            if (response && (response.id || (response as any).success)) {
                 console.log('✅ Event created successfully:', response);
 
                 toast({
@@ -212,7 +243,7 @@ export default function NewEventPage() {
                 // Close the dialog and navigate to event preview
                 setShowConfirmDialog(false);
                 setDialogStage('confirm');
-                router.push(`/admin/event-preview?eventId=${response.id}`);
+                router.push(`/admin/club/${selectedClubId}/events`); // Go back to club events list
             } else {
                 throw new Error('Failed to create event - Invalid response');
             }
@@ -231,10 +262,31 @@ export default function NewEventPage() {
         }
     };
 
-    const handlePreviewEvent = () => {
-        // Navigate to the preview event page
-        router.push('/admin/event-preview');
-    }; const tabs = [
+    const handleAddTicket = () => {
+        setIsAddingTicket(true);
+    };
+
+    const confirmAddTicket = () => {
+        if (newTicket.name && newTicket.price > 0) {
+            setTicketTypes([...ticketTypes, newTicket]);
+            setNewTicket({ name: '', price: 0, currency: 'INR', quantity: 0, isActive: true });
+            setIsAddingTicket(false);
+        } else {
+            toast({
+                title: "Error",
+                description: "Enter valid ticket name and price",
+                variant: 'destructive'
+            });
+        }
+    };
+
+    const handleDeleteTicket = (index: number) => {
+        const updated = [...ticketTypes];
+        updated.splice(index, 1);
+        setTicketTypes(updated);
+    };
+
+    const tabs = [
         { id: 'details', label: 'Event Details' },
         { id: 'creatives', label: 'Event Creatives' },
         { id: 'tickets', label: 'Event Tickets' }
@@ -590,24 +642,68 @@ export default function NewEventPage() {
                                     </div>
                                     <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[15px] px-5">
                                         <div className="flex flex-col gap-4">
-                                            {/* Entry Ticket Option */}
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-5 h-5 rounded-full border border-[#14FFEC] flex items-center justify-center">
-                                                        <div className="w-3 h-3 bg-[#14FFEC] rounded-full"></div>
+                                            {/* List Existing Tickets */}
+                                            {ticketTypes.map((ticket, idx) => (
+                                                <div key={idx} className="flex items-center justify-between border-b border-[#0C898B]/30 pb-2">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-5 h-5 rounded-full border border-[#14FFEC] flex items-center justify-center">
+                                                            <div className={`w-3 h-3 bg-[#14FFEC] rounded-full ${ticket.isActive ? '' : 'bg-gray-500'}`}></div>
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-white font-semibold">{ticket.name}</div>
+                                                            <div className="text-xs text-gray-400">Qty: {ticket.quantity}</div>
+                                                        </div>
                                                     </div>
-                                                    <span className="text-white font-semibold">Entry</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[#14FFEC] font-semibold">₹ {ticket.price}</span>
+                                                        <button
+                                                            onClick={() => handleDeleteTicket(idx)}
+                                                            className="p-1 rounded-full text-red-500 hover:bg-red-500/10"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-[#14FFEC] font-semibold">₹ 499</span>
-                                                    <button className="px-4 py-1 bg-[#0C898B] rounded-full text-white text-sm font-semibold">Edit</button>
-                                                </div>
-                                            </div>
+                                            ))}
 
-                                            {/* Add New Ticket Type Button */}
-                                            <button className="flex items-center justify-center gap-2 py-2 border border-dashed border-[#14FFEC] rounded-[15px] text-[#14FFEC] font-semibold">
-                                                <span>+</span> Add New Ticket Type
-                                            </button>
+                                            {/* Add New Ticket Form */}
+                                            {isAddingTicket ? (
+                                                <div className="bg-[#021313] p-4 rounded-xl space-y-3">
+                                                    <input
+                                                        placeholder="Ticket Name (e.g. VIP)"
+                                                        className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-lg p-2 text-white"
+                                                        value={newTicket.name}
+                                                        onChange={e => setNewTicket({ ...newTicket, name: e.target.value })}
+                                                    />
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="number"
+                                                            placeholder="Price"
+                                                            className="w-1/2 bg-[#0D1F1F] border border-[#0C898B] rounded-lg p-2 text-white"
+                                                            value={newTicket.price || ''}
+                                                            onChange={e => setNewTicket({ ...newTicket, price: parseInt(e.target.value) || 0 })}
+                                                        />
+                                                        <input
+                                                            type="number"
+                                                            placeholder="Qty"
+                                                            className="w-1/2 bg-[#0D1F1F] border border-[#0C898B] rounded-lg p-2 text-white"
+                                                            value={newTicket.quantity || ''}
+                                                            onChange={e => setNewTicket({ ...newTicket, quantity: parseInt(e.target.value) || 0 })}
+                                                        />
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button onClick={confirmAddTicket} className="flex-1 bg-[#14FFEC] text-black py-1 rounded-lg font-bold">Add</button>
+                                                        <button onClick={() => setIsAddingTicket(false)} className="flex-1 bg-gray-700 text-white py-1 rounded-lg">Cancel</button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={handleAddTicket}
+                                                    className="flex items-center justify-center gap-2 py-2 border border-dashed border-[#14FFEC] rounded-[15px] text-[#14FFEC] font-semibold"
+                                                >
+                                                    <span>+</span> Add New Ticket Type
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -620,27 +716,34 @@ export default function NewEventPage() {
                                     <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[15px] px-5">
                                         <div className="flex items-center justify-between">
                                             <span className="text-white font-semibold">Limited Tickets</span>
-                                            <div className="relative">
-                                                <div className="w-12 h-6 bg-[#0C898B]/30 rounded-full"></div>
-                                                <div className="absolute left-0 top-0 w-6 h-6 bg-[#14FFEC] rounded-full shadow"></div>
+                                            <div
+                                                className="relative cursor-pointer"
+                                                onClick={() => setFormData({ ...formData, hasLimitedTickets: !formData.hasLimitedTickets })}
+                                            >
+                                                <div className={`w-12 h-6 rounded-full transition-colors ${formData.hasLimitedTickets ? 'bg-[#14FFEC]' : 'bg-gray-600'}`}></div>
+                                                <div className={`absolute top-0 w-6 h-6 bg-white rounded-full shadow transition-transform ${formData.hasLimitedTickets ? 'right-0' : 'left-0'}`}></div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Number of Tickets */}
-                                <div className="space-y-3">
-                                    <div className="px-5">
-                                        <label className="text-[#14FFEC] font-semibold text-base">Number of Tickets</label>
+                                {formData.hasLimitedTickets && (
+                                    <div className="space-y-3">
+                                        <div className="px-5">
+                                            <label className="text-[#14FFEC] font-semibold text-base">Total Tickets</label>
+                                        </div>
+                                        <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                            <input
+                                                type="number"
+                                                value={formData.totalTickets}
+                                                onChange={(e) => setFormData({ ...formData, totalTickets: parseInt(e.target.value) || 0 })}
+                                                className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                                placeholder="100"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
-                                        <input
-                                            type="number"
-                                            className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
-                                            placeholder="100"
-                                        />
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         )}
                     </div>

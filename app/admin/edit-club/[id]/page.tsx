@@ -23,10 +23,28 @@ export default function EditClubPage() {
     const [formData, setFormData] = useState({
         clubName: '',
         description: '',
+        category: '',
+        maxMembers: '',
         contactEmail: '',
         contactPhone: '',
-        maxMembers: 0,
-        logo: null as File | null
+        address1: '',
+        address2: '',
+        location: '',
+        logo: null as File | null,
+        foodCuisines: '',
+        facilities: '',
+        music: '',
+        barOptions: '',
+        coupleEntryPrice: '',
+        groupEntryPrice: '',
+        maleStagEntryPrice: '',
+        femaleStagEntryPrice: '',
+        coverCharge: '',
+        redeemDetails: '',
+        hasTimeRestriction: false,
+        timeRestriction: '',
+        inclusions: '',
+        exclusions: ''
     });
     const [lookupData, setLookupData] = useState<AllLookupData>({});
     const [isLoadingLookup, setIsLoadingLookup] = useState(true);
@@ -47,13 +65,31 @@ export default function EditClubPage() {
                     setFormData({
                         clubName: club.name || '',
                         description: club.description || '',
+                        category: club.category || '',
+                        maxMembers: club.maxMembers ? String(club.maxMembers) : '',
                         contactEmail: club.contactEmail || '',
                         contactPhone: club.contactPhone || '',
-                        maxMembers: club.maxMembers || 0,
-                        logo: null // Can't pre-fill file input
+                        address1: club.locationText?.address1 || '',
+                        address2: club.locationText?.address2 || '',
+                        location: club.locationText?.city || '',
+                        logo: null,
+                        foodCuisines: club.foodCuisines ? club.foodCuisines.join(', ') : '',
+                        facilities: club.facilities ? club.facilities.join(', ') : '',
+                        music: club.music ? club.music.join(', ') : '',
+                        barOptions: club.barOptions ? club.barOptions.join(', ') : '',
+                        coupleEntryPrice: club.entryPricing?.coupleEntryPrice ? String(club.entryPricing.coupleEntryPrice) : '',
+                        groupEntryPrice: club.entryPricing?.groupEntryPrice ? String(club.entryPricing.groupEntryPrice) : '',
+                        maleStagEntryPrice: club.entryPricing?.maleStagEntryPrice ? String(club.entryPricing.maleStagEntryPrice) : '',
+                        femaleStagEntryPrice: club.entryPricing?.femaleStagEntryPrice ? String(club.entryPricing.femaleStagEntryPrice) : '',
+                        coverCharge: club.entryPricing?.coverCharge ? String(club.entryPricing.coverCharge) : '',
+                        redeemDetails: club.entryPricing?.redeemDetails || '',
+                        hasTimeRestriction: club.entryPricing?.hasTimeRestriction || false,
+                        timeRestriction: club.entryPricing?.timeRestriction || '',
+                        inclusions: club.entryPricing?.inclusions ? club.entryPricing.inclusions.join(', ') : '',
+                        exclusions: club.entryPricing?.exclusions ? club.entryPricing.exclusions.join(', ') : ''
                     });
 
-                    // Pre-fill location data
+                    // Pre-fill location data (Keep using selectedLocation state for consistency)
                     if (club.locationText || club.locationMap) {
                         setSelectedLocation({
                             lat: club.locationMap?.lat || 0,
@@ -232,16 +268,52 @@ export default function EditClubPage() {
                 "description": formData.description.trim(),
                 "contactEmail": formData.contactEmail || adminDetails.email,
                 "contactPhone": formData.contactPhone || adminDetails.phone,
-                "maxMembers": formData.maxMembers || 100
+                "maxMembers": Number(formData.maxMembers) || 100,
+                // New Fields
+                "category": formData.category || "NIGHT_CLUB",
+                "pricing": {
+                    "coupleEntryPrice": Number(formData.coupleEntryPrice) || 0,
+                    "groupEntryPrice": Number(formData.groupEntryPrice) || 0,
+                    "maleStagEntryPrice": Number(formData.maleStagEntryPrice) || 0,
+                    "femaleStagEntryPrice": Number(formData.femaleStagEntryPrice) || 0,
+                    "coverCharge": Number(formData.coverCharge) || 0
+                },
+                "rules": {
+                    "hasTimeRestriction": formData.hasTimeRestriction,
+                    "timeRestriction": formData.timeRestriction,
+                    "inclusions": typeof formData.inclusions === 'string' ? formData.inclusions.split(',').map(s => s.trim()).filter(Boolean) : [],
+                    "exclusions": typeof formData.exclusions === 'string' ? formData.exclusions.split(',').map(s => s.trim()).filter(Boolean) : [],
+                    "redeemDetails": formData.redeemDetails
+                },
+                // Tag Arrays (Manual Entry conversions)
+                "foodCuisines": typeof formData.foodCuisines === 'string' ? formData.foodCuisines.split(',').map(s => s.trim()).filter(Boolean) : [],
+                "facilities": typeof formData.facilities === 'string' ? formData.facilities.split(',').map(s => s.trim()).filter(Boolean) : [],
+                "music": typeof formData.music === 'string' ? formData.music.split(',').map(s => s.trim()).filter(Boolean) : [],
+                "barOptions": typeof formData.barOptions === 'string' ? formData.barOptions.split(',').map(s => s.trim()).filter(Boolean) : [],
+                // Ensure empty images array as requested
+                "images": [],
+                "logo": null
             };
 
             // Add location if available
             if (selectedLocation.state || selectedLocation.city || selectedLocation.pincode) {
+                const parts = [
+                    formData.address1,
+                    formData.address2,
+                    selectedLocation.city,
+                    selectedLocation.state,
+                    selectedLocation.pincode
+                ].filter(Boolean);
+
                 clubData.locationText = {
                     state: selectedLocation.state,
                     city: selectedLocation.city,
                     pincode: selectedLocation.pincode,
-                    fullAddress: `${selectedLocation.city}, ${selectedLocation.state} ${selectedLocation.pincode}`.trim()
+                    address1: formData.address1,
+                    address2: formData.address2,
+                    addressLine1: formData.address1, // Send both just in case
+                    addressLine2: formData.address2,
+                    fullAddress: parts.join(', ')
                 };
             }
 
@@ -252,21 +324,15 @@ export default function EditClubPage() {
                 };
             }
 
-            // Add other fields that might be needed
+            // Add legacy fields if needed
             if (currentClub) {
-                // Preserve existing data that we don't have forms for
-                clubData.images = currentClub.images || [];
-                clubData.foodCuisines = currentClub.foodCuisines || [];
-                clubData.facilities = currentClub.facilities || [];
-                clubData.music = currentClub.music || [];
-                clubData.barOptions = currentClub.barOptions || [];
+                // Just keep legacy entryPricing for safety if backend checks it
                 clubData.entryPricing = currentClub.entryPricing || {
                     weekdayPrice: 0,
                     weekendPrice: 0,
                     memberDiscount: 0,
                     currency: "INR"
                 };
-                clubData.logo = currentClub.logo || "";
             }
 
             console.log('🚀 Updating club with payload:', JSON.stringify(clubData, null, 2));
@@ -465,20 +531,64 @@ export default function EditClubPage() {
                             />
                         </div>
 
-                        {/* Max Members */}
-                        <div className="mb-6">
-                            <label className="block text-white text-sm font-medium mb-3">Max Members</label>
-                            <input
-                                type="number"
-                                value={formData.maxMembers}
-                                onChange={(e) => handleInputChange('maxMembers', parseInt(e.target.value) || 0)}
-                                placeholder="100"
-                                min="0"
-                                className="w-full h-12 bg-[#0D1F1F] border border-[#14FFEC]/20 rounded-[15px] px-4 text-white placeholder-gray-400 focus:border-[#14FFEC] focus:outline-none"
-                            />
+                        {/* Category & Max Members */}
+                        <div className="w-full grid grid-cols-2 gap-4 mb-6">
+                            <div className="flex flex-col gap-[11px]">
+                                <div className="px-1">
+                                    <label className="text-[#14FFEC] font-semibold text-sm">Category</label>
+                                </div>
+                                <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                    <input
+                                        type="text"
+                                        value={formData.category}
+                                        onChange={(e) => handleInputChange('category', e.target.value)}
+                                        className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                        placeholder="e.g. NIGHT_CLUB"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-[11px]">
+                                <div className="px-1">
+                                    <label className="text-[#14FFEC] font-semibold text-sm">Max Members</label>
+                                </div>
+                                <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                    <input
+                                        type="number"
+                                        value={formData.maxMembers}
+                                        onChange={(e) => handleInputChange('maxMembers', e.target.value)}
+                                        className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                        placeholder="0"
+                                    />
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Location */}
+                        {/* Additional Address Fields */}
+                        <div className="w-full flex flex-col gap-3 mb-6">
+                            <div className="px-1">
+                                <label className="text-[#14FFEC] font-semibold text-sm">Address Details</label>
+                            </div>
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                <input
+                                    type="text"
+                                    value={formData.address1}
+                                    onChange={(e) => handleInputChange('address1', e.target.value)}
+                                    className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                    placeholder="Address Line 1"
+                                />
+                            </div>
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                <input
+                                    type="text"
+                                    value={formData.address2}
+                                    onChange={(e) => handleInputChange('address2', e.target.value)}
+                                    className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                    placeholder="Address Line 2 (Optional)"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Location Picker */}
                         <div className="mb-6">
                             <label className="block text-white text-sm font-medium mb-3">Location</label>
                             <div
@@ -495,6 +605,170 @@ export default function EditClubPage() {
                                     </span>
                                 </div>
                                 <ChevronRight className="w-5 h-5 text-[#14FFEC]" />
+                            </div>
+                        </div>
+
+                        {/* Pricing Section */}
+                        <div className="w-full flex flex-col gap-[11px] mb-6">
+                            <div className="px-1">
+                                <label className="text-[#14FFEC] font-semibold text-sm">Pricing</label>
+                            </div>
+                            <div className="w-full grid grid-cols-2 gap-3">
+                                <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[20px] p-[10px] px-4">
+                                    <label className="text-xs text-[#9D9C9C]">Couple Entry</label>
+                                    <input
+                                        type="number"
+                                        value={formData.coupleEntryPrice}
+                                        onChange={(e) => handleInputChange('coupleEntryPrice', e.target.value)}
+                                        className="w-full bg-transparent text-white outline-none text-base font-semibold"
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[20px] p-[10px] px-4">
+                                    <label className="text-xs text-[#9D9C9C]">Group Entry</label>
+                                    <input
+                                        type="number"
+                                        value={formData.groupEntryPrice}
+                                        onChange={(e) => handleInputChange('groupEntryPrice', e.target.value)}
+                                        className="w-full bg-transparent text-white outline-none text-base font-semibold"
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[20px] p-[10px] px-4">
+                                    <label className="text-xs text-[#9D9C9C]">Male Stag</label>
+                                    <input
+                                        type="number"
+                                        value={formData.maleStagEntryPrice}
+                                        onChange={(e) => handleInputChange('maleStagEntryPrice', e.target.value)}
+                                        className="w-full bg-transparent text-white outline-none text-base font-semibold"
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[20px] p-[10px] px-4">
+                                    <label className="text-xs text-[#9D9C9C]">Female Stag</label>
+                                    <input
+                                        type="number"
+                                        value={formData.femaleStagEntryPrice}
+                                        onChange={(e) => handleInputChange('femaleStagEntryPrice', e.target.value)}
+                                        className="w-full bg-transparent text-white outline-none text-base font-semibold"
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[20px] p-[10px] px-4 col-span-2">
+                                    <label className="text-xs text-[#9D9C9C]">Cover Charge</label>
+                                    <input
+                                        type="number"
+                                        value={formData.coverCharge}
+                                        onChange={(e) => handleInputChange('coverCharge', e.target.value)}
+                                        className="w-full bg-transparent text-white outline-none text-base font-semibold"
+                                        placeholder="0"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Details & Rules */}
+                        <div className="w-full flex flex-col gap-[11px] mb-6">
+                            <div className="px-1">
+                                <label className="text-[#14FFEC] font-semibold text-sm">Details & Rules</label>
+                            </div>
+
+                            <div className="space-y-3">
+                                {/* Time Restriction Toggle */}
+                                <div className="px-5 flex items-center justify-between">
+                                    <span className="text-white">Has Time Restriction?</span>
+                                    <div
+                                        onClick={() => setFormData(prev => ({ ...prev, hasTimeRestriction: !prev.hasTimeRestriction }))}
+                                        className={`w-12 h-6 rounded-full flex items-center p-1 cursor-pointer transition-colors ${formData.hasTimeRestriction ? 'bg-[#14FFEC]' : 'bg-gray-600'}`}
+                                    >
+                                        <div className={`w-4 h-4 bg-black rounded-full transition-transform ${formData.hasTimeRestriction ? 'translate-x-6' : 'translate-x-0'}`} />
+                                    </div>
+                                </div>
+
+                                {formData.hasTimeRestriction && (
+                                    <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                        <input
+                                            type="text"
+                                            value={formData.timeRestriction}
+                                            onChange={(e) => handleInputChange('timeRestriction', e.target.value)}
+                                            className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                            placeholder="Time Restriction (e.g. 10 PM)"
+                                        />
+                                    </div>
+                                )}
+
+                                <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                    <input
+                                        type="text"
+                                        value={formData.redeemDetails}
+                                        onChange={(e) => handleInputChange('redeemDetails', e.target.value)}
+                                        className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                        placeholder="Redeem Details"
+                                    />
+                                </div>
+
+                                <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                    <textarea
+                                        value={formData.inclusions}
+                                        onChange={(e) => handleInputChange('inclusions', e.target.value)}
+                                        className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold min-h-[60px]"
+                                        placeholder="Inclusions (comma separated)"
+                                    />
+                                </div>
+
+                                <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                    <textarea
+                                        value={formData.exclusions}
+                                        onChange={(e) => handleInputChange('exclusions', e.target.value)}
+                                        className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold min-h-[60px]"
+                                        placeholder="Exclusions (comma separated)"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Manual Tags Entry */}
+                        <div className="w-full flex flex-col gap-[11px] mb-6">
+                            <div className="px-1">
+                                <label className="text-[#14FFEC] font-semibold text-sm">Tags (Manual Entry)</label>
+                            </div>
+                            <div className="space-y-3">
+                                <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                    <input
+                                        type="text"
+                                        value={formData.foodCuisines}
+                                        onChange={(e) => handleInputChange('foodCuisines', e.target.value)}
+                                        className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                        placeholder="Food Cuisines (comma separated)"
+                                    />
+                                </div>
+                                <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                    <input
+                                        type="text"
+                                        value={formData.facilities}
+                                        onChange={(e) => handleInputChange('facilities', e.target.value)}
+                                        className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                        placeholder="Facilities (comma separated)"
+                                    />
+                                </div>
+                                <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                    <input
+                                        type="text"
+                                        value={formData.music}
+                                        onChange={(e) => handleInputChange('music', e.target.value)}
+                                        className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                        placeholder="Music (comma separated)"
+                                    />
+                                </div>
+                                <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                    <input
+                                        type="text"
+                                        value={formData.barOptions}
+                                        onChange={(e) => handleInputChange('barOptions', e.target.value)}
+                                        className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                        placeholder="Bar Options (comma separated)"
+                                    />
+                                </div>
                             </div>
                         </div>
 

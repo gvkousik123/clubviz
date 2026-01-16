@@ -497,9 +497,9 @@ export class EventService {
       if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
       if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
-      console.log(`📡 API Call: GET /events/my-organized-events?${queryParams.toString()}`);
+      console.log(`📡 API Call: GET /event-management/events/my-organized-events?${queryParams.toString()}`);
       const response = await api.get<ApiResponse<EventListResponse>>(
-        `/events/my-organized-events${queryParams.toString() ? '?' + queryParams.toString() : ''}`
+        `/event-management/events/my-organized-events${queryParams.toString() ? '?' + queryParams.toString() : ''}`
       );
       console.log(`✅ My organized events retrieved:`, response);
       return handleApiResponse(response);
@@ -515,7 +515,7 @@ export class EventService {
    */
   static async getAttendingEvents(): Promise<ApiResponse<AttendingEventFull[]>> {
     try {
-      const response = await api.get<ApiResponse<AttendingEventFull[]>>('/events/attending');
+      const response = await api.get<ApiResponse<AttendingEventFull[]>>('/event-management/events/attending');
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -527,7 +527,7 @@ export class EventService {
    */
   static async getFeaturedEvents(limit: number = 10): Promise<ApiResponse<Event[]>> {
     try {
-      const response = await api.get<ApiResponse<Event[]>>(`/events/featured?limit=${limit}`);
+      const response = await api.get<ApiResponse<Event[]>>(`/event-management/events/featured?limit=${limit}`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -539,7 +539,7 @@ export class EventService {
    */
   static async getUpcomingEvents(limit: number = 20): Promise<ApiResponse<Event[]>> {
     try {
-      const response = await api.get<ApiResponse<Event[]>>(`/events/upcoming?limit=${limit}`);
+      const response = await api.get<ApiResponse<Event[]>>(`/event-management/events/upcoming?limit=${limit}`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -599,7 +599,7 @@ export class EventService {
    */
   static async getPopularEvents(limit: number = 10): Promise<ApiResponse<Event[]>> {
     try {
-      const response = await api.get<ApiResponse<Event[]>>(`/events/popular?limit=${limit}`);
+      const response = await api.get<ApiResponse<Event[]>>(`/event-management/events/popular?limit=${limit}`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -612,7 +612,7 @@ export class EventService {
   static async getEventsByDateRange(startDate: string, endDate: string): Promise<ApiResponse<Event[]>> {
     try {
       const response = await api.get<ApiResponse<Event[]>>(
-        `/events/date-range?startDate=${startDate}&endDate=${endDate}`
+        `/event-management/events/date-range?startDate=${startDate}&endDate=${endDate}`
       );
       return handleApiResponse(response);
     } catch (error) {
@@ -625,7 +625,7 @@ export class EventService {
    */
   static async getEventsByGenre(genre: string, limit: number = 20): Promise<ApiResponse<Event[]>> {
     try {
-      const response = await api.get<ApiResponse<Event[]>>(`/events/genre/${genre}?limit=${limit}`);
+      const response = await api.get<ApiResponse<Event[]>>(`/event-management/events/genre/${genre}?limit=${limit}`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -637,7 +637,7 @@ export class EventService {
    */
   static async getMusicGenres(): Promise<ApiResponse<string[]>> {
     try {
-      const response = await api.get<ApiResponse<string[]>>('/events/genres');
+      const response = await api.get<ApiResponse<string[]>>('/event-management/events/genres');
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -650,7 +650,7 @@ export class EventService {
   static async addToFavorites(eventId: string): Promise<ApiResponse<{ message: string }>> {
     try {
       const response = await api.post<ApiResponse<{ message: string }>>(
-        `/events/${eventId}/favorite`
+        `/event-management/events/${eventId}/favorite`
       );
       return handleApiResponse(response);
     } catch (error) {
@@ -664,7 +664,7 @@ export class EventService {
   static async removeFromFavorites(eventId: string): Promise<ApiResponse<{ message: string }>> {
     try {
       const response = await api.delete<ApiResponse<{ message: string }>>(
-        `/events/${eventId}/favorite`
+        `/event-management/events/${eventId}/favorite`
       );
       return handleApiResponse(response);
     } catch (error) {
@@ -690,7 +690,7 @@ export class EventService {
   static async isEventFavorite(eventId: string): Promise<ApiResponse<{ isFavorite: boolean }>> {
     try {
       const response = await api.get<ApiResponse<{ isFavorite: boolean }>>(
-        `/events/${eventId}/favorite/status`
+        `/event-management/events/${eventId}/favorite/status`
       );
       return handleApiResponse(response);
     } catch (error) {
@@ -703,7 +703,7 @@ export class EventService {
    */
   static async getEventTicketTypes(eventId: string): Promise<ApiResponse<TicketType[]>> {
     try {
-      const response = await api.get<ApiResponse<TicketType[]>>(`/events/${eventId}/tickets`);
+      const response = await api.get<ApiResponse<TicketType[]>>(`/event-management/events/${eventId}/tickets`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -715,7 +715,7 @@ export class EventService {
    */
   static async getEventPerformers(eventId: string): Promise<ApiResponse<Performer[]>> {
     try {
-      const response = await api.get<ApiResponse<Performer[]>>(`/events/${eventId}/performers`);
+      const response = await api.get<ApiResponse<Performer[]>>(`/event-management/events/${eventId}/performers`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -733,7 +733,7 @@ export class EventService {
   ): Promise<ApiResponse<Event[]>> {
     try {
       const response = await api.get<ApiResponse<Event[]>>(
-        `/events/nearby?latitude=${latitude}&longitude=${longitude}&radius=${radius}&limit=${limit}`
+        `/event-management/events/nearby?latitude=${latitude}&longitude=${longitude}&radius=${radius}&limit=${limit}`
       );
       return handleApiResponse(response);
     } catch (error) {
@@ -746,7 +746,7 @@ export class EventService {
    */
   static async getTodayEvents(): Promise<ApiResponse<Event[]>> {
     try {
-      const response = await api.get<ApiResponse<Event[]>>('/events/today');
+      const response = await api.get<ApiResponse<Event[]>>('/event-management/events/today');
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -758,7 +758,7 @@ export class EventService {
    */
   static async getWeekendEvents(): Promise<ApiResponse<Event[]>> {
     try {
-      const response = await api.get<ApiResponse<Event[]>>('/events/weekend');
+      const response = await api.get<ApiResponse<Event[]>>('/event-management/events/weekend');
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -770,7 +770,7 @@ export class EventService {
    */
   static async getRecommendedEvents(limit: number = 10): Promise<ApiResponse<Event[]>> {
     try {
-      const response = await api.get<ApiResponse<Event[]>>(`/events/recommendations?limit=${limit}`);
+      const response = await api.get<ApiResponse<Event[]>>(`/event-management/events/recommendations?limit=${limit}`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -782,7 +782,7 @@ export class EventService {
    */
   static async getEventStats(eventId: string): Promise<ApiResponse<any>> {
     try {
-      const response = await api.get<ApiResponse<any>>(`/events/${eventId}/stats`);
+      const response = await api.get<ApiResponse<any>>(`/event-management/events/${eventId}/stats`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -795,7 +795,7 @@ export class EventService {
   static async reportEvent(eventId: string, reason: string, description?: string): Promise<ApiResponse<{ message: string }>> {
     try {
       const response = await api.post<ApiResponse<{ message: string }>>(
-        `/events/${eventId}/report`,
+        `/event-management/events/${eventId}/report`,
         { reason, description }
       );
       return handleApiResponse(response);
@@ -810,7 +810,7 @@ export class EventService {
   static async shareEvent(eventId: string, platform: string): Promise<ApiResponse<{ shareUrl: string }>> {
     try {
       const response = await api.post<ApiResponse<{ shareUrl: string }>>(
-        `/events/${eventId}/share`,
+        `/event-management/events/${eventId}/share`,
         { platform }
       );
       return handleApiResponse(response);
@@ -825,7 +825,7 @@ export class EventService {
   static async checkEventAvailability(eventId: string): Promise<ApiResponse<{ isAvailable: boolean; availableTickets: number }>> {
     try {
       const response = await api.get<ApiResponse<{ isAvailable: boolean; availableTickets: number }>>(
-        `/events/${eventId}/availability`
+        `/event-management/events/${eventId}/availability`
       );
       return handleApiResponse(response);
     } catch (error) {
@@ -838,7 +838,7 @@ export class EventService {
    */
   static async getEventsByPerformer(performerId: string): Promise<ApiResponse<Event[]>> {
     try {
-      const response = await api.get<ApiResponse<Event[]>>(`/performers/${performerId}/events`);
+      const response = await api.get<ApiResponse<Event[]>>(`/event-management/performers/${performerId}/events`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -863,7 +863,7 @@ export class EventService {
       if (params.endDate) queryParams.append('endDate', params.endDate);
 
       const response = await api.get<ApiResponse<EventListResponse>>(
-        `/events/list?${queryParams.toString()}`
+        `/event-management/events/my-organized-events/events/list?${queryParams.toString()}`
       );
       return handleApiResponse(response);
     } catch (error) {

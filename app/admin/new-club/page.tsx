@@ -19,8 +19,29 @@ export default function NewClubPage() {
 
     const [formData, setFormData] = useState({
         clubName: '',
+        description: '',
+        category: '',
+        maxMembers: '',
+        contactEmail: '',
+        contactPhone: '',
+        address1: '',
+        address2: '',
         location: '',
-        logo: null as File | null
+        logo: null as File | null,
+        foodCuisines: '',
+        facilities: '',
+        music: '',
+        barOptions: '',
+        coupleEntryPrice: '',
+        groupEntryPrice: '',
+        maleStagEntryPrice: '',
+        femaleStagEntryPrice: '',
+        coverCharge: '',
+        redeemDetails: '',
+        hasTimeRestriction: false,
+        timeRestriction: '',
+        inclusions: '',
+        exclusions: ''
     });
     const [foodDrinksImages, setFoodDrinksImages] = useState<File[]>([]);
     const [ambienceImages, setAmbienceImages] = useState<File[]>([]);
@@ -265,7 +286,6 @@ export default function NewClubPage() {
 
         // Check if user is logged in and has admin role
         const token = typeof window !== 'undefined' ? localStorage.getItem('clubviz-accessToken') : null;
-        const userData = typeof window !== 'undefined' ? localStorage.getItem('clubviz-user') : null;
 
         if (!token) {
             toast({
@@ -273,149 +293,68 @@ export default function NewClubPage() {
                 description: "Please log in as an admin to create clubs",
                 variant: "destructive",
             });
-            console.error('❌ No access token found. Please login as admin.');
             return;
-        }
-
-        if (userData) {
-            const user = JSON.parse(userData);
-            console.log('👤 Current User:', user);
-            console.log('🔑 User Role:', user.role || user.roles);
-
-            // Role can be string, array, or object - check all formats
-            const roleStr = JSON.stringify(user.role || user.roles || '');
-            const hasAdminRole = roleStr.includes('ADMIN');
-
-            console.log('✅ Has Admin Role:', hasAdminRole);
-
-            if (!hasAdminRole) {
-                toast({
-                    title: "Permission Denied",
-                    description: "You need ADMIN or SUPER_ADMIN role to create clubs",
-                    variant: "destructive",
-                });
-                console.error('❌ User does not have admin role:', user.role || user.roles);
-                return;
-            }
         }
 
         setIsSubmitting(true);
         try {
-            // 🔴 REQUIRED: Validate club name
-            if (!formData.clubName.trim()) {
-                throw new Error('Club name is required');
-            }
 
-            // ✅ CONVERT LOGO TO BASE64
-            let logoBase64 = '';
-            if (formData.logo) {
-                try {
-                    logoBase64 = await fileToBase64(formData.logo);
-                    console.log('✅ Logo converted to base64');
-                } catch (error) {
-                    console.warn('⚠️ Failed to convert logo:', error);
-                }
-            }
+            // ✅ BUILD PAYLOAD EXACTLY AS REQUESTED
+            // Omitting images even if uploaded
 
-            // ✅ COLLECT AND CONVERT ALL IMAGES TO BASE64
-            const allImages: Array<{ type: string; data: string }> = [];
+            const clubData = {
+                "name": formData.clubName.trim(),
+                "description": formData.description.trim() || "",
+                "logoFile": formData.logo ? formData.logo.name : "",
+                "logo": null, // Intentionally null as requested to omit image data
+                "category": formData.category.trim() || "NIGHT_CLUB",
+                "maxMembers": parseInt(formData.maxMembers) || 0,
+                "contactEmail": formData.contactEmail.trim() || adminDetails.email,
+                "contactPhone": formData.contactPhone.trim() || adminDetails.phone,
 
-            // Process Food/Drinks images
-            for (let i = 0; i < foodDrinksImages.length; i++) {
-                if (foodDrinksImages[i]) {
-                    try {
-                        const base64Data = await fileToBase64(foodDrinksImages[i]);
-                        allImages.push({
-                            type: 'foodDrinks',
-                            data: base64Data
-                        });
-                        console.log(`✅ Food/Drinks image ${i + 1} converted to base64`);
-                    } catch (error) {
-                        console.warn(`⚠️ Failed to convert food/drinks image ${i + 1}:`, error);
-                    }
-                }
-            }
+                // Image arrays - sent as empty/null as requested to omit
+                "foodImages": [],
+                "foodImageData": [],
+                "ambianceImages": [],
+                "ambianceImageData": [],
+                "menuImages": [],
+                "menuImageData": [],
 
-            // Process Ambience images
-            for (let i = 0; i < ambienceImages.length; i++) {
-                if (ambienceImages[i]) {
-                    try {
-                        const base64Data = await fileToBase64(ambienceImages[i]);
-                        allImages.push({
-                            type: 'ambience',
-                            data: base64Data
-                        });
-                        console.log(`✅ Ambience image ${i + 1} converted to base64`);
-                    } catch (error) {
-                        console.warn(`⚠️ Failed to convert ambience image ${i + 1}:`, error);
-                    }
-                }
-            }
+                // Location
+                "locationTextAddress1": formData.address1.trim() || "",
+                "locationTextAddress2": formData.address2.trim() || "",
+                "locationTextState": selectedLocation.state || "",
+                "locationTextCity": selectedLocation.city || "",
+                "locationTextPincode": selectedLocation.pincode || "",
+                "locationLat": selectedLocation.lat || 0,
+                "locationLng": selectedLocation.lng || 0,
 
-            // Process Menu images
-            for (let i = 0; i < menuImages.length; i++) {
-                if (menuImages[i]) {
-                    try {
-                        const base64Data = await fileToBase64(menuImages[i]);
-                        allImages.push({
-                            type: 'menu',
-                            data: base64Data
-                        });
-                        console.log(`✅ Menu image ${i + 1} converted to base64`);
-                    } catch (error) {
-                        console.warn(`⚠️ Failed to convert menu image ${i + 1}:`, error);
-                    }
-                }
-            }
+                // Comma separated strings or simple strings
+                "foodCuisines": formData.foodCuisines || "",
+                "facilities": formData.facilities || "",
+                "music": formData.music || "",
+                "barOptions": formData.barOptions || "",
 
-            // ✅ BUILD PAYLOAD WITH BASE64 IMAGES
-            const clubData: any = {
-                "name": formData.clubName.trim(), // REQUIRED
+                // Pricing
+                "coupleEntryPrice": parseFloat(formData.coupleEntryPrice) || 0,
+                "groupEntryPrice": parseFloat(formData.groupEntryPrice) || 0,
+                "maleStagEntryPrice": parseFloat(formData.maleStagEntryPrice) || 0,
+                "femaleStagEntryPrice": parseFloat(formData.femaleStagEntryPrice) || 0,
+                "coverCharge": parseFloat(formData.coverCharge) || 0,
+
+                // Other details
+                "redeemDetails": formData.redeemDetails || "",
+                "hasTimeRestriction": formData.hasTimeRestriction,
+                "timeRestriction": formData.timeRestriction || "",
+                "inclusions": formData.inclusions || "",
+                "exclusions": formData.exclusions || ""
             };
 
-            // Add logo if available (base64 format)
-            if (logoBase64) {
-                clubData.logo = logoBase64;
-                console.log('📸 Logo added to payload (base64)');
-            }
-
-            // Add images if available (base64 format)
-            if (allImages.length > 0) {
-                clubData.images = allImages;
-                console.log(`📸 ${allImages.length} images added to payload (base64)`);
-            }
-
-            // Add optional fields only if they have values
-            if (adminDetails.email && adminDetails.email !== 'admin@example.com') {
-                clubData.contactEmail = adminDetails.email;
-            }
-
-            if (adminDetails.phone && adminDetails.phone !== '+91-9876543210') {
-                clubData.contactPhone = adminDetails.phone;
-            }
-
-            // Add location if available
-            if (selectedLocation.state) clubData.locationTextState = selectedLocation.state;
-            if (selectedLocation.city) clubData.locationTextCity = selectedLocation.city;
-            if (selectedLocation.pincode) clubData.locationTextPincode = selectedLocation.pincode;
-            if (selectedLocation.lat) clubData.locationLat = selectedLocation.lat;
-            if (selectedLocation.lng) clubData.locationLng = selectedLocation.lng;
-
-            console.log('🚀 Creating club with base64 images:', {
-                name: clubData.name,
-                hasLogo: !!clubData.logo,
-                logoSize: clubData.logo ? clubData.logo.length : 0,
-                imageCount: clubData.images?.length || 0,
-                images: clubData.images?.map((img: any) => ({
-                    type: img.type,
-                    dataSize: img.data.length
-                }))
-            });
+            console.log('🚀 Creating Club Payload:', clubData);
             console.log('📡 API Call: POST /clubs/create-json-with-images');
-            console.log('📋 Full Payload:', JSON.stringify(clubData, null, 2));
 
             // Call the service to create the club
-            const response = await ClubService.createClub(clubData);
+            const response = await ClubService.createClub(clubData as any);
 
             console.log('✅ Club created successfully:', response);
 
@@ -432,16 +371,10 @@ export default function NewClubPage() {
 
         } catch (error: any) {
             console.error('❌ Club creation error:', error);
-            console.error('❌ Error response:', error.response?.data);
-            console.error('❌ Error status:', error.response?.status);
-            console.error('❌ Error message:', error.message);
 
             let errorMessage = 'Failed to create club. Please try again.';
 
-            // Check for specific error responses
-            if (error.response?.status === 403 || error.response?.status === 401) {
-                errorMessage = 'Permission denied. You need ADMIN or SUPER_ADMIN role to create clubs. Please login with admin credentials.';
-            } else if (error.response?.data?.message) {
+            if (error.response?.data?.message) {
                 errorMessage = error.response.data.message;
             } else if (error.message) {
                 errorMessage = error.message;
@@ -525,6 +458,85 @@ export default function NewClubPage() {
                                 className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
                                 placeholder="Enter Club Name Here"
                             />
+                        </div>
+                    </div>
+
+                    {/* Description */}
+                    <div className="w-full flex flex-col gap-[11px]">
+                        <div className="px-5">
+                            <label className="text-[#14FFEC] font-semibold text-base">Description</label>
+                        </div>
+                        <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                            <textarea
+                                value={formData.description}
+                                onChange={(e) => handleInputChange('description', e.target.value)}
+                                className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold min-h-[80px]"
+                                placeholder="Enter club description"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Category & Max Members */}
+                    <div className="w-full grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-[11px]">
+                            <div className="px-5">
+                                <label className="text-[#14FFEC] font-semibold text-base">Category</label>
+                            </div>
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                <input
+                                    type="text"
+                                    value={formData.category}
+                                    onChange={(e) => handleInputChange('category', e.target.value)}
+                                    className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                    placeholder="e.g. NIGHT_CLUB"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-[11px]">
+                            <div className="px-5">
+                                <label className="text-[#14FFEC] font-semibold text-base">Max Members</label>
+                            </div>
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                <input
+                                    type="number"
+                                    value={formData.maxMembers}
+                                    onChange={(e) => handleInputChange('maxMembers', e.target.value)}
+                                    className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                    placeholder="0"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Contact Info */}
+                    <div className="w-full flex flex-col gap-4">
+                        <div className="flex flex-col gap-[11px]">
+                            <div className="px-5">
+                                <label className="text-[#14FFEC] font-semibold text-base">Contact Email</label>
+                            </div>
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                <input
+                                    type="email"
+                                    value={formData.contactEmail}
+                                    onChange={(e) => handleInputChange('contactEmail', e.target.value)}
+                                    className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                    placeholder={adminDetails.email}
+                                />
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-[11px]">
+                            <div className="px-5">
+                                <label className="text-[#14FFEC] font-semibold text-base">Contact Phone</label>
+                            </div>
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                <input
+                                    type="text"
+                                    value={formData.contactPhone}
+                                    onChange={(e) => handleInputChange('contactPhone', e.target.value)}
+                                    className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                    placeholder={adminDetails.phone}
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -653,19 +665,205 @@ export default function NewClubPage() {
                         </div>
                         <div
                             onClick={() => handleNavigate('/location')}
-                            className="w-full h-[55px] bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5 flex items-center justify-between cursor-pointer"
+                            className="w-full h-[55px] bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5 flex items-center justify-between cursor-pointer mb-2"
                         >
                             <span className="text-white text-base font-semibold">
                                 {selectedLocation.city && selectedLocation.state
                                     ? `${selectedLocation.city}, ${selectedLocation.state}${selectedLocation.pincode ? ' - ' + selectedLocation.pincode : ''}`
-                                    : 'Add Location'}
+                                    : 'Select on Map (City/State)'}
                             </span>
                             <ChevronRight className="text-[#14FFEC]" size={18} />
                         </div>
+
+                        {/* Additional Address Fields */}
+                        <div className="w-full flex flex-col gap-3">
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                <input
+                                    type="text"
+                                    value={formData.address1}
+                                    onChange={(e) => handleInputChange('address1', e.target.value)}
+                                    className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                    placeholder="Address Line 1"
+                                />
+                            </div>
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                <input
+                                    type="text"
+                                    value={formData.address2}
+                                    onChange={(e) => handleInputChange('address2', e.target.value)}
+                                    className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                    placeholder="Address Line 2 (Optional)"
+                                />
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Club Tags */}
+                    {/* Pricing Section */}
                     <div className="w-full flex flex-col gap-[11px]">
+                        <div className="px-5">
+                            <label className="text-[#14FFEC] font-semibold text-base">Pricing</label>
+                        </div>
+                        <div className="w-full grid grid-cols-2 gap-3">
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[20px] p-[10px] px-4">
+                                <label className="text-xs text-[#9D9C9C]">Couple Entry</label>
+                                <input
+                                    type="number"
+                                    value={formData.coupleEntryPrice}
+                                    onChange={(e) => handleInputChange('coupleEntryPrice', e.target.value)}
+                                    className="w-full bg-transparent text-white outline-none text-base font-semibold"
+                                    placeholder="0"
+                                />
+                            </div>
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[20px] p-[10px] px-4">
+                                <label className="text-xs text-[#9D9C9C]">Group Entry</label>
+                                <input
+                                    type="number"
+                                    value={formData.groupEntryPrice}
+                                    onChange={(e) => handleInputChange('groupEntryPrice', e.target.value)}
+                                    className="w-full bg-transparent text-white outline-none text-base font-semibold"
+                                    placeholder="0"
+                                />
+                            </div>
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[20px] p-[10px] px-4">
+                                <label className="text-xs text-[#9D9C9C]">Male Stag</label>
+                                <input
+                                    type="number"
+                                    value={formData.maleStagEntryPrice}
+                                    onChange={(e) => handleInputChange('maleStagEntryPrice', e.target.value)}
+                                    className="w-full bg-transparent text-white outline-none text-base font-semibold"
+                                    placeholder="0"
+                                />
+                            </div>
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[20px] p-[10px] px-4">
+                                <label className="text-xs text-[#9D9C9C]">Female Stag</label>
+                                <input
+                                    type="number"
+                                    value={formData.femaleStagEntryPrice}
+                                    onChange={(e) => handleInputChange('femaleStagEntryPrice', e.target.value)}
+                                    className="w-full bg-transparent text-white outline-none text-base font-semibold"
+                                    placeholder="0"
+                                />
+                            </div>
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[20px] p-[10px] px-4 col-span-2">
+                                <label className="text-xs text-[#9D9C9C]">Cover Charge</label>
+                                <input
+                                    type="number"
+                                    value={formData.coverCharge}
+                                    onChange={(e) => handleInputChange('coverCharge', e.target.value)}
+                                    className="w-full bg-transparent text-white outline-none text-base font-semibold"
+                                    placeholder="0"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Details & Rules */}
+                    <div className="w-full flex flex-col gap-[11px]">
+                        <div className="px-5">
+                            <label className="text-[#14FFEC] font-semibold text-base">Details & Rules</label>
+                        </div>
+
+                        <div className="space-y-3">
+                            {/* Time Restriction Toggle */}
+                            <div className="px-5 flex items-center justify-between">
+                                <span className="text-white">Has Time Restriction?</span>
+                                <input
+                                    type="checkbox"
+                                    checked={formData.hasTimeRestriction}
+                                    onChange={(e) => setFormData({ ...formData, hasTimeRestriction: e.target.checked })}
+                                    className="w-5 h-5 accent-[#14FFEC]"
+                                />
+                            </div>
+
+                            {formData.hasTimeRestriction && (
+                                <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                    <input
+                                        type="text"
+                                        value={formData.timeRestriction}
+                                        onChange={(e) => handleInputChange('timeRestriction', e.target.value)}
+                                        className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                        placeholder="Time Restriction (e.g. 10 PM)"
+                                    />
+                                </div>
+                            )}
+
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                <input
+                                    type="text"
+                                    value={formData.redeemDetails}
+                                    onChange={(e) => handleInputChange('redeemDetails', e.target.value)}
+                                    className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                    placeholder="Redeem Details"
+                                />
+                            </div>
+
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                <textarea
+                                    value={formData.inclusions}
+                                    onChange={(e) => handleInputChange('inclusions', e.target.value)}
+                                    className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold min-h-[60px]"
+                                    placeholder="Inclusions (comma separated)"
+                                />
+                            </div>
+
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                <textarea
+                                    value={formData.exclusions}
+                                    onChange={(e) => handleInputChange('exclusions', e.target.value)}
+                                    className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold min-h-[60px]"
+                                    placeholder="Exclusions (comma separated)"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Manual Tags Entry */}
+                    <div className="w-full flex flex-col gap-[11px]">
+                        <div className="px-5">
+                            <label className="text-[#14FFEC] font-semibold text-base">Tags (Manual Entry)</label>
+                        </div>
+                        <div className="space-y-3">
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                <input
+                                    type="text"
+                                    value={formData.foodCuisines}
+                                    onChange={(e) => handleInputChange('foodCuisines', e.target.value)}
+                                    className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                    placeholder="Food Cuisines (comma separated)"
+                                />
+                            </div>
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                <input
+                                    type="text"
+                                    value={formData.facilities}
+                                    onChange={(e) => handleInputChange('facilities', e.target.value)}
+                                    className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                    placeholder="Facilities (comma separated)"
+                                />
+                            </div>
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                <input
+                                    type="text"
+                                    value={formData.music}
+                                    onChange={(e) => handleInputChange('music', e.target.value)}
+                                    className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                    placeholder="Music (comma separated)"
+                                />
+                            </div>
+                            <div className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
+                                <input
+                                    type="text"
+                                    value={formData.barOptions}
+                                    onChange={(e) => handleInputChange('barOptions', e.target.value)}
+                                    className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
+                                    placeholder="Bar Options (comma separated)"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Club Tags (Navigation - kept for reference or alternate selection) */}
+                    <div className="w-full flex flex-col gap-[11px] opacity-70">
                         <div className="px-5">
                             <label className="text-[#14FFEC] font-semibold text-base">Club Tags</label>
                         </div>
