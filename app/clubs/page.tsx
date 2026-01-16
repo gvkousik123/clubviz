@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Loader2 } from 'lucide-react';
+import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Loader2, X, Filter } from 'lucide-react';
 import type { Club } from '@/components/clubs';
 import { useToast } from '@/hooks/use-toast';
 import { ClubCard } from '@/components/clubs/club-card';
@@ -71,6 +71,19 @@ export default function ClubsListPage() {
     const [loading, setLoading] = useState(true);
     const [favorites, setFavorites] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Filter states
+    const [showFilters, setShowFilters] = useState(false);
+    const [categories, setCategories] = useState<string[]>([]);
+    const [locations, setLocations] = useState<string[]>([]);
+    const [selectedCategory, setSelectedCategory] = useState<string>('');
+    const [selectedLocation, setSelectedLocation] = useState<string>('');
+    const [loadingFilters, setLoadingFilters] = useState(false);
+
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+    const [hasMore, setHasMore] = useState(false);
 
     // Search functionality
     const {
@@ -197,7 +210,15 @@ export default function ClubsListPage() {
     useEffect(() => {
         loadClubs();
         loadFavorites();
+        loadFilterOptions();
     }, []);
+
+    // Reload clubs when filters change
+    useEffect(() => {
+        if (selectedCategory || selectedLocation) {
+            loadClubs(true);
+        }
+    }, [selectedCategory, selectedLocation]);
 
     // Auto-fetch nearby clubs when location is available
     useEffect(() => {
@@ -223,52 +244,96 @@ export default function ClubsListPage() {
         }
     }, [nearbyClubs]);
 
-    const loadClubs = async () => {
+    const loadFilterOptions = async () => {
+        setLoadingFilters(true);
+        try {
+            const [categoriesData, locationsData] = await Promise.all([
+                PublicClubService.getClubCategories(),
+                PublicClubService.getClubLocations()
+            ]);
+            setCategories(categoriesData || []);
+            setLocations(locationsData || []);
+        } catch (error) {
+            console.error('Failed to load filter options:', error);
+        } finally {
+            setLoadingFilters(false);
+        }
+    };
+
+    const loadClubs = async (resetPage = false) => {
         setLoading(true);
         try {
             const isGuest = isGuestMode();
-            let response;
+            const page = resetPage ? 0 : currentPage;
 
-            if (isGuest) {
-                // Use public club service for guests
-                response = await PublicClubService.getPublicClubsList({
-                    page: 0,
-                    size: 20,
-                    sortBy: 'name',
-                    sortDirection: 'ASC'
-                });
-            } else {
-                // Use regular club service for authenticated users
-                response = await ClubService.getClubsList({
-                    page: 0,
-                    size: 20,
-                    sortBy: 'name',
-                    sortDirection: 'asc'
-                });
+            const params: any = {
+                page,
+                size: 20,
+                sortBy: 'createdAt',
+                sortDirection: 'desc'
+            };
+
+            // Add filters if selected
+            if (selectedCategory) {
+                params.category = selectedCategory;
+            }
+            if (selectedLocation) {
+                params.location = selectedLocation;
+            }
+            if (searchQuery.trim()) {
+                params.query = searchQuery.trim();
             }
 
-            if (response.success && response.data?.content && response.data.content.length > 0) {
-                // Convert API response to Club[] format with proper text limits (no truncation)
-                const apiClubs: Club[] = response.data.content.map((club: any, index: number) => ({
-                    id: club.id,
-                    name: club.name || '',
-                    openTime: club.openTime || 'Hours not available', // Use API value if available
-                    rating: club.rating || 4.0, // Use API rating if available, else default
-                    image: getClubFallbackImage(index), // Always use static images
-                    address: club.description || club.location || club.address || '',
-                    category: club.category || 'Club'
-                }));
-                setClubs(apiClubs);
-            } else if (response.success && (!response.data?.content || response.data.content.length === 0)) {
-                // API success but no clubs - show empty state
-                console.log('No clubs available from API');
-                setClubs([]);
+            if (resetPage) {
+                setCurrentPage(0);
+            }
+
+            // Call the appropriate API based on auth status
+            if (isGuest) {
+                // PublicClubService returns data directly (no wrapper)
+                const response = await PublicClubService.getPublicClubsList(params);
+
+                if (response && response.content && response.content.length > 0) {
+                    const apiClubs: Club[] = response.content.map((club: any, index: number) => ({
+                        id: club.id,
+                        name: club.name || '',
+                        openTime: 'Hours not available',
+                        rating: 4.0,
+                        image: getClubFallbackImage(index),
+                        address: club.location || club.description || '',
+                        category: club.category || 'Club'
+                    }));
+                    setClubs(apiClubs);
+                    setTotalPages(response.totalPages || 1);
+                    setHasMore(response.hasNext || false);
+                } else {
+                    console.log('No clubs available from API');
+                    setClubs([]);
+                    setTotalPages(1);
+                    setHasMore(false);
+                }
             } else {
-                // API failed - show empty state
-                console.log('Failed to load clubs from API');
-                setClubs([]);
-                if (response.message) {
-                    console.warn('API returned message:', response.message);
+                // ClubService returns wrapped response
+                const response = await ClubService.getClubsList(params);
+
+                if (response.success && response.data?.content && response.data.content.length > 0) {
+                    const apiClubs: Club[] = response.data.content.map((club: any, index: number) => ({
+                        id: club.id,
+                        name: club.name || '',
+                        openTime: 'Hours not available',
+                        rating: 4.0,
+                        image: getClubFallbackImage(index),
+                        address: club.location || club.description || '',
+                        category: club.category || 'Club'
+                    }));
+                    setClubs(apiClubs);
+                    setTotalPages(response.data.totalPages || 1);
+                    setHasMore(response.data.hasNext || false);
+                } else {
+                    console.log('No clubs available from API');
+                    setClubs([]);
+                    setTotalPages(1);
+                    setHasMore(false);
                 }
             }
         } catch (error: any) {
@@ -319,6 +384,10 @@ export default function ClubsListPage() {
                 variant: 'destructive',
             });
         }
+    };
+
+    const handleClubClick = (clubId: string) => {
+        router.push(`/club/${clubId}`);
     };
 
 
@@ -397,10 +466,79 @@ export default function ClubsListPage() {
                                 <MapPin className="w-[21px] h-[21px] text-white" />
                             )}
                         </button>
-                        <div className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center flex-shrink-0">
-                            <SlidersHorizontal className="w-[21px] h-[21px] text-white" />
-                        </div>
+                        <button
+                            onClick={() => setShowFilters(!showFilters)}
+                            className={`w-10 h-10 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center flex-shrink-0 transition-colors ${showFilters || selectedCategory || selectedLocation
+                                ? 'bg-[#14FFEC]'
+                                : 'bg-white/20'
+                                }`}
+                            title="Filter clubs"
+                        >
+                            <SlidersHorizontal className={`w-[21px] h-[21px] ${showFilters || selectedCategory || selectedLocation
+                                ? 'text-black'
+                                : 'text-white'
+                                }`} />
+                        </button>
                     </div>
+
+                    {/* Filter Panel */}
+                    {showFilters && (
+                        <div className="mt-3 bg-white/10 backdrop-blur-md rounded-2xl p-4 space-y-3">
+                            {/* Category Filter */}
+                            <div>
+                                <label className="text-white text-xs font-semibold mb-2 block">Category</label>
+                                <div className="relative">
+                                    <select
+                                        value={selectedCategory}
+                                        onChange={(e) => setSelectedCategory(e.target.value)}
+                                        className="w-full bg-white/10 text-white rounded-lg px-3 py-2 text-sm outline-none border border-white/20 focus:border-[#14FFEC]"
+                                        disabled={loadingFilters}
+                                    >
+                                        <option value="" className="bg-[#222831]">All Categories</option>
+                                        {categories.map((cat) => (
+                                            <option key={cat} value={cat} className="bg-[#222831]">
+                                                {cat}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Location Filter */}
+                            <div>
+                                <label className="text-white text-xs font-semibold mb-2 block">Location</label>
+                                <div className="relative">
+                                    <select
+                                        value={selectedLocation}
+                                        onChange={(e) => setSelectedLocation(e.target.value)}
+                                        className="w-full bg-white/10 text-white rounded-lg px-3 py-2 text-sm outline-none border border-white/20 focus:border-[#14FFEC]"
+                                        disabled={loadingFilters}
+                                    >
+                                        <option value="" className="bg-[#222831]">All Locations</option>
+                                        {locations.map((loc) => (
+                                            <option key={loc} value={loc} className="bg-[#222831]">
+                                                {loc}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Clear Filters Button */}
+                            {(selectedCategory || selectedLocation) && (
+                                <button
+                                    onClick={() => {
+                                        setSelectedCategory('');
+                                        setSelectedLocation('');
+                                    }}
+                                    className="w-full bg-red-500/20 hover:bg-red-500/30 text-white rounded-lg px-4 py-2 text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <X size={16} />
+                                    Clear Filters
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </header>
 
                 {/* Location & Error Information */}
@@ -423,6 +561,40 @@ export default function ClubsListPage() {
 
                 {/* Main Content */}
                 <div className="w-full flex flex-col items-center space-y-6 pt-[18vh] px-0">
+                    {/* Active Filters Display */}
+                    {(selectedCategory || selectedLocation) && (
+                        <div className="w-full max-w-[430px] px-5">
+                            <div className="flex flex-wrap gap-2">
+                                {selectedCategory && (
+                                    <div className="bg-[#14FFEC]/20 border border-[#14FFEC] rounded-full px-3 py-1 flex items-center gap-2">
+                                        <span className="text-[#14FFEC] text-xs font-semibold">
+                                            {selectedCategory}
+                                        </span>
+                                        <button
+                                            onClick={() => setSelectedCategory('')}
+                                            className="text-[#14FFEC] hover:text-white"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                )}
+                                {selectedLocation && (
+                                    <div className="bg-[#14FFEC]/20 border border-[#14FFEC] rounded-full px-3 py-1 flex items-center gap-2">
+                                        <span className="text-[#14FFEC] text-xs font-semibold">
+                                            📍 {selectedLocation}
+                                        </span>
+                                        <button
+                                            onClick={() => setSelectedLocation('')}
+                                            className="text-[#14FFEC] hover:text-white"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {/* All Clubs Section */}
                     <section className="w-full max-w-[430px]">
                         <div className="flex items-center justify-between mb-4 px-5">
@@ -441,7 +613,11 @@ export default function ClubsListPage() {
                                 clubs.map((club, index) => {
                                     const fallbackImage = getClubFallbackImage(index);
                                     return (
-                                        <div key={club.id} className="w-[336px] h-[201px] relative flex-shrink-0 mr-1">
+                                        <div
+                                            key={club.id}
+                                            className="w-[336px] h-[201px] relative flex-shrink-0 mr-1 cursor-pointer"
+                                            onClick={() => handleClubClick(club.id)}
+                                        >
                                             {/* Main image container with rounded top */}
                                             <div className="w-[336px] h-[169px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[15px] border-[#14FFEC] overflow-hidden">
                                                 <img
@@ -455,6 +631,7 @@ export default function ClubsListPage() {
                                                     <button
                                                         onClick={(e) => {
                                                             e.preventDefault();
+                                                            e.stopPropagation();
                                                             toggleFavorite(club.id);
                                                         }}
                                                         className="w-[39px] self-stretch bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] justify-center items-center inline-flex overflow-hidden"

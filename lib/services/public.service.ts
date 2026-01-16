@@ -5,6 +5,191 @@ import { LookupService } from './lookup.service';
 import { EventService } from './event.service';
 
 // ============================================================================
+// TYPE DEFINITIONS FOR PUBLIC CLUB API
+// ============================================================================
+
+export interface PublicClubListItem {
+  id: string;
+  name: string;
+  description: string;
+  logo: string | null;
+  category: string | null;
+  location: string | null;
+  memberCount: number;
+  maxMembers: number | null;
+  isJoined: boolean;
+  isFull: boolean;
+  isActive: boolean;
+  ownerName: string;
+  createdAt: string;
+  shortDescription: string;
+  memberStatus: string;
+  capacityPercentage: number;
+}
+
+export interface PublicClubListResponse {
+  content: PublicClubListItem[];
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;
+  size: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+  first: boolean;
+  last: boolean;
+  paginationInfo: string;
+  resultsInfo: string;
+}
+
+export interface PublicClubDetails {
+  id: string;
+  name: string;
+  description: string;
+  logo: string | null;
+  images: string[];
+  category: string | null;
+  locationText: {
+    address1: string;
+    address2: string;
+    state: string;
+    city: string;
+    pincode: string;
+  } | null;
+  locationMap: {
+    lat: number;
+    lng: number;
+  } | null;
+  contactEmail: string;
+  contactPhone: string;
+  foodCuisines: string[] | null;
+  facilities: string[] | null;
+  music: string[] | null;
+  barOptions: string[] | null;
+  entryPricing: any | null;
+  memberCount: number;
+  maxMembers: number;
+  isJoined: boolean;
+  canJoin: boolean;
+  isFull: boolean;
+  isActive: boolean;
+  owner: any | null;
+  recentMembers: any[];
+  admins: any[];
+  createdAt: string;
+  updatedAt: string;
+  memberStatus: string;
+  capacityPercentage: number;
+  joinButtonText: string;
+  canPerformAction: boolean;
+}
+
+export interface PublicClubListParams {
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDirection?: 'asc' | 'desc';
+  category?: string;
+  location?: string;
+  query?: string;
+  hasSpace?: boolean;
+}
+
+// ============================================================================
+// TYPE DEFINITIONS FOR PUBLIC EVENT API
+// ============================================================================
+
+export interface PublicEventListItem {
+  id: string;
+  title: string;
+  shortDescription: string;
+  imageUrl: string | null;
+  location: string;
+  startDateTime: string;
+  endDateTime: string;
+  formattedDate: string;
+  formattedTime: string;
+  timeUntilEvent: string;
+  duration: string;
+  attendeeCount: number;
+  maxAttendees: number;
+  isRegistered: boolean;
+  canRegister: boolean;
+  isFull: boolean;
+  clubId: string | null;
+  clubName: string | null;
+  clubLogo: string | null;
+  organizerName: string | null;
+  status: 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+  isPublic: boolean;
+  requiresApproval: boolean;
+  capacityPercentage: number;
+  attendeeStatus: string;
+  eventStatusText: string;
+  pastEvent: boolean;
+  upcoming: boolean;
+  ongoing: boolean;
+}
+
+export interface PublicEventListResponse {
+  content: PublicEventListItem[];
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;
+  size: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+  first: boolean;
+  last: boolean;
+  paginationInfo?: string;
+  resultsInfo?: string;
+}
+
+export interface PublicEventDetails {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string | null;
+  images: string[] | null;
+  location: string;
+  startDateTime: string;
+  endDateTime: string;
+  formattedDate: string;
+  formattedTime: string;
+  timeUntilEvent: string;
+  duration: string;
+  attendeeCount: number;
+  maxAttendees: number;
+  isRegistered: boolean;
+  canRegister: boolean;
+  isFull: boolean;
+  rsvpStatus: string;
+  club: any | null;
+  organizer: any | null;
+  recentAttendees: any[];
+  status: 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+  isPublic: boolean;
+  requiresApproval: boolean;
+  createdAt: string;
+  updatedAt: string;
+  capacityPercentage: number;
+  canPerformAction: boolean;
+  attendeeStatus: string;
+  registerButtonText: string;
+}
+
+export interface PublicEventListParams {
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  category?: string;
+  search?: string;
+  status?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+// ============================================================================
 // GUEST-FRIENDLY SERVICE WRAPPERS
 // ============================================================================
 
@@ -40,33 +225,51 @@ export class PublicClubService {
   /**
    * Get public club by ID
    */
-  static async getPublicClubById(id: string) {
+  static async getPublicClubById(id: string): Promise<PublicClubDetails> {
     const response = await publicApi.get(`/clubs/public/${id}`);
-    return {
-      success: response.status === 200,
-      data: response.data,
-      message: 'Club loaded successfully'
-    };
+    return response.data;
   }
 
   /**
-   * Get paginated public clubs list
+   * Get paginated public clubs list with filtering and sorting
    */
-  static async getPublicClubsList(params: any = {}) {
-    const queryParams = new URLSearchParams(params).toString();
-    const response = await publicApi.get(`/clubs/public/list?${queryParams}`);
-    // Return in the same format as the regular ClubService
-    return {
-      success: response.status === 200,
-      data: response.data,
-      message: 'Clubs loaded successfully'
-    };
+  static async getPublicClubsList(params: PublicClubListParams = {}): Promise<PublicClubListResponse> {
+    const queryParams = new URLSearchParams();
+
+    // Add pagination params
+    queryParams.append('page', (params.page ?? 0).toString());
+    queryParams.append('size', (params.size ?? 10).toString());
+
+    // Add sorting params
+    if (params.sortBy) {
+      queryParams.append('sortBy', params.sortBy);
+    }
+    if (params.sortDirection) {
+      queryParams.append('sortDirection', params.sortDirection);
+    }
+
+    // Add filter params
+    if (params.category) {
+      queryParams.append('category', params.category);
+    }
+    if (params.location) {
+      queryParams.append('location', params.location);
+    }
+    if (params.query) {
+      queryParams.append('query', params.query);
+    }
+    if (params.hasSpace !== undefined) {
+      queryParams.append('hasSpace', params.hasSpace.toString());
+    }
+
+    const response = await publicApi.get(`/clubs/public/list?${queryParams.toString()}`);
+    return response.data;
   }
 
   /**
-   * Get clubs by location
+   * Get all available club locations
    */
-  static async getClubsByLocation() {
+  static async getClubLocations(): Promise<string[]> {
     const response = await publicApi.get('/clubs/public/locations');
     return response.data;
   }
@@ -80,9 +283,9 @@ export class PublicClubService {
   }
 
   /**
-   * Get all club categories
+   * Get all available club categories
    */
-  static async getClubCategories() {
+  static async getClubCategories(): Promise<string[]> {
     const response = await publicApi.get('/clubs/public/categories');
     return response.data;
   }
@@ -176,19 +379,69 @@ export class PublicSearchService {
  */
 export class PublicEventService {
   /**
-   * Get public events list
+   * Get paginated public events list with filtering and sorting
    */
-  static async getPublicEvents(params: any = {}) {
-    const queryParams = new URLSearchParams(params).toString();
-    const response = await publicApi.get(`/events/list?${queryParams}`);
+  static async getPublicEvents(params: PublicEventListParams = {}): Promise<PublicEventListResponse> {
+    const queryParams = new URLSearchParams();
+
+    // Add pagination params
+    queryParams.append('page', (params.page ?? 0).toString());
+    queryParams.append('size', (params.size ?? 20).toString());
+
+    // Add sorting params
+    if (params.sortBy) {
+      queryParams.append('sortBy', params.sortBy);
+    }
+    if (params.sortOrder) {
+      queryParams.append('sortOrder', params.sortOrder);
+    }
+
+    // Add filter params
+    if (params.category) {
+      queryParams.append('category', params.category);
+    }
+    if (params.search) {
+      queryParams.append('search', params.search);
+    }
+    if (params.status) {
+      queryParams.append('status', params.status);
+    }
+    if (params.startDate) {
+      queryParams.append('startDate', params.startDate);
+    }
+    if (params.endDate) {
+      queryParams.append('endDate', params.endDate);
+    }
+
+    const response = await publicApi.get(`/event-management/events/list?${queryParams.toString()}`);
     return response.data;
   }
 
   /**
-   * Get public event details
+   * Get user's registered events (requires authentication)
    */
-  static async getPublicEventById(eventId: string) {
-    const response = await publicApi.get(`/events/${eventId}`);
+  static async getMyRegistrations(params: PublicEventListParams = {}): Promise<PublicEventListResponse> {
+    const queryParams = new URLSearchParams();
+
+    queryParams.append('page', (params.page ?? 0).toString());
+    queryParams.append('size', (params.size ?? 20).toString());
+
+    if (params.sortBy) {
+      queryParams.append('sortBy', params.sortBy);
+    }
+    if (params.sortOrder) {
+      queryParams.append('sortOrder', params.sortOrder);
+    }
+
+    const response = await publicApi.get(`/event-management/events/my-registrations?${queryParams.toString()}`);
+    return response.data;
+  }
+
+  /**
+   * Get public event details by ID
+   */
+  static async getPublicEventById(eventId: string): Promise<PublicEventDetails> {
+    const response = await publicApi.get(`/event-management/events/${eventId}/details`);
     return response.data;
   }
 

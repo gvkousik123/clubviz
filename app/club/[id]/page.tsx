@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ClubService, Club, PublicClubByCategory } from '@/lib/services/club.service';
+import { PublicClubService, PublicClubDetails } from '@/lib/services/public.service';
 import { isGuestMode } from '@/lib/api-client-public';
 
 // Helper to render tags with icons
@@ -38,7 +39,7 @@ export default function ClubDetailPage() {
     const router = useRouter();
     const params = useParams();
     const { toast } = useToast();
-    const [club, setClub] = useState<Club | PublicClubByCategory | null>(null);
+    const [club, setClub] = useState<Club | PublicClubByCategory | PublicClubDetails | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -53,21 +54,23 @@ export default function ClubDetailPage() {
         try {
             const isGuest = isGuestMode();
             const clubId = params.id as string;
-            let response;
 
             if (isGuest) {
-                response = await ClubService.getPublicClubById(clubId);
+                // Use public club service for guests
+                const clubData = await PublicClubService.getPublicClubById(clubId);
+                setClub(clubData);
+                setIsLiked(!!clubData.isJoined);
             } else {
-                response = await ClubService.getClubById(clubId);
-            }
-
-            if (response.success && response.data) {
-                setClub(response.data);
-                if ('isJoined' in response.data) {
-                    setIsLiked(!!response.data.isJoined);
+                // Use regular club service for authenticated users
+                const response = await ClubService.getClubById(clubId);
+                if (response.success && response.data) {
+                    setClub(response.data);
+                    if ('isJoined' in response.data) {
+                        setIsLiked(!!response.data.isJoined);
+                    }
+                } else {
+                    setError('Club not found');
                 }
-            } else {
-                setError('Club not found');
             }
         } catch (err: any) {
             console.error("Error fetching club details:", err);

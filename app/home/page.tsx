@@ -278,8 +278,8 @@ const HomePage = () => {
                     ? await PublicClubService.getPublicClubsList({
                         page: 0,
                         size: 5,
-                        sortBy: 'name',
-                        sortDirection: 'ASC'
+                        sortBy: 'createdAt',
+                        sortDirection: 'desc'
                     })
                     : await ClubService.getClubsList({
                         page: 0,
@@ -289,10 +289,10 @@ const HomePage = () => {
                     });
 
                 // Handle clubs data based on API response
-                if (clubResponse.success && clubResponse.data?.content && clubResponse.data.content.length > 0) {
-                    console.log('API Clubs Response:', clubResponse.data.content);
+                if (clubResponse && clubResponse.content && clubResponse.content.length > 0) {
+                    console.log('API Clubs Response:', clubResponse.content);
                     // Map API clubs with proper length limits and static images
-                    const mappedClubs = clubResponse.data.content.map((club: any, index: number) => ({
+                    const mappedClubs = clubResponse.content.map((club: any, index: number) => ({
                         id: club.id || '',
                         name: club.name ? (club.name.length > 20 ? club.name.substring(0, 20) + '...' : club.name) : '',
                         description: club.description ? (club.description.length > 50 ? club.description.substring(0, 50) + '...' : club.description) : '',
@@ -313,7 +313,7 @@ const HomePage = () => {
                     }));
                     console.log('Mapped Clubs:', mappedClubs);
                     setVenues(mappedClubs);
-                } else if (clubResponse.success && (!clubResponse.data?.content || clubResponse.data.content.length === 0)) {
+                } else if (clubResponse && (!clubResponse.content || clubResponse.content.length === 0)) {
                     // API success but no clubs available - show empty state
                     console.log('No clubs data from API, showing empty state');
                     setVenues([]);
@@ -342,8 +342,8 @@ const HomePage = () => {
                     ? await PublicClubService.getPublicClubsList({
                         page: 0,
                         size: 20,
-                        sortBy: 'name',
-                        sortDirection: 'ASC'
+                        sortBy: 'createdAt',
+                        sortDirection: 'desc'
                     })
                     : await ClubService.getClubsList({
                         page: 0,
@@ -352,9 +352,9 @@ const HomePage = () => {
                         sortDirection: 'asc'
                     });
 
-                if (allClubsResponse.success && allClubsResponse.data?.content && allClubsResponse.data.content.length > 0) {
-                    console.log('All Clubs API Response:', allClubsResponse.data.content);
-                    const mappedAllClubs = allClubsResponse.data.content.map((club: any, index: number) => ({
+                if (allClubsResponse && allClubsResponse.content && allClubsResponse.content.length > 0) {
+                    console.log('All Clubs API Response:', allClubsResponse.content);
+                    const mappedAllClubs = allClubsResponse.content.map((club: any, index: number) => ({
                         id: club.id || '',
                         name: club.name ? (club.name.length > 20 ? club.name.substring(0, 20) + '...' : club.name) : '',
                         description: club.description ? (club.description.length > 50 ? club.description.substring(0, 50) + '...' : club.description) : '',
@@ -389,36 +389,26 @@ const HomePage = () => {
             // Load events - Handle differently for guest vs authenticated users
             setIsLoadingEvents(true);
             try {
-                let eventResponse;
-
-                if (isGuest) {
-                    // For guest users, try public events API but keep empty if not available
-                    try {
-                        eventResponse = await PublicEventService.getPublicEvents({
-                            page: 0,
-                            size: 5,
-                            sortBy: 'startDateTime',
-                            sortOrder: 'asc',
-                            status: 'UPCOMING'
-                        });
-                    } catch (error) {
-                        console.log('Public events API not available for guests, showing empty list');
-                        eventResponse = { success: false, data: { content: [] } };
-                    }
-                } else {
-                    eventResponse = await EventService.getEventList({
+                const eventResponse = isGuest
+                    ? await PublicEventService.getPublicEvents({
+                        page: 0,
+                        size: 5,
+                        sortBy: 'startDateTime',
+                        sortOrder: 'asc',
+                        status: 'UPCOMING'
+                    })
+                    : await EventService.getEventList({
                         page: 0,
                         size: 5,
                         sortBy: 'startDateTime',
                         sortOrder: 'asc',
                         status: 'UPCOMING'
                     });
-                }
 
-                if (eventResponse.success && eventResponse.data?.content) {
-                    console.log('API Events Response:', eventResponse.data.content);
+                if (eventResponse && eventResponse.content && eventResponse.content.length > 0) {
+                    console.log('API Events Response:', eventResponse.content);
                     // Map API events with proper length limits and static images
-                    const mappedEvents = eventResponse.data.content.map((event: any, index: number) => ({
+                    const mappedEvents = eventResponse.content.map((event: any, index: number) => ({
                         id: event.id,
                         title: event.title.length > 20 ? event.title.substring(0, 20) + '...' : event.title,
                         shortDescription: event.shortDescription || event.clubName || '',
@@ -454,90 +444,14 @@ const HomePage = () => {
                     console.log('Mapped Events:', mappedEvents);
                     setEvents(mappedEvents);
                 } else {
+                    // No events available - show empty state
                     console.log('No events data from API');
-                    if (isGuest) {
-                        // For guests, show empty list when API fails
-                        setEvents([]);
-                    } else {
-                        // For authenticated users, use fallback data
-                        console.log('Using fallback data for authenticated users');
-                        setEvents(eventFallback.map((e) => ({
-                            id: e.id,
-                            title: e.title.length > 20 ? e.title.substring(0, 20) + '...' : e.title,
-                            shortDescription: e.category,
-                            imageUrl: e.image,
-                            location: e.venue.length > 25 ? e.venue.substring(0, 25) + '...' : e.venue,
-                            startDateTime: e.startDateTime,
-                            endDateTime: e.startDateTime,
-                            formattedDate: new Date(e.startDateTime).toLocaleDateString(),
-                            formattedTime: new Date(e.startDateTime).toLocaleTimeString(),
-                            timeUntilEvent: '',
-                            duration: '',
-                            attendeeCount: 0,
-                            maxAttendees: 100,
-                            isRegistered: false,
-                            canRegister: true,
-                            isFull: false,
-                            clubId: '',
-                            clubName: e.venue.split(',')[0].length > 15 ? e.venue.split(',')[0].substring(0, 15) + '...' : e.venue.split(',')[0],
-                            clubLogo: '',
-                            organizerName: '',
-                            status: 'UPCOMING' as const,
-                            isPublic: true,
-                            requiresApproval: false,
-                            attendeeStatus: '',
-                            eventStatusText: '',
-                            pastEvent: false,
-                            upcoming: true,
-                            ongoing: false,
-                            capacityPercentage: 0
-                        })));
-                    }
+                    setEvents([]);
                 }
             } catch (error: any) {
                 console.error('Failed to load events:', error);
-                if (isGuest) {
-                    // For guests, show empty list on error
-                    setEvents([]);
-                } else {
-                    toast({
-                        title: "Failed to load events",
-                        description: error.message || "Could not fetch events. Using fallback data.",
-                        variant: "destructive",
-                    });
-                    // Use fallback data on error for authenticated users
-                    setEvents(eventFallback.map((e) => ({
-                        id: e.id,
-                        title: e.title.length > 20 ? e.title.substring(0, 20) + '...' : e.title,
-                        shortDescription: e.category,
-                        imageUrl: e.image,
-                        location: e.venue.length > 25 ? e.venue.substring(0, 25) + '...' : e.venue,
-                        startDateTime: e.startDateTime,
-                        endDateTime: e.startDateTime,
-                        formattedDate: new Date(e.startDateTime).toLocaleDateString(),
-                        formattedTime: new Date(e.startDateTime).toLocaleTimeString(),
-                        timeUntilEvent: '',
-                        duration: '',
-                        attendeeCount: 0,
-                        maxAttendees: 100,
-                        isRegistered: false,
-                        canRegister: true,
-                        isFull: false,
-                        clubId: '',
-                        clubName: e.venue.split(',')[0].length > 15 ? e.venue.split(',')[0].substring(0, 15) + '...' : e.venue.split(',')[0],
-                        clubLogo: '',
-                        organizerName: '',
-                        status: 'UPCOMING' as const,
-                        isPublic: true,
-                        requiresApproval: false,
-                        attendeeStatus: '',
-                        eventStatusText: '',
-                        pastEvent: false,
-                        upcoming: true,
-                        ongoing: false,
-                        capacityPercentage: 0
-                    })));
-                }
+                // Show empty state on error
+                setEvents([]);
             } finally {
                 setIsLoadingEvents(false);
             }

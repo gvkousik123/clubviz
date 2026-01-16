@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { EventService } from '@/lib/services/event.service';
-import { PublicEventService } from '@/lib/services/public.service';
+import { PublicEventService, PublicEventDetails } from '@/lib/services/public.service';
 import { isGuestMode } from '@/lib/api-client-public';
 
 export default function EventDetailsPage() {
@@ -39,24 +39,19 @@ export default function EventDetailsPage() {
             try {
                 const isGuest = isGuestMode();
                 const eventId = params.id as string;
-                let response;
 
                 if (isGuest) {
-                    response = await PublicEventService.getPublicEventById(eventId);
+                    // Use public event service for guests
+                    const eventData = await PublicEventService.getPublicEventById(eventId);
+                    setEvent(eventData);
                 } else {
-                    response = await EventService.getEventDetails(eventId);
-                }
-
-                if (response.success && response.data) {
-                    setEvent(response.data);
-                    // Check if already registered/fav if available in data
-                    if (response.data.isRegistered || response.data.rsvpStatus === 'REGISTERED') {
-                        // Maybe set some state here
+                    // Use regular event service for authenticated users
+                    const response = await EventService.getEventDetails(eventId);
+                    if (response.success && response.data) {
+                        setEvent(response.data);
+                    } else {
+                        setError('Event not found');
                     }
-                    // Check fav status via separate call or mapped within data?
-                    // For now assume we toggle locally or use separate API
-                } else {
-                    setError('Event not found');
                 }
             } catch (err: any) {
                 console.error("Error fetching event details:", err);
@@ -294,8 +289,8 @@ export default function EventDetailsPage() {
                         onClick={handleRegister}
                         disabled={isActionLoading}
                         className={`pointer-events-auto shadow-lg shadow-[#14FFEC]/20 w-full max-w-md h-[54px] rounded-[30px] flex justify-center items-center text-xl font-bold font-['Manrope'] transition-all active:scale-95 ${event.isRegistered
-                                ? 'bg-red-500/80 text-white hover:bg-red-600'
-                                : 'bg-gradient-to-r from-[#005D5C] to-[#14FFEC] text-white hover:brightness-110'
+                            ? 'bg-red-500/80 text-white hover:bg-red-600'
+                            : 'bg-gradient-to-r from-[#005D5C] to-[#14FFEC] text-white hover:brightness-110'
                             }`}
                     >
                         {isActionLoading ? (

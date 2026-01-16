@@ -637,7 +637,7 @@ export class ClubService {
     activeOnly?: boolean;
   }): Promise<ApiResponse<ClubListResponse>> {
     try {
-      const response = await api.get<ApiResponse<ClubListResponse>>('/clubs/list', {
+      const response = await api.get<ApiResponse<ClubListResponse>>('/clubs/public/list', {
         params
       });
       return handleApiResponse(response);

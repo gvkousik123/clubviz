@@ -59,162 +59,107 @@ export default function EventsListPage() {
 
         try {
             const isGuest = isGuestMode();
-            const service = isGuest ? PublicEventService : EventService;
-            const method = isGuest ? 'getPublicEvents' : 'getEventList';
 
-            // Type assertion since both services have similar signature
-            const response = await (service as any)[method]({
-                page,
-                size: 20,
-                sortBy: 'startDateTime',
-                sortOrder: 'asc',
-                status: 'UPCOMING'
-            });
+            const response = isGuest
+                ? await PublicEventService.getPublicEvents({
+                    page,
+                    size: 20,
+                    sortBy: 'startDateTime',
+                    sortOrder: 'asc',
+                    status: 'UPCOMING'
+                })
+                : await EventService.getEventList({
+                    page,
+                    size: 20,
+                    sortBy: 'startDateTime',
+                    sortOrder: 'asc',
+                    status: 'UPCOMING'
+                });
 
-            if (response.success && response.data?.content) {
-                const newEvents = response.data.content;
+            if (response && response.content) {
+                const newEvents = response.content;
                 if (append) {
                     setEvents(prev => [...prev, ...newEvents]);
                 } else {
                     setEvents(newEvents);
                 }
                 setPagination({
-                    page: response.data.currentPage,
-                    hasNext: response.data.hasNext
+                    page: response.currentPage || page,
+                    hasNext: response.hasNext || false
                 });
-            } else if (!append) {
-                // If initial load fails/empty, maybe show fallback or empty state
-                if (response.data && response.data.content && response.data.content.length === 0) {
+            } else {
+                // If initial load fails/empty, show empty state
+                if (!append) {
                     setEvents([]);
                 }
             }
         } catch (err) {
             console.error('Failed to load events', err);
-            // On error we might want to keep existing events if it was a load more
             if (!append) {
-                // For now, let's not break completely, maybe show empty or toast
                 toast({
                     title: "Error loading events",
                     description: "Could not fetch latest events.",
                     variant: "destructive"
                 });
+                setEvents([]);
             }
         } finally {
-            setLoading(false);
-            setIsLoadingMore(false);
+            if (!append) setLoading(false);
+            else setIsLoadingMore(false);
         }
     };
-
-    useEffect(() => {
-        fetchEvents();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    // Event list images for fallbacks
-    const eventImages = [
-        '/event list/Rectangle 1.jpg',
-        '/event list/Rectangle 2.jpg',
-        '/event list/Rectangle 3.jpg',
-        '/event list/Rectangle 4.jpg',
-        '/event list/Rectangle 5.jpg',
-        '/event list/Rectangle 12249.jpg'
-    ];
-
-    const getEventFallbackImage = (index: number) => {
-        return eventImages[index % eventImages.length];
+}
+        } finally {
+    setLoading(false);
+    setIsLoadingMore(false);
+}
     };
 
-    // Fallback data for when API fails
-    const eventFallback = [
-        { id: 'event-1', title: 'Freaky Friday with DJ Alexxx', shortDescription: 'Techno & Bollytech', location: 'DABO, Airport Road', startDateTime: new Date('2025-04-04T19:30:00Z').toISOString(), image: '/event list/Rectangle 1.jpg' },
-        { id: 'event-2', title: 'Wow Wednesday with DJ Shade', shortDescription: 'Bollywood & Bollytech', location: 'DABO, Airport Road', startDateTime: new Date('2025-04-06T19:30:00Z').toISOString(), image: '/event list/Rectangle 2.jpg' },
-        { id: 'event-3', title: 'Saturday Night Fever', shortDescription: 'Deep house & Mellow Tech', location: 'Garage Club', startDateTime: new Date('2025-04-08T20:00:00Z').toISOString(), image: '/event list/Rectangle 3.jpg' },
-        { id: 'event-4', title: 'Sunday Vibes', shortDescription: 'Chill & Lounge', location: 'Elite Club', startDateTime: new Date('2025-04-09T18:00:00Z').toISOString(), image: '/event list/Rectangle 4.jpg' },
-        { id: 'event-5', title: 'Monday Madness', shortDescription: 'House & Techno', location: 'Rhythm Club', startDateTime: new Date('2025-04-10T20:30:00Z').toISOString(), image: '/event list/Rectangle 5.jpg' },
-    ];
+useEffect(() => {
+    fetchEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
 
-    const handleGoBack = () => {
-        router.back();
-    };
+// Event list images for fallbacks
+const eventImages = [
+    '/event list/Rectangle 1.jpg',
+    '/event list/Rectangle 2.jpg',
+    '/event list/Rectangle 3.jpg',
+    '/event list/Rectangle 4.jpg',
+    '/event list/Rectangle 5.jpg',
+    '/event list/Rectangle 12249.jpg'
+];
 
-    const handleSearch = async () => {
-        if (searchQuery.trim()) {
-            console.log('Searching for:', searchQuery);
-            try {
-                await performEventSearch(searchQuery.trim());
-                // Update the local events state with search results
-                if (searchEvents.length > 0) {
-                    // Convert SearchEvent[] to EventListItem[] format for compatibility
-                    const convertedEvents: EventListItem[] = searchEvents.map((event, index) => ({
-                        id: event.id,
-                        title: event.title.length > 25 ? event.title.substring(0, 25) + '...' : event.title,
-                        shortDescription: event.description || '',
-                        imageUrl: getEventFallbackImage(index),
-                        location: event.location && event.location.length > 20 ? event.location.substring(0, 20) + '...' : (event.location || ''),
-                        startDateTime: event.startDateTime,
-                        endDateTime: event.endDateTime,
-                        formattedDate: new Date(event.startDateTime).toLocaleDateString(),
-                        formattedTime: new Date(event.startDateTime).toLocaleTimeString(),
-                        timeUntilEvent: '',
-                        duration: '',
-                        attendeeCount: 0,
-                        maxAttendees: 100,
-                        isRegistered: false,
-                        canRegister: true,
-                        isFull: false,
-                        clubId: event?.clubId || event?.club?.id || '',
-                        clubName: event?.clubName || event?.club?.name || '',
-                        clubLogo: event?.clubLogo || event?.club?.logoUrl || '',
-                        organizerName: event?.organizerName || event?.eventOrganizer || '',
-                        status: (event?.status as 'UPCOMING') || 'UPCOMING',
-                        isPublic: event?.isPublic ?? true,
-                        requiresApproval: event?.requiresApproval ?? false,
-                        attendeeStatus: '',
-                        eventStatusText: '',
-                        pastEvent: false,
-                        upcoming: true,
-                        ongoing: false,
-                        capacityPercentage: 0,
-                    }));
-                    setEvents(convertedEvents);
-                    setLoading(false);
-                }
-            } catch (error) {
-                console.error('Search failed:', error);
-                toast({
-                    title: 'Search Failed',
-                    description: 'Unable to search events. Please try again.',
-                    variant: 'destructive',
-                });
-            }
-        }
-    };
+const getEventFallbackImage = (index: number) => {
+    return eventImages[index % eventImages.length];
+};
 
-    const handleEventClick = (eventId: string) => {
-        router.push(`/event/${eventId}`);
-    };
+// Fallback data for when API fails
+const eventFallback = [
+    { id: 'event-1', title: 'Freaky Friday with DJ Alexxx', shortDescription: 'Techno & Bollytech', location: 'DABO, Airport Road', startDateTime: new Date('2025-04-04T19:30:00Z').toISOString(), image: '/event list/Rectangle 1.jpg' },
+    { id: 'event-2', title: 'Wow Wednesday with DJ Shade', shortDescription: 'Bollywood & Bollytech', location: 'DABO, Airport Road', startDateTime: new Date('2025-04-06T19:30:00Z').toISOString(), image: '/event list/Rectangle 2.jpg' },
+    { id: 'event-3', title: 'Saturday Night Fever', shortDescription: 'Deep house & Mellow Tech', location: 'Garage Club', startDateTime: new Date('2025-04-08T20:00:00Z').toISOString(), image: '/event list/Rectangle 3.jpg' },
+    { id: 'event-4', title: 'Sunday Vibes', shortDescription: 'Chill & Lounge', location: 'Elite Club', startDateTime: new Date('2025-04-09T18:00:00Z').toISOString(), image: '/event list/Rectangle 4.jpg' },
+    { id: 'event-5', title: 'Monday Madness', shortDescription: 'House & Techno', location: 'Rhythm Club', startDateTime: new Date('2025-04-10T20:30:00Z').toISOString(), image: '/event list/Rectangle 5.jpg' },
+];
 
-    const handleNearbySearch = async () => {
-        if (!hasLocation) {
-            toast({
-                title: 'Location Required',
-                description: 'Please enable location services or select a location to find nearby events.',
-                variant: 'destructive',
-            });
-            return;
-        }
+const handleGoBack = () => {
+    router.back();
+};
 
+const handleSearch = async () => {
+    if (searchQuery.trim()) {
+        console.log('Searching for:', searchQuery);
         try {
-            setLoading(true);
-            await fetchNearbyEvents();
-
-            if (nearbyEvents && nearbyEvents.length > 0) {
-                // Convert nearby events to EventListItem[] format
-                const convertedEvents: EventListItem[] = nearbyEvents.map((event, index) => ({
+            await performEventSearch(searchQuery.trim());
+            // Update the local events state with search results
+            if (searchEvents.length > 0) {
+                // Convert SearchEvent[] to EventListItem[] format for compatibility
+                const convertedEvents: EventListItem[] = searchEvents.map((event, index) => ({
                     id: event.id,
                     title: event.title.length > 25 ? event.title.substring(0, 25) + '...' : event.title,
                     shortDescription: event.description || '',
-                    imageUrl: event.imageUrl || getEventFallbackImage(index),
+                    imageUrl: getEventFallbackImage(index),
                     location: event.location && event.location.length > 20 ? event.location.substring(0, 20) + '...' : (event.location || ''),
                     startDateTime: event.startDateTime,
                     endDateTime: event.endDateTime,
@@ -223,7 +168,7 @@ export default function EventsListPage() {
                     timeUntilEvent: '',
                     duration: '',
                     attendeeCount: 0,
-                    maxAttendees: event.maxAttendees || 100,
+                    maxAttendees: 100,
                     isRegistered: false,
                     canRegister: true,
                     isFull: false,
@@ -243,118 +188,38 @@ export default function EventsListPage() {
                 }));
                 setEvents(convertedEvents);
                 setLoading(false);
-
-                toast({
-                    title: 'Nearby Events Found',
-                    description: `Found ${convertedEvents.length} events near you.`,
-                });
             }
         } catch (error) {
-            console.error('Nearby search failed:', error);
+            console.error('Search failed:', error);
             toast({
-                title: 'Nearby Search Failed',
-                description: 'Unable to find nearby events. Please try again.',
-                variant: 'destructive',
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const loadFavorites = () => {
-        try {
-            const saved = localStorage.getItem('favoriteEvents');
-            if (saved) {
-                setFavorites(JSON.parse(saved));
-            }
-        } catch (error) {
-            console.error('Error loading favorites:', error);
-        }
-    };
-
-    const toggleFavorite = (eventId: string) => {
-        try {
-            const newFavorites = favorites.includes(eventId)
-                ? favorites.filter(id => id !== eventId)
-                : [...favorites, eventId];
-
-            setFavorites(newFavorites);
-            localStorage.setItem('favoriteEvents', JSON.stringify(newFavorites));
-
-            toast({
-                title: favorites.includes(eventId) ? 'Removed from favorites' : 'Added to favorites',
-                description: favorites.includes(eventId)
-                    ? 'Event removed from your favorites'
-                    : 'Event added to your favorites',
-            });
-        } catch (error) {
-            console.error('Error toggling favorite:', error);
-            toast({
-                title: 'Error',
-                description: 'Failed to update favorites',
+                title: 'Search Failed',
+                description: 'Unable to search events. Please try again.',
                 variant: 'destructive',
             });
         }
-    };
+    }
+};
 
-    const formatEventDate = (dateString: string) => {
-        try {
-            const date = new Date(dateString);
-            const day = date.getDate().toString().padStart(2, '0');
-            const month = date.toLocaleString('en', { month: 'short' }).toUpperCase();
-            return { day, month };
-        } catch {
-            return { day: '00', month: 'XXX' };
-        }
-    };
+const handleEventClick = (eventId: string) => {
+    router.push(`/event/${eventId}`);
+};
 
-    const isValidImageUrl = (url: string) => {
-        return url && url.startsWith('http') && !url.includes('null') && !url.includes('undefined');
-    };
+const handleNearbySearch = async () => {
+    if (!hasLocation) {
+        toast({
+            title: 'Location Required',
+            description: 'Please enable location services or select a location to find nearby events.',
+            variant: 'destructive',
+        });
+        return;
+    }
 
-    // Helper function to get the start and end of the current week (Monday to Sunday)
-    const getCurrentWeekRange = () => {
-        const now = new Date();
-        const currentDay = now.getDay();
-        const diff = now.getDate() - currentDay + (currentDay === 0 ? -6 : 1); // Adjust to get Monday
+    try {
+        setLoading(true);
+        await fetchNearbyEvents();
 
-        const weekStart = new Date(now.setDate(diff));
-        weekStart.setHours(0, 0, 0, 0);
-
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekEnd.getDate() + 6);
-        weekEnd.setHours(23, 59, 59, 999);
-
-        return { weekStart, weekEnd };
-    };
-
-    // Helper function to check if an event is in the current week
-    const isEventThisWeek = (eventDate: string): boolean => {
-        const { weekStart, weekEnd } = getCurrentWeekRange();
-        const eventDateTime = new Date(eventDate);
-        return eventDateTime >= weekStart && eventDateTime <= weekEnd;
-    };
-
-    // Get filtered events for "This Week" section
-    const getThisWeekEvents = () => {
-        return events.filter(event => isEventThisWeek(event.startDateTime));
-    };
-
-    useEffect(() => {
-        fetchEvents();
-        loadFavorites();
-    }, []);
-
-    // Auto-fetch nearby events when location is available
-    useEffect(() => {
-        if (hasLocation && nearbyEvents.length === 0 && !loadingNearbyEvents) {
-            fetchNearbyEvents();
-        }
-    }, [hasLocation, fetchNearbyEvents, nearbyEvents.length, loadingNearbyEvents]);
-
-    // Update events when nearby events are fetched
-    useEffect(() => {
-        if (nearbyEvents.length > 0) {
+        if (nearbyEvents && nearbyEvents.length > 0) {
+            // Convert nearby events to EventListItem[] format
             const convertedEvents: EventListItem[] = nearbyEvents.map((event, index) => ({
                 id: event.id,
                 title: event.title.length > 25 ? event.title.substring(0, 25) + '...' : event.title,
@@ -388,351 +253,496 @@ export default function EventsListPage() {
             }));
             setEvents(convertedEvents);
             setLoading(false);
+
+            toast({
+                title: 'Nearby Events Found',
+                description: `Found ${convertedEvents.length} events near you.`,
+            });
         }
-    }, [nearbyEvents]);
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-[#1e2328] text-white flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-400 mx-auto"></div>
-                    <p className="mt-4 text-lg">Loading events...</p>
-                </div>
-            </div>
-        );
+    } catch (error) {
+        console.error('Nearby search failed:', error);
+        toast({
+            title: 'Nearby Search Failed',
+            description: 'Unable to find nearby events. Please try again.',
+            variant: 'destructive',
+        });
+    } finally {
+        setLoading(false);
     }
+};
 
-    if (error) {
-        return (
-            <div className="min-h-screen bg-[#1e2328] text-white flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-red-400 text-lg mb-4">{error}</p>
-                    <button
-                        onClick={fetchEvents}
-                        className="bg-cyan-500 text-white px-6 py-2 rounded-lg hover:bg-cyan-600 transition-colors"
-                    >
-                        Try Again
-                    </button>
-                </div>
-            </div>
-        );
+const loadFavorites = () => {
+    try {
+        const saved = localStorage.getItem('favoriteEvents');
+        if (saved) {
+            setFavorites(JSON.parse(saved));
+        }
+    } catch (error) {
+        console.error('Error loading favorites:', error);
     }
+};
 
+const toggleFavorite = (eventId: string) => {
+    try {
+        const newFavorites = favorites.includes(eventId)
+            ? favorites.filter(id => id !== eventId)
+            : [...favorites, eventId];
+
+        setFavorites(newFavorites);
+        localStorage.setItem('favoriteEvents', JSON.stringify(newFavorites));
+
+        toast({
+            title: favorites.includes(eventId) ? 'Removed from favorites' : 'Added to favorites',
+            description: favorites.includes(eventId)
+                ? 'Event removed from your favorites'
+                : 'Event added to your favorites',
+        });
+    } catch (error) {
+        console.error('Error toggling favorite:', error);
+        toast({
+            title: 'Error',
+            description: 'Failed to update favorites',
+            variant: 'destructive',
+        });
+    }
+};
+
+const formatEventDate = (dateString: string) => {
+    try {
+        const date = new Date(dateString);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = date.toLocaleString('en', { month: 'short' }).toUpperCase();
+        return { day, month };
+    } catch {
+        return { day: '00', month: 'XXX' };
+    }
+};
+
+const isValidImageUrl = (url: string) => {
+    return url && url.startsWith('http') && !url.includes('null') && !url.includes('undefined');
+};
+
+// Helper function to get the start and end of the current week (Monday to Sunday)
+const getCurrentWeekRange = () => {
+    const now = new Date();
+    const currentDay = now.getDay();
+    const diff = now.getDate() - currentDay + (currentDay === 0 ? -6 : 1); // Adjust to get Monday
+
+    const weekStart = new Date(now.setDate(diff));
+    weekStart.setHours(0, 0, 0, 0);
+
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    return { weekStart, weekEnd };
+};
+
+// Helper function to check if an event is in the current week
+const isEventThisWeek = (eventDate: string): boolean => {
+    const { weekStart, weekEnd } = getCurrentWeekRange();
+    const eventDateTime = new Date(eventDate);
+    return eventDateTime >= weekStart && eventDateTime <= weekEnd;
+};
+
+// Get filtered events for "This Week" section
+const getThisWeekEvents = () => {
+    return events.filter(event => isEventThisWeek(event.startDateTime));
+};
+
+useEffect(() => {
+    fetchEvents();
+    loadFavorites();
+}, []);
+
+// Auto-fetch nearby events when location is available
+useEffect(() => {
+    if (hasLocation && nearbyEvents.length === 0 && !loadingNearbyEvents) {
+        fetchNearbyEvents();
+    }
+}, [hasLocation, fetchNearbyEvents, nearbyEvents.length, loadingNearbyEvents]);
+
+// Update events when nearby events are fetched
+useEffect(() => {
+    if (nearbyEvents.length > 0) {
+        const convertedEvents: EventListItem[] = nearbyEvents.map((event, index) => ({
+            id: event.id,
+            title: event.title.length > 25 ? event.title.substring(0, 25) + '...' : event.title,
+            shortDescription: event.description || '',
+            imageUrl: event.imageUrl || getEventFallbackImage(index),
+            location: event.location && event.location.length > 20 ? event.location.substring(0, 20) + '...' : (event.location || ''),
+            startDateTime: event.startDateTime,
+            endDateTime: event.endDateTime,
+            formattedDate: new Date(event.startDateTime).toLocaleDateString(),
+            formattedTime: new Date(event.startDateTime).toLocaleTimeString(),
+            timeUntilEvent: '',
+            duration: '',
+            attendeeCount: 0,
+            maxAttendees: event.maxAttendees || 100,
+            isRegistered: false,
+            canRegister: true,
+            isFull: false,
+            clubId: event?.clubId || event?.club?.id || '',
+            clubName: event?.clubName || event?.club?.name || '',
+            clubLogo: event?.clubLogo || event?.club?.logoUrl || '',
+            organizerName: event?.organizerName || event?.eventOrganizer || '',
+            status: (event?.status as 'UPCOMING') || 'UPCOMING',
+            isPublic: event?.isPublic ?? true,
+            requiresApproval: event?.requiresApproval ?? false,
+            attendeeStatus: '',
+            eventStatusText: '',
+            pastEvent: false,
+            upcoming: true,
+            ongoing: false,
+            capacityPercentage: 0,
+        }));
+        setEvents(convertedEvents);
+        setLoading(false);
+    }
+}, [nearbyEvents]);
+
+if (loading) {
     return (
-        <div className="min-h-screen bg-[#031313] text-white">
-            <div className="relative mx-auto max-w-[430px]">
-                {/* Fixed Header with Gradient Background */}
-                <header className="fixed top-0 left-0 w-full max-w-[430px] mx-auto h-[16vh] bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-6 pt-4 z-50 flex flex-col justify-between">
-                    {/* Header with Back Arrow and Profile */}
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <button
-                                onClick={handleGoBack}
-                                className="p-2 hover:bg-white/10 rounded-full transition-all duration-300"
-                            >
-                                <ArrowLeft size={24} className="text-white" />
-                            </button>
-                            <h1 className="text-white text-base font-bold tracking-wide">
-                                ALL EVENTS
-                            </h1>
-                        </div>
-                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                            <User className="w-5 h-5 text-white" />
-                        </div>
-                    </div>
+        <div className="min-h-screen bg-[#1e2328] text-white flex items-center justify-center">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-400 mx-auto"></div>
+                <p className="mt-4 text-lg">Loading events...</p>
+            </div>
+        </div>
+    );
+}
 
-                    {/* Search Bar */}
-                    <div className="flex items-center gap-2">
-                        <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2 min-w-0">
-                            <button
-                                onClick={handleSearch}
-                                disabled={isSearching || !searchQuery.trim()}
-                                className="disabled:opacity-50 flex-shrink-0"
-                            >
-                                {isSearching ? (
-                                    <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
-                                ) : (
-                                    <Search className="w-[21px] h-[21px] text-white" />
-                                )}
-                            </button>
-                            <input
-                                type="text"
-                                placeholder="Search events..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                        handleSearch();
-                                    }
-                                }}
-                                className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white outline-none min-w-0"
-                                disabled={isSearching}
-                            />
-                        </div>
+if (error) {
+    return (
+        <div className="min-h-screen bg-[#1e2328] text-white flex items-center justify-center">
+            <div className="text-center">
+                <p className="text-red-400 text-lg mb-4">{error}</p>
+                <button
+                    onClick={fetchEvents}
+                    className="bg-cyan-500 text-white px-6 py-2 rounded-lg hover:bg-cyan-600 transition-colors"
+                >
+                    Try Again
+                </button>
+            </div>
+        </div>
+    );
+}
+
+return (
+    <div className="min-h-screen bg-[#031313] text-white">
+        <div className="relative mx-auto max-w-[430px]">
+            {/* Fixed Header with Gradient Background */}
+            <header className="fixed top-0 left-0 w-full max-w-[430px] mx-auto h-[16vh] bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-6 pt-4 z-50 flex flex-col justify-between">
+                {/* Header with Back Arrow and Profile */}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
                         <button
-                            onClick={handleNearbySearch}
-                            disabled={loadingNearbyEvents || loading}
-                            className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center disabled:opacity-50 flex-shrink-0"
-                            title="Find nearby events"
+                            onClick={handleGoBack}
+                            className="p-2 hover:bg-white/10 rounded-full transition-all duration-300"
                         >
-                            {loadingNearbyEvents || loading ? (
+                            <ArrowLeft size={24} className="text-white" />
+                        </button>
+                        <h1 className="text-white text-base font-bold tracking-wide">
+                            ALL EVENTS
+                        </h1>
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <User className="w-5 h-5 text-white" />
+                    </div>
+                </div>
+
+                {/* Search Bar */}
+                <div className="flex items-center gap-2">
+                    <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2 min-w-0">
+                        <button
+                            onClick={handleSearch}
+                            disabled={isSearching || !searchQuery.trim()}
+                            className="disabled:opacity-50 flex-shrink-0"
+                        >
+                            {isSearching ? (
                                 <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
                             ) : (
-                                <MapPin className="w-[21px] h-[21px] text-white" />
+                                <Search className="w-[21px] h-[21px] text-white" />
                             )}
                         </button>
-                        <button className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center flex-shrink-0">
-                            <SlidersHorizontal className="w-[21px] h-[21px] text-white" />
-                        </button>
+                        <input
+                            type="text"
+                            placeholder="Search events..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleSearch();
+                                }
+                            }}
+                            className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white outline-none min-w-0"
+                            disabled={isSearching}
+                        />
                     </div>
-                </header>
-
-                {/* Location & Error Information */}
-                {(currentLocation || locationError) && (
-                    <div className="fixed top-[15vh] left-0 w-full max-w-[430px] mx-auto z-40 px-5">
-                        {currentLocation && (
-                            <div className="text-xs text-white/70 text-center mb-1">
-                                📍 {currentLocation.label || currentLocation.city || `${currentLocation.latitude.toFixed(2)}, ${currentLocation.longitude.toFixed(2)}`}
-                            </div>
+                    <button
+                        onClick={handleNearbySearch}
+                        disabled={loadingNearbyEvents || loading}
+                        className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center disabled:opacity-50 flex-shrink-0"
+                        title="Find nearby events"
+                    >
+                        {loadingNearbyEvents || loading ? (
+                            <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
+                        ) : (
+                            <MapPin className="w-[21px] h-[21px] text-white" />
                         )}
-                        {locationError && (
-                            <div className="text-xs text-yellow-300 text-center mb-1">
-                                ⚠️ {locationError}
-                            </div>
-                        )}
-                    </div>
-                )}
+                    </button>
+                    <button className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center flex-shrink-0">
+                        <SlidersHorizontal className="w-[21px] h-[21px] text-white" />
+                    </button>
+                </div>
+            </header>
 
-                {/* Main Content */}
-                <div className="w-full space-y-8 pt-[18vh]">
-                    {/* This Week Events */}
-                    <section className="w-full">
-                        <div className="flex items-center justify-between mb-6 px-5">
-                            <h2 className="text-white text-base font-semibold">This Week</h2>
+            {/* Location & Error Information */}
+            {(currentLocation || locationError) && (
+                <div className="fixed top-[15vh] left-0 w-full max-w-[430px] mx-auto z-40 px-5">
+                    {currentLocation && (
+                        <div className="text-xs text-white/70 text-center mb-1">
+                            📍 {currentLocation.label || currentLocation.city || `${currentLocation.latitude.toFixed(2)}, ${currentLocation.longitude.toFixed(2)}`}
                         </div>
-                        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
-                            {loading ? (
-                                <div className="flex items-center justify-center w-full py-8 text-white/50">
-                                    <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading...
-                                </div>
-                            ) : events.filter(e => {
+                    )}
+                    {locationError && (
+                        <div className="text-xs text-yellow-300 text-center mb-1">
+                            ⚠️ {locationError}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Main Content */}
+            <div className="w-full space-y-8 pt-[18vh]">
+                {/* This Week Events */}
+                <section className="w-full">
+                    <div className="flex items-center justify-between mb-6 px-5">
+                        <h2 className="text-white text-base font-semibold">This Week</h2>
+                    </div>
+                    <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
+                        {loading ? (
+                            <div className="flex items-center justify-center w-full py-8 text-white/50">
+                                <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading...
+                            </div>
+                        ) : events.filter(e => {
+                            const d = new Date(e.startDateTime);
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const nextWeek = new Date(today);
+                            nextWeek.setDate(today.getDate() + 7);
+                            return d >= today && d <= nextWeek;
+                        }).length > 0 ? (
+                            events.filter(e => {
                                 const d = new Date(e.startDateTime);
                                 const today = new Date();
                                 today.setHours(0, 0, 0, 0);
                                 const nextWeek = new Date(today);
                                 nextWeek.setDate(today.getDate() + 7);
                                 return d >= today && d <= nextWeek;
-                            }).length > 0 ? (
-                                events.filter(e => {
-                                    const d = new Date(e.startDateTime);
-                                    const today = new Date();
-                                    today.setHours(0, 0, 0, 0);
-                                    const nextWeek = new Date(today);
-                                    nextWeek.setDate(today.getDate() + 7);
-                                    return d >= today && d <= nextWeek;
-                                }).map((event, index) => (
-                                    <div
-                                        key={event.id}
-                                        onClick={() => handleEventClick(event.id)}
-                                        className="relative min-w-[222px] h-[320px] bg-[#021A1A] rounded-[18px] overflow-hidden flex-shrink-0 cursor-pointer border border-white/5"
-                                    >
-                                        {/* Image */}
-                                        <div className="h-[180px] w-full relative">
-                                            <img
-                                                src={event.imageUrl || getEventFallbackImage(index)}
-                                                alt={event.title}
-                                                className="w-full h-full object-cover"
-                                            />
-                                            {/* Gradient Overlay for Date Badge visibility */}
-                                            <div className="absolute top-0 right-0 p-2">
-                                                <div className="bg-black/60 backdrop-blur-md text-white rounded-lg px-2 py-1 flex flex-col items-center border border-white/10">
-                                                    <span className="text-[10px] uppercase font-bold text-[#14FFEC]">
-                                                        {new Date(event.startDateTime).toLocaleDateString('en-US', { month: 'short' })}
-                                                    </span>
-                                                    <span className="text-xl font-bold leading-none">
-                                                        {new Date(event.startDateTime).getDate()}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Content */}
-                                        <div className="p-4 flex flex-col justify-between h-[140px]">
-                                            <div>
-                                                <h3 className="text-white text-base font-bold leading-tight mb-1 line-clamp-2 font-['Manrope']">
-                                                    {event.title}
-                                                </h3>
-                                                <div className="flex items-center gap-1 text-white/50 text-xs mb-3">
-                                                    <MapPin className="w-3 h-3" />
-                                                    <span className="truncate max-w-[150px]">{event.location || event.clubName || 'Location TBD'}</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center justify-between border-t border-white/10 pt-3">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs text-[#14FFEC] bg-[#14FFEC]/10 px-2 py-0.5 rounded-full border border-[#14FFEC]/20">
-                                                        {event.eventStatusText || 'Upcoming'}
-                                                    </span>
-                                                </div>
-                                                {/* Favorite Button Placeholder */}
-                                                <button className="text-white/30 hover:text-[#14FFEC] transition-colors">
-                                                    <Heart className="w-4 h-4" />
-                                                </button>
+                            }).map((event, index) => (
+                                <div
+                                    key={event.id}
+                                    onClick={() => handleEventClick(event.id)}
+                                    className="relative min-w-[222px] h-[320px] bg-[#021A1A] rounded-[18px] overflow-hidden flex-shrink-0 cursor-pointer border border-white/5"
+                                >
+                                    {/* Image */}
+                                    <div className="h-[180px] w-full relative">
+                                        <img
+                                            src={event.imageUrl || getEventFallbackImage(index)}
+                                            alt={event.title}
+                                            className="w-full h-full object-cover"
+                                        />
+                                        {/* Gradient Overlay for Date Badge visibility */}
+                                        <div className="absolute top-0 right-0 p-2">
+                                            <div className="bg-black/60 backdrop-blur-md text-white rounded-lg px-2 py-1 flex flex-col items-center border border-white/10">
+                                                <span className="text-[10px] uppercase font-bold text-[#14FFEC]">
+                                                    {new Date(event.startDateTime).toLocaleDateString('en-US', { month: 'short' })}
+                                                </span>
+                                                <span className="text-xl font-bold leading-none">
+                                                    {new Date(event.startDateTime).getDate()}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
-                                ))
-                            ) : (
-                                <div className="text-white/60 text-sm py-4">No events found this week.</div>
-                            )}
-                        </div>
-                    </section>
 
-                    {/* Today Events */}
-                    <section className="w-full">
-                        <div className="flex items-center justify-between mb-6 px-5">
-                            <h2 className="text-white text-base font-semibold">Today</h2>
-                        </div>
-                        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
-                            {loading ? (
-                                <div className="flex items-center justify-center min-w-[200px] py-8 text-white/50">
-                                    <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                                    {/* Content */}
+                                    <div className="p-4 flex flex-col justify-between h-[140px]">
+                                        <div>
+                                            <h3 className="text-white text-base font-bold leading-tight mb-1 line-clamp-2 font-['Manrope']">
+                                                {event.title}
+                                            </h3>
+                                            <div className="flex items-center gap-1 text-white/50 text-xs mb-3">
+                                                <MapPin className="w-3 h-3" />
+                                                <span className="truncate max-w-[150px]">{event.location || event.clubName || 'Location TBD'}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between border-t border-white/10 pt-3">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs text-[#14FFEC] bg-[#14FFEC]/10 px-2 py-0.5 rounded-full border border-[#14FFEC]/20">
+                                                    {event.eventStatusText || 'Upcoming'}
+                                                </span>
+                                            </div>
+                                            {/* Favorite Button Placeholder */}
+                                            <button className="text-white/30 hover:text-[#14FFEC] transition-colors">
+                                                <Heart className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                            ) : events.filter(e => {
+                            ))
+                        ) : (
+                            <div className="text-white/60 text-sm py-4">No events found this week.</div>
+                        )}
+                    </div>
+                </section>
+
+                {/* Today Events */}
+                <section className="w-full">
+                    <div className="flex items-center justify-between mb-6 px-5">
+                        <h2 className="text-white text-base font-semibold">Today</h2>
+                    </div>
+                    <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
+                        {loading ? (
+                            <div className="flex items-center justify-center min-w-[200px] py-8 text-white/50">
+                                <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                            </div>
+                        ) : events.filter(e => {
+                            const d = new Date(e.startDateTime);
+                            const t = new Date();
+                            return d.getDate() === t.getDate() &&
+                                d.getMonth() === t.getMonth() &&
+                                d.getFullYear() === t.getFullYear();
+                        }).length > 0 ? (
+                            events.filter(e => {
                                 const d = new Date(e.startDateTime);
                                 const t = new Date();
                                 return d.getDate() === t.getDate() &&
                                     d.getMonth() === t.getMonth() &&
                                     d.getFullYear() === t.getFullYear();
-                            }).length > 0 ? (
-                                events.filter(e => {
-                                    const d = new Date(e.startDateTime);
-                                    const t = new Date();
-                                    return d.getDate() === t.getDate() &&
-                                        d.getMonth() === t.getMonth() &&
-                                        d.getFullYear() === t.getFullYear();
-                                }).map((event, index) => (
-                                    <div
-                                        key={event.id}
-                                        onClick={() => handleEventClick(event.id)}
-                                        className="relative min-w-[280px] h-[160px] bg-[#021A1A] rounded-[18px] overflow-hidden flex-shrink-0 cursor-pointer border border-white/5"
-                                    >
-                                        {/* Image Background with Overlay */}
-                                        <div className="absolute inset-0">
-                                            <img
-                                                src={event.imageUrl || getEventFallbackImage(index)}
-                                                alt={event.title}
-                                                className="w-full h-full object-cover opacity-60"
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-[#021A1A] via-[#021A1A]/50 to-transparent" />
-                                        </div>
+                            }).map((event, index) => (
+                                <div
+                                    key={event.id}
+                                    onClick={() => handleEventClick(event.id)}
+                                    className="relative min-w-[280px] h-[160px] bg-[#021A1A] rounded-[18px] overflow-hidden flex-shrink-0 cursor-pointer border border-white/5"
+                                >
+                                    {/* Image Background with Overlay */}
+                                    <div className="absolute inset-0">
+                                        <img
+                                            src={event.imageUrl || getEventFallbackImage(index)}
+                                            alt={event.title}
+                                            className="w-full h-full object-cover opacity-60"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-[#021A1A] via-[#021A1A]/50 to-transparent" />
+                                    </div>
 
-                                        {/* Content */}
-                                        <div className="absolute inset-0 p-4 flex flex-col justify-end">
-                                            <div className="flex justify-between items-end">
-                                                <div>
-                                                    <span className="text-xs text-[#14FFEC] font-bold uppercase mb-1 block">
-                                                        Today • {new Date(event.startDateTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                                                    </span>
-                                                    <h3 className="text-white text-lg font-bold leading-tight mb-1 line-clamp-1">
-                                                        {event.title}
-                                                    </h3>
-                                                    <p className="text-white/70 text-xs truncate flex items-center gap-1">
-                                                        <MapPin className="w-3 h-3" />
-                                                        {event.location || event.clubName}
-                                                    </p>
-                                                </div>
+                                    {/* Content */}
+                                    <div className="absolute inset-0 p-4 flex flex-col justify-end">
+                                        <div className="flex justify-between items-end">
+                                            <div>
+                                                <span className="text-xs text-[#14FFEC] font-bold uppercase mb-1 block">
+                                                    Today • {new Date(event.startDateTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                                </span>
+                                                <h3 className="text-white text-lg font-bold leading-tight mb-1 line-clamp-1">
+                                                    {event.title}
+                                                </h3>
+                                                <p className="text-white/70 text-xs truncate flex items-center gap-1">
+                                                    <MapPin className="w-3 h-3" />
+                                                    {event.location || event.clubName}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
-                                ))
-                            ) : (
-                                <div className="text-white/60 text-sm px-5 py-8 mr-5 w-full text-center bg-[#021A1A] rounded-[15px] border border-white/5">
-                                    No events scheduled for today
                                 </div>
-                            )}
-                        </div>
-                    </section>
+                            ))
+                        ) : (
+                            <div className="text-white/60 text-sm px-5 py-8 mr-5 w-full text-center bg-[#021A1A] rounded-[15px] border border-white/5">
+                                No events scheduled for today
+                            </div>
+                        )}
+                    </div>
+                </section>
 
-                    {/* All Events */}
-                    <section className="w-full px-5">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-white text-base font-semibold">All Events</h2>
-                        </div>
-                        <div className="space-y-4">
-                            {loading ? (
-                                <div className="flex items-center justify-center w-full py-8 text-white/50">
-                                    <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
-                                </div>
-                            ) : events.length === 0 ? (
-                                <div className="text-white/60 text-sm text-center py-8">
-                                    No events available
-                                </div>
-                            ) : (
-                                events.map((event, index) => (
-                                    <div
-                                        key={event.id}
-                                        onClick={() => handleEventClick(event.id)}
-                                        className="w-full bg-[#021A1A] rounded-[20px] overflow-hidden flex cursor-pointer border border-white/5 h-[120px]"
-                                    >
-                                        {/* Image */}
-                                        <div className="w-[120px] h-full relative flex-shrink-0">
-                                            <img
-                                                src={event.imageUrl || getEventFallbackImage(index)}
-                                                alt={event.title}
-                                                className="w-full h-full object-cover"
-                                            />
+                {/* All Events */}
+                <section className="w-full px-5">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-white text-base font-semibold">All Events</h2>
+                    </div>
+                    <div className="space-y-4">
+                        {loading ? (
+                            <div className="flex items-center justify-center w-full py-8 text-white/50">
+                                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+                            </div>
+                        ) : events.length === 0 ? (
+                            <div className="text-white/60 text-sm text-center py-8">
+                                No events available
+                            </div>
+                        ) : (
+                            events.map((event, index) => (
+                                <div
+                                    key={event.id}
+                                    onClick={() => handleEventClick(event.id)}
+                                    className="w-full bg-[#021A1A] rounded-[20px] overflow-hidden flex cursor-pointer border border-white/5 h-[120px]"
+                                >
+                                    {/* Image */}
+                                    <div className="w-[120px] h-full relative flex-shrink-0">
+                                        <img
+                                            src={event.imageUrl || getEventFallbackImage(index)}
+                                            alt={event.title}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+
+                                    {/* Content */}
+                                    <div className="flex-1 p-3 flex flex-col justify-between">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <span className="text-xs text-[#14FFEC] font-bold uppercase mb-1 block">
+                                                    {new Date(event.startDateTime).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
+                                                </span>
+                                                <h3 className="text-white text-base font-bold leading-tight line-clamp-2 mb-1">
+                                                    {event.title}
+                                                </h3>
+                                                <p className="text-white/50 text-xs truncate flex items-center gap-1">
+                                                    <MapPin className="w-3 h-3" />
+                                                    {event.location || event.clubName}
+                                                </p>
+                                            </div>
                                         </div>
 
-                                        {/* Content */}
-                                        <div className="flex-1 p-3 flex flex-col justify-between">
-                                            <div className="flex justify-between items-start">
-                                                <div>
-                                                    <span className="text-xs text-[#14FFEC] font-bold uppercase mb-1 block">
-                                                        {new Date(event.startDateTime).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
-                                                    </span>
-                                                    <h3 className="text-white text-base font-bold leading-tight line-clamp-2 mb-1">
-                                                        {event.title}
-                                                    </h3>
-                                                    <p className="text-white/50 text-xs truncate flex items-center gap-1">
-                                                        <MapPin className="w-3 h-3" />
-                                                        {event.location || event.clubName}
-                                                    </p>
-                                                </div>
+                                        <div className="flex justify-between items-center mt-2">
+                                            <div className="text-xs text-white/40">
+                                                {new Date(event.startDateTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                                             </div>
-
-                                            <div className="flex justify-between items-center mt-2">
-                                                <div className="text-xs text-white/40">
-                                                    {new Date(event.startDateTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                                                </div>
-                                                <button className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#14FFEC] hover:text-black transition-colors group">
-                                                    <ChevronRight className="w-4 h-4 text-white group-hover:text-black" />
-                                                </button>
-                                            </div>
+                                            <button className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#14FFEC] hover:text-black transition-colors group">
+                                                <ChevronRight className="w-4 h-4 text-white group-hover:text-black" />
+                                            </button>
                                         </div>
                                     </div>
-                                ))
-                            )}
-
-                            {/* Load More Button */}
-                            {pagination.hasNext && (
-                                <div className="flex justify-center pt-4 pb-8">
-                                    <button
-                                        onClick={() => fetchEvents(pagination.page + 1, true)}
-                                        disabled={isLoadingMore}
-                                        className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-full text-sm font-semibold transition-colors disabled:opacity-50 flex items-center gap-2"
-                                    >
-                                        {isLoadingMore && <Loader2 className="w-4 h-4 animate-spin" />}
-                                        Load More
-                                    </button>
                                 </div>
-                            )}
-                        </div>
-                    </section>
-                </div>
+                            ))
+                        )}
+
+                        {/* Load More Button */}
+                        {pagination.hasNext && (
+                            <div className="flex justify-center pt-4 pb-8">
+                                <button
+                                    onClick={() => fetchEvents(pagination.page + 1, true)}
+                                    disabled={isLoadingMore}
+                                    className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-full text-sm font-semibold transition-colors disabled:opacity-50 flex items-center gap-2"
+                                >
+                                    {isLoadingMore && <Loader2 className="w-4 h-4 animate-spin" />}
+                                    Load More
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </section>
             </div>
-
-
         </div>
-    );
+
+
+    </div>
+);
 }
