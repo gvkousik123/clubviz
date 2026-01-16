@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Upload, Calendar, Clock, Music, User, Building2, Instagram, Music2, ImageIcon, VideoIcon, ChevronDown, Plus, Trash2 } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import './styles.css';
 import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
 import { EventService } from '@/lib/services/event.service';
@@ -26,7 +26,7 @@ interface TicketType {
     isActive: boolean;
 }
 
-export default function NewEventPage() {
+function NewEventPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
@@ -882,5 +882,17 @@ export default function NewEventPage() {
                 </DialogContent>
             </Dialog>
         </div>
+    );
+}
+
+export default function NewEventPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#021313] flex items-center justify-center">
+                <div className="w-20 h-20 rounded-full border-4 border-r-transparent animate-spin border-[#14FFEC]"></div>
+            </div>
+        }>
+            <NewEventPageContent />
+        </Suspense>
     );
 }
