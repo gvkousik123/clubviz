@@ -126,13 +126,37 @@ export default function ContactUsPage() {
     const handleSubmitFeedback = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Validate fields
+        if (!feedbackForm.rateName.trim()) {
+            toast({
+                title: 'Error',
+                description: 'Please enter what you are rating',
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        if (!feedbackForm.feedback.trim()) {
+            toast({
+                title: 'Error',
+                description: 'Please enter your feedback',
+                variant: 'destructive',
+            });
+            return;
+        }
+
         try {
+            // Sanitize username - remove numbers and special characters, keep only letters and spaces
+            let username = JSON.parse(localStorage.getItem('clubviz-user') || '{}').username || 'User';
+            username = username.replace(/[^a-zA-Z\s]/g, '').trim() || 'User';
+
+            console.log('Submitting feedback with data:', { username, ...feedbackForm });
             const success = await submitReview({
-                username: JSON.parse(localStorage.getItem('clubviz-user') || '{}').username || 'Anonymous',
+                username: username,
                 rating: feedbackForm.rating,
                 review: feedbackForm.feedback,
                 feedback: feedbackForm.rateName,
-                photoOrVideo: feedbackForm.feedbackVideoUrl
+                photoOrVideo: 'https'
             });
 
             if (success) {
