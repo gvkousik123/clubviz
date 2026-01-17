@@ -83,6 +83,11 @@ export default function ContactUsPage() {
         if (success) {
             setShowEnquiryForm(false);
             setFormData({ name: '', contactNumber: '', instagramLink: '', message: '' });
+            toast({
+                title: '✓ Business Enquiry Submitted',
+                description: 'Your enquiry has been received successfully!',
+                variant: 'success',
+            });
         }
     };
 
@@ -90,23 +95,30 @@ export default function ContactUsPage() {
     const handleSubmitSupport = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        try {
-            const success = await submitSupportRequest(supportForm);
-
-            if (success) {
-                setSupportForm({ name: '', email: '', message: '' });
-                // Re-populate email
-                const userStr = localStorage.getItem('clubviz-user');
-                if (userStr) {
-                    const user = JSON.parse(userStr);
-                    if (user.email) {
-                        setSupportForm(prev => ({ ...prev, email: user.email }));
-                    }
+        const success = await submitSupportRequest(supportForm);
+        console.log('Support request submission success:', success);
+        if (success) {
+            toast({
+                title: '✓ Support Request Submitted',
+                description: 'Thank you! Our team will respond shortly.',
+                variant: 'success',
+            });
+            setSupportForm({ name: '', email: '', message: '' });
+            // Re-populate email
+            const userStr = localStorage.getItem('clubviz-user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                if (user.email) {
+                    setSupportForm(prev => ({ ...prev, email: user.email }));
                 }
-                setActiveTab('contact');
             }
-        } catch (error) {
-            console.error('Error submitting support request:', error);
+        }
+        else {
+            toast({
+                title: 'Error',
+                description: 'Failed to submit support request. Please try again.',
+                variant: 'destructive',
+            });
         }
     };
 
@@ -116,35 +128,28 @@ export default function ContactUsPage() {
 
         try {
             const success = await submitReview({
-                username: feedbackForm.rateName, // Mapping rateName to username (or should it be rateName? API expects username in type but user enters "What are you rating")
-                // Wait, RatingFeedbackRequest has "username" but form has "rateName".
-                // And "review" in request vs "feedback" in form.
-                // Let's create a proper mapping.
-
-                // Oops, the type definition in service says:
-                // username: string; rating: number; review: string; feedback?: string; photoOrVideo?: string;
-                // But the form asks for "What are you rating?".
-                // Maybe "username" should be the actual user's name?
-                // I will try to fetch username from local storage.
                 username: JSON.parse(localStorage.getItem('clubviz-user') || '{}').username || 'Anonymous',
                 rating: feedbackForm.rating,
-                review: feedbackForm.feedback, // Use feedback as review
-                feedback: feedbackForm.rateName, // Use rateName as the "subject" or feedback (since feedback is optional in type?)
-                // Actually looking at the form, "What are you rating?" is "rateName". 
-                // Let's map: 
-                // username -> current user's name
-                // rating -> rating
-                // review -> feedback text
-                // feedback -> "What are you rating?" (rateName)
+                review: feedbackForm.feedback,
+                feedback: feedbackForm.rateName,
                 photoOrVideo: feedbackForm.feedbackVideoUrl
             });
 
             if (success) {
+                toast({
+                    title: '✓ Feedback Submitted',
+                    description: 'Thank you for your valuable feedback!',
+                    variant: 'success',
+                });
                 setFeedbackForm({ rateName: '', rating: 5, feedback: '', feedbackVideoUrl: '' });
-                setActiveTab('contact');
             }
         } catch (error) {
             console.error('Error submitting feedback:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to submit feedback. Please try again.',
+                variant: 'destructive',
+            });
         }
     };
 
@@ -152,7 +157,6 @@ export default function ContactUsPage() {
         <div className="min-h-screen w-full bg-[#031414] overflow-hidden relative">
             <PageHeader title="CONTACT US" />
 
-            {/* Tab Navigation */}
             <div className="px-6 py-6 pt-[20vh] flex gap-4 border-b border-[#0C898B]/30">
                 <button
                     onClick={() => setActiveTab('contact')}

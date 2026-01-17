@@ -25,9 +25,10 @@ export function useContact() {
                 return false;
             }
         } catch (error: any) {
+            const errorMessage = error.message || 'Something went wrong.';
             toast({
                 title: 'Error',
-                description: error.message || 'Something went wrong.',
+                description: errorMessage,
                 variant: 'destructive',
             });
             return false;
@@ -49,15 +50,16 @@ export function useContact() {
             } else {
                 toast({
                     title: 'Submission Failed',
-                    description: response.message,
+                    description: response.message || 'Please try again later.',
                     variant: 'destructive',
                 });
                 return false;
             }
         } catch (error: any) {
+            const errorMessage = error.message || 'Something went wrong.';
             toast({
                 title: 'Error',
-                description: error.message,
+                description: errorMessage,
                 variant: 'destructive',
             });
             return false;
@@ -70,26 +72,16 @@ export function useContact() {
         setLoading(true);
         try {
             const response = await ContactService.submitCustomerSupport(data);
-            if (response.success) {
-                toast({
-                    title: 'Request Sent',
-                    description: 'Our support team will contact you shortly.',
-                });
+            const res = response.data;
+            if (res.status === 'success' || response.success) {
+
                 return true;
             } else {
-                toast({
-                    title: 'Submission Failed',
-                    description: response.message,
-                    variant: 'destructive',
-                });
+
                 return false;
             }
         } catch (error: any) {
-            toast({
-                title: 'Error',
-                description: error.message,
-                variant: 'destructive',
-            });
+            const errorMessage = error.message || 'Something went wrong.';
             return false;
         } finally {
             setLoading(false);
