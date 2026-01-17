@@ -199,10 +199,11 @@ export default function AdminDashboard() {
         if (!deleteEventId) return;
 
         try {
-            // Close the dialog
-            setShowDeleteDialog(false);
             const eventIdToDelete = deleteEventId;
             const eventTitleToDelete = deleteEventTitle;
+
+            // Close the dialog
+            setShowDeleteDialog(false);
             setDeleteEventId(null);
             setDeleteEventTitle('');
 
@@ -210,7 +211,7 @@ export default function AdminDashboard() {
             const response = await EventService.deleteEvent(eventIdToDelete);
 
             if (response.success) {
-                // Remove from UI after successful API call
+                // Remove from UI immediately after successful API call
                 const updatedEvents = organizedEvents.filter(event => event.id !== eventIdToDelete);
                 setEvents(updatedEvents);
 
