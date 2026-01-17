@@ -39,14 +39,21 @@ export default function EventDetailsPage() {
             try {
                 const isGuest = isGuestMode();
                 const eventId = params.id as string;
+                console.log('🔍 Fetching event:', eventId, 'Guest mode:', isGuest);
 
                 if (isGuest) {
                     // Use public event service for guests
                     const eventData = await PublicEventService.getPublicEventById(eventId);
-                    setEvent(eventData);
+                    console.log('✅ Event data received:', eventData);
+                    if (eventData) {
+                        setEvent(eventData);
+                    } else {
+                        setError('Event not found');
+                    }
                 } else {
                     // Use regular event service for authenticated users
                     const response = await EventService.getEventDetails(eventId);
+                    console.log('✅ Authenticated event response:', response);
                     if (response.success && response.data) {
                         setEvent(response.data);
                     } else {
@@ -54,7 +61,7 @@ export default function EventDetailsPage() {
                     }
                 }
             } catch (err: any) {
-                console.error("Error fetching event details:", err);
+                console.error("💥 Error fetching event details:", err);
                 setError(err.message || 'Failed to load event details');
             } finally {
                 setLoading(false);
@@ -137,7 +144,7 @@ export default function EventDetailsPage() {
         return (
             <div className="min-h-screen bg-[#021313] flex flex-col items-center justify-center text-white">
                 <p className="mb-4">{error || 'Event not found'}</p>
-                <button onClick={() => router.back()} className="text-[#14FFEC] flex items-center gap-2">
+                <button onClick={() => { console.log('Going back...'); router.back(); }} className="text-[#14FFEC] flex items-center gap-2">
                     <ChevronLeft size={20} /> Go Back
                 </button>
             </div>

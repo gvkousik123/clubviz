@@ -54,26 +54,35 @@ export default function ClubDetailPage() {
         try {
             const isGuest = isGuestMode();
             const clubId = params.id as string;
+            console.log('🔍 Fetching club:', clubId, 'Guest mode:', isGuest);
 
             if (isGuest) {
                 // Use public club service for guests
                 const clubData = await PublicClubService.getPublicClubById(clubId);
-                setClub(clubData);
-                setIsLiked(!!clubData.isJoined);
+                console.log('✅ Club data received:', clubData);
+                if (clubData) {
+                    setClub(clubData);
+                    setIsLiked(!!clubData.isJoined);
+                    setError(null);
+                } else {
+                    setError('Club not found');
+                }
             } else {
                 // Use regular club service for authenticated users
                 const response = await ClubService.getClubById(clubId);
+                console.log('✅ Authenticated club response:', response);
                 if (response.success && response.data) {
                     setClub(response.data);
                     if ('isJoined' in response.data) {
                         setIsLiked(!!response.data.isJoined);
                     }
+                    setError(null);
                 } else {
                     setError('Club not found');
                 }
             }
         } catch (err: any) {
-            console.error("Error fetching club details:", err);
+            console.error("💥 Error fetching club details:", err);
             setError(err.message || 'Failed to load club details');
         } finally {
             setIsLoading(false);
@@ -85,6 +94,7 @@ export default function ClubDetailPage() {
     }, [params.id]);
 
     const handleGoBack = () => {
+        console.log('Going back from club page...');
         router.back();
     };
 
