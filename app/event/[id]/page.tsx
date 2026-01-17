@@ -319,11 +319,10 @@ export default function EventDetailsPage() {
                     <button
                         onClick={handleRegister}
                         disabled={isActionLoading}
-                        className={`pointer-events-auto shadow-lg shadow-[#14FFEC]/20 w-full max-w-md h-[54px] rounded-[30px] flex justify-center items-center text-base font-bold font-['Manrope'] transition-all active:scale-95 ${
-                            eventData?.isRegistered
+                        className={`pointer-events-auto shadow-lg shadow-[#14FFEC]/20 w-full max-w-md h-[54px] rounded-[30px] flex justify-center items-center text-base font-bold font-['Manrope'] transition-all active:scale-95 ${eventData?.isRegistered
                                 ? 'bg-red-500/80 text-white hover:bg-red-600'
                                 : 'bg-gradient-to-r from-[#005D5C] to-[#14FFEC] text-white hover:brightness-110'
-                        } disabled:opacity-50`}
+                            } disabled:opacity-50`}
                     >
                         {isActionLoading ? (
                             <Loader2 className="w-6 h-6 animate-spin" />
