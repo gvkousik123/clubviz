@@ -227,7 +227,18 @@ export class PublicClubService {
    * Get public club by ID
    */
   static async getPublicClubById(id: string): Promise<PublicClubDetails> {
-    const response = await publicApi.get(`/clubs/public/${id}`);
+    // Get authorization token
+    const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
+    const headers: any = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await publicApi.get(`/clubs/public/${id}`, { headers });
     return response.data;
   }
 
@@ -511,7 +522,18 @@ export class PublicEventService {
    * Get public event details by ID
    */
   static async getPublicEventById(eventId: string): Promise<PublicEventDetails> {
-    const response = await publicApi.get(`/event-management/events/${eventId}/details`);
+    // Get authorization token
+    const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
+    const headers: any = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await publicApi.get(`/event-management/events/${eventId}/details`, { headers });
     return response.data;
   }
 
