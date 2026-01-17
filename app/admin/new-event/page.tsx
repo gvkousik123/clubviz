@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import DatePicker from '@/components/common/date-picker';
 import { formatDateTimeForAPI } from '@/lib/date-utils';
 import { MusicGenreAutocomplete, MusicGenre } from '@/components/ui/music-genre-autocomplete';
+import { fileToBase64 } from '@/lib/image-utils';
 
 interface Club {
     id: string;
@@ -207,14 +208,49 @@ function NewEventPageContent() {
                 throw new Error('Invalid date or time format');
             }
 
-            // Construct payload matching the required JSON structure
-            // Note: Image fields are displayed in UI but NOT sent to API
+            // Convert images to base64
+            let eventImageData = null;
+            if (formData.poster) {
+                const base64 = await fileToBase64(formData.poster);
+                eventImageData = {
+                    name: formData.poster.name,
+                    contentType: formData.poster.type,
+                    data: base64,
+                    url: "",
+                    type: "EVENT_IMAGE"
+                };
+            }
+
+            let eventReelData = null;
+            if (formData.reel) {
+                const base64 = await fileToBase64(formData.reel);
+                eventReelData = {
+                    name: formData.reel.name,
+                    contentType: formData.reel.type,
+                    data: base64,
+                    url: "",
+                    type: "EVENT_REEL"
+                };
+            }
+
+            let eventOrganizerLogoData = null;
+            if (formData.organizerLogo) {
+                const base64 = await fileToBase64(formData.organizerLogo);
+                eventOrganizerLogoData = {
+                    name: formData.organizerLogo.name,
+                    contentType: formData.organizerLogo.type,
+                    data: base64,
+                    url: "",
+                    type: "ORGANIZER_LOGO"
+                };
+            }
+
+            // Construct payload matching the event-create-with-image.json structure
             const eventData: any = {
                 title: formData.eventName.trim(),
-                name: formData.eventName.trim(),
                 description: formData.description.trim(),
                 startDateTime: startDateTime,
-                endDateTime: startDateTime, // Ideally this should be calculated if duration is known
+                endDateTime: startDateTime, // Could be calculated based on duration
                 location: formData.organizer || "Club Location",
                 locationText: "Club Location Text",
                 locationMap: {
@@ -225,23 +261,29 @@ function NewEventPageContent() {
                 maxAttendees: formData.totalTickets || 500,
                 isPublic: true,
                 requiresApproval: false,
-                eventArtistName: formData.artistName,
-                aboutEventArtist: formData.aboutArtist,
-                instagramHandle: formData.instagramHandle,
-                spotifyHandle: formData.spotifyHandle,
-                musicGenre: selectedGenres.map(g => g.label).join(', '),
+                eventArtistName: formData.artistName || "",
+                aboutEventArtist: formData.aboutArtist || "",
+                instagramHandle: formData.instagramHandle || "",
+                spotifyHandle: formData.spotifyHandle || "",
+                musicGenre: selectedGenres.map(g => g.label).join(', ') || "",
                 eventOrganizer: formData.organizer,
                 ticketTypes: ticketTypes,
                 hasLimitedTickets: formData.hasLimitedTickets,
-                totalTickets: formData.totalTickets
-                // NOTE: Image fields (eventImage, eventReel, eventOrganizerLogo, galleryImages, performerImages) 
-                // are intentionally NOT sent to the API - they are display-only in the UI
+                totalTickets: formData.totalTickets,
+                eventImage: eventImageData,
+                eventReel: eventReelData,
+                eventOrganizerLogo: eventOrganizerLogoData,
+                galleryImages: [],
+                performerImages: []
             };
 
-            console.log('🚀 Creating event with JSON payload:', JSON.stringify(eventData, null, 2));
+            console.log('🚀 Creating event with images - Payload:', eventData);
             console.log('📡 API Call: POST /events/create-json-with-images');
+            console.log('📸 Event Image:', eventImageData ? 'Yes' : 'No');
+            console.log('🎬 Event Reel:', eventReelData ? 'Yes' : 'No');
+            console.log('🏢 Organizer Logo:', eventOrganizerLogoData ? 'Yes' : 'No');
 
-            // Use the specific endpoint for JSON+Images (even if images are omitted, the structure is expected)
+            // Use the specific endpoint for JSON+Images
             const response: any = await EventService.createEventWithImages(eventData);
 
             if (response && (response.id || response.success || response.data)) {

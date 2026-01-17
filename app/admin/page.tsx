@@ -356,21 +356,23 @@ export default function AdminDashboard() {
                         <div className="mb-6">
                             <h3 className="text-lg font-semibold mb-3">Quick Actions</h3>
                             <div className="grid grid-cols-1 gap-3 mb-4">
-                                {/* Create New Club */}
-                                <div
-                                    onClick={handleCreateClub}
-                                    className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4 flex items-center justify-between cursor-pointer hover:bg-[#14FFEC]/10 transition-colors"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="bg-[#14FFEC] w-10 h-10 rounded-md flex items-center justify-center">
-                                            <Plus className="w-6 h-6 text-black" />
-                                        </div>
-                                        <div>
-                                            <p className="text-white font-medium">Create New Club</p>
-                                            <p className="text-gray-400 text-xs">Set up a new club location</p>
+                                {/* Create New Club - Only show if no club exists */}
+                                {ownedClubs?.length === 0 && !isLoadingOwnedClubs && (
+                                    <div
+                                        onClick={handleCreateClub}
+                                        className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4 flex items-center justify-between cursor-pointer hover:bg-[#14FFEC]/10 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-[#14FFEC] w-10 h-10 rounded-md flex items-center justify-center">
+                                                <Plus className="w-6 h-6 text-black" />
+                                            </div>
+                                            <div>
+                                                <p className="text-white font-medium">Create New Club</p>
+                                                <p className="text-gray-400 text-xs">Set up a new club location</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                )}
 
                                 {/* Create New Event */}
                                 <div

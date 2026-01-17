@@ -154,22 +154,43 @@ export interface EventListParams {
   endDate?: string;
 }
 
+export interface EventImageData {
+  name: string;
+  contentType: string;
+  data: string;
+  url?: string;
+  type?: string;
+}
+
 export interface EventCreateRequest {
   title: string;
   description: string;
   startDateTime: string;
   endDateTime: string;
   location: string;
-  imageUrl?: string;
-  clubId: string;
-  maxAttendees?: number;
-  isPublic: boolean;
-  requiresApproval: boolean;
   locationText?: string;
   locationMap?: {
     lat: number;
     lng: number;
   };
+  clubId: string;
+  maxAttendees?: number;
+  isPublic: boolean;
+  requiresApproval: boolean;
+  eventArtistName?: string;
+  aboutEventArtist?: string;
+  instagramHandle?: string;
+  spotifyHandle?: string;
+  musicGenre?: string;
+  eventOrganizer?: string;
+  ticketTypes?: TicketType[];
+  hasLimitedTickets?: boolean;
+  totalTickets?: number;
+  eventImage?: EventImageData;
+  eventReel?: EventImageData;
+  eventOrganizerLogo?: EventImageData;
+  galleryImages?: EventImageData[];
+  performerImages?: EventImageData[];
 }
 
 export interface EventUpdateRequest {

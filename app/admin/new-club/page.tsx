@@ -14,6 +14,7 @@ export default function NewClubPage() {
     const { toast } = useToast();
     const logoInputRef = useRef<HTMLInputElement>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isCheckingClubs, setIsCheckingClubs] = useState(true);
     const [adminDetails, setAdminDetails] = useState({ email: '', phone: '' });
     const [selectedLocation, setSelectedLocation] = useState({ lat: 0, lng: 0, city: '', state: '', pincode: '' });
 
@@ -61,6 +62,43 @@ export default function NewClubPage() {
 
     // Fetch lookup data and admin details on component mount
     useEffect(() => {
+        const checkExistingClub = async () => {
+            try {
+                console.log('🔍 Checking if admin already has a club...');
+                const response = await ClubService.getAllClubsAdmin();
+
+                let clubsData: any[] = [];
+                if (Array.isArray(response)) {
+                    clubsData = response;
+                } else if (response && typeof response === 'object' && 'data' in response) {
+                    clubsData = (response as any).data || [];
+                }
+
+                if (clubsData && Array.isArray(clubsData) && clubsData.length > 0) {
+                    console.log('⚠️ Admin already has a club! Redirecting to admin dashboard.');
+                    toast({
+                        title: "Club Already Exists",
+                        description: "You can only have one club. Please edit your existing club or contact support.",
+                        variant: "default",
+                    });
+                    // Redirect to admin dashboard
+                    router.push('/admin');
+                    return;
+                }
+                console.log('✅ No existing club found. User can create one.');
+                setIsCheckingClubs(false);
+            } catch (error) {
+                console.error('❌ Error checking clubs:', error);
+                setIsCheckingClubs(false);
+            }
+        };
+
+        checkExistingClub();
+    }, [router, toast]);
+
+    useEffect(() => {
+        if (isCheckingClubs) return; // Don't load anything until we verify club count
+
         const fetchLookupData = async () => {
             try {
                 setIsLoadingLookup(true);
@@ -298,54 +336,103 @@ export default function NewClubPage() {
 
         setIsSubmitting(true);
         try {
+            // Convert logo to base64
+            let logoBase64 = "";
+            if (formData.logo) {
+                logoBase64 = await fileToBase64(formData.logo);
+            }
 
-            // ✅ BUILD PAYLOAD EXACTLY AS REQUESTED
-            // Omitting all image-related fields
+            // Convert food/drinks images to base64
+            const foodDrinksBase64 = await Promise.all(
+                foodDrinksImages.filter(img => img).map(async (img) => ({
+                    type: "FOOD_DRINKS",
+                    url: await fileToBase64(img)
+                }))
+            );
 
+            // Convert ambience images to base64
+            const ambienceBase64 = await Promise.all(
+                ambienceImages.filter(img => img).map(async (img) => ({
+                    type: "AMBIENCE",
+                    url: await fileToBase64(img)
+                }))
+            );
+
+            // Convert menu images to base64
+            const menuBase64 = await Promise.all(
+                menuImages.filter(img => img).map(async (img) => ({
+                    type: "MENU",
+                    url: await fileToBase64(img)
+                }))
+            );
+
+            // Combine all images
+            const allImages = [...foodDrinksBase64, ...ambienceBase64, ...menuBase64];
+
+            // Build arrays from comma-separated strings
+            const foodCuisinesArray = formData.foodCuisines
+                ? formData.foodCuisines.split(',').map(item => item.trim()).filter(item => item)
+                : [];
+            const facilitiesArray = formData.facilities
+                ? formData.facilities.split(',').map(item => item.trim()).filter(item => item)
+                : [];
+            const musicArray = selectedMusicGenres.length > 0
+                ? selectedMusicGenres.map(genre => genre.name || genre)
+                : (formData.music ? formData.music.split(',').map(item => item.trim()).filter(item => item) : []);
+            const barOptionsArray = formData.barOptions
+                ? formData.barOptions.split(',').map(item => item.trim()).filter(item => item)
+                : [];
+
+            // Build inclusions/exclusions arrays
+            const inclusionsArray = formData.inclusions
+                ? formData.inclusions.split(',').map(item => item.trim()).filter(item => item)
+                : [];
+            const exclusionsArray = formData.exclusions
+                ? formData.exclusions.split(',').map(item => item.trim()).filter(item => item)
+                : [];
+
+            // ✅ BUILD PAYLOAD MATCHING ClubCreateRequest INTERFACE
             const clubData: any = {
                 "name": formData.clubName.trim(),
                 "description": formData.description.trim() || "",
-                "maxMembers": parseInt(formData.maxMembers) || 0,
+                "logo": logoBase64,
+                "category": formData.category.trim() || "NIGHTCLUB",
+                "maxMembers": parseInt(formData.maxMembers) || 100,
                 "contactEmail": formData.contactEmail.trim() || adminDetails.email,
                 "contactPhone": formData.contactPhone.trim() || adminDetails.phone,
-
-                // Location
-                "locationTextAddress1": formData.address1.trim() || "",
-                "locationTextAddress2": formData.address2.trim() || "",
-                "locationTextState": selectedLocation.state || "",
-                "locationTextCity": selectedLocation.city || "",
-                "locationTextPincode": selectedLocation.pincode || "",
-                "locationLat": selectedLocation.lat || 0,
-                "locationLng": selectedLocation.lng || 0,
-
-                // Comma separated strings or simple strings
-                "foodCuisines": formData.foodCuisines || "",
-                "facilities": formData.facilities || "",
-                "music": formData.music || "",
-                "barOptions": formData.barOptions || "",
-
-                // Pricing
-                "coupleEntryPrice": parseFloat(formData.coupleEntryPrice) || 0,
-                "groupEntryPrice": parseFloat(formData.groupEntryPrice) || 0,
-                "maleStagEntryPrice": parseFloat(formData.maleStagEntryPrice) || 0,
-                "femaleStagEntryPrice": parseFloat(formData.femaleStagEntryPrice) || 0,
-                "coverCharge": parseFloat(formData.coverCharge) || 0,
-
-                // Other details
-                "redeemDetails": formData.redeemDetails || "",
-                "hasTimeRestriction": formData.hasTimeRestriction,
-                "timeRestriction": formData.timeRestriction || "",
-                "inclusions": formData.inclusions || "",
-                "exclusions": formData.exclusions || ""
+                "images": allImages,
+                "locationText": {
+                    "address1": formData.address1.trim() || "",
+                    "address2": formData.address2.trim() || "",
+                    "city": selectedLocation.city || "",
+                    "state": selectedLocation.state || "",
+                    "pincode": selectedLocation.pincode || ""
+                },
+                "locationMap": {
+                    "lat": selectedLocation.lat || 0,
+                    "lng": selectedLocation.lng || 0
+                },
+                "foodCuisines": foodCuisinesArray,
+                "facilities": facilitiesArray,
+                "music": musicArray,
+                "barOptions": barOptionsArray,
+                "entryPricing": {
+                    "coupleEntryPrice": parseFloat(formData.coupleEntryPrice) || 0,
+                    "groupEntryPrice": parseFloat(formData.groupEntryPrice) || 0,
+                    "maleStagEntryPrice": parseFloat(formData.maleStagEntryPrice) || 0,
+                    "femaleStagEntryPrice": parseFloat(formData.femaleStagEntryPrice) || 0,
+                    "coverCharge": parseFloat(formData.coverCharge) || 0,
+                    "redeemDetails": formData.redeemDetails || "",
+                    "hasTimeRestriction": formData.hasTimeRestriction,
+                    "timeRestriction": formData.timeRestriction || "",
+                    "inclusions": inclusionsArray,
+                    "exclusions": exclusionsArray
+                }
             };
 
-            // Only add category if user has entered a value
-            if (formData.category.trim()) {
-                clubData.category = formData.category.trim();
-            }
-
-            console.log('🚀 Creating Club Payload:', clubData);
+            console.log('🚀 Creating Club with Images - Payload:', clubData);
             console.log('📡 API Call: POST /clubs/create-json-with-images');
+            console.log('📸 Total Images:', allImages.length);
 
             // Call the service to create the club
             const response = await ClubService.createClub(clubData as any);
@@ -386,6 +473,16 @@ export default function NewClubPage() {
 
     return (
         <div className="min-h-screen bg-[#021313] text-white relative">
+            {/* Show loading state while checking for existing clubs */}
+            {isCheckingClubs && (
+                <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-12 h-12 border-4 border-[#14FFEC] border-t-transparent rounded-full animate-spin"></div>
+                        <p className="text-[#14FFEC]">Checking club status...</p>
+                    </div>
+                </div>
+            )}
+
             {/* Fixed Header with gradient background */}
             <div className="fixed top-0 left-0 right-0 z-30 flex flex-col pt-10 bg-gradient-to-b from-[#11B9AB] to-[#222831] h-[140px] w-full">
                 <div className="absolute top-10 left-6">
@@ -402,7 +499,7 @@ export default function NewClubPage() {
             </div>
 
             {/* Main Content - Scrollable container */}
-            <div className="px-0 pt-[100px] pb-20 relative z-40">
+            <div className="px-0 pt-[100px] pb-20 relative z-40" style={{ opacity: isCheckingClubs ? 0.5 : 1, pointerEvents: isCheckingClubs ? 'none' : 'auto' }}>
                 {/* Main Container with rounded corners */}
                 <div className="w-full bg-[#021313] rounded-t-[40px] flex flex-col items-center gap-[20px] p-[20px_14px_30px]">
                     {/* Logo Upload */}
