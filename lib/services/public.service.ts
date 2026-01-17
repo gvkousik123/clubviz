@@ -1,4 +1,5 @@
 import { publicApi, api, isGuestMode } from '../api-client-public';
+import { STORAGE_KEYS } from '../constants/storage';
 import { ClubService } from './club.service';
 import { SearchService } from './search.service';
 import { LookupService } from './lookup.service';
@@ -262,7 +263,18 @@ export class PublicClubService {
       queryParams.append('hasSpace', params.hasSpace.toString());
     }
 
-    const response = await publicApi.get(`/clubs/public/list?${queryParams.toString()}`);
+    // Get authorization token
+    const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
+    const headers: any = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await publicApi.get(`/clubs/public/list?${queryParams.toString()}`, { headers });
     return response.data;
   }
 
@@ -413,7 +425,18 @@ export class PublicEventService {
       queryParams.append('endDate', params.endDate);
     }
 
-    const response = await publicApi.get(`/event-management/events/list?${queryParams.toString()}`);
+    // Get authorization token
+    const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
+    const headers: any = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await publicApi.get(`/event-management/events/list?${queryParams.toString()}`, { headers });
     return response.data;
   }
 

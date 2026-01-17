@@ -165,7 +165,9 @@ export default function ClubsListPage() {
 
             // ONLY use Public API - defined in API-DOCUMENTATION.json
             // Endpoint: GET /clubs/public/list
+            console.log('🔍 Fetching clubs with params:', params);
             const response = await PublicClubService.getPublicClubsList(params);
+            console.log('✅ Clubs API Response:', response);
 
             if (response && response.content && response.content.length > 0) {
                 const apiClubs: Club[] = response.content.map((club: any, index: number) => ({
@@ -173,21 +175,22 @@ export default function ClubsListPage() {
                     name: club.name || '',
                     openTime: 'Hours not available',
                     rating: 4.0,
-                    image: getClubFallbackImage(index),
+                    image: club.logo || getClubFallbackImage(index),
                     address: club.location || club.description || '',
                     category: club.category || 'Club'
                 }));
+                console.log('📊 Mapped clubs:', apiClubs.length, apiClubs);
                 setClubs(apiClubs);
                 setTotalPages(response.totalPages || 1);
                 setHasMore(response.hasNext || false);
             } else {
-                console.log('No clubs available from API');
+                console.log('❌ No clubs available from API');
                 setClubs([]);
                 setTotalPages(1);
                 setHasMore(false);
             }
         } catch (error: any) {
-            console.error('Error loading clubs:', error);
+            console.error('💥 Error loading clubs:', error);
             setClubs([]);
             toast({
                 title: 'Failed to load clubs',

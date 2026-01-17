@@ -94,7 +94,10 @@ const HomePage = () => {
     const [isLoadingAllClubs, setIsLoadingAllClubs] = useState(false);
     const [isLoadingEvents, setIsLoadingEvents] = useState(false);
 
-    const { stories, fetchStories, loading: storiesLoading } = useStories();
+    // TODO: Re-enable stories API when ready
+    // const { stories, fetchStories, loading: storiesLoading } = useStories();
+    const stories = [];
+    const storiesLoading = false;
 
     const { toast } = useToast();
 
@@ -169,14 +172,15 @@ const HomePage = () => {
         };
     }, [isLocationDropdownOpen]);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (searchQuery.length >= 2) {
-                getAutocompleteSuggestions(searchQuery);
-            }
-        }, 300);
-        return () => clearTimeout(timer);
-    }, [searchQuery, getAutocompleteSuggestions]);
+    // TODO: Re-enable autocomplete suggestions API when ready
+    // useEffect(() => {
+    //     const timer = setTimeout(() => {
+    //         if (searchQuery.length >= 2) {
+    //             getAutocompleteSuggestions(searchQuery);
+    //         }
+    //     }, 300);
+    //     return () => clearTimeout(timer);
+    // }, [searchQuery, getAutocompleteSuggestions]);
 
     useEffect(() => {
         if (!isNearbyDropdownOpen) {
@@ -213,17 +217,18 @@ const HomePage = () => {
         }
 
         prefetchedCoordsRef.current = { lat, lng };
-        (async () => {
-            try {
-                await searchNearby({
-                    lat,
-                    lng,
-                    radius: 5000,
-                });
-            } catch (error) {
-                console.error('Failed to preload nearby suggestions:', error);
-            }
-        })();
+        // TODO: Re-enable nearby search preload when ready
+        // (async () => {
+        //     try {
+        //         await searchNearby({
+        //             lat,
+        //             lng,
+        //             radius: 5000,
+        //         });
+        //     } catch (error) {
+        //         console.error('Failed to preload nearby suggestions:', error);
+        //     }
+        // })();
     }, [currentLocation, searchNearby]);
 
     const activePresetId = useMemo(() => {
@@ -255,6 +260,27 @@ const HomePage = () => {
         }
     };
 
+    // Helper function to map club data from API response
+    const mapClubData = (club: any, index: number) => ({
+        id: club.id || '',
+        name: club.name ? (club.name.length > 20 ? club.name.substring(0, 20) + '...' : club.name) : '',
+        description: club.description ? (club.description.length > 50 ? club.description.substring(0, 50) + '...' : club.description) : '',
+        location: club.location ? (club.location.length > 30 ? club.location.substring(0, 30) + '...' : club.location) : '',
+        imageUrl: club.logo || venueFallback[index % venueFallback.length]?.image || '/dabo ambience main dabo page/Rectangle 5.jpg',
+        isActive: club.isActive !== undefined ? club.isActive : true,
+        logo: club.logo || '',
+        category: club.category || 'NIGHTCLUB',
+        memberCount: club.memberCount || 0,
+        maxMembers: club.maxMembers || 200,
+        isJoined: club.isJoined || false,
+        isFull: club.isFull || false,
+        ownerName: club.ownerName || '',
+        createdAt: club.createdAt || '',
+        capacityPercentage: club.capacityPercentage || 0,
+        memberStatus: club.memberStatus || '',
+        shortDescription: club.shortDescription || club.description || ''
+    });
+
     useEffect(() => {
         const loadInitialData = async () => {
             const isGuest = isGuestMode();
@@ -263,52 +289,44 @@ const HomePage = () => {
             if (!isGuest) {
                 await loadProfile();
                 // Load stories for authenticated users
-                fetchStories();
+                // fetchStories();
             }
 
-            // Load venues (clubs) - ALWAYS use Public API: /clubs/public/list
+            // Load clubs ONCE - ALWAYS use Public API: /clubs/public/list
             setIsLoadingVenues(true);
+            setIsLoadingAllClubs(true);
             try {
                 // Use PublicClubService for all users to get data from /clubs/public/list
                 const clubData = await PublicClubService.getPublicClubsList({
                     page: 0,
-                    size: 5,
+                    size: 20,
                     sortBy: 'createdAt',
                     sortDirection: 'desc'
                 });
 
+                console.log('Raw API Clubs Response:', clubData);
+
                 // Handle clubs data based on API response
                 if (clubData?.content && clubData.content.length > 0) {
-                    console.log('API Clubs Response:', clubData.content);
-                    // Map API clubs with proper length limits and static images
-                    const mappedClubs = clubData.content.map((club: any, index: number) => ({
-                        id: club.id || '',
-                        name: club.name ? (club.name.length > 20 ? club.name.substring(0, 20) + '...' : club.name) : '',
-                        description: club.description ? (club.description.length > 50 ? club.description.substring(0, 50) + '...' : club.description) : '',
-                        location: club.location ? (club.location.length > 30 ? club.location.substring(0, 30) + '...' : club.location) : '',
-                        imageUrl: club.logo || venueFallback[index % venueFallback.length]?.image || '/dabo ambience main dabo page/Rectangle 5.jpg',
-                        isActive: club.isActive !== undefined ? club.isActive : true,
-                        logo: club.logo || '',
-                        category: club.category || 'NIGHTCLUB',
-                        memberCount: club.memberCount || 0,
-                        maxMembers: club.maxMembers || 200,
-                        isJoined: club.isJoined || false,
-                        isFull: club.isFull || false,
-                        ownerName: club.ownerName || '',
-                        createdAt: club.createdAt || '',
-                        capacityPercentage: club.capacityPercentage || 0,
-                        memberStatus: club.memberStatus || '',
-                        shortDescription: club.shortDescription || club.description || ''
-                    }));
-                    console.log('Mapped Clubs:', mappedClubs);
-                    setVenues(mappedClubs);
+                    console.log('API Clubs Response Content:', clubData.content);
+                    console.log('Total clubs received:', clubData.content.length);
+
+                    // Map all clubs data
+                    const mappedAllClubs = clubData.content.map((club: any, index: number) => mapClubData(club, index));
+                    console.log('Mapped All Clubs:', mappedAllClubs);
+
+                    // Use first 5 for venues section, all for "All Clubs" section
+                    setVenues(mappedAllClubs.slice(0, 5));
+                    setAllClubs(mappedAllClubs);
                 } else {
                     // No clubs available - show empty state
-                    console.log('No clubs data from API, showing empty state');
+                    console.log('No clubs data from API - content:', clubData?.content);
                     setVenues([]);
+                    setAllClubs([]);
                 }
             } catch (error: any) {
                 console.error('Failed to load clubs:', error);
+                console.error('Error details:', error.response?.data || error.message);
                 toast({
                     title: "Failed to load clubs",
                     description: error.message || "Could not fetch clubs. No clubs will be shown.",
@@ -316,52 +334,9 @@ const HomePage = () => {
                 });
                 // Show empty state on error
                 setVenues([]);
-            } finally {
-                setIsLoadingVenues(false);
-            }
-
-            // Load all clubs for "All Clubs" section - ALWAYS use Public API: /clubs/public/list
-            setIsLoadingAllClubs(true);
-            try {
-                // Use PublicClubService for all users
-                const allClubsData = await PublicClubService.getPublicClubsList({
-                    page: 0,
-                    size: 20,
-                    sortBy: 'createdAt',
-                    sortDirection: 'desc'
-                });
-
-                if (allClubsData?.content && allClubsData.content.length > 0) {
-                    console.log('All Clubs API Response:', allClubsData.content);
-                    const mappedAllClubs = allClubsData.content.map((club: any, index: number) => ({
-                        id: club.id || '',
-                        name: club.name ? (club.name.length > 20 ? club.name.substring(0, 20) + '...' : club.name) : '',
-                        description: club.description ? (club.description.length > 50 ? club.description.substring(0, 50) + '...' : club.description) : '',
-                        location: club.location ? (club.location.length > 30 ? club.location.substring(0, 30) + '...' : club.location) : '',
-                        imageUrl: club.logo || venueFallback[index % venueFallback.length]?.image || '/dabo ambience main dabo page/Rectangle 5.jpg',
-                        isActive: club.isActive !== undefined ? club.isActive : true,
-                        logo: club.logo || '',
-                        category: club.category || 'NIGHTCLUB',
-                        memberCount: club.memberCount || 0,
-                        maxMembers: club.maxMembers || 200,
-                        isJoined: club.isJoined || false,
-                        isFull: club.isFull || false,
-                        ownerName: club.ownerName || '',
-                        createdAt: club.createdAt || '',
-                        capacityPercentage: club.capacityPercentage || 0,
-                        memberStatus: club.memberStatus || '',
-                        shortDescription: club.shortDescription || club.description || ''
-                    }));
-                    console.log('Mapped All Clubs:', mappedAllClubs);
-                    setAllClubs(mappedAllClubs);
-                } else {
-                    console.log('No data from All Clubs API');
-                    setAllClubs([]);
-                }
-            } catch (error: any) {
-                console.error('Failed to load all clubs:', error);
                 setAllClubs([]);
             } finally {
+                setIsLoadingVenues(false);
                 setIsLoadingAllClubs(false);
             }
 
@@ -371,26 +346,30 @@ const HomePage = () => {
                 // Use PublicEventService for all users to get data from /event-management/events/list
                 const eventData = await PublicEventService.getPublicEvents({
                     page: 0,
-                    size: 5,
+                    size: 20,
                     sortBy: 'startDateTime',
                     sortOrder: 'asc'
                 });
 
+                console.log('Raw API Events Response:', eventData);
+
                 if (eventData?.content && eventData.content.length > 0) {
-                    console.log('API Events Response:', eventData.content);
-                    // Map API events with proper length limits and static images
+                    console.log('API Events Response Content:', eventData.content);
+                    console.log('Total events received:', eventData.content.length);
+
+                    // Map API events with proper length limits and use fallback images for null imageUrl
                     const mappedEvents = eventData.content.map((event: any, index: number) => ({
-                        id: event.id,
+                        id: event.id || '',
                         title: event.title ? (event.title.length > 20 ? event.title.substring(0, 20) + '...' : event.title) : '',
                         shortDescription: event.shortDescription || event.clubName || '',
                         imageUrl: event.imageUrl || eventFallback[index % eventFallback.length]?.image || '/event list/Rectangle 1.jpg',
                         location: event.location && event.location.length > 25 ?
                             event.location.substring(0, 25) + '...' :
-                            (event.location || event.clubName || ''),
-                        startDateTime: event.startDateTime,
-                        endDateTime: event.endDateTime,
-                        formattedDate: event.formattedDate,
-                        formattedTime: event.formattedTime,
+                            (event.location || event.clubName || 'TBD'),
+                        startDateTime: event.startDateTime || '',
+                        endDateTime: event.endDateTime || '',
+                        formattedDate: event.formattedDate || '',
+                        formattedTime: event.formattedTime || '',
                         timeUntilEvent: event.timeUntilEvent || '',
                         duration: event.duration || '',
                         attendeeCount: event.attendeeCount || 0,
@@ -415,11 +394,12 @@ const HomePage = () => {
                     console.log('Mapped Events:', mappedEvents);
                     setEvents(mappedEvents);
                 } else {
-                    console.log('No events data from API');
+                    console.log('No events data from API - content:', eventData?.content);
                     setEvents([]);
                 }
             } catch (error: any) {
                 console.error('Failed to load events:', error);
+                console.error('Error details:', error.response?.data || error.message);
                 toast({
                     title: "Failed to load events",
                     description: error.message || "Could not fetch events.",
@@ -499,39 +479,41 @@ const HomePage = () => {
                 return;
             }
 
-            try {
-                await searchNearby({
-                    radius: 5000,
-                    lat: currentLocation?.lat,
-                    lng: currentLocation?.lng,
-                });
-                setShowingSearchResults(true);
-                setNearbyDropdownOpen(true);
-            } catch (error: any) {
-                console.error('Nearby search failed:', error);
-                toast({
-                    title: 'Nearby search failed',
-                    description: error.message || 'Could not fetch nearby places.',
-                    variant: 'destructive',
-                });
-            }
+            // TODO: Re-enable nearby search when ready
+            // try {
+            //     await searchNearby({
+            //         radius: 5000,
+            //         lat: currentLocation?.lat,
+            //         lng: currentLocation?.lng,
+            //     });
+            //     setShowingSearchResults(true);
+            //     setNearbyDropdownOpen(true);
+            // } catch (error: any) {
+            //     console.error('Nearby search failed:', error);
+            //     toast({
+            //         title: 'Nearby search failed',
+            //         description: error.message || 'Could not fetch nearby places.',
+            //         variant: 'destructive',
+            //     });
+            // }
             return;
         }
 
+        // TODO: Re-enable universal search when ready
         // If there is a query, use quick search (universalSearch)
-        console.log('Searching for:', trimmedQuery);
-        try {
-            setShowingSearchResults(true);
-            setNearbyDropdownOpen(false); // Close suggestions on enter
-            await universalSearch(trimmedQuery);
-        } catch (error) {
-            console.error('Search failed:', error);
-            toast({
-                title: 'Search failed',
-                description: 'Could not perform search. Please try again.',
-                variant: 'destructive',
-            });
-        }
+        // console.log('Searching for:', trimmedQuery);
+        // try {
+        //     setShowingSearchResults(true);
+        //     setNearbyDropdownOpen(false); // Close suggestions on enter
+        //     await universalSearch(trimmedQuery);
+        // } catch (error) {
+        //     console.error('Search failed:', error);
+        //     toast({
+        //         title: 'Search failed',
+        //         description: 'Could not perform search. Please try again.',
+        //         variant: 'destructive',
+        //     });
+        // }
     };
 
     const handleClearSearch = () => {
@@ -582,28 +564,29 @@ const HomePage = () => {
             return;
         }
 
-        try {
-            const detail = await fetchNearbyDetails({ id: suggestion.id, placeId: suggestion.place_id });
-            if (detail) {
-                persistCustomLocation({
-                    name: suggestion.name,
-                    lat: suggestion.lat,
-                    lng: suggestion.lng,
-                    address: suggestion.address,
-                }, 'list');
-                await completeSelection(`${suggestion.name} set as your active search area.`);
-            }
-        } catch (error: any) {
-            console.error('Nearby detail lookup failed:', error);
-            toast({
-                title: 'Unable to load place details',
-                description: error.message || 'Please pick another suggestion.',
-                variant: 'destructive',
-            });
-            setActiveSuggestionId(null);
-        } finally {
-            setSuggestionLoadingId(null);
-        }
+        // TODO: Re-enable nearby details fetching when ready
+        // try {
+        //     const detail = await fetchNearbyDetails({ id: suggestion.id, placeId: suggestion.place_id });
+        //     if (detail) {
+        //         persistCustomLocation({
+        //             name: suggestion.name,
+        //             lat: suggestion.lat,
+        //             lng: suggestion.lng,
+        //             address: suggestion.address,
+        //         }, 'list');
+        //         await completeSelection(`${suggestion.name} set as your active search area.`);
+        //     }
+        // } catch (error: any) {
+        //     console.error('Nearby detail lookup failed:', error);
+        //     toast({
+        //         title: 'Unable to load place details',
+        //         description: error.message || 'Please pick another suggestion.',
+        //         variant: 'destructive',
+        //     });
+        //     setActiveSuggestionId(null);
+        // } finally {
+        //     setSuggestionLoadingId(null);
+        // }
     };
 
     // Helper function to get fallback images

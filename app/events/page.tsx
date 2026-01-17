@@ -32,6 +32,7 @@ export default function EventsListPage() {
         try {
             // ONLY use Public API - defined in API-DOCUMENTATION.json
             // Endpoint: GET /event-management/events/list
+            console.log('🔍 Fetching events with params:', { page, size: 20, sortBy: 'startDateTime', sortOrder: 'asc' });
             const response = await PublicEventService.getPublicEvents({
                 page,
                 size: 20,
@@ -39,9 +40,11 @@ export default function EventsListPage() {
                 sortOrder: 'asc',
                 status: 'UPCOMING'
             });
+            console.log('✅ Events API Response:', response);
 
             if (response && response.content) {
                 const newEvents = response.content;
+                console.log('📊 Received events:', newEvents.length, newEvents);
                 if (append) {
                     setEvents(prev => [...prev, ...newEvents]);
                 } else {
@@ -52,12 +55,13 @@ export default function EventsListPage() {
                     hasNext: response.hasNext || false
                 });
             } else {
+                console.log('❌ No events in response');
                 if (!append) {
                     setEvents([]);
                 }
             }
         } catch (err) {
-            console.error('Failed to load events', err);
+            console.error('💥 Failed to load events', err);
             if (!append) {
                 toast({
                     title: "Error loading events",
