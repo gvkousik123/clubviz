@@ -279,6 +279,63 @@ export default function ContactUsPage() {
             {/* TAB 1: Support Channels */}
             {activeTab === 'contact' && (
                 <>
+                    {/* Business Inquiry Form - Top */}
+                    <div className="px-6 py-6">
+                        <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-2xl p-6 mb-6">
+                            <h3 className="text-white text-xl font-bold mb-2">Business Inquiry</h3>
+                            <p className="text-[#9D9C9C] text-sm mb-6">Are you a Club Owner? Join ClubViz network and manage your events, bookings and more.</p>
+
+                            <form onSubmit={handleSubmitEnquiry} className="space-y-4">
+                                <div>
+                                    <label className="text-xs text-[#9D9C9C] mb-1 block">Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        className="w-full bg-[#031414] border border-[#0C898B] rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-[#14FFEC]"
+                                        value={formData.name}
+                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-[#9D9C9C] mb-1 block">Contact Number</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        className="w-full bg-[#031414] border border-[#0C898B] rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-[#14FFEC]"
+                                        value={formData.contactNumber}
+                                        onChange={e => setFormData({ ...formData, contactNumber: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-[#9D9C9C] mb-1 block">Instagram Link (Optional)</label>
+                                    <input
+                                        type="text"
+                                        className="w-full bg-[#031414] border border-[#0C898B] rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-[#14FFEC]"
+                                        value={formData.instagramLink}
+                                        onChange={e => setFormData({ ...formData, instagramLink: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-[#9D9C9C] mb-1 block">Message</label>
+                                    <textarea
+                                        required
+                                        className="w-full bg-[#031414] border border-[#0C898B] rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-[#14FFEC] h-24 resize-none"
+                                        value={formData.message}
+                                        onChange={e => setFormData({ ...formData, message: e.target.value })}
+                                    />
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full bg-[#0C898B] hover:bg-[#0e9ea0] text-white font-bold py-3 rounded-xl mt-4 flex justify-center items-center"
+                                >
+                                    {loading ? <Loader2 className="animate-spin" /> : 'Submit Inquiry'}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
                     {/* Description Text */}
                     <div className="px-6 py-6">
                         <div className="text-[#9D9C9C] text-[13px] font-['Manrope'] font-semibold leading-4 tracking-[0.50px]">
@@ -392,15 +449,8 @@ export default function ContactUsPage() {
                         <div className="p-5 bg-gradient-to-br from-[#0D1F1F] to-[#031414] rounded-[20px] border border-[#0C898B]/50 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-24 h-24 bg-[#14FFEC]/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
 
-                            <h4 className="text-white font-bold text-lg mb-2">Are you a Club Owner?</h4>
-                            <p className="text-[#9D9C9C] text-sm mb-4">Join ClubViz network and manage your events, bookings and more.</p>
-
-                            <button
-                                onClick={() => setShowEnquiryForm(true)}
-                                className="w-full py-3 bg-[#14FFEC]/10 border border-[#14FFEC] text-[#14FFEC] rounded-xl font-bold hover:bg-[#14FFEC] hover:text-black transition-all"
-                            >
-                                Register Your Business
-                            </button>
+                            <h4 className="text-white font-bold text-lg mb-2">Need More Info?</h4>
+                            <p className="text-[#9D9C9C] text-sm mb-4">Fill the form above to submit your business inquiry.</p>
                         </div>
                     </div>
                 </>
