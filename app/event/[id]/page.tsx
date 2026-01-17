@@ -9,10 +9,7 @@ import {
     Calendar,
     Clock,
     MapPin,
-    Music,
     Users,
-    ThumbsUp,
-    Ticket,
     ChevronLeft,
     Loader2
 } from 'lucide-react';
@@ -26,57 +23,69 @@ export default function EventDetailsPage() {
     const params = useParams();
     const { toast } = useToast();
 
-    const [event, setEvent] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+    const [eventData, setEventData] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isLiked, setIsLiked] = useState(false);
     const [isActionLoading, setIsActionLoading] = useState(false);
 
     useEffect(() => {
-        const fetchEventDetails = async () => {
-            if (!params.id) return;
-            setLoading(true);
+        const loadEventData = async () => {
             try {
-                const isGuest = isGuestMode();
                 const eventId = params.id as string;
-                console.log('🔍 Fetching event:', eventId, 'Guest mode:', isGuest);
+                if (!eventId) {
+                    setError('No event ID provided');
+                    setIsLoading(false);
+                    return;
+                }
 
-                if (isGuest) {
+                console.log('🔍 Loading event:', eventId, 'Guest mode:', isGuestMode());
+
+                let eventDetails = null;
+
+                if (isGuestMode()) {
                     // Use public event service for guests
-                    const eventData = await PublicEventService.getPublicEventById(eventId);
-                    console.log('✅ Event data received:', eventData);
-                    if (eventData) {
-                        setEvent(eventData);
-                    } else {
-                        setError('Event not found');
-                    }
+                    eventDetails = await PublicEventService.getPublicEventById(eventId);
+                    console.log('✅ Public event data:', eventDetails);
                 } else {
                     // Use regular event service for authenticated users
                     const response = await EventService.getEventDetails(eventId);
                     console.log('✅ Authenticated event response:', response);
-                    if (response.success && response.data) {
-                        setEvent(response.data);
-                    } else {
-                        setError('Event not found');
+
+                    // Handle both wrapped and direct response formats
+                    if (response && typeof response === 'object') {
+                        if (response.data) {
+                            eventDetails = response.data;
+                        } else if (response.id) {
+                            eventDetails = response;
+                        }
                     }
                 }
+
+                if (eventDetails) {
+                    setEventData(eventDetails);
+                    setIsLiked(eventDetails.isRegistered || false);
+                    setError(null);
+                } else {
+                    setError('Failed to load event data');
+                }
             } catch (err: any) {
-                console.error("💥 Error fetching event details:", err);
-                setError(err.message || 'Failed to load event details');
+                console.error('💥 Error loading event:', err);
+                setError(err.message || 'Error loading event details');
             } finally {
-                setLoading(false);
+                setIsLoading(false);
             }
         };
 
-        fetchEventDetails();
+        loadEventData();
     }, [params.id]);
 
     const handleShare = async () => {
         try {
             if (navigator?.share) {
                 await navigator.share({
-                    title: event?.title || 'ClubViz Event',
-                    text: `Check out ${event?.title}`,
+                    title: eventData?.title || 'ClubViz Event',
+                    text: `Check out ${eventData?.title}`,
                     url: window.location.href,
                 });
                 return;
@@ -89,40 +98,38 @@ export default function EventDetailsPage() {
     };
 
     const handleToggleLike = async () => {
-        if (!event || isGuestMode()) {
-            if (isGuestMode()) toast({ title: 'Sign in', description: 'Please sign in to favorite events.' });
+        if (isGuestMode()) {
+            toast({ title: 'Sign in', description: 'Please sign in to favorite events.' });
             return;
         }
 
         try {
-            // Optimistic update
             setIsLiked(!isLiked);
             if (!isLiked) {
-                await EventService.addToFavorites(event.id);
+                await EventService.addToFavorites(eventData.id);
             } else {
-                await EventService.removeFromFavorites(event.id);
+                await EventService.removeFromFavorites(eventData.id);
             }
         } catch (error) {
-            // Revert on failure
             setIsLiked(!isLiked);
         }
     };
 
     const handleRegister = async () => {
-        if (!event || isGuestMode()) {
-            if (isGuestMode()) router.push('/auth/login?redirect=' + window.location.pathname);
+        if (isGuestMode()) {
+            router.push('/auth/login?redirect=' + window.location.pathname);
             return;
         }
 
         setIsActionLoading(true);
         try {
-            if (event.isRegistered || event.rsvpStatus === 'REGISTERED') {
-                await EventService.leaveEvent(event.id);
-                setEvent({ ...event, isRegistered: false, rsvpStatus: 'NOT_REGISTERED' });
+            if (eventData.isRegistered || eventData.rsvpStatus === 'REGISTERED') {
+                await EventService.leaveEvent(eventData.id);
+                setEventData(prev => ({ ...prev, isRegistered: false, rsvpStatus: 'NOT_REGISTERED' }));
                 toast({ title: 'Unregistered', description: 'You have left the event.' });
             } else {
-                await EventService.attendEvent(event.id);
-                setEvent({ ...event, isRegistered: true, rsvpStatus: 'REGISTERED' });
+                await EventService.attendEvent(eventData.id);
+                setEventData(prev => ({ ...prev, isRegistered: true, rsvpStatus: 'REGISTERED' }));
                 toast({ title: 'Success!', description: 'You are registered for this event.' });
             }
         } catch (err: any) {
@@ -132,28 +139,38 @@ export default function EventDetailsPage() {
         }
     };
 
-    if (loading) {
+    const handleBackClick = () => {
+        router.back();
+    };
+
+    // Show loading state
+    if (isLoading) {
         return (
-            <div className="min-h-screen bg-[#021313] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+            <div className="min-h-screen bg-[#021313] text-white flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-[#14FFEC] animate-spin mx-auto mb-4" />
+                    <p>Loading event details...</p>
+                </div>
             </div>
         );
     }
 
-    if (error || !event) {
+    // Show error state
+    if (error || !eventData) {
         return (
-            <div className="min-h-screen bg-[#021313] flex flex-col items-center justify-center text-white">
-                <p className="mb-4">{error || 'Event not found'}</p>
-                <button onClick={() => { console.log('Going back...'); router.back(); }} className="text-[#14FFEC] flex items-center gap-2">
-                    <ChevronLeft size={20} /> Go Back
-                </button>
+            <div className="min-h-screen bg-[#021313] text-white flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-400 mb-4">{error || 'Event not found'}</p>
+                    <button
+                        onClick={handleBackClick}
+                        className="px-6 py-2 bg-[#14FFEC] text-black rounded-full font-bold hover:bg-[#10d4c4] transition-colors"
+                    >
+                        Go Back
+                    </button>
+                </div>
             </div>
         );
     }
-
-    const eventDate = new Date(event.startDateTime);
-    const dateStr = eventDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-    const timeStr = eventDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
     return (
         <div className="min-h-screen bg-[#021313] text-white">
@@ -161,8 +178,8 @@ export default function EventDetailsPage() {
             {/* Hero Section with Event Image */}
             <div className="relative h-[420px] w-full">
                 <img
-                    src={event.imageUrl || event.images?.[0] || "/event list/Rectangle 1.jpg"}
-                    alt={event.title}
+                    src={eventData?.imageUrl || eventData?.image || "/event list/Rectangle 1.jpg"}
+                    alt={eventData?.title || "Event"}
                     className="w-full h-full object-cover brightness-75"
                 />
 
@@ -172,7 +189,7 @@ export default function EventDetailsPage() {
                 {/* Back Button */}
                 <div className="absolute top-4 left-4 flex items-center">
                     <button
-                        onClick={() => router.back()}
+                        onClick={handleBackClick}
                         className="p-2 bg-[#005D5C]/60 backdrop-blur-sm rounded-full hover:bg-[#005D5C]/80 transition-all duration-300"
                     >
                         <ChevronLeft
@@ -185,49 +202,53 @@ export default function EventDetailsPage() {
 
             {/* Event Details Section */}
             <div className="w-full bg-[#021313] rounded-t-[40px] -mt-10 relative z-10">
-                <div className="px-4 pt-8 ">
+                <div className="px-4 pt-8">
                     {/* Event Title */}
                     <div className="flex justify-center items-center mb-7">
                         <h1 className="text-white text-center text-xl font-['Manrope'] leading-8 tracking-[0.24px] uppercase">
-                            {event.title}
+                            {eventData?.title || ''}
                         </h1>
                     </div>
 
                     {/* Action Icons */}
                     <div className="flex justify-center items-center gap-4 mb-6">
-                        {/* 
-                           TODO: ThumbsUp logic if needed. 
-                           For now implementing Share and Heart. 
-                        */}
-
-                        <button onClick={handleShare} className="w-[39px] h-[39px] bg-[#005D5C] rounded-full flex justify-center items-center active:scale-95 transition">
+                        <button
+                            onClick={handleShare}
+                            className="w-[39px] h-[39px] bg-[#005D5C] rounded-full flex justify-center items-center active:scale-95 transition hover:bg-[#006B67]"
+                        >
                             <Share2 size={24} className="text-[#14FFEC]" />
                         </button>
 
-                        <button onClick={handleToggleLike} className="w-[39px] h-[39px] bg-[#005D5C] rounded-full flex justify-center items-center active:scale-95 transition">
-                            <Heart size={24} className={isLiked ? "text-[#14FFEC] fill-[#14FFEC]" : "text-[#14FFEC]"} />
+                        <button
+                            onClick={handleToggleLike}
+                            className="w-[39px] h-[39px] bg-[#005D5C] rounded-full flex justify-center items-center active:scale-95 transition hover:bg-[#006B67]"
+                        >
+                            <Heart
+                                size={24}
+                                className={isLiked ? "text-[#FF3B3B] fill-[#FF3B3B]" : "text-[#14FFEC]"}
+                            />
                         </button>
-                    </div>
-
-                    {/* Location Info */}
-                    <div className="flex items-center gap-3 mb-4 px-2 justify-center">
-                        <MapPin size={24} className="text-[#14FFEC] flex-shrink-0" />
-                        <p className="text-white font-['Manrope'] text-center">{event.location || event.club?.name || 'Location TBD'}</p>
                     </div>
 
                     {/* Date & Time */}
                     <div className="flex items-center justify-center gap-2 px-2 mb-4">
-                        <Calendar size={24} className="text-[#14FFEC]" />
-                        <div className="bg-white/10 px-6 py-2 rounded-full">
-                            <p className="text-white font-['Manrope']">{dateStr} | {timeStr}</p>
+                        <Calendar size={20} className="text-[#14FFEC]" />
+                        <div className="bg-white/10 px-4 py-2 rounded-full">
+                            <p className="text-white font-['Manrope'] text-sm">{eventData?.formattedDate} | {eventData?.formattedTime}</p>
                         </div>
                     </div>
 
+                    {/* Location Info */}
+                    <div className="flex items-center gap-3 mb-4 px-2 justify-center">
+                        <MapPin size={20} className="text-[#14FFEC] flex-shrink-0" />
+                        <p className="text-white font-['Manrope'] text-center text-sm">{eventData?.location || eventData?.club?.name || 'Location TBD'}</p>
+                    </div>
+
                     {/* Registration Status Badge */}
-                    {(event.isRegistered || event.rsvpStatus === 'REGISTERED') && (
+                    {(eventData?.isRegistered || eventData?.rsvpStatus === 'REGISTERED') && (
                         <div className="flex justify-center mb-4">
-                            <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm border border-green-500/30">
-                                You are registered
+                            <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs border border-green-500/30">
+                                ✓ You are registered
                             </span>
                         </div>
                     )}
@@ -239,21 +260,24 @@ export default function EventDetailsPage() {
                 </div>
 
                 {/* Description */}
-                {event.description && (
+                {eventData?.description && (
                     <div className="px-6 mb-6">
                         <h2 className="text-white text-lg font-['Manrope'] mb-2 font-bold">About</h2>
-                        <p className="text-white/80 text-sm leading-relaxed whitespace-pre-line">{event.description}</p>
+                        <p className="text-white/80 text-sm leading-relaxed whitespace-pre-line">{eventData.description}</p>
                     </div>
                 )}
 
-                {/* People Attending (Mock or Real) */}
-                {event.attendeeCount > 0 && (
+                {/* Attendees Info */}
+                {eventData?.attendeeCount !== undefined && (
                     <div className="px-6 mb-6">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs">
-                                <Users size={14} className="text-white" />
+                        <div className="flex items-center gap-3 bg-white/5 rounded-lg p-3">
+                            <Users size={20} className="text-[#14FFEC] flex-shrink-0" />
+                            <div>
+                                <p className="text-white/50 text-xs font-semibold uppercase">Attendees</p>
+                                <p className="text-white text-sm font-semibold">
+                                    {eventData.attendeeCount} / {eventData.maxAttendees || '∞'} attending
+                                </p>
                             </div>
-                            <span className="text-white text-sm font-['Manrope']">{event.attendeeCount}+ attending</span>
                         </div>
                     </div>
                 )}
@@ -264,29 +288,29 @@ export default function EventDetailsPage() {
                 </div>
 
                 {/* Organizer/Club */}
-                {(event.club || event.organizer) && (
+                {(eventData?.club || eventData?.organizer) && (
                     <div className="px-6 mb-6">
-                        <h2 className="text-white text-xl font-['Manrope'] mb-3">Host</h2>
-                        <div className="bg-[#0D1F1F] rounded-lg p-4 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden">
+                        <h2 className="text-white text-lg font-['Manrope'] mb-3 font-bold">Host</h2>
+                        <Link href={`/club/${eventData?.club?.id}`} className="block">
+                            <div className="bg-[#0D1F1F] rounded-lg p-4 flex items-center gap-3 hover:bg-[#0F252D] transition-colors">
+                                <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden flex-shrink-0">
                                     <img
-                                        src={event.club?.logo || event.organizer?.avatar || "/common/avatar-default.jpg"}
+                                        src={eventData?.club?.logo || eventData?.organizer?.avatar || "/common/avatar-default.jpg"}
                                         alt="Host"
                                         className="w-full h-full object-cover"
                                         onError={(e) => (e.currentTarget.src = "/common/avatar-default.jpg")}
                                     />
                                 </div>
-                                <div>
-                                    <h3 className="text-white font-['Manrope'] font-bold">
-                                        {event.club?.name || event.organizer?.displayName || 'Organizer'}
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-white font-['Manrope'] font-bold truncate">
+                                        {eventData?.club?.name || eventData?.organizer?.displayName || 'Organizer'}
                                     </h3>
                                     <p className="text-[#14FFEC] text-xs">
-                                        {event.club ? 'Club' : 'Organizer'}
+                                        {eventData?.club ? 'Visit Club' : 'Organizer'}
                                     </p>
                                 </div>
                             </div>
-                        </div>
+                        </Link>
                     </div>
                 )}
 
@@ -295,15 +319,18 @@ export default function EventDetailsPage() {
                     <button
                         onClick={handleRegister}
                         disabled={isActionLoading}
-                        className={`pointer-events-auto shadow-lg shadow-[#14FFEC]/20 w-full max-w-md h-[54px] rounded-[30px] flex justify-center items-center text-xl font-bold font-['Manrope'] transition-all active:scale-95 ${event.isRegistered
-                            ? 'bg-red-500/80 text-white hover:bg-red-600'
-                            : 'bg-gradient-to-r from-[#005D5C] to-[#14FFEC] text-white hover:brightness-110'
-                            }`}
+                        className={`pointer-events-auto shadow-lg shadow-[#14FFEC]/20 w-full max-w-md h-[54px] rounded-[30px] flex justify-center items-center text-base font-bold font-['Manrope'] transition-all active:scale-95 ${
+                            eventData?.isRegistered
+                                ? 'bg-red-500/80 text-white hover:bg-red-600'
+                                : 'bg-gradient-to-r from-[#005D5C] to-[#14FFEC] text-white hover:brightness-110'
+                        } disabled:opacity-50`}
                     >
                         {isActionLoading ? (
                             <Loader2 className="w-6 h-6 animate-spin" />
+                        ) : eventData?.isRegistered ? (
+                            'Cancel Registration'
                         ) : (
-                            event.isRegistered ? 'Cancel Registration' : 'Register Now'
+                            'Register Now'
                         )}
                     </button>
                 </div>

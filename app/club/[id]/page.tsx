@@ -10,14 +10,15 @@ import {
     Heart,
     MapPin,
     Star,
-    Loader2
+    Loader2,
+    Share2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ClubService, Club, PublicClubByCategory } from '@/lib/services/club.service';
 import { PublicClubService, PublicClubDetails } from '@/lib/services/public.service';
 import { isGuestMode } from '@/lib/api-client-public';
 
-// Helper to render tags with icons
+// Tag Component for reusability
 const TagComponent = ({ icon, label, iconPath }: { icon?: React.ReactNode, label: string, iconPath?: string }) => (
     <div className="px-3 py-2 bg-[rgba(40,60,61,0.30)] rounded-full flex items-center gap-2">
         {iconPath && <img src={iconPath} alt={label} className="w-4 h-4" />}
@@ -26,20 +27,11 @@ const TagComponent = ({ icon, label, iconPath }: { icon?: React.ReactNode, label
     </div>
 );
 
-// Icon components
-const UtensilsIcon = ({ className }: { className?: string }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg>
-);
-
-const MusicIcon = ({ className }: { className?: string }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
-);
-
 export default function ClubDetailPage() {
     const router = useRouter();
     const params = useParams();
     const { toast } = useToast();
-    const [club, setClub] = useState<Club | PublicClubByCategory | PublicClubDetails | null>(null);
+    const [club, setClub] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -56,30 +48,32 @@ export default function ClubDetailPage() {
             const clubId = params.id as string;
             console.log('🔍 Fetching club:', clubId, 'Guest mode:', isGuest);
 
+            let clubData = null;
+
             if (isGuest) {
                 // Use public club service for guests
-                const clubData = await PublicClubService.getPublicClubById(clubId);
-                console.log('✅ Club data received:', clubData);
-                if (clubData) {
-                    setClub(clubData);
-                    setIsLiked(!!clubData.isJoined);
-                    setError(null);
-                } else {
-                    setError('Club not found');
-                }
+                clubData = await PublicClubService.getPublicClubById(clubId);
+                console.log('✅ Public club data:', clubData);
             } else {
                 // Use regular club service for authenticated users
                 const response = await ClubService.getClubById(clubId);
                 console.log('✅ Authenticated club response:', response);
+
                 if (response.success && response.data) {
-                    setClub(response.data);
-                    if ('isJoined' in response.data) {
-                        setIsLiked(!!response.data.isJoined);
-                    }
-                    setError(null);
+                    clubData = response.data;
                 } else {
                     setError('Club not found');
+                    setIsLoading(false);
+                    return;
                 }
+            }
+
+            if (clubData) {
+                setClub(clubData);
+                setIsLiked(!!clubData.isJoined);
+                setError(null);
+            } else {
+                setError('Club not found');
             }
         } catch (err: any) {
             console.error("💥 Error fetching club details:", err);
@@ -98,15 +92,267 @@ export default function ClubDetailPage() {
         router.back();
     };
 
+    const handleShare = async () => {
+        try {
+            if (navigator?.share) {
+                await navigator.share({
+                    title: club?.name || 'Club',
+                    text: `Check out ${club?.name || 'this club'}!`,
+                    url: window.location.href,
+                });
+                return;
+            }
+
+            await navigator.clipboard?.writeText(window.location.href);
+            toast({
+                title: 'Link copied',
+                description: 'Club link copied to your clipboard.',
+            });
+        } catch (error) {
+            console.error('Share failed', error);
+        }
+    };
+
+    const handleToggleLike = async () => {
+        if (isGuestMode()) {
+            toast({ title: 'Sign in', description: 'Please sign in to join clubs.' });
+            return;
+        }
+
+        setIsJoinLoading(true);
+        try {
+            setIsLiked(!isLiked);
+            // TODO: Call join/leave club API when available
+            toast({
+                title: isLiked ? 'Left club' : 'Joined club',
+                description: `You have ${isLiked ? 'left' : 'joined'} the club.`,
+            });
+        } catch (error: any) {
+            setIsLiked(!isLiked);
+            toast({ title: 'Error', description: error.message, variant: 'destructive' });
+        } finally {
+            setIsJoinLoading(false);
+        }
+    };
+
     const nextImage = () => {
         if (!club?.images?.length) return;
-        setCurrentImageIndex((prev) => (prev + 1) % club.images!.length);
+        setCurrentImageIndex((prev) => (prev + 1) % club.images.length);
     };
 
     const prevImage = () => {
         if (!club?.images?.length) return;
-        setCurrentImageIndex((prev) => (prev - 1 + club.images!.length) % club.images!.length);
+        setCurrentImageIndex((prev) => (prev - 1 + club.images.length) % club.images.length);
     };
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-[#021313] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+            </div>
+        );
+    }
+
+    if (error || !club) {
+        return (
+            <div className="min-h-screen bg-[#021313] flex flex-col items-center justify-center p-4">
+                <p className="text-white mb-4">{error || 'Club not found'}</p>
+                <button onClick={handleGoBack} className="text-[#14FFEC] flex items-center gap-2 hover:opacity-80">
+                    <ArrowLeft className="w-4 h-4" /> Go Back
+                </button>
+            </div>
+        );
+    }
+
+    // Get images
+    const heroImages = club.images?.length > 0
+        ? club.images.map((img: any) => img.url || img)
+        : [club.logo || club.logoUrl || '/venue/Screenshot 2024-12-10 195651.png'];
+
+    // Format address
+    const getAddress = () => {
+        if (club.locationText?.fullAddress) return club.locationText.fullAddress;
+        const parts = [
+            club.locationText?.address1,
+            club.locationText?.address2,
+            club.locationText?.city,
+            club.locationText?.state
+        ].filter(Boolean);
+        return parts.join(', ') || club.location || 'Address not available';
+    };
+
+    return (
+        <div className="min-h-screen bg-[#021313] relative w-full max-w-[430px] mx-auto">
+            {/* Hero Image Carousel */}
+            <div className="relative w-full h-[40vh] overflow-hidden">
+                <div className="absolute inset-0 flex">
+                    {heroImages.map((image, index) => (
+                        <img
+                            key={index}
+                            className="min-w-full h-full object-cover transition-transform duration-300"
+                            src={image}
+                            alt={`Hero ${index + 1}`}
+                            style={{
+                                transform: `translateX(${(index - currentImageIndex) * 100}%)`,
+                            }}
+                        />
+                    ))}
+                </div>
+
+                {/* Navigation arrows (only if multiple images) */}
+                {heroImages.length > 1 && (
+                    <div className="absolute left-3.5 top-1/2 transform -translate-y-1/2 flex justify-between items-center w-[calc(100%-28px)]">
+                        <button onClick={prevImage} className="w-[30px] h-[30px] bg-white rounded-full flex items-center justify-center hover:bg-white/80 transition">
+                            <ChevronLeft className="w-4 h-4 text-black" />
+                        </button>
+                        <button onClick={nextImage} className="w-[30px] h-[30px] bg-white rounded-full flex items-center justify-center hover:bg-white/80 transition">
+                            <ChevronRight className="w-4 h-4 text-black" />
+                        </button>
+                    </div>
+                )}
+
+                {/* Back button */}
+                <button
+                    onClick={handleGoBack}
+                    className="absolute left-4 top-12 w-[35px] h-[35px] bg-white/20 rounded-[18px] flex items-center justify-center hover:bg-white/30 transition"
+                >
+                    <ArrowLeft className="h-5 w-5 text-white" />
+                </button>
+
+                {/* Share and Like buttons */}
+                <div className="absolute right-4 top-12 flex gap-2">
+                    <button
+                        onClick={handleShare}
+                        className="w-[35px] h-[35px] bg-white/20 rounded-[18px] flex items-center justify-center hover:bg-white/30 transition"
+                    >
+                        <Share2 className="h-5 w-5 text-white" />
+                    </button>
+                    <button
+                        onClick={handleToggleLike}
+                        disabled={isJoinLoading}
+                        className="w-[35px] h-[35px] bg-white/20 rounded-[18px] flex items-center justify-center hover:bg-white/30 transition disabled:opacity-50"
+                    >
+                        {isJoinLoading ? (
+                            <Loader2 className="h-5 w-5 text-[#14FFEC] animate-spin" />
+                        ) : (
+                            <Heart className={`h-5 w-5 ${isLiked ? 'fill-[#FF3B3B] text-[#FF3B3B]' : 'text-white'}`} />
+                        )}
+                    </button>
+                </div>
+            </div>
+
+            {/* Profile picture - centered */}
+            <div className="absolute left-1/2 transform -translate-x-1/2 z-20" style={{ top: 'calc(40vh - 42.5px)' }}>
+                <div className="w-[85px] h-[85px] rounded-full border-4 border-[#08C2B3] overflow-hidden shadow-xl bg-black">
+                    <img
+                        src={club.logo || club.logoUrl || heroImages[0]}
+                        alt={club.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => (e.currentTarget.src = heroImages[0])}
+                    />
+                </div>
+            </div>
+
+            {/* Main content */}
+            <div className="bg-gradient-to-b from-[#021313] to-[rgba(2,19,19,0)] mt-[-5vh] rounded-t-[40px] relative z-0 px-4 pb-[18px] w-full">
+                <div className="flex flex-col items-center w-full" style={{ paddingTop: 'calc(6vh + 30px)' }}>
+                    {/* Title */}
+                    <h1 className="text-white text-[30px] tracking-[0.36px] text-center font-normal leading-[35px] mb-3 uppercase" style={{ fontFamily: "'Anton', sans-serif" }}>
+                        {club.name}
+                    </h1>
+                    <p className="text-white/70 text-sm text-center mb-4 px-4">{club.description}</p>
+
+                    {/* Rating */}
+                    {club.rating && (
+                        <div className="flex items-center gap-2 mb-4">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-white text-sm font-semibold">{club.rating}</span>
+                        </div>
+                    )}
+
+                    {/* Location Section */}
+                    <div className="w-full mt-5 mb-5">
+                        <h3 className="text-white text-xl font-semibold mb-4">Location</h3>
+                        <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[20px] p-4">
+                            <div className="flex items-start gap-3 mb-4">
+                                <MapPin className="w-5 h-5 text-[#FF3B3B] flex-shrink-0" />
+                                <p className="text-white text-sm">{getAddress()}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Facilities Section */}
+                    {club.facilities && club.facilities.length > 0 && (
+                        <div className="w-full mt-5 mb-5">
+                            <h3 className="text-white text-xl font-semibold mb-4">Facilities</h3>
+                            <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
+                                {club.facilities.map((facility: any, i: number) => (
+                                    <TagComponent key={i} label={facility} icon={<Star className="w-3 h-3" />} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Cuisines Section */}
+                    {club.foodCuisines && club.foodCuisines.length > 0 && (
+                        <div className="w-full mt-5 mb-5">
+                            <h3 className="text-white text-xl font-semibold mb-4">Cuisines</h3>
+                            <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
+                                {club.foodCuisines.map((cuisine: any, i: number) => (
+                                    <TagComponent key={i} label={cuisine} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Music Genres Section */}
+                    {club.musicGenres && club.musicGenres.length > 0 && (
+                        <div className="w-full mt-5 mb-5">
+                            <h3 className="text-white text-xl font-semibold mb-4">Music</h3>
+                            <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
+                                {club.musicGenres.map((genre: any, i: number) => (
+                                    <TagComponent key={i} label={genre} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Contact Section */}
+                    {(club.phone || club.email) && (
+                        <div className="w-full mt-5 mb-5">
+                            <h3 className="text-white text-xl font-semibold mb-4">Contact</h3>
+                            <div className="bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4 space-y-2">
+                                {club.phone && <p className="text-white text-sm">📞 {club.phone}</p>}
+                                {club.email && <p className="text-white text-sm">✉️ {club.email}</p>}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Join Button */}
+                    <button
+                        onClick={handleToggleLike}
+                        disabled={isJoinLoading}
+                        className="w-full max-w-md mt-6 mb-4 py-3 px-6 rounded-[30px] bg-gradient-to-r from-[#005D5C] to-[#14FFEC] text-white font-bold hover:brightness-110 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                        {isJoinLoading ? (
+                            <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                Joining...
+                            </>
+                        ) : isLiked ? (
+                            <>
+                                <Heart className="w-5 h-5 fill-current" />
+                                Joined
+                            </>
+                        ) : (
+                            'Join Club'
+                        )}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
 
     const handleShare = async () => {
         try {
