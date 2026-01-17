@@ -389,6 +389,7 @@ export class EventService {
 
   /**
    * Delete an event (API: DELETE /events/{id})
+   * Only the event organizer can delete their events
    */
   static async deleteEvent(eventId: string): Promise<ApiResponse<{ message: string }>> {
     try {

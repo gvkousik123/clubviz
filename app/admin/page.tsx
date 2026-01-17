@@ -12,6 +12,7 @@ import { useOwnedClubs } from '@/hooks/use-owned-clubs';
 import { useOrganizedEvents } from '@/hooks/use-organized-events';
 import { AccessDenied } from '@/components/common/access-denied';
 import { AuthService } from '@/lib/services/auth.service';
+import { EventService } from '@/lib/services/event.service';
 import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 
@@ -205,7 +206,7 @@ export default function AdminDashboard() {
             setDeleteEventId(null);
             setDeleteEventTitle('');
 
-            // Call API and wait for response
+            // Call API to delete
             const response = await EventService.deleteEvent(eventIdToDelete);
 
             if (response.success) {
@@ -239,9 +240,6 @@ export default function AdminDashboard() {
                 description: errorMessage,
                 variant: "destructive",
             });
-
-            // Reload to get correct state
-            loadOrganizedEvents({ page: 0, size: 20, sortBy: 'startDateTime', sortOrder: 'asc' });
         }
     };
 
