@@ -123,14 +123,35 @@ export default function ClubsListPage() {
     const loadFilterOptions = async () => {
         setLoadingFilters(true);
         try {
+            console.log('📥 Loading filter options...');
             const [categoriesData, locationsData] = await Promise.all([
                 PublicClubService.getClubCategories(),
                 PublicClubService.getClubLocations()
             ]);
-            setCategories(categoriesData || []);
-            setLocations(locationsData || []);
+
+            console.log('📊 Raw categories response:', categoriesData);
+            console.log('📊 Raw locations response:', locationsData);
+
+            // Handle both array and object responses
+            const categoriesArray = Array.isArray(categoriesData) ? categoriesData : (categoriesData?.content || []);
+            const locationsArray = Array.isArray(locationsData) ? locationsData : (locationsData?.content || []);
+
+            console.log('✅ Processed categories:', categoriesArray);
+            console.log('✅ Processed locations:', locationsArray);
+
+            // Filter out empty values and set state
+            const filteredCategories = categoriesArray.filter((cat: any) => cat && (typeof cat === 'string' ? cat.trim() : cat));
+            const filteredLocations = locationsArray.filter((loc: any) => loc && (typeof loc === 'string' ? loc.trim() : loc));
+
+            console.log('✅ Filtered categories count:', filteredCategories.length);
+            console.log('✅ Filtered locations count:', filteredLocations.length);
+
+            setCategories(filteredCategories);
+            setLocations(filteredLocations);
         } catch (error) {
-            console.error('Failed to load filter options:', error);
+            console.error('💥 Failed to load filter options:', error);
+            setCategories([]);
+            setLocations([]);
         } finally {
             setLoadingFilters(false);
         }
@@ -335,7 +356,7 @@ export default function ClubsListPage() {
                                         disabled={loadingFilters}
                                     >
                                         <option value="" className="bg-[#222831]">All Categories</option>
-                                        {categories.map((cat) => (
+                                        {Array.isArray(categories) && categories.map((cat) => (
                                             <option key={cat} value={cat} className="bg-[#222831]">
                                                 {cat}
                                             </option>
@@ -355,7 +376,7 @@ export default function ClubsListPage() {
                                         disabled={loadingFilters}
                                     >
                                         <option value="" className="bg-[#222831]">All Locations</option>
-                                        {locations.map((loc) => (
+                                        {Array.isArray(locations) && locations.map((loc) => (
                                             <option key={loc} value={loc} className="bg-[#222831]">
                                                 {loc}
                                             </option>

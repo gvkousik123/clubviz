@@ -282,8 +282,26 @@ export class PublicClubService {
    * Get all available club locations
    */
   static async getClubLocations(): Promise<string[]> {
-    const response = await publicApi.get('/clubs/public/locations');
-    return response.data;
+    // Get authorization token
+    const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
+    const headers: any = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await publicApi.get('/clubs/public/locations', { headers });
+
+    // Handle response - should be array of strings
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    // Fallback if wrapped differently
+    return response.data?.content || response.data || [];
   }
 
   /**
@@ -298,8 +316,26 @@ export class PublicClubService {
    * Get all available club categories
    */
   static async getClubCategories(): Promise<string[]> {
-    const response = await publicApi.get('/clubs/public/categories');
-    return response.data;
+    // Get authorization token
+    const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
+    const headers: any = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await publicApi.get('/clubs/public/categories', { headers });
+
+    // Handle response - should be array of strings
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    // Fallback if wrapped differently
+    return response.data?.content || response.data || [];
   }
 }
 
@@ -456,7 +492,18 @@ export class PublicEventService {
       queryParams.append('sortOrder', params.sortOrder);
     }
 
-    const response = await publicApi.get(`/event-management/events/my-registrations?${queryParams.toString()}`);
+    // Get authorization token
+    const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
+    const headers: any = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await publicApi.get(`/event-management/events/my-registrations?${queryParams.toString()}`, { headers });
     return response.data;
   }
 

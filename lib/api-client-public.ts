@@ -22,13 +22,37 @@ export const publicApi: AxiosInstance = axios.create({
   },
 });
 
-// Public API response interceptor (no auth handling)
+// Public API response interceptor (handle JWT expiration)
 publicApi.interceptors.response.use(
   (response: AxiosResponse) => {
     return response;
   },
   (error) => {
-    // Handle common HTTP errors for public APIs
+    // Check for JWT token expiration errors
+    if (error.response?.status === 401 ||
+      error.response?.data?.error?.includes('JWT token') ||
+      error.response?.data?.error?.includes('token is expired')) {
+
+      console.error('🔐 JWT Token expired or invalid:', error.response?.data?.error);
+
+      // Clear token from localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(STORAGE_KEYS.accessToken);
+        localStorage.removeItem(STORAGE_KEYS.refreshToken);
+        localStorage.removeItem(STORAGE_KEYS.user);
+
+        // Redirect to home page
+        window.location.href = '/';
+      }
+
+      return Promise.reject({
+        ...error,
+        isTokenExpired: true,
+        message: 'JWT token is expired or invalid. Please login again.'
+      });
+    }
+
+    // Handle other common HTTP errors for public APIs
     if (error.response?.status === 429) {
       console.error('Rate limit exceeded');
     } else if (error.response?.status >= 500) {
@@ -92,20 +116,37 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor for handling common errors
+// Response interceptor for handling common errors and JWT expiration
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     return response;
   },
   (error) => {
-    // Handle common HTTP errors - no automatic redirects
-    if (error.response?.status === 401) {
-      // Unauthorized - clear token but don't redirect
+    // Check for JWT token expiration errors
+    if (error.response?.status === 401 ||
+      error.response?.data?.error?.includes('JWT token') ||
+      error.response?.data?.error?.includes('token is expired')) {
+
+      console.error('🔐 JWT Token expired or invalid:', error.response?.data?.error);
+
+      // Clear all auth tokens
       if (typeof window !== 'undefined') {
         localStorage.removeItem(STORAGE_KEYS.accessToken);
-        console.warn('Token expired - user should re-authenticate');
+        localStorage.removeItem(STORAGE_KEYS.refreshToken);
+        localStorage.removeItem(STORAGE_KEYS.user);
+
+        // Redirect to home page
+        window.location.href = '/';
       }
-    } else if (error.response?.status === 403) {
+
+      return Promise.reject({
+        ...error,
+        isTokenExpired: true,
+        message: 'JWT token is expired or invalid. Please login again.'
+      });
+    }
+
+    if (error.response?.status === 403) {
       // Forbidden
       console.error('Access forbidden');
     } else if (error.response?.status === 429) {

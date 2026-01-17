@@ -35,6 +35,7 @@ import { AutocompleteSuggestion } from '@/lib/services/search.service';
 import { STORAGE_KEYS } from '@/lib/constants/storage';
 import { useStories } from '@/hooks/use-stories';
 import { StoriesSection } from '@/components/story';
+import { ClubCard } from '@/components/clubs/club-card';
 
 // Dummy data
 const heroSlides = [
@@ -1114,13 +1115,13 @@ const HomePage = () => {
 
 
                             {/* All Clubs */}
-                            <section className="px-5">
-                                <div className="flex items-center gap-4 mb-6">
+                            <section>
+                                <div className="flex items-center gap-4 mb-6 px-5">
                                     <h2 className="text-white text-base font-semibold whitespace-nowrap">All Clubs</h2>
                                     <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
                                     <Link href="/clubs" className="text-[#14FFEC] text-base font-medium">View All</Link>
                                 </div>
-                                <div className="space-y-3">
+                                <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
                                     {isLoadingAllClubs ? (
                                         <div className="flex items-center justify-center w-full py-8">
                                             <Loader2 className="w-6 h-6 text-[#14FFEC] animate-spin" />
@@ -1130,38 +1131,25 @@ const HomePage = () => {
                                             const fallbackImage = venueFallback[index % venueFallback.length]?.image || '/venue/Screenshot 2024-12-10 195651.png';
 
                                             return (
-                                                <div key={club.id} className="w-full rounded-[12px] overflow-hidden flex gap-3 bg-[rgba(0,60,59,0.5)] hover:bg-[rgba(0,60,59,0.8)] transition-colors">
-                                                    {/* Image */}
-                                                    <div className="w-[80px] h-[80px] flex-shrink-0 rounded-[12px] overflow-hidden">
-                                                        <img
-                                                            src={fallbackImage}
-                                                            alt={club.name}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </div>
-
-                                                    {/* Content */}
-                                                    <div className="flex-1 p-2 flex flex-col justify-between min-w-0">
-                                                        <div>
-                                                            <h3 className="text-[#14FFEC] text-[12px] font-bold font-['Manrope'] leading-3 truncate">
-                                                                {club.name && club.name.length > 20 ? club.name.substring(0, 20) + '...' : club.name}
-                                                            </h3>
-                                                            <p className="text-white text-[10px] font-semibold font-['Manrope'] mt-1 truncate">
-                                                                {(club.location || 'Open now').length > 25 ? (club.location || 'Open now').substring(0, 25) + '...' : (club.location || 'Open now')}
-                                                            </p>
-                                                        </div>
-                                                        <div className="flex items-center justify-start">
-                                                            <div className="bg-[#008378] px-2 py-0.5 rounded text-white text-[9px] font-bold font-['Manrope']">
-                                                                4.2
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                <ClubCard
+                                                    key={club.id}
+                                                    club={{
+                                                        id: club.id,
+                                                        name: club.name,
+                                                        openTime: 'Hours not available',
+                                                        rating: 4.0,
+                                                        image: club.imageUrl || fallbackImage,
+                                                        address: club.location || club.description,
+                                                        category: club.category || 'Club'
+                                                    }}
+                                                    href={`/club/${club.id}`}
+                                                    fallbackImage={fallbackImage}
+                                                />
                                             );
                                         })
                                     ) : (
-                                        <div className="text-gray-400 text-sm text-center py-6">
-                                            No clubs available
+                                        <div className="flex items-center justify-center w-full py-8">
+                                            <p className="text-gray-400 text-sm">No clubs available</p>
                                         </div>
                                     )}
                                 </div>

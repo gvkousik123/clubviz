@@ -15,7 +15,9 @@ export default function EventsListPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [events, setEvents] = useState<EventListItem[]>([]);
+    const [myRegisteredEvents, setMyRegisteredEvents] = useState<EventListItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMyEvents, setLoadingMyEvents] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [favorites, setFavorites] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -76,8 +78,37 @@ export default function EventsListPage() {
         }
     };
 
+    // Fetch user's registered events
+    const fetchMyRegisteredEvents = async () => {
+        setLoadingMyEvents(true);
+        try {
+            console.log('🔍 Fetching my registered events...');
+            const response = await PublicEventService.getMyRegistrations({
+                page: 0,
+                size: 20,
+                sortBy: 'startDateTime',
+                sortOrder: 'asc'
+            });
+            console.log('✅ My Registered Events API Response:', response);
+
+            if (response && response.content && response.content.length > 0) {
+                console.log('📊 Received registered events:', response.content.length);
+                setMyRegisteredEvents(response.content);
+            } else {
+                console.log('❌ No registered events found');
+                setMyRegisteredEvents([]);
+            }
+        } catch (err) {
+            console.error('💥 Failed to load registered events:', err);
+            setMyRegisteredEvents([]);
+        } finally {
+            setLoadingMyEvents(false);
+        }
+    };
+
     useEffect(() => {
         fetchEvents();
+        fetchMyRegisteredEvents();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -287,6 +318,75 @@ export default function EventsListPage() {
 
                 {/* Main Content */}
                 <div className="w-full space-y-8 pt-[18vh]">
+                    {/* My Registered Events */}
+                    <section className="w-full">
+                        <div className="flex items-center justify-between mb-6 px-5">
+                            <h2 className="text-white text-base font-semibold">My Registered Events</h2>
+                        </div>
+                        {loadingMyEvents ? (
+                            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
+                                <div className="flex items-center justify-center w-full py-8 text-white/50">
+                                    <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading...
+                                </div>
+                            </div>
+                        ) : myRegisteredEvents.length > 0 ? (
+                            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
+                                {myRegisteredEvents.map((event, index) => {
+                                    const eventDate = new Date(event.startDateTime);
+                                    const monthShort = eventDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+                                    const day = eventDate.getDate().toString().padStart(2, '0');
+                                    const fallbackImage = getEventFallbackImage(index);
+
+                                    return (
+                                        <Link
+                                            key={event.id}
+                                            href={`/event/${event.id}`}
+                                            className="w-[222px] h-[305px] flex-shrink-0 relative rounded-[20px] overflow-hidden hover:shadow-lg transition-shadow group"
+                                            style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}
+                                        >
+                                            {/* Image */}
+                                            <div className="relative">
+                                                <img
+                                                    src={event.imageUrl || fallbackImage}
+                                                    alt={event.title}
+                                                    className="w-full h-[180px] object-cover"
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.src = fallbackImage;
+                                                    }}
+                                                />
+                                            </div>
+
+                                            {/* Date Badge */}
+                                            <div className="absolute left-3 top-3 bg-white/20 backdrop-blur-md rounded-lg px-2 py-1 text-white text-xs font-bold">
+                                                <div>{monthShort}</div>
+                                                <div className="text-base font-black">{day}</div>
+                                            </div>
+
+                                            {/* Glassmorphic container for content */}
+                                            <div className="absolute inset-x-3 bottom-3 bg-white/10 backdrop-blur-md rounded-lg p-3 border border-white/20">
+                                                <h3 className="text-white font-bold text-sm line-clamp-2 mb-1">
+                                                    {event.title}
+                                                </h3>
+                                                <p className="text-white/70 text-xs line-clamp-1 mb-2">
+                                                    {event.location}
+                                                </p>
+                                                <p className="text-cyan-300 text-xs font-semibold">
+                                                    {event.formattedTime}
+                                                </p>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="px-5 py-8 bg-white/5 rounded-lg border border-white/10">
+                                <p className="text-white/50 text-sm text-center">
+                                    No events registered yet. Register for events to see them here!
+                                </p>
+                            </div>
+                        )}
+                    </section>
                     {/* This Week Events */}
                     <section className="w-full">
                         <div className="flex items-center justify-between mb-6 px-5">
