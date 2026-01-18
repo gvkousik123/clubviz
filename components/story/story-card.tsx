@@ -26,6 +26,7 @@ export function StoryCard({
     onClick
 }: StoryCardProps) {
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [imageError, setImageError] = useState(false);
 
     const handleClick = () => {
         if (onClick) {
@@ -33,42 +34,69 @@ export function StoryCard({
         }
     };
 
+    const handleImageError = () => {
+        console.error('Story image failed to load:', image);
+        setImageError(true);
+        setImageLoaded(true);
+    };
+
+    // Don't render if no image
+    if (!image) {
+        console.warn('Story card missing image:', id);
+        return null;
+    }
+
     return (
         <Link
             href={`/story/${id}?index=${index}`}
-            className="block relative w-20 h-20 md:w-24 md:h-24"
+            className="block relative w-20 h-20 md:w-20 md:h-20"
             onClick={handleClick}
         >
-            {/* Story Ring - Reduced border thickness */}
-            <div className={`absolute inset-0 rounded-full p-[1.5px] ${isViewed
+            {/* Outer Cyan/Green Border */}
+            <div className={`absolute inset-0 rounded-full p-[3.5px] ${isViewed
                 ? 'bg-gray-300'
-                : 'bg-gradient-to-tr from-primary-500 via-cyan-500 to-purple-500'
+                : 'bg-[#14FFEC]'
                 }`}>
-                <div className="w-full h-full bg-background-primary rounded-full p-[1px]">
-                    <div className="relative w-full h-full rounded-full overflow-hidden">
-                        {/* Loading placeholder */}
-                        {!imageLoaded && (
-                            <div className="absolute inset-0 bg-gradient-to-br from-primary-500/20 to-cyan-500/20 animate-pulse" />
-                        )}
+                {/* White Border */}
+                <div className="w-full h-full bg-white rounded-full p-[0.1px]">
+                    {/* Dark Background Padding */}
+                    <div className="w-full h-full bg-background-primary rounded-full p-[2px]">
+                        {/* Image Container */}
+                        <div className="relative w-full h-full rounded-full overflow-hidden">
+                            {/* Loading placeholder */}
+                            {!imageLoaded && !imageError && (
+                                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/20 to-cyan-500/20 animate-pulse" />
+                            )}
 
-                        {/* Story Image */}
-                        <Image
-                            src={image}
-                            alt={title}
-                            fill
-                            className={`object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'
-                                }`}
-                            onLoad={() => setImageLoaded(true)}
-                            sizes="(max-width: 768px) 80px, 96px"
-                        />
+                            {/* Error placeholder */}
+                            {imageError && (
+                                <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center">
+                                    <span className="text-[10px] text-white/50">Error</span>
+                                </div>
+                            )}
 
-                        {/* Overlay for better text visibility */}
-                        <div className="absolute inset-0 bg-black/10" />
+                            {/* Story Image */}
+                            {!imageError && (
+                                <Image
+                                    src={image}
+                                    alt={title}
+                                    fill
+                                    className={`object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'
+                                        }`}
+                                    onLoad={() => setImageLoaded(true)}
+                                    onError={handleImageError}
+                                    sizes="(max-width: 768px) 64px, 80px"
+                                />
+                            )}
 
-                        {/* Live indicator (optional) */}
-                        {!isViewed && (
-                            <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white shadow-sm" />
-                        )}
+                            {/* Overlay for better text visibility */}
+                            <div className="absolute inset-0 bg-black/10" />
+
+                            {/* Live indicator (optional) */}
+                            {!isViewed && (
+                                <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white shadow-sm" />
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

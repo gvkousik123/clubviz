@@ -20,18 +20,43 @@ export function useStories() {
         setLoading(true);
         setError(null);
         try {
-            const response = await StoryService.getStories(page, size);
+            const response: any = await StoryService.getStories(page, size);
             console.log('📖 fetchStories - Full response:', response);
-            console.log('📖 fetchStories - response.success:', response.success);
-            console.log('📖 fetchStories - response.data:', response.data);
-            
-            if (response.success && response.data) {
-                // response.data is already the StoryListResponse object because handleApiResponse returns it
-                const apiResponse = response.data as any;
-                console.log('📖 fetchStories - apiResponse structure:', apiResponse);
-                
-                // The API returns: { content: [...], currentPage: 0, totalPages: 1, totalElements: 2, hasNext: false }
-                const content = apiResponse.content || [];
+
+            let content: Story[] = [];
+            let paginationData = {
+                page: 0,
+                hasNext: false,
+                totalPages: 0
+            };
+            let isSuccess = false;
+
+            // Handle unwrapped response (direct paginated object)
+            // The API returns: { content: [...], currentPage: 0, totalPages: 1, totalElements: 2, hasNext: false }
+            if (response && Array.isArray(response.content)) {
+                console.log('📖 fetchStories - Detected unwrapped response format');
+                content = response.content;
+                paginationData = {
+                    page: response.number || response.currentPage || 0,
+                    hasNext: !response.last && (response.currentPage < response.totalPages - 1),
+                    totalPages: response.totalPages || 0
+                };
+                isSuccess = true;
+            }
+            // Handle wrapped response (standard ApiResponse)
+            else if (response.success && response.data) {
+                console.log('📖 fetchStories - Detected standard wrapped response format');
+                const apiResponse = response.data;
+                content = apiResponse.content || [];
+                paginationData = {
+                    page: apiResponse.currentPage || page,
+                    hasNext: apiResponse.hasNext || false,
+                    totalPages: apiResponse.totalPages || 0
+                };
+                isSuccess = true;
+            }
+
+            if (isSuccess) {
                 console.log('📖 fetchStories - Extracted content array:', content);
                 console.log('📖 fetchStories - Content length:', content.length);
 
@@ -41,17 +66,11 @@ export function useStories() {
                     setStories(content);
                 }
 
-                // Update pagination info
-                setPagination({
-                    page: apiResponse.currentPage || page,
-                    hasNext: apiResponse.hasNext || false,
-                    totalPages: apiResponse.totalPages || 0
-                });
-                
+                setPagination(paginationData);
                 console.log('📖 fetchStories - Stories set to state. Total:', content.length);
             } else {
                 setError(response.message || 'Failed to fetch stories');
-                console.warn('📖 fetchStories - Response not successful:', response);
+                console.warn('📖 fetchStories - Response not recognizable:', response);
             }
         } catch (err: any) {
             setError(err.message || 'An error occurred while fetching stories');
@@ -64,9 +83,15 @@ export function useStories() {
     const fetchMyStories = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await StoryService.getMyStories();
-            if (response.success && response.data) {
+            const response: any = await StoryService.getMyStories();
+
+            if (Array.isArray(response)) {
+                setMyStories(response);
+            } else if (response.success && response.data) {
                 setMyStories(response.data);
+            } else if (response && Array.isArray(response.content)) {
+                // In case my-stories is also paginated
+                setMyStories(response.content);
             }
         } catch (err) {
             console.error(err);
