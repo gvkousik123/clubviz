@@ -126,11 +126,11 @@ function ClubPreviewContent() {
 
         try {
             setIsSaving(true);
-            const updatePayload = {
+            const updatePayload: any = {
                 name: editData.name,
                 description: editData.description,
-                phone: editData.phone,
-                email: editData.email,
+                contactPhone: editData.phone,
+                contactEmail: editData.email,
                 category: editData.category,
                 maxMembers: editData.maxMembers ? parseInt(editData.maxMembers) : undefined,
                 music: editData.music.split(',').map((m: string) => m.trim()).filter((m: string) => m),
@@ -144,6 +144,7 @@ function ClubPreviewContent() {
                     state: editData.state,
                     pincode: editData.pincode
                 },
+                locationMap: clubData?.locationMap || { lat: 0, lng: 0 },
                 entryPricing: {
                     coupleEntryPrice: editData.coupleEntryPrice ? parseFloat(editData.coupleEntryPrice) : 0,
                     groupEntryPrice: editData.groupEntryPrice ? parseFloat(editData.groupEntryPrice) : 0,
@@ -599,7 +600,7 @@ function ClubPreviewContent() {
                     {/* Hero Image Carousel */}
                     <div className="relative w-full h-[40vh] overflow-hidden">
                         <div className="absolute inset-0 flex">
-                            {heroImages.map((image, index) => (
+                            {heroImages.map((image: string, index: number) => (
                                 <img
                                     key={index}
                                     className="min-w-full h-full object-cover transition-transform duration-300"

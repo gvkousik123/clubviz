@@ -408,7 +408,7 @@ export default function AdminDashboard() {
 
                             {/* Club Management - Edit and Delete */}
                             {ownedClubs && ownedClubs.length > 0 && (
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-3 mt-4">
                                     {/* Edit Club */}
                                     <div
                                         onClick={() => handleEditClub(ownedClubs[0].id)}

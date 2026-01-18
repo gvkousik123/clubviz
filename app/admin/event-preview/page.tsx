@@ -538,149 +538,168 @@ function EventPreviewContent() {
                     <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
                 </div>
 
-                {/* Artist Section - Always show with edit capability */}
-                <div className="px-6 mb-6">
-                    <h2 className="text-white text-xl font-['Manrope'] mb-3">Artist Details</h2>
-                    <div className="bg-[#0D1F1F] rounded-lg p-4 space-y-4">
-                        {/* Artist Name */}
-                        <div className="space-y-2">
-                            <label className="text-[#14FFEC] text-sm font-semibold">Artist Name</label>
+                {/* Artist Section - Show only in edit mode OR if data exists */}\n                {(isEditing || editData?.artistName || eventData?.artistName || eventData?.eventArtistName || editData?.aboutArtist || eventData?.aboutArtist || editData?.instagramHandle || eventData?.instagramHandle || editData?.spotifyHandle || eventData?.spotifyHandle) && (
+                    <div className="px-6 mb-6">
+                        <h2 className="text-white text-xl font-['Manrope'] mb-3">Artist Details</h2>
+                        <div className="bg-[#0D1F1F] rounded-lg p-4 space-y-4">
+                            {/* Artist Name */}
+                            {(isEditing || editData?.artistName || eventData?.artistName || eventData?.eventArtistName) && (
+                                <div className="space-y-2">
+                                    <label className="text-[#14FFEC] text-sm font-semibold">Artist Name</label>
+                                    {isEditing ? (
+                                        <input
+                                            type="text"
+                                            value={editData.artistName}
+                                            onChange={(e) => handleInputChange('artistName', e.target.value)}
+                                            className="w-full bg-[#021313] text-white rounded-lg px-4 py-2 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
+                                            placeholder="Artist name"
+                                        />
+                                    ) : (
+                                        <p className="text-white font-['Manrope'] px-4 py-2">
+                                            {editData.artistName || eventData?.artistName || eventData?.eventArtistName || 'Not specified'}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* About Artist */}
+                            {(isEditing || editData?.aboutArtist || eventData?.aboutArtist || eventData?.aboutEventArtist) && (
+                                <div className="space-y-2">
+                                    <label className="text-[#14FFEC] text-sm font-semibold">About Artist</label>
+                                    {isEditing ? (
+                                        <textarea
+                                            value={editData.aboutArtist}
+                                            onChange={(e) => handleInputChange('aboutArtist', e.target.value)}
+                                            className="w-full bg-[#021313] text-white rounded-lg px-4 py-2 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none min-h-[80px]"
+                                            placeholder="About the artist..."
+                                        />
+                                    ) : (
+                                        <p className="text-white/80 text-sm font-['Manrope'] px-4 py-2">
+                                            {editData.aboutArtist || eventData?.aboutArtist || eventData?.aboutEventArtist || 'Not specified'}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Social Handles */}
+                            {(isEditing || editData?.instagramHandle || eventData?.instagramHandle || editData?.spotifyHandle || eventData?.spotifyHandle) && (
+                                <div className="grid grid-cols-2 gap-3">
+                                    {/* Instagram */}
+                                    {(isEditing || editData?.instagramHandle || eventData?.instagramHandle) && (
+                                        <div className="space-y-2">
+                                            <label className="text-[#14FFEC] text-xs font-semibold flex items-center gap-1">
+                                                <Instagram size={14} /> Instagram
+                                            </label>
+                                            {isEditing ? (
+                                                <input
+                                                    type="text"
+                                                    value={editData.instagramHandle}
+                                                    onChange={(e) => handleInputChange('instagramHandle', e.target.value)}
+                                                    className="w-full bg-[#021313] text-white rounded-lg px-3 py-1.5 text-sm border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
+                                                    placeholder="@username"
+                                                />
+                                            ) : (
+                                                <p className="text-white text-sm px-3 py-1.5">
+                                                    {editData.instagramHandle || eventData?.instagramHandle || 'Not specified'}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Spotify */}
+                                    {(isEditing || editData?.spotifyHandle || eventData?.spotifyHandle) && (
+                                        <div className="space-y-2">
+                                            <label className="text-[#14FFEC] text-xs font-semibold flex items-center gap-1">
+                                                <Music2 size={14} /> Spotify
+                                            </label>
+                                            {isEditing ? (
+                                                <input
+                                                    type="text"
+                                                    value={editData.spotifyHandle}
+                                                    onChange={(e) => handleInputChange('spotifyHandle', e.target.value)}
+                                                    className="w-full bg-[#021313] text-white rounded-lg px-3 py-1.5 text-sm border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
+                                                    placeholder="Spotify handle"
+                                                />
+                                            ) : (
+                                                <p className="text-white text-sm px-3 py-1.5">
+                                                    {editData.spotifyHandle || eventData?.spotifyHandle || 'Not specified'}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Separator Line */}
+                <div className="flex justify-center my-4">
+                    <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
+                </div>
+
+                {/* Music Genre - Show only in edit mode OR if data exists */}
+                {(isEditing || editData?.musicGenre || eventData?.musicGenre) && (
+                    <div className="px-6 mb-6">
+                        <h2 className="text-white text-xl font-['Manrope'] mb-3">Music Genre</h2>
+                        <div className="bg-[#0D1F1F] rounded-lg p-4">
                             {isEditing ? (
                                 <input
                                     type="text"
-                                    value={editData.artistName}
-                                    onChange={(e) => handleInputChange('artistName', e.target.value)}
+                                    value={editData.musicGenre}
+                                    onChange={(e) => handleInputChange('musicGenre', e.target.value)}
                                     className="w-full bg-[#021313] text-white rounded-lg px-4 py-2 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
-                                    placeholder="Artist name"
-                                />
-                            ) : (
-                                <p className="text-white font-['Manrope'] px-4 py-2">
-                                    {editData.artistName || eventData?.artistName || eventData?.eventArtistName || 'Not specified'}
-                                </p>
-                            )}
-                        </div>
-
-                        {/* About Artist */}
-                        <div className="space-y-2">
-                            <label className="text-[#14FFEC] text-sm font-semibold">About Artist</label>
-                            {isEditing ? (
-                                <textarea
-                                    value={editData.aboutArtist}
-                                    onChange={(e) => handleInputChange('aboutArtist', e.target.value)}
-                                    className="w-full bg-[#021313] text-white rounded-lg px-4 py-2 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none min-h-[80px]"
-                                    placeholder="About the artist..."
-                                />
-                            ) : (
-                                <p className="text-white/80 text-sm font-['Manrope'] px-4 py-2">
-                                    {editData.aboutArtist || eventData?.aboutArtist || eventData?.aboutEventArtist || 'Not specified'}
-                                </p>
-                            )}
-                        </div>
-
-                        {/* Social Handles */}
-                        <div className="grid grid-cols-2 gap-3">
-                            {/* Instagram */}
-                            <div className="space-y-2">
-                                <label className="text-[#14FFEC] text-xs font-semibold flex items-center gap-1">
-                                    <Instagram size={14} /> Instagram
-                                </label>
-                                {isEditing ? (
-                                    <input
-                                        type="text"
-                                        value={editData.instagramHandle}
-                                        onChange={(e) => handleInputChange('instagramHandle', e.target.value)}
-                                        className="w-full bg-[#021313] text-white rounded-lg px-3 py-1.5 text-sm border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
-                                        placeholder="@username"
-                                    />
-                                ) : (
-                                    <p className="text-white text-sm px-3 py-1.5">
-                                        {editData.instagramHandle || eventData?.instagramHandle || 'Not specified'}
-                                    </p>
-                                )}
-                            </div>
-
-                            {/* Spotify */}
-                            <div className="space-y-2">
-                                <label className="text-[#14FFEC] text-xs font-semibold flex items-center gap-1">
-                                    <Music2 size={14} /> Spotify
-                                </label>
-                                {isEditing ? (
-                                    <input
-                                        type="text"
-                                        value={editData.spotifyHandle}
-                                        onChange={(e) => handleInputChange('spotifyHandle', e.target.value)}
-                                        className="w-full bg-[#021313] text-white rounded-lg px-3 py-1.5 text-sm border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
-                                        placeholder="Spotify handle"
-                                    />
-                                ) : (
-                                    <p className="text-white text-sm px-3 py-1.5">
-                                        {editData.spotifyHandle || eventData?.spotifyHandle || 'Not specified'}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Separator Line */}
-                <div className="flex justify-center my-4">
-                    <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
-                </div>
-
-                {/* Music Genre - Always show */}
-                <div className="px-6 mb-6">
-                    <h2 className="text-white text-xl font-['Manrope'] mb-3">Music Genre</h2>
-                    <div className="bg-[#0D1F1F] rounded-lg p-4">
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                value={editData.musicGenre}
-                                onChange={(e) => handleInputChange('musicGenre', e.target.value)}
-                                className="w-full bg-[#021313] text-white rounded-lg px-4 py-2 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
-                                placeholder="e.g., Techno, Bollywood, EDM"
-                            />
-                        ) : (
-                            <p className="text-white font-['Manrope']">
-                                {editData.musicGenre || eventData?.musicGenre || 'Not specified'}
-                            </p>
-                        )}
-                    </div>
-                </div>
-
-                {/* Separator Line */}
-                <div className="flex justify-center my-4">
-                    <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
-                </div>
-
-                {/* End Date/Time - Always show */}
-                <div className="px-6 mb-6">
-                    <h2 className="text-white text-xl font-['Manrope'] mb-3">End Date & Time</h2>
-                    <div className="bg-[#0D1F1F] rounded-lg p-4">
-                        <div className="flex items-center gap-2">
-                            <Calendar size={20} className="text-[#14FFEC]" />
-                            {isEditing ? (
-                                <input
-                                    type="datetime-local"
-                                    value={editData.endDateTime}
-                                    onChange={(e) => handleInputChange('endDateTime', e.target.value)}
-                                    className="flex-1 bg-transparent text-white font-['Manrope'] outline-none"
+                                    placeholder="e.g., Techno, Bollywood, EDM"
                                 />
                             ) : (
                                 <p className="text-white font-['Manrope']">
-                                    {editData.endDateTime || eventData?.endDateTime || 'Not specified'}
+                                    {editData.musicGenre || eventData?.musicGenre || 'Not specified'}
                                 </p>
                             )}
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* Separator Line */}
-                <div className="flex justify-center my-4">
-                    <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
-                </div>
+                {(isEditing || editData?.musicGenre || eventData?.musicGenre || editData?.endDateTime || eventData?.endDateTime) && (
+                    <div className="flex justify-center my-4">
+                        <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
+                    </div>
+                )}
 
-                {/* Event Creatives Section - Always show */}
-                <div className="px-6 mb-6">
+                {/* End Date/Time - Show only in edit mode OR if data exists */}
+                {(isEditing || editData?.endDateTime || eventData?.endDateTime) && (
+                    <div className="px-6 mb-6">
+                        <h2 className="text-white text-xl font-['Manrope'] mb-3">End Date & Time</h2>
+                        <div className="bg-[#0D1F1F] rounded-lg p-4">
+                            <div className="flex items-center gap-2">
+                                <Calendar size={20} className="text-[#14FFEC]" />
+                                {isEditing ? (
+                                    <input
+                                        type="datetime-local"
+                                        value={editData.endDateTime}
+                                        onChange={(e) => handleInputChange('endDateTime', e.target.value)}
+                                        className="flex-1 bg-transparent text-white font-['Manrope'] outline-none"
+                                    />
+                                ) : (
+                                    <p className="text-white font-['Manrope']">
+                                        {editData.endDateTime || eventData?.endDateTime || 'Not specified'}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Separator Line */}
+                {(isEditing || editData?.endDateTime || eventData?.endDateTime || editData?.eventImage || eventData?.eventImage || editData?.eventReel || eventData?.eventReel || editData?.organizerLogo || eventData?.organizerLogo) && (
+                    <div className="flex justify-center my-4">
+                        <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
+                    </div>
+                )}
+
+                {/* Event Creatives Section - Show only in edit mode OR if data exists */}
+                {(isEditing || editData?.eventImage || eventData?.eventImage || editData?.eventReel || eventData?.eventReel || editData?.organizerLogo || eventData?.organizerLogo) && (
                     <h2 className="text-white text-xl font-['Manrope'] mb-3">Event Creatives</h2>
                     <div className="bg-[#0D1F1F] rounded-lg p-4 space-y-4">
                         {/* Event Poster */}
@@ -780,222 +799,222 @@ function EventPreviewContent() {
                     </div>
                 </div>
 
-                {/* Separator Line */}
-                <div className="flex justify-center my-4">
-                    <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
-                </div>
+            {/* Separator Line */}
+            <div className="flex justify-center my-4">
+                <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
+            </div>
 
-                {/* Ticket Types Section - Always show */}
-                <div className="px-6 mb-6">
-                    <h2 className="text-white text-xl font-['Manrope'] mb-3">Ticket Information</h2>
-                    <div className="bg-[#0D1F1F] rounded-lg p-4 space-y-4">
-                        {/* Has Limited Tickets */}
-                        <div className="flex items-center justify-between">
-                            <label className="text-white font-['Manrope']">Has Limited Tickets</label>
-                            {isEditing ? (
-                                <input
-                                    type="checkbox"
-                                    checked={editData.hasLimitedTickets}
-                                    onChange={(e) => handleInputChange('hasLimitedTickets', e.target.checked)}
-                                    className="w-5 h-5 text-[#14FFEC] bg-[#021313] border-[#14FFEC]/30 rounded focus:ring-[#14FFEC] focus:ring-2"
-                                />
-                            ) : (
-                                <span className="text-[#14FFEC]">{editData.hasLimitedTickets || eventData?.hasLimitedTickets ? 'Yes' : 'No'}</span>
-                            )}
-                        </div>
-
-                        {/* Total Tickets */}
-                        <div className="space-y-2">
-                            <label className="text-[#14FFEC] text-sm font-semibold">Total Tickets Available</label>
-                            {isEditing ? (
-                                <input
-                                    type="number"
-                                    value={editData.totalTickets}
-                                    onChange={(e) => handleInputChange('totalTickets', e.target.value)}
-                                    className="w-full bg-[#021313] text-white rounded-lg px-4 py-2 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
-                                    placeholder="Total tickets"
-                                />
-                            ) : (
-                                <p className="text-white font-['Manrope'] px-4 py-2">
-                                    {editData.totalTickets || eventData?.totalTickets || 'Not specified'}
-                                </p>
-                            )}
-                        </div>
-
-                        {/* Ticket Types List */}
-                        <div className="space-y-2">
-                            <label className="text-[#14FFEC] text-sm font-semibold">Ticket Types</label>
-                            {(editData.ticketTypes && editData.ticketTypes.length > 0) || (eventData?.ticketTypes && eventData.ticketTypes.length > 0) ? (
-                                <div className="space-y-2">
-                                    {(editData.ticketTypes || eventData?.ticketTypes || []).map((ticket: any, index: number) => (
-                                        <div key={index} className="bg-[#021313] rounded-lg p-3 flex justify-between items-center">
-                                            <div>
-                                                <p className="text-white font-semibold">{ticket.name}</p>
-                                                <p className="text-white/60 text-sm">{ticket.currency} {ticket.price} • Qty: {ticket.quantity}</p>
-                                            </div>
-                                            {isEditing && (
-                                                <button className="text-red-400 hover:text-red-500">
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    ))}\n                                    {isEditing && (
-                                        <button className="w-full bg-[#14FFEC]/20 text-[#14FFEC] py-2 rounded-lg text-sm font-semibold hover:bg-[#14FFEC]/30 transition-all flex items-center justify-center gap-2">
-                                            <Plus size={16} /> Add Ticket Type
-                                        </button>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="text-center py-4">
-                                    <p className="text-white/50 mb-2">No ticket types configured</p>
-                                    {isEditing && (
-                                        <button className="bg-[#14FFEC]/20 text-[#14FFEC] px-6 py-2 rounded-lg text-sm font-semibold hover:bg-[#14FFEC]/30 transition-all flex items-center gap-2 mx-auto">
-                                            <Plus size={16} /> Add Ticket Type
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Separator Line */}
-                <div className="flex justify-center my-4">
-                    <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
-                </div>
-
-                {/* Description */}
-                <div className="px-6 mb-8">
-                    <h2 className="text-white text-xl font-['Manrope'] mb-3">About this Event</h2>
-                    <div className="bg-[#0D1F1F] rounded-lg p-4 mb-2">
+            {/* Ticket Types Section - Always show */}
+            <div className="px-6 mb-6">
+                <h2 className="text-white text-xl font-['Manrope'] mb-3">Ticket Information</h2>
+                <div className="bg-[#0D1F1F] rounded-lg p-4 space-y-4">
+                    {/* Has Limited Tickets */}
+                    <div className="flex items-center justify-between">
+                        <label className="text-white font-['Manrope']">Has Limited Tickets</label>
                         {isEditing ? (
-                            <textarea
-                                value={editData.description}
-                                onChange={(e) => handleInputChange('description', e.target.value)}
-                                className="w-full bg-transparent text-white/80 text-sm leading-relaxed font-['Manrope'] outline-none border border-[#14FFEC]/30 rounded-lg p-2 focus:border-[#14FFEC] min-h-[120px]"
-                                placeholder="Event description..."
+                            <input
+                                type="checkbox"
+                                checked={editData.hasLimitedTickets}
+                                onChange={(e) => handleInputChange('hasLimitedTickets', e.target.checked)}
+                                className="w-5 h-5 text-[#14FFEC] bg-[#021313] border-[#14FFEC]/30 rounded focus:ring-[#14FFEC] focus:ring-2"
                             />
                         ) : (
-                            <p className="text-white/80 text-sm leading-relaxed font-['Manrope']">
-                                {eventData?.description || editData.description || ''}
+                            <span className="text-[#14FFEC]">{editData.hasLimitedTickets || eventData?.hasLimitedTickets ? 'Yes' : 'No'}</span>
+                        )}
+                    </div>
+
+                    {/* Total Tickets */}
+                    <div className="space-y-2">
+                        <label className="text-[#14FFEC] text-sm font-semibold">Total Tickets Available</label>
+                        {isEditing ? (
+                            <input
+                                type="number"
+                                value={editData.totalTickets}
+                                onChange={(e) => handleInputChange('totalTickets', e.target.value)}
+                                className="w-full bg-[#021313] text-white rounded-lg px-4 py-2 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
+                                placeholder="Total tickets"
+                            />
+                        ) : (
+                            <p className="text-white font-['Manrope'] px-4 py-2">
+                                {editData.totalTickets || eventData?.totalTickets || 'Not specified'}
                             </p>
                         )}
                     </div>
-                    {!isEditing && (eventData?.description || editData.description) && (
-                        <button className="text-[#14FFEC] flex items-center justify-center w-full">
-                            <ChevronDown size={20} />
-                        </button>
-                    )}
-                </div>
 
-                {/* Separator Line */}
-                <div className="flex justify-center my-4">
-                    <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
-                </div>
-
-                {/* Event Organizers - Show organizer and/or club */}
-                {(eventData?.organizer || eventData?.club) && (
-                    <div className="px-6 mb-8">
-                        <h2 className="text-white text-xl font-['Manrope'] mb-3">Event Organised & Presented by</h2>
-                        <div className="w-full p-4 bg-[#0D1F1F] rounded-[20px]">
-                            <div className="flex items-center justify-start gap-8 flex-wrap">
-                                {/* Show Organizer */}
-                                {eventData?.organizer && (
-                                    <div className="flex items-center gap-2">
-                                        {eventData.organizer.avatar && (
-                                            <img
-                                                className="w-[51px] h-[51px] rounded-full object-cover"
-                                                src={eventData.organizer.avatar}
-                                                alt={eventData.organizer.fullName || eventData.organizer.displayName}
-                                            />
-                                        )}
-                                        <div className="text-center text-white text-[16px] font-['Manrope'] font-medium leading-5">
-                                            {eventData.organizer.fullName || eventData.organizer.displayName}
+                    {/* Ticket Types List */}
+                    <div className="space-y-2">
+                        <label className="text-[#14FFEC] text-sm font-semibold">Ticket Types</label>
+                        {(editData.ticketTypes && editData.ticketTypes.length > 0) || (eventData?.ticketTypes && eventData.ticketTypes.length > 0) ? (
+                            <div className="space-y-2">
+                                {(editData.ticketTypes || eventData?.ticketTypes || []).map((ticket: any, index: number) => (
+                                    <div key={index} className="bg-[#021313] rounded-lg p-3 flex justify-between items-center">
+                                        <div>
+                                            <p className="text-white font-semibold">{ticket.name}</p>
+                                            <p className="text-white/60 text-sm">{ticket.currency} {ticket.price} • Qty: {ticket.quantity}</p>
                                         </div>
-                                    </div>
-                                )}
-
-                                {/* Show Club */}
-                                {eventData?.club && (
-                                    <div className="flex items-center gap-2">
-                                        {eventData.club.logo && (
-                                            <img
-                                                className="w-[51px] h-[51px] rounded-full object-cover"
-                                                src={eventData.club.logo}
-                                                alt={eventData.club.name}
-                                            />
+                                        {isEditing && (
+                                            <button className="text-red-400 hover:text-red-500">
+                                                <Trash2 size={16} />
+                                            </button>
                                         )}
-                                        <div className="text-center text-white text-[16px] font-['Manrope'] font-medium leading-5">
-                                            {eventData.club.name}
-                                        </div>
                                     </div>
+                                ))}\n                                    {isEditing && (
+                                    <button className="w-full bg-[#14FFEC]/20 text-[#14FFEC] py-2 rounded-lg text-sm font-semibold hover:bg-[#14FFEC]/30 transition-all flex items-center justify-center gap-2">
+                                        <Plus size={16} /> Add Ticket Type
+                                    </button>
                                 )}
                             </div>
-                        </div>
+                        ) : (
+                            <div className="text-center py-4">
+                                <p className="text-white/50 mb-2">No ticket types configured</p>
+                                {isEditing && (
+                                    <button className="bg-[#14FFEC]/20 text-[#14FFEC] px-6 py-2 rounded-lg text-sm font-semibold hover:bg-[#14FFEC]/30 transition-all flex items-center gap-2 mx-auto">
+                                        <Plus size={16} /> Add Ticket Type
+                                    </button>
+                                )}
+                            </div>
+                        )}
                     </div>
+                </div>
+            </div>
+
+            {/* Separator Line */}
+            <div className="flex justify-center my-4">
+                <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
+            </div>
+
+            {/* Description */}
+            <div className="px-6 mb-8">
+                <h2 className="text-white text-xl font-['Manrope'] mb-3">About this Event</h2>
+                <div className="bg-[#0D1F1F] rounded-lg p-4 mb-2">
+                    {isEditing ? (
+                        <textarea
+                            value={editData.description}
+                            onChange={(e) => handleInputChange('description', e.target.value)}
+                            className="w-full bg-transparent text-white/80 text-sm leading-relaxed font-['Manrope'] outline-none border border-[#14FFEC]/30 rounded-lg p-2 focus:border-[#14FFEC] min-h-[120px]"
+                            placeholder="Event description..."
+                        />
+                    ) : (
+                        <p className="text-white/80 text-sm leading-relaxed font-['Manrope']">
+                            {eventData?.description || editData.description || ''}
+                        </p>
+                    )}
+                </div>
+                {!isEditing && (eventData?.description || editData.description) && (
+                    <button className="text-[#14FFEC] flex items-center justify-center w-full">
+                        <ChevronDown size={20} />
+                    </button>
                 )}
             </div>
 
-            {/* Delete Confirmation Dialog */}
-            <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <DialogOverlay />
-                <DialogContent className="p-0 border-none bg-transparent max-w-[420px]" showCloseButton={false}>
-                    <div className="w-full p-[20px_21px_20px_22px] bg-[#0D1F1F] overflow-hidden rounded-[17px] flex flex-col items-center gap-[26px] relative">
-                        {/* Close button */}
-                        <div className="absolute right-3 top-3">
-                            <button
-                                onClick={() => setShowDeleteDialog(false)}
-                                className="w-8 h-8 flex items-center justify-center text-white bg-transparent rounded-full hover:bg-white/10 transition-colors"
-                            >
-                                ✕
-                            </button>
-                        </div>
+            {/* Separator Line */}
+            <div className="flex justify-center my-4">
+                <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
+            </div>
 
-                        {/* Warning Icon */}
-                        <div className="w-[80px] h-[80px] relative overflow-hidden flex items-center justify-center">
-                            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
-                                <Trash2 size={32} className="text-red-400" />
-                            </div>
-                        </div>
-
-                        {/* Title and Message */}
-                        <div className="flex flex-col items-center gap-[12px]">
-                            <div className="text-[#F9F9F9] text-[20px] font-semibold font-['Manrope']">
-                                Delete Event
-                            </div>
-                            <div className="text-[#A3A3A3] text-[14px] font-['Manrope'] text-center leading-relaxed">
-                                Are you sure you want to delete "{eventData?.title || 'this event'}"? This action cannot be undone.
-                            </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex items-center gap-[14px]">
-                            <button
-                                onClick={handleDeleteEvent}
-                                disabled={isDeleting}
-                                className="w-[154px] h-[38px] bg-red-600 rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-red-700 transition-all duration-300 disabled:opacity-50"
-                            >
-                                <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px] flex items-center gap-2">
-                                    {isDeleting && (
-                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            {/* Event Organizers - Show organizer and/or club */}
+            {(eventData?.organizer || eventData?.club) && (
+                <div className="px-6 mb-8">
+                    <h2 className="text-white text-xl font-['Manrope'] mb-3">Event Organised & Presented by</h2>
+                    <div className="w-full p-4 bg-[#0D1F1F] rounded-[20px]">
+                        <div className="flex items-center justify-start gap-8 flex-wrap">
+                            {/* Show Organizer */}
+                            {eventData?.organizer && (
+                                <div className="flex items-center gap-2">
+                                    {eventData.organizer.avatar && (
+                                        <img
+                                            className="w-[51px] h-[51px] rounded-full object-cover"
+                                            src={eventData.organizer.avatar}
+                                            alt={eventData.organizer.fullName || eventData.organizer.displayName}
+                                        />
                                     )}
-                                    {isDeleting ? 'Deleting...' : 'Yes, Delete'}
+                                    <div className="text-center text-white text-[16px] font-['Manrope'] font-medium leading-5">
+                                        {eventData.organizer.fullName || eventData.organizer.displayName}
+                                    </div>
                                 </div>
-                            </button>
+                            )}
 
-                            <button
-                                onClick={() => setShowDeleteDialog(false)}
-                                className="w-[154px] h-[38px] border border-[#007877] rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-[#012e2e] transition-all duration-300"
-                            >
-                                <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px]">
-                                    Cancel
+                            {/* Show Club */}
+                            {eventData?.club && (
+                                <div className="flex items-center gap-2">
+                                    {eventData.club.logo && (
+                                        <img
+                                            className="w-[51px] h-[51px] rounded-full object-cover"
+                                            src={eventData.club.logo}
+                                            alt={eventData.club.name}
+                                        />
+                                    )}
+                                    <div className="text-center text-white text-[16px] font-['Manrope'] font-medium leading-5">
+                                        {eventData.club.name}
+                                    </div>
                                 </div>
-                            </button>
+                            )}
                         </div>
                     </div>
-                </DialogContent>
-            </Dialog>
+                </div>
+            )}
         </div>
+
+            {/* Delete Confirmation Dialog */ }
+    <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogOverlay />
+        <DialogContent className="p-0 border-none bg-transparent max-w-[420px]" showCloseButton={false}>
+            <div className="w-full p-[20px_21px_20px_22px] bg-[#0D1F1F] overflow-hidden rounded-[17px] flex flex-col items-center gap-[26px] relative">
+                {/* Close button */}
+                <div className="absolute right-3 top-3">
+                    <button
+                        onClick={() => setShowDeleteDialog(false)}
+                        className="w-8 h-8 flex items-center justify-center text-white bg-transparent rounded-full hover:bg-white/10 transition-colors"
+                    >
+                        ✕
+                    </button>
+                </div>
+
+                {/* Warning Icon */}
+                <div className="w-[80px] h-[80px] relative overflow-hidden flex items-center justify-center">
+                    <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
+                        <Trash2 size={32} className="text-red-400" />
+                    </div>
+                </div>
+
+                {/* Title and Message */}
+                <div className="flex flex-col items-center gap-[12px]">
+                    <div className="text-[#F9F9F9] text-[20px] font-semibold font-['Manrope']">
+                        Delete Event
+                    </div>
+                    <div className="text-[#A3A3A3] text-[14px] font-['Manrope'] text-center leading-relaxed">
+                        Are you sure you want to delete "{eventData?.title || 'this event'}"? This action cannot be undone.
+                    </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-[14px]">
+                    <button
+                        onClick={handleDeleteEvent}
+                        disabled={isDeleting}
+                        className="w-[154px] h-[38px] bg-red-600 rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-red-700 transition-all duration-300 disabled:opacity-50"
+                    >
+                        <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px] flex items-center gap-2">
+                            {isDeleting && (
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            )}
+                            {isDeleting ? 'Deleting...' : 'Yes, Delete'}
+                        </div>
+                    </button>
+
+                    <button
+                        onClick={() => setShowDeleteDialog(false)}
+                        className="w-[154px] h-[38px] border border-[#007877] rounded-[30px] flex justify-center items-center cursor-pointer hover:bg-[#012e2e] transition-all duration-300"
+                    >
+                        <div className="text-center text-white text-[16px] font-['Manrope'] font-medium tracking-[0.05px]">
+                            Cancel
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </DialogContent>
+    </Dialog>
+        </div >
     );
 }
 
