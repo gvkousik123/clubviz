@@ -406,33 +406,53 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
 
-                            {/* Club Management - Edit and Delete */}
+                            {/* Club Management - Edit, Delete and Manage Offers */}
                             {ownedClubs && ownedClubs.length > 0 && (
-                                <div className="grid grid-cols-2 gap-3 mt-4">
-                                    {/* Edit Club */}
-                                    <div
-                                        onClick={() => handleEditClub(ownedClubs[0].id)}
-                                        className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-3 flex items-center gap-2 cursor-pointer hover:bg-[#14FFEC]/10 transition-colors"
-                                    >
-                                        <div className="bg-[#14FFEC] w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0">
-                                            <Edit className="w-4 h-4 text-black" />
+                                <>
+                                    <div className="grid grid-cols-2 gap-3 mt-4">
+                                        {/* Edit Club */}
+                                        <div
+                                            onClick={() => handleEditClub(ownedClubs[0].id)}
+                                            className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-3 flex items-center gap-2 cursor-pointer hover:bg-[#14FFEC]/10 transition-colors"
+                                        >
+                                            <div className="bg-[#14FFEC] w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0">
+                                                <Edit className="w-4 h-4 text-black" />
+                                            </div>
+                                            <p className="text-white font-medium text-sm">Edit Club</p>
                                         </div>
-                                        <p className="text-white font-medium text-sm">Edit Club</p>
+
+                                        {/* Delete Club */}
+                                        <div
+                                            onClick={() => handleDeleteClub(ownedClubs[0].id)}
+                                            className="bg-[#0D1F1F] border border-red-500/40 rounded-[15px] p-3 flex items-center gap-2 cursor-pointer hover:bg-red-500/10 transition-colors"
+                                        >
+                                            <div className="bg-red-500 w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0">
+                                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </div>
+                                            <p className="text-red-400 font-medium text-sm">Delete Club</p>
+                                        </div>
                                     </div>
 
-                                    {/* Delete Club */}
+                                    {/* Manage Offers - Full Width */}
                                     <div
-                                        onClick={() => handleDeleteClub(ownedClubs[0].id)}
-                                        className="bg-[#0D1F1F] border border-red-500/40 rounded-[15px] p-3 flex items-center gap-2 cursor-pointer hover:bg-red-500/10 transition-colors"
+                                        onClick={() => handleNavigation('/admin/manage-offers')}
+                                        className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4 flex items-center justify-between cursor-pointer hover:bg-[#14FFEC]/10 transition-colors mt-3"
                                     >
-                                        <div className="bg-red-500 w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0">
-                                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-[#14FFEC] w-10 h-10 rounded-md flex items-center justify-center">
+                                                <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p className="text-white font-medium">Manage Special Offers</p>
+                                                <p className="text-gray-400 text-xs">Add and manage club offers & promotions</p>
+                                            </div>
                                         </div>
-                                        <p className="text-red-400 font-medium text-sm">Delete Club</p>
                                     </div>
-                                </div>
+                                </>
                             )}
 
                             {/* <div className="grid grid-cols-3 gap-3 mb-3">

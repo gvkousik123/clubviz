@@ -43,8 +43,8 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Helper function to handle JWT token expiration
-const handleJwtExpiration = () => {
+// Helper function to handle JWT token expiration or unauthorized/forbidden access
+const handleForcedLogout = () => {
   if (typeof window !== 'undefined') {
     // Clear all auth-related localStorage
     localStorage.removeItem(STORAGE_KEYS.accessToken);
@@ -52,19 +52,8 @@ const handleJwtExpiration = () => {
     localStorage.removeItem(STORAGE_KEYS.userDetails);
     localStorage.removeItem('userRoles'); // Clear user roles
 
-    // Show toast notification
-    const toastDiv = document.createElement('div');
-    toastDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-[9999] flex items-center gap-2';
-    toastDiv.innerHTML = '⚠️ Token expired. Please login again.';
-    document.body.appendChild(toastDiv);
-
-    // Auto-redirect to login after 2 seconds
-    setTimeout(() => {
-      if (document.body.contains(toastDiv)) {
-        document.body.removeChild(toastDiv);
-      }
-      window.location.href = '/auth/login';
-    }, 2000);
+    // Silently redirect to login - NO TOAST
+    window.location.href = '/auth/login';
   }
 };
 
@@ -86,6 +75,13 @@ apiClient.interceptors.response.use(
       message: error.message,
     });
 
+    // Handle 401 (Unauthorized) and 403 (Forbidden) - force logout silently
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      console.warn(`Authentication failed (${error.response.status}): Forcing logout...`);
+      handleForcedLogout();
+      return Promise.reject(error);
+    }
+
     // Check for JWT token expiration in response
     const errorMessage = error.response?.data?.error || error.response?.data?.message || '';
     if (
@@ -94,22 +90,12 @@ apiClient.interceptors.response.use(
       errorMessage.toLowerCase().includes('token is expired') ||
       errorMessage.toLowerCase().includes('invalid token')
     ) {
-      handleJwtExpiration();
+      handleForcedLogout();
       return Promise.reject(error);
     }
 
-    // Handle common HTTP errors - no automatic redirects
-    if (error.response?.status === 401) {
-      // Unauthorized - check if it's token expiration
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem(STORAGE_KEYS.accessToken);
-        console.warn('Token expired - user should re-authenticate');
-        handleJwtExpiration();
-      }
-    } else if (error.response?.status === 403) {
-      // Forbidden
-      console.error('Access forbidden');
-    } else if (error.response?.status >= 500) {
+    // Handle other HTTP errors
+    if (error.response?.status >= 500) {
       // Server errors
       console.error('Server error occurred');
     }
