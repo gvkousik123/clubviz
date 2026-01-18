@@ -98,11 +98,13 @@ export default function UploadStoryPage() {
                 toast({
                     title: 'Success',
                     description: 'Story uploaded successfully!',
+                    variant: 'default',
                 });
-                // Navigate back to admin page after short delay
-                setTimeout(() => {
-                    router.replace('/admin');
-                }, 1500);
+                // Clear form
+                handleRemoveFile();
+                setCaption('');
+                // Navigate back to admin page
+                router.push('/admin');
             }
         } catch (error: any) {
             console.error('Error uploading story:', error);
