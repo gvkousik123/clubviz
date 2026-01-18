@@ -14,7 +14,6 @@ import {
     Share2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { ClubService, Club, PublicClubByCategory } from '@/lib/services/club.service';
 import { PublicClubService, PublicClubDetails } from '@/lib/services/public.service';
 import { isGuestMode } from '@/lib/api-client-public';
 
@@ -44,29 +43,12 @@ export default function ClubDetailPage() {
 
         setIsLoading(true);
         try {
-            const isGuest = isGuestMode();
             const clubId = params.id as string;
-            console.log('🔍 Fetching club:', clubId, 'Guest mode:', isGuest);
+            console.log('🔍 Fetching club from /clubs/public/{id}:', clubId);
 
-            let clubData = null;
-
-            if (isGuest) {
-                // Use public club service for guests
-                clubData = await PublicClubService.getPublicClubById(clubId);
-                console.log('✅ Public club data:', clubData);
-            } else {
-                // Use regular club service for authenticated users
-                const response = await ClubService.getClubById(clubId);
-                console.log('✅ Authenticated club response:', response);
-
-                if (response.success && response.data) {
-                    clubData = response.data;
-                } else {
-                    setError('Club not found');
-                    setIsLoading(false);
-                    return;
-                }
-            }
+            // Always use public endpoint for club details (works for both guest and authenticated users)
+            let clubData = await PublicClubService.getPublicClubById(clubId);
+            console.log('✅ Club data:', clubData);
 
             if (clubData) {
                 setClub(clubData);
@@ -306,11 +288,11 @@ export default function ClubDetailPage() {
                     )}
 
                     {/* Music Genres Section */}
-                    {club.musicGenres && club.musicGenres.length > 0 && (
+                    {club.music && club.music.length > 0 && (
                         <div className="w-full mt-5 mb-5">
                             <h3 className="text-white text-xl font-semibold mb-4">Music</h3>
                             <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
-                                {club.musicGenres.map((genre: any, i: number) => (
+                                {club.music.map((genre: any, i: number) => (
                                     <TagComponent key={i} label={genre} />
                                 ))}
                             </div>

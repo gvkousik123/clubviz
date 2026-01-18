@@ -83,7 +83,7 @@ export function EventListCard({
     };
 
     return (
-        <Link href="/event/timeless-tuesday" className={cn("group block flex-shrink-0 cursor-pointer", className)}>
+        <Link href={`/event/${event.id}`} className={cn("group block flex-shrink-0 cursor-pointer", className)}>
             <div className="w-[222px] h-[305px] relative rounded-[20px] overflow-hidden" style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}>
                 {/* Image */}
                 <div className="relative">
