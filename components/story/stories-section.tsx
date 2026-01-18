@@ -17,9 +17,10 @@ interface Story {
 interface StoriesSectionProps {
     stories: Story[];
     className?: string;
+    onStoryClick?: (index: number) => void;
 }
 
-export function StoriesSection({ stories, className = '' }: StoriesSectionProps) {
+export function StoriesSection({ stories, className = '', onStoryClick }: StoriesSectionProps) {
     const [viewedStories, setViewedStories] = useState<Set<string>>(new Set());
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -82,7 +83,10 @@ export function StoriesSection({ stories, className = '' }: StoriesSectionProps)
                                 clubName={story.clubName}
                                 isViewed={viewedStories.has(story.id) || story.isViewed}
                                 index={index}
-                                onClick={() => handleStoryClick(story.id)}
+                                onClick={() => {
+                                    handleStoryClick(story.id);
+                                    onStoryClick?.(index);
+                                }}
                             />
                         </div>
                     ))}

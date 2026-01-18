@@ -13,6 +13,7 @@ import { useOrganizedEvents } from '@/hooks/use-organized-events';
 import { AccessDenied } from '@/components/common/access-denied';
 import { AuthService } from '@/lib/services/auth.service';
 import { EventService } from '@/lib/services/event.service';
+import { StoryService } from '@/lib/services/story.service';
 import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 
@@ -25,6 +26,8 @@ export default function AdminDashboard() {
     const router = useRouter();
     const { toast } = useToast();
     const [showCreateModal, setShowCreateModal] = useState<'club' | 'event' | null>(null);
+    const [storyStats, setStoryStats] = useState<any>(null);
+    const [isLoadingStats, setIsLoadingStats] = useState(false);
 
     // Delete dialog states - Events
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -62,8 +65,19 @@ export default function AdminDashboard() {
 
                 // Load organized events (events created by this user)
                 await loadOrganizedEvents({ page: 0, size: 20, sortBy: 'startDateTime', sortOrder: 'asc' });
+
+                // Load story stats
+                setIsLoadingStats(true);
+                const stats = await StoryService.getStoryStats();
+                if (isMounted) {
+                    setStoryStats(stats);
+                }
+                setIsLoadingStats(false);
             } catch (error) {
                 console.error('Error loading admin data:', error);
+                if (isMounted) {
+                    setIsLoadingStats(false);
+                }
             }
         };
 
@@ -297,6 +311,43 @@ export default function AdminDashboard() {
                     {/* Content wrapper with padding */}
                     <div className="px-6 py-6">
 
+                        {/* Stats Section */}
+                        <div className="mb-6">
+                            <h3 className="text-lg font-semibold mb-3">Story Stats</h3>
+                            <div className="grid grid-cols-2 gap-3">
+                                {/* Total Stories */}
+                                <div className="bg-[#0D1F1F] rounded-[15px] p-4">
+                                    <p className="text-[#14FFEC] text-sm mb-1">Total Stories</p>
+                                    <p className="text-white text-xl font-bold">
+                                        {isLoadingStats ? '...' : storyStats?.totalStories || '0'}
+                                    </p>
+                                </div>
+
+                                {/* Total Views */}
+                                <div className="bg-[#0D1F1F] rounded-[15px] p-4">
+                                    <p className="text-[#14FFEC] text-sm mb-1">Total Views</p>
+                                    <p className="text-white text-xl font-bold">
+                                        {isLoadingStats ? '...' : storyStats?.totalViews || '0'}
+                                    </p>
+                                </div>
+
+                                {/* Image Count */}
+                                <div className="bg-[#0D1F1F] rounded-[15px] p-4">
+                                    <p className="text-[#14FFEC] text-sm mb-1">Image Count</p>
+                                    <p className="text-white text-xl font-bold">
+                                        {isLoadingStats ? '...' : storyStats?.imageCount || '0'}
+                                    </p>
+                                </div>
+
+                                {/* Video Count */}
+                                <div className="bg-[#0D1F1F] rounded-[15px] p-4">
+                                    <p className="text-[#14FFEC] text-sm mb-1">Video Count</p>
+                                    <p className="text-white text-xl font-bold">
+                                        {isLoadingStats ? '...' : storyStats?.videoCount || '0'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                         {/* Quick Actions Section */}
                         <div className="mb-6">
                             <h3 className="text-lg font-semibold mb-3">Quick Actions</h3>
@@ -336,41 +387,6 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-3 mb-3">
-                                {/* Update Dynamic Pricing */}
-                                <div
-                                    onClick={() => handleNavigation('/admin/update-live-details')}
-                                    className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-3 flex flex-col items-center justify-between cursor-pointer"
-                                >
-                                    <p className="text-center text-white text-xs mb-2">Update Dynamic Pricing</p>
-                                    <div className="bg-[#14FFEC] w-8 h-8 rounded-md flex items-center justify-center">
-                                        <DollarSign className="w-5 h-5 text-black" />
-                                    </div>
-                                </div>
-
-                                {/* Check Event bookings */}
-                                <div
-                                    onClick={() => handleNavigation('/admin/event-analytics')}
-                                    className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-3 flex flex-col items-center justify-between cursor-pointer"
-                                >
-                                    <p className="text-center text-white text-xs mb-2">Event Analytics</p>
-                                    <div className="bg-[#14FFEC] w-8 h-8 rounded-md flex items-center justify-center">
-                                        <BarChart className="w-5 h-5 text-black" />
-                                    </div>
-                                </div>
-
-                                {/* Club Settings */}
-                                <div
-                                    onClick={() => handleNavigation('/admin/settings')}
-                                    className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-3 flex flex-col items-center justify-between cursor-pointer"
-                                >
-                                    <p className="text-center text-white text-xs mb-2">Club Settings</p>
-                                    <div className="bg-[#14FFEC] w-8 h-8 rounded-md flex items-center justify-center">
-                                        <Edit className="w-5 h-5 text-black" />
-                                    </div>
-                                </div>
-                            </div>
-
                             {/* My Stories Button - Full Width */}
                             <div
                                 onClick={() => handleNavigation('/admin/my-stories')}
@@ -389,6 +405,40 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* <div className="grid grid-cols-3 gap-3 mb-3">
+                                <div
+                                    onClick={() => handleNavigation('/admin/update-live-details')}
+                                    className="bg-[#000101] border border-[#14FFEC]/40 rounded-[15px] p-3 flex flex-col items-center justify-between cursor-pointer"
+                                >
+                                    <p className="text-center text-white text-xs mb-2">Update Dynamic Pricing</p>
+                                    <div className="bg-[#14FFEC] w-8 h-8 rounded-md flex items-center justify-center">
+                                        <DollarSign className="w-5 h-5 text-black" />
+                                    </div>
+                                </div>
+
+                                <div
+                                    onClick={() => handleNavigation('/admin/event-analytics')}
+                                    className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-3 flex flex-col items-center justify-between cursor-pointer"
+                                >
+                                    <p className="text-center text-white text-xs mb-2">Event Analytics</p>
+                                    <div className="bg-[#14FFEC] w-8 h-8 rounded-md flex items-center justify-center">
+                                        <BarChart className="w-5 h-5 text-black" />
+                                    </div>
+                                </div>
+
+                                <div
+                                    onClick={() => handleNavigation('/admin/settings')}
+                                    className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-3 flex flex-col items-center justify-between cursor-pointer"
+                                >
+                                    <p className="text-center text-white text-xs mb-2">Club Settings</p>
+                                    <div className="bg-[#14FFEC] w-8 h-8 rounded-md flex items-center justify-center">
+                                        <Edit className="w-5 h-5 text-black" />
+                                    </div>
+                                </div>
+                            </div> */}
+
+
                         </div>
 
                         {/* My Organised Events Section */}
@@ -493,35 +543,7 @@ export default function AdminDashboard() {
                             </div>
                         </div>
 
-                        {/* Stats Section */}
-                        <div className="mb-6">
-                            <h3 className="text-lg font-semibold mb-3">Stats</h3>
-                            <div className="grid grid-cols-2 gap-3">
-                                {/* Total Revenue */}
-                                <div className="bg-[#0D1F1F] rounded-[15px] p-4">
-                                    <p className="text-[#14FFEC] text-sm mb-1">Total Revenue</p>
-                                    <p className="text-white text-xl font-bold">{stats.totalRevenue}</p>
-                                </div>
 
-                                {/* Total Ticket Sold */}
-                                <div className="bg-[#0D1F1F] rounded-[15px] p-4">
-                                    <p className="text-[#14FFEC] text-sm mb-1">Total Ticket Sold</p>
-                                    <p className="text-white text-xl font-bold">{stats.totalTicketSold}</p>
-                                </div>
-
-                                {/* No. of People Attending */}
-                                <div className="bg-[#0D1F1F] rounded-[15px] p-4">
-                                    <p className="text-[#14FFEC] text-sm mb-1">No. of People Attending</p>
-                                    <p className="text-white text-xl font-bold">{stats.peopleAttending}</p>
-                                </div>
-
-                                {/* Active Events */}
-                                <div className="bg-[#0D1F1F] rounded-[15px] p-4">
-                                    <p className="text-[#14FFEC] text-sm mb-1">Active Events</p>
-                                    <p className="text-white text-xl font-bold">{stats.activeEvents}</p>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>

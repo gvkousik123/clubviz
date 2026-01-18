@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft } from 'lucide-react';
 import Image from 'next/image';
+import { StoryService } from '@/lib/services/story.service';
 
 interface InternalStory {
     id: string;
@@ -38,11 +39,28 @@ export function StoryViewer({
     const [currentInternalIndex, setCurrentInternalIndex] = useState(0);
     const [progress, setProgress] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
+    const [viewedStoryIds, setViewedStoryIds] = useState<Set<string>>(new Set());
 
     const currentStory = stories[currentStoryIndex];
     const internalStories = currentStory?.internalStories || [{ id: currentStory?.id || '', image: currentStory?.image || '', duration: currentStory?.duration }];
     const currentInternalStory = internalStories[currentInternalIndex];
     const storyDuration = (currentInternalStory?.duration || 5) * 1000; // Convert to milliseconds
+
+    // Call view API when story changes
+    useEffect(() => {
+        if (currentStory && !viewedStoryIds.has(currentStory.id)) {
+            console.log('📖 Marking story as viewed:', currentStory.id);
+            // Mark story as viewed (increment view count)
+            StoryService.viewStory(currentStory.id)
+                .then(() => {
+                    setViewedStoryIds(prev => new Set(prev).add(currentStory.id));
+                    console.log('✅ Story view recorded:', currentStory.id);
+                })
+                .catch((error) => {
+                    console.error('❌ Failed to record story view:', error);
+                });
+        }
+    }, [currentStory?.id, currentStory, viewedStoryIds]);
 
     // Auto-progress through stories
     useEffect(() => {
@@ -155,6 +173,15 @@ export function StoryViewer({
     return (
         <div className="fixed inset-0 bg-black z-50">
             <div className="w-full h-full relative overflow-hidden rounded-[20px]" style={{ backgroundImage: `url(${currentInternalStory.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+
+                {/* Close Button */}
+                <button
+                    onClick={onClose}
+                    className="absolute right-6 top-10 z-20 w-10 h-10 flex items-center justify-center bg-black/30 hover:bg-black/50 rounded-full transition-colors"
+                    aria-label="Close story"
+                >
+                    <X className="w-6 h-6 text-white" />
+                </button>
 
                 {/* User Profile Image from story folder */}
                 <img

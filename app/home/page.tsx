@@ -35,6 +35,7 @@ import { AutocompleteSuggestion } from '@/lib/services/search.service';
 import { STORAGE_KEYS } from '@/lib/constants/storage';
 import { useStories } from '@/hooks/use-stories';
 import { StoriesSection } from '@/components/story';
+import { StoryViewer } from '@/components/story/story-viewer';
 import { ClubCard } from '@/components/clubs/club-card';
 
 // Dummy data
@@ -97,6 +98,8 @@ const HomePage = () => {
 
     // Stories API
     const { stories, fetchStories, loading: storiesLoading } = useStories();
+    const [isStoryViewerOpen, setIsStoryViewerOpen] = useState(false);
+    const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
 
     const { toast } = useToast();
 
@@ -1088,6 +1091,10 @@ const HomePage = () => {
                                     ) : (
                                         <StoriesSection
                                             className="px-1"
+                                            onStoryClick={(index) => {
+                                                setSelectedStoryIndex(index);
+                                                setIsStoryViewerOpen(true);
+                                            }}
                                             stories={stories.map((s: any) => {
                                                 const id = s.storyId || s.id;
                                                 const mediaUrl = s.mediaUrl || s.mediaBase64 || '';
@@ -1309,6 +1316,28 @@ const HomePage = () => {
                 currentUser={currentUser}
                 isProfileLoading={isProfileLoading}
             />
+
+            {/* Story Viewer Modal */}
+            {isStoryViewerOpen && stories.length > 0 && (
+                <StoryViewer
+                    stories={stories.map((s: any) => {
+                        const id = s.storyId || s.id;
+                        const mediaUrl = s.mediaUrl || s.mediaBase64 || '';
+                        const clubName = s.club?.name || s.userFullName || 'User Story';
+                        const title = s.title || s.caption || clubName || 'Story';
+
+                        return {
+                            id: id,
+                            image: mediaUrl,
+                            title: title,
+                            timestamp: s.createdAt ? new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+                            duration: s.duration || 5
+                        };
+                    })}
+                    initialIndex={selectedStoryIndex}
+                    onClose={() => setIsStoryViewerOpen(false)}
+                />
+            )}
         </div>
     );
 };

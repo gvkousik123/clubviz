@@ -46,12 +46,14 @@ export function StoryCard({
         return null;
     }
 
+    // Render as div with onClick if onClick is provided, otherwise use Link
+    const Container = onClick ? 'div' : Link;
+    const containerProps = onClick
+        ? { onClick: handleClick, className: "block relative w-20 h-20 md:w-20 md:h-20 cursor-pointer" }
+        : { href: `/story/${id}?index=${index}`, onClick: handleClick, className: "block relative w-20 h-20 md:w-20 md:h-20" };
+
     return (
-        <Link
-            href={`/story/${id}?index=${index}`}
-            className="block relative w-20 h-20 md:w-20 md:h-20"
-            onClick={handleClick}
-        >
+        <Container {...containerProps as any}>
             {/* Outer Cyan/Green Border */}
             <div className={`absolute inset-0 rounded-full p-[3.5px] ${isViewed
                 ? 'bg-gray-300'
@@ -107,6 +109,6 @@ export function StoryCard({
                     {clubName || title}
                 </p>
             </div>
-        </Link>
+        </Container>
     );
 }
