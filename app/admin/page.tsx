@@ -406,6 +406,35 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
 
+                            {/* Club Management - Edit and Delete */}
+                            {ownedClubs && ownedClubs.length > 0 && (
+                                <div className="grid grid-cols-2 gap-3">
+                                    {/* Edit Club */}
+                                    <div
+                                        onClick={() => handleEditClub(ownedClubs[0].id)}
+                                        className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-3 flex items-center gap-2 cursor-pointer hover:bg-[#14FFEC]/10 transition-colors"
+                                    >
+                                        <div className="bg-[#14FFEC] w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0">
+                                            <Edit className="w-4 h-4 text-black" />
+                                        </div>
+                                        <p className="text-white font-medium text-sm">Edit Club</p>
+                                    </div>
+
+                                    {/* Delete Club */}
+                                    <div
+                                        onClick={() => handleDeleteClub(ownedClubs[0].id)}
+                                        className="bg-[#0D1F1F] border border-red-500/40 rounded-[15px] p-3 flex items-center gap-2 cursor-pointer hover:bg-red-500/10 transition-colors"
+                                    >
+                                        <div className="bg-red-500 w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0">
+                                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </div>
+                                        <p className="text-red-400 font-medium text-sm">Delete Club</p>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* <div className="grid grid-cols-3 gap-3 mb-3">
                                 <div
                                     onClick={() => handleNavigation('/admin/update-live-details')}

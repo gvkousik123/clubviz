@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Upload, MapPin, ChevronRight, Plus } from 'lucide-react';
+import { ArrowLeft, Upload, MapPin, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { LookupService, AllLookupData } from '@/lib/services/lookup.service';
 import { ClubService, Club } from '@/lib/services/club.service';
@@ -46,8 +46,18 @@ export default function EditClubPage() {
         inclusions: '',
         exclusions: ''
     });
+    const [foodDrinksImages, setFoodDrinksImages] = useState<File[]>([]);
+    const [ambienceImages, setAmbienceImages] = useState<File[]>([]);
+    const [menuImages, setMenuImages] = useState<File[]>([]);
+    const [foodDrinksPreview, setFoodDrinksPreview] = useState<string[]>(['', '', '']);
+    const [ambiencePreview, setAmbiencePreview] = useState<string[]>(['', '', '']);
+    const [menuPreview, setMenuPreview] = useState<string[]>(['', '', '']);
+    const [logoPreview, setLogoPreview] = useState<string>('');
     const [lookupData, setLookupData] = useState<AllLookupData>({});
     const [isLoadingLookup, setIsLoadingLookup] = useState(true);
+    const foodDrinksRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+    const ambienceRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+    const menuRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
     // Fetch club data, lookup data and admin details on component mount
     useEffect(() => {
@@ -88,6 +98,11 @@ export default function EditClubPage() {
                         inclusions: club.entryPricing?.inclusions ? club.entryPricing.inclusions.join(', ') : '',
                         exclusions: club.entryPricing?.exclusions ? club.entryPricing.exclusions.join(', ') : ''
                     });
+
+                    // Set logo preview from existing club data
+                    if (club.logo || club.logoUrl) {
+                        setLogoPreview(club.logo || club.logoUrl);
+                    }
 
                     // Pre-fill location data (Keep using selectedLocation state for consistency)
                     if (club.locationText || club.locationMap) {
@@ -196,7 +211,108 @@ export default function EditClubPage() {
                 ...prev,
                 logo: file
             }));
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setLogoPreview(e.target?.result as string);
+            };
+            reader.readAsDataURL(file);
             console.log('📸 Logo selected:', file.name);
+        }
+    };
+
+    const handleDeleteLogo = () => {
+        setFormData(prev => ({ ...prev, logo: null }));
+        setLogoPreview('');
+        if (logoInputRef.current) {
+            logoInputRef.current.value = '';
+        }
+    };
+
+    const handleImageUpload = (ref: React.RefObject<HTMLInputElement>) => {
+        ref.current?.click();
+    };
+
+    const handleFoodDrinksImageChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const newImages = [...foodDrinksImages];
+            newImages[index] = file;
+            setFoodDrinksImages(newImages);
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const newPreviews = [...foodDrinksPreview];
+                newPreviews[index] = event.target?.result as string;
+                setFoodDrinksPreview(newPreviews);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleAmbienceImageChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const newImages = [...ambienceImages];
+            newImages[index] = file;
+            setAmbienceImages(newImages);
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const newPreviews = [...ambiencePreview];
+                newPreviews[index] = event.target?.result as string;
+                setAmbiencePreview(newPreviews);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleMenuImageChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const newImages = [...menuImages];
+            newImages[index] = file;
+            setMenuImages(newImages);
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const newPreviews = [...menuPreview];
+                newPreviews[index] = event.target?.result as string;
+                setMenuPreview(newPreviews);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleDeleteFoodDrinksImage = (index: number) => {
+        const newImages = [...foodDrinksImages];
+        newImages[index] = null as any;
+        setFoodDrinksImages(newImages);
+        const newPreviews = [...foodDrinksPreview];
+        newPreviews[index] = '';
+        setFoodDrinksPreview(newPreviews);
+        if (foodDrinksRefs[index].current) {
+            foodDrinksRefs[index].current!.value = '';
+        }
+    };
+
+    const handleDeleteAmbienceImage = (index: number) => {
+        const newImages = [...ambienceImages];
+        newImages[index] = null as any;
+        setAmbienceImages(newImages);
+        const newPreviews = [...ambiencePreview];
+        newPreviews[index] = '';
+        setAmbiencePreview(newPreviews);
+        if (ambienceRefs[index].current) {
+            ambienceRefs[index].current!.value = '';
+        }
+    };
+
+    const handleDeleteMenuImage = (index: number) => {
+        const newImages = [...menuImages];
+        newImages[index] = null as any;
+        setMenuImages(newImages);
+        const newPreviews = [...menuPreview];
+        newPreviews[index] = '';
+        setMenuPreview(newPreviews);
+        if (menuRefs[index].current) {
+            menuRefs[index].current!.value = '';
         }
     };
 
@@ -437,30 +553,60 @@ export default function EditClubPage() {
             <div className="px-0 relative mt-[140px] z-40">
                 <div className="w-full bg-[#021313] rounded-t-[40px] flex flex-col">
                     <div className="px-6 py-6">
-                        {/* Club Logo Upload */}
-                        <div className="flex flex-col items-center mb-8">
-                            <div className="w-24 h-24 bg-[#14FFEC]/20 rounded-full flex items-center justify-center relative mb-4 cursor-pointer"
-                                onClick={() => logoInputRef.current?.click()}>
-                                {currentClub.logo ? (
-                                    <img src={currentClub.logo} alt="Club Logo" className="w-full h-full object-cover rounded-full" />
-                                ) : (
-                                    <Upload className="w-8 h-8 text-[#14FFEC]" />
-                                )}
-                                <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#14FFEC] rounded-full flex items-center justify-center">
-                                    <Plus className="w-4 h-4 text-black" />
+                        {/* Logo Upload */}
+                        <div
+                            onClick={() => logoInputRef.current?.click()}
+                            className="w-[160px] h-[160px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex flex-col items-center justify-center p-2 cursor-pointer overflow-hidden group hover:bg-[#0D1F1F]/70 transition-all mx-auto mb-6"
+                        >
+                            {logoPreview ? (
+                                <div className="relative w-full h-full">
+                                    <img
+                                        src={logoPreview}
+                                        alt="Logo Preview"
+                                        className="w-full h-full object-cover rounded-[13px]"
+                                    />
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-[13px] flex items-center justify-center gap-2 flex-col">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                logoInputRef.current?.click();
+                                            }}
+                                            className="px-2 py-1 bg-[#14FFEC] text-black rounded-lg text-xs font-semibold hover:bg-[#14FFEC]/80 transition-all"
+                                        >
+                                            Replace
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteLogo();
+                                            }}
+                                            className="px-2 py-1 bg-red-500 text-white rounded-lg text-xs font-semibold hover:bg-red-600 transition-all flex items-center gap-1"
+                                        >
+                                            <Trash2 size={12} />
+                                            Delete
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                            <input
-                                ref={logoInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handleLogoUpload}
-                                className="hidden"
-                            />
-                            <p className="text-gray-400 text-sm text-center">
-                                {formData.logo ? formData.logo.name : 'Tap to update club logo'}
-                            </p>
+                            ) : (
+                                <>
+                                    <img
+                                        src="/admin/upload.svg"
+                                        alt="Upload"
+                                        width={40}
+                                        height={40}
+                                        className="mb-2"
+                                    />
+                                    <p className="text-white text-center text-[12px] font-semibold leading-[12px] tracking-[0.5px]">Upload logo</p>
+                                </>
+                            )}
                         </div>
+                        <input
+                            ref={logoInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleLogoUpload}
+                            className="hidden"
+                        />
 
                         {/* Club Name */}
                         <div className="mb-6">
@@ -486,6 +632,193 @@ export default function EditClubPage() {
                                 rows={3}
                                 className="w-full bg-[#0D1F1F] border border-[#14FFEC]/20 rounded-[15px] px-4 py-3 text-white placeholder-gray-400 focus:border-[#14FFEC] focus:outline-none resize-none"
                             />
+                        </div>
+
+                        {/* Photos Section */}
+                        <div className="w-full mb-6">
+                            <div className="mb-2">
+                                <h3 className="text-white font-semibold text-base">Photos</h3>
+                            </div>
+
+                            {/* Food/Drinks Section */}
+                            <div className="w-full bg-[#0D1F1F] rounded-[15px] p-[8px_0_12px] flex flex-col items-center gap-[6px] mb-2">
+                                <div className="w-full flex flex-col items-center gap-[9px]">
+                                    <div className="w-full px-4">
+                                        <p className="text-[#14FFEC] text-base font-medium tracking-[0.5px]">Food/Drinks</p>
+                                    </div>
+                                    <div className="flex items-center gap-[9px]">
+                                        {[0, 1, 2].map((index) => (
+                                            <div
+                                                key={`food-drink-${index}`}
+                                                onClick={() => handleImageUpload(foodDrinksRefs[index])}
+                                                className="w-[130px] h-[130px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex items-center justify-center cursor-pointer overflow-hidden group hover:bg-[#0D1F1F]/70 transition-all"
+                                            >
+                                                {foodDrinksPreview[index] ? (
+                                                    <div className="relative w-full h-full">
+                                                        <img
+                                                            src={foodDrinksPreview[index]}
+                                                            alt={`Food/Drinks ${index + 1}`}
+                                                            className="w-full h-full object-cover rounded-[13px]"
+                                                        />
+                                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-[13px] flex items-center justify-center gap-1 flex-col">
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleImageUpload(foodDrinksRefs[index]);
+                                                                }}
+                                                                className="px-2 py-1 bg-[#14FFEC] text-black rounded-lg text-xs font-semibold hover:bg-[#14FFEC]/80 transition-all"
+                                                            >
+                                                                Replace
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteFoodDrinksImage(index);
+                                                                }}
+                                                                className="px-2 py-1 bg-red-500 text-white rounded-lg text-xs font-semibold hover:bg-red-600 transition-all flex items-center gap-1"
+                                                            >
+                                                                <Trash2 size={12} />
+                                                                Delete
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="w-[25px] h-[25px] bg-[#14FFEC] rounded-full flex items-center justify-center">
+                                                        <Plus className="w-[12px] h-[12px] text-[#004342]" />
+                                                    </div>
+                                                )}
+                                                <input
+                                                    ref={foodDrinksRefs[index]}
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => handleFoodDrinksImageChange(e, index)}
+                                                    className="hidden"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Ambience Section */}
+                            <div className="w-full bg-[#0D1F1F] rounded-[15px] p-[8px_0_12px] flex flex-col items-center gap-[6px] mb-2">
+                                <div className="w-full flex flex-col items-center gap-[9px]">
+                                    <div className="w-full px-4">
+                                        <p className="text-[#14FFEC] text-base font-medium tracking-[0.5px]">Ambience</p>
+                                    </div>
+                                    <div className="flex items-center gap-[9px]">
+                                        {[0, 1, 2].map((index) => (
+                                            <div
+                                                key={`ambience-${index}`}
+                                                onClick={() => handleImageUpload(ambienceRefs[index])}
+                                                className="w-[130px] h-[130px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex items-center justify-center cursor-pointer overflow-hidden group hover:bg-[#0D1F1F]/70 transition-all"
+                                            >
+                                                {ambiencePreview[index] ? (
+                                                    <div className="relative w-full h-full">
+                                                        <img
+                                                            src={ambiencePreview[index]}
+                                                            alt={`Ambience ${index + 1}`}
+                                                            className="w-full h-full object-cover rounded-[13px]"
+                                                        />
+                                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-[13px] flex items-center justify-center gap-1 flex-col">
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleImageUpload(ambienceRefs[index]);
+                                                                }}
+                                                                className="px-2 py-1 bg-[#14FFEC] text-black rounded-lg text-xs font-semibold hover:bg-[#14FFEC]/80 transition-all"
+                                                            >
+                                                                Replace
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteAmbienceImage(index);
+                                                                }}
+                                                                className="px-2 py-1 bg-red-500 text-white rounded-lg text-xs font-semibold hover:bg-red-600 transition-all flex items-center gap-1"
+                                                            >
+                                                                <Trash2 size={12} />
+                                                                Delete
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="w-[25px] h-[25px] bg-[#14FFEC] rounded-full flex items-center justify-center">
+                                                        <Plus className="w-[12px] h-[12px] text-[#004342]" />
+                                                    </div>
+                                                )}
+                                                <input
+                                                    ref={ambienceRefs[index]}
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => handleAmbienceImageChange(e, index)}
+                                                    className="hidden"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Menu Section */}
+                            <div className="w-full bg-[#0D1F1F] rounded-[15px] p-[8px_0_12px] flex flex-col items-center gap-[6px]">
+                                <div className="w-full flex flex-col items-center gap-[9px]">
+                                    <div className="w-full px-4">
+                                        <p className="text-[#14FFEC] text-base font-medium tracking-[0.5px]">Menu</p>
+                                    </div>
+                                    <div className="flex items-center gap-[9px]">
+                                        {[0, 1, 2].map((index) => (
+                                            <div
+                                                key={`menu-${index}`}
+                                                onClick={() => handleImageUpload(menuRefs[index])}
+                                                className="w-[130px] h-[130px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex items-center justify-center cursor-pointer overflow-hidden group hover:bg-[#0D1F1F]/70 transition-all"
+                                            >
+                                                {menuPreview[index] ? (
+                                                    <div className="relative w-full h-full">
+                                                        <img
+                                                            src={menuPreview[index]}
+                                                            alt={`Menu ${index + 1}`}
+                                                            className="w-full h-full object-cover rounded-[13px]"
+                                                        />
+                                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-[13px] flex items-center justify-center gap-1 flex-col">
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleImageUpload(menuRefs[index]);
+                                                                }}
+                                                                className="px-2 py-1 bg-[#14FFEC] text-black rounded-lg text-xs font-semibold hover:bg-[#14FFEC]/80 transition-all"
+                                                            >
+                                                                Replace
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteMenuImage(index);
+                                                                }}
+                                                                className="px-2 py-1 bg-red-500 text-white rounded-lg text-xs font-semibold hover:bg-red-600 transition-all flex items-center gap-1"
+                                                            >
+                                                                <Trash2 size={12} />
+                                                                Delete
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="w-[25px] h-[25px] bg-[#14FFEC] rounded-full flex items-center justify-center">
+                                                        <Plus className="w-[12px] h-[12px] text-[#004342]" />
+                                                    </div>
+                                                )}
+                                                <input
+                                                    ref={menuRefs[index]}
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => handleMenuImageChange(e, index)}
+                                                    className="hidden"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Category - Commented out for now since lookup data structure unclear */}

@@ -19,7 +19,14 @@ import {
     Edit3,
     Save,
     X,
-    Trash2
+    Trash2,
+    Instagram,
+    Music2,
+    Upload,
+    Image as ImageIcon,
+    Video,
+    Plus,
+    Minus
 } from 'lucide-react';
 import PageHeader from '@/components/common/page-header';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
@@ -81,7 +88,7 @@ function EventPreviewContent() {
 
                     console.log('📋 Club Info:', { clubId, clubName });
 
-                    // Initialize edit data
+                    // Initialize edit data with ALL possible fields
                     setEditData({
                         title: eventDetails.title || '',
                         location: eventDetails.location || '',
@@ -92,7 +99,24 @@ function EventPreviewContent() {
                         maxAttendees: eventDetails.maxAttendees || '',
                         requiresApproval: eventDetails.requiresApproval || false,
                         clubId: clubId || '',
-                        clubName: clubName || ''
+                        clubName: clubName || '',
+                        // Artist details
+                        artistName: eventDetails.artistName || eventDetails.eventArtistName || '',
+                        aboutArtist: eventDetails.aboutArtist || eventDetails.aboutEventArtist || '',
+                        instagramHandle: eventDetails.instagramHandle || '',
+                        spotifyHandle: eventDetails.spotifyHandle || '',
+                        // Music genre
+                        musicGenre: eventDetails.musicGenre || '',
+                        // Event organizer
+                        organizer: eventDetails.organizer || eventDetails.eventOrganizer || '',
+                        // Creatives
+                        eventImage: eventDetails.eventImage || eventDetails.imageUrl || '',
+                        eventReel: eventDetails.eventReel || '',
+                        organizerLogo: eventDetails.organizerLogo || eventDetails.eventOrganizerLogo || '',
+                        // Ticket information
+                        ticketTypes: eventDetails.ticketTypes || [],
+                        hasLimitedTickets: eventDetails.hasLimitedTickets || false,
+                        totalTickets: eventDetails.totalTickets || 0
                     });
                     setError(null);
                 } else {
@@ -133,7 +157,24 @@ function EventPreviewContent() {
                 maxAttendees: eventData.maxAttendees || '',
                 requiresApproval: eventData.requiresApproval || false,
                 clubId: clubId || '',
-                clubName: clubName || ''
+                clubName: clubName || '',
+                // Artist details
+                artistName: eventData.artistName || eventData.eventArtistName || '',
+                aboutArtist: eventData.aboutArtist || eventData.aboutEventArtist || '',
+                instagramHandle: eventData.instagramHandle || '',
+                spotifyHandle: eventData.spotifyHandle || '',
+                // Music genre
+                musicGenre: eventData.musicGenre || '',
+                // Event organizer
+                organizer: eventData.organizer || eventData.eventOrganizer || '',
+                // Creatives
+                eventImage: eventData.eventImage || eventData.imageUrl || '',
+                eventReel: eventData.eventReel || '',
+                organizerLogo: eventData.organizerLogo || eventData.eventOrganizerLogo || '',
+                // Ticket information
+                ticketTypes: eventData.ticketTypes || [],
+                hasLimitedTickets: eventData.hasLimitedTickets || false,
+                totalTickets: eventData.totalTickets || 0
             });
         }
         setIsEditing(!isEditing);
@@ -162,7 +203,21 @@ function EventPreviewContent() {
                 endDateTime: editData.endDateTime,
                 maxAttendees: editData.maxAttendees ? parseInt(editData.maxAttendees) : undefined,
                 requiresApproval: editData.requiresApproval,
-                clubId: clubId
+                clubId: clubId,
+                // Artist details
+                eventArtistName: editData.artistName,
+                aboutEventArtist: editData.aboutArtist,
+                instagramHandle: editData.instagramHandle,
+                spotifyHandle: editData.spotifyHandle,
+                // Music genre and category
+                musicGenre: editData.musicGenre,
+                category: editData.category,
+                // Organizer
+                eventOrganizer: editData.organizer,
+                // Ticket information
+                ticketTypes: editData.ticketTypes,
+                hasLimitedTickets: editData.hasLimitedTickets,
+                totalTickets: editData.totalTickets ? parseInt(editData.totalTickets) : undefined
             };
 
             console.log('📡 Updating event with data:', updateData);
@@ -483,33 +538,326 @@ function EventPreviewContent() {
                     <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
                 </div>
 
-                {/* Artist - Only show if artist name exists */}
-                {eventData?.artistName && (
-                    <div className="px-6 mb-6">
-                        <h2 className="text-white text-xl font-['Manrope'] mb-3">Artist</h2>
-                        <div className="bg-[#0D1F1F] rounded-lg p-4 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                {eventData?.artistImage && (
-                                    <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden">
-                                        <img
-                                            src={eventData.artistImage}
-                                            alt="Artist"
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </div>
-                                )}
-                                <div>
-                                    <p className="text-white font-['Manrope']">
-                                        {eventData.artistName}
+                {/* Artist Section - Always show with edit capability */}
+                <div className="px-6 mb-6">
+                    <h2 className="text-white text-xl font-['Manrope'] mb-3">Artist Details</h2>
+                    <div className="bg-[#0D1F1F] rounded-lg p-4 space-y-4">
+                        {/* Artist Name */}
+                        <div className="space-y-2">
+                            <label className="text-[#14FFEC] text-sm font-semibold">Artist Name</label>
+                            {isEditing ? (
+                                <input
+                                    type="text"
+                                    value={editData.artistName}
+                                    onChange={(e) => handleInputChange('artistName', e.target.value)}
+                                    className="w-full bg-[#021313] text-white rounded-lg px-4 py-2 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
+                                    placeholder="Artist name"
+                                />
+                            ) : (
+                                <p className="text-white font-['Manrope'] px-4 py-2">
+                                    {editData.artistName || eventData?.artistName || eventData?.eventArtistName || 'Not specified'}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* About Artist */}
+                        <div className="space-y-2">
+                            <label className="text-[#14FFEC] text-sm font-semibold">About Artist</label>
+                            {isEditing ? (
+                                <textarea
+                                    value={editData.aboutArtist}
+                                    onChange={(e) => handleInputChange('aboutArtist', e.target.value)}
+                                    className="w-full bg-[#021313] text-white rounded-lg px-4 py-2 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none min-h-[80px]"
+                                    placeholder="About the artist..."
+                                />
+                            ) : (
+                                <p className="text-white/80 text-sm font-['Manrope'] px-4 py-2">
+                                    {editData.aboutArtist || eventData?.aboutArtist || eventData?.aboutEventArtist || 'Not specified'}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Social Handles */}
+                        <div className="grid grid-cols-2 gap-3">
+                            {/* Instagram */}
+                            <div className="space-y-2">
+                                <label className="text-[#14FFEC] text-xs font-semibold flex items-center gap-1">
+                                    <Instagram size={14} /> Instagram
+                                </label>
+                                {isEditing ? (
+                                    <input
+                                        type="text"
+                                        value={editData.instagramHandle}
+                                        onChange={(e) => handleInputChange('instagramHandle', e.target.value)}
+                                        className="w-full bg-[#021313] text-white rounded-lg px-3 py-1.5 text-sm border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
+                                        placeholder="@username"
+                                    />
+                                ) : (
+                                    <p className="text-white text-sm px-3 py-1.5">
+                                        {editData.instagramHandle || eventData?.instagramHandle || 'Not specified'}
                                     </p>
-                                </div>
+                                )}
                             </div>
-                            <button className="text-[#14FFEC]">
-                                <ChevronDown size={20} />
-                            </button>
+
+                            {/* Spotify */}
+                            <div className="space-y-2">
+                                <label className="text-[#14FFEC] text-xs font-semibold flex items-center gap-1">
+                                    <Music2 size={14} /> Spotify
+                                </label>
+                                {isEditing ? (
+                                    <input
+                                        type="text"
+                                        value={editData.spotifyHandle}
+                                        onChange={(e) => handleInputChange('spotifyHandle', e.target.value)}
+                                        className="w-full bg-[#021313] text-white rounded-lg px-3 py-1.5 text-sm border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
+                                        placeholder="Spotify handle"
+                                    />
+                                ) : (
+                                    <p className="text-white text-sm px-3 py-1.5">
+                                        {editData.spotifyHandle || eventData?.spotifyHandle || 'Not specified'}
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </div>
-                )}
+                </div>
+
+                {/* Separator Line */}
+                <div className="flex justify-center my-4">
+                    <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
+                </div>
+
+                {/* Music Genre - Always show */}
+                <div className="px-6 mb-6">
+                    <h2 className="text-white text-xl font-['Manrope'] mb-3">Music Genre</h2>
+                    <div className="bg-[#0D1F1F] rounded-lg p-4">
+                        {isEditing ? (
+                            <input
+                                type="text"
+                                value={editData.musicGenre}
+                                onChange={(e) => handleInputChange('musicGenre', e.target.value)}
+                                className="w-full bg-[#021313] text-white rounded-lg px-4 py-2 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
+                                placeholder="e.g., Techno, Bollywood, EDM"
+                            />
+                        ) : (
+                            <p className="text-white font-['Manrope']">
+                                {editData.musicGenre || eventData?.musicGenre || 'Not specified'}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Separator Line */}
+                <div className="flex justify-center my-4">
+                    <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
+                </div>
+
+                {/* End Date/Time - Always show */}
+                <div className="px-6 mb-6">
+                    <h2 className="text-white text-xl font-['Manrope'] mb-3">End Date & Time</h2>
+                    <div className="bg-[#0D1F1F] rounded-lg p-4">
+                        <div className="flex items-center gap-2">
+                            <Calendar size={20} className="text-[#14FFEC]" />
+                            {isEditing ? (
+                                <input
+                                    type="datetime-local"
+                                    value={editData.endDateTime}
+                                    onChange={(e) => handleInputChange('endDateTime', e.target.value)}
+                                    className="flex-1 bg-transparent text-white font-['Manrope'] outline-none"
+                                />
+                            ) : (
+                                <p className="text-white font-['Manrope']">
+                                    {editData.endDateTime || eventData?.endDateTime || 'Not specified'}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Separator Line */}
+                <div className="flex justify-center my-4">
+                    <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
+                </div>
+
+                {/* Event Creatives Section - Always show */}
+                <div className="px-6 mb-6">
+                    <h2 className="text-white text-xl font-['Manrope'] mb-3">Event Creatives</h2>
+                    <div className="bg-[#0D1F1F] rounded-lg p-4 space-y-4">
+                        {/* Event Poster */}
+                        <div className="space-y-2">
+                            <label className="text-[#14FFEC] text-sm font-semibold flex items-center gap-2">
+                                <ImageIcon size={16} /> Event Poster
+                            </label>
+                            <div className="bg-[#021313] rounded-lg p-3 min-h-[100px] flex items-center justify-center">
+                                {editData.eventImage || eventData?.eventImage || eventData?.imageUrl ? (
+                                    <div className="w-full">
+                                        <img
+                                            src={editData.eventImage || eventData?.eventImage || eventData?.imageUrl}
+                                            alt="Event Poster"
+                                            className="w-full h-48 object-cover rounded-lg"
+                                        />
+                                        {isEditing && (
+                                            <button className="mt-2 w-full bg-[#14FFEC]/20 text-[#14FFEC] py-2 rounded-lg text-sm font-semibold hover:bg-[#14FFEC]/30 transition-all">
+                                                Replace Poster
+                                            </button>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="text-center text-white/50">
+                                        {isEditing ? (
+                                            <button className="bg-[#14FFEC]/20 text-[#14FFEC] px-6 py-3 rounded-lg text-sm font-semibold hover:bg-[#14FFEC]/30 transition-all flex items-center gap-2 mx-auto">
+                                                <Upload size={16} /> Upload Poster
+                                            </button>
+                                        ) : (
+                                            <p>No poster uploaded</p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Event Reel */}
+                        <div className="space-y-2">
+                            <label className="text-[#14FFEC] text-sm font-semibold flex items-center gap-2">
+                                <Video size={16} /> Event Reel/Video
+                            </label>
+                            <div className="bg-[#021313] rounded-lg p-3 min-h-[80px] flex items-center justify-center">
+                                {editData.eventReel || eventData?.eventReel ? (
+                                    <div className="w-full text-center">
+                                        <p className="text-white text-sm mb-2">Video uploaded</p>
+                                        {isEditing && (
+                                            <button className="w-full bg-[#14FFEC]/20 text-[#14FFEC] py-2 rounded-lg text-sm font-semibold hover:bg-[#14FFEC]/30 transition-all">
+                                                Replace Video
+                                            </button>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="text-center text-white/50">
+                                        {isEditing ? (
+                                            <button className="bg-[#14FFEC]/20 text-[#14FFEC] px-6 py-3 rounded-lg text-sm font-semibold hover:bg-[#14FFEC]/30 transition-all flex items-center gap-2 mx-auto">
+                                                <Upload size={16} /> Upload Video
+                                            </button>
+                                        ) : (
+                                            <p>No video uploaded</p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Organizer Logo */}
+                        <div className="space-y-2">
+                            <label className="text-[#14FFEC] text-sm font-semibold flex items-center gap-2">
+                                <ImageIcon size={16} /> Organizer Logo
+                            </label>
+                            <div className="bg-[#021313] rounded-lg p-3 min-h-[80px] flex items-center justify-center">
+                                {editData.organizerLogo || eventData?.organizerLogo || eventData?.eventOrganizerLogo ? (
+                                    <div className="w-full flex flex-col items-center">
+                                        <img
+                                            src={editData.organizerLogo || eventData?.organizerLogo || eventData?.eventOrganizerLogo}
+                                            alt="Organizer Logo"
+                                            className="w-20 h-20 object-cover rounded-full"
+                                        />
+                                        {isEditing && (
+                                            <button className="mt-2 bg-[#14FFEC]/20 text-[#14FFEC] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#14FFEC]/30 transition-all">
+                                                Replace Logo
+                                            </button>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="text-center text-white/50">
+                                        {isEditing ? (
+                                            <button className="bg-[#14FFEC]/20 text-[#14FFEC] px-6 py-3 rounded-lg text-sm font-semibold hover:bg-[#14FFEC]/30 transition-all flex items-center gap-2 mx-auto">
+                                                <Upload size={16} /> Upload Logo
+                                            </button>
+                                        ) : (
+                                            <p>No logo uploaded</p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Separator Line */}
+                <div className="flex justify-center my-4">
+                    <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
+                </div>
+
+                {/* Ticket Types Section - Always show */}
+                <div className="px-6 mb-6">
+                    <h2 className="text-white text-xl font-['Manrope'] mb-3">Ticket Information</h2>
+                    <div className="bg-[#0D1F1F] rounded-lg p-4 space-y-4">
+                        {/* Has Limited Tickets */}
+                        <div className="flex items-center justify-between">
+                            <label className="text-white font-['Manrope']">Has Limited Tickets</label>
+                            {isEditing ? (
+                                <input
+                                    type="checkbox"
+                                    checked={editData.hasLimitedTickets}
+                                    onChange={(e) => handleInputChange('hasLimitedTickets', e.target.checked)}
+                                    className="w-5 h-5 text-[#14FFEC] bg-[#021313] border-[#14FFEC]/30 rounded focus:ring-[#14FFEC] focus:ring-2"
+                                />
+                            ) : (
+                                <span className="text-[#14FFEC]">{editData.hasLimitedTickets || eventData?.hasLimitedTickets ? 'Yes' : 'No'}</span>
+                            )}
+                        </div>
+
+                        {/* Total Tickets */}
+                        <div className="space-y-2">
+                            <label className="text-[#14FFEC] text-sm font-semibold">Total Tickets Available</label>
+                            {isEditing ? (
+                                <input
+                                    type="number"
+                                    value={editData.totalTickets}
+                                    onChange={(e) => handleInputChange('totalTickets', e.target.value)}
+                                    className="w-full bg-[#021313] text-white rounded-lg px-4 py-2 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
+                                    placeholder="Total tickets"
+                                />
+                            ) : (
+                                <p className="text-white font-['Manrope'] px-4 py-2">
+                                    {editData.totalTickets || eventData?.totalTickets || 'Not specified'}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Ticket Types List */}
+                        <div className="space-y-2">
+                            <label className="text-[#14FFEC] text-sm font-semibold">Ticket Types</label>
+                            {(editData.ticketTypes && editData.ticketTypes.length > 0) || (eventData?.ticketTypes && eventData.ticketTypes.length > 0) ? (
+                                <div className="space-y-2">
+                                    {(editData.ticketTypes || eventData?.ticketTypes || []).map((ticket: any, index: number) => (
+                                        <div key={index} className="bg-[#021313] rounded-lg p-3 flex justify-between items-center">
+                                            <div>
+                                                <p className="text-white font-semibold">{ticket.name}</p>
+                                                <p className="text-white/60 text-sm">{ticket.currency} {ticket.price} • Qty: {ticket.quantity}</p>
+                                            </div>
+                                            {isEditing && (
+                                                <button className="text-red-400 hover:text-red-500">
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}\n                                    {isEditing && (
+                                        <button className="w-full bg-[#14FFEC]/20 text-[#14FFEC] py-2 rounded-lg text-sm font-semibold hover:bg-[#14FFEC]/30 transition-all flex items-center justify-center gap-2">
+                                            <Plus size={16} /> Add Ticket Type
+                                        </button>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="text-center py-4">
+                                    <p className="text-white/50 mb-2">No ticket types configured</p>
+                                    {isEditing && (
+                                        <button className="bg-[#14FFEC]/20 text-[#14FFEC] px-6 py-2 rounded-lg text-sm font-semibold hover:bg-[#14FFEC]/30 transition-all flex items-center gap-2 mx-auto">
+                                            <Plus size={16} /> Add Ticket Type
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
 
                 {/* Separator Line */}
                 <div className="flex justify-center my-4">
