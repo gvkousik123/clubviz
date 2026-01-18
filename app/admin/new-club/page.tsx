@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Upload, MapPin, ChevronRight, Plus } from 'lucide-react';
+import { ArrowLeft, Upload, MapPin, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { LookupService, AllLookupData } from '@/lib/services/lookup.service';
 import { ClubService } from '@/lib/services/club.service';
@@ -236,6 +236,15 @@ export default function NewClubPage() {
         }
     };
 
+    const handleDeleteLogo = () => {
+        setFormData({ ...formData, logo: null });
+        setLogoPreview('');
+        if (logoInputRef.current) {
+            logoInputRef.current.value = '';
+        }
+        console.log('🗑️ Logo deleted');
+    };
+
     const handleFoodDrinksImageChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -294,6 +303,45 @@ export default function NewClubPage() {
             reader.readAsDataURL(file);
             console.log(`📸 Menu image ${index} uploaded:`, file.name, file.size, 'bytes');
         }
+    };
+
+    const handleDeleteFoodDrinksImage = (index: number) => {
+        const newImages = [...foodDrinksImages];
+        newImages.splice(index, 1);
+        setFoodDrinksImages(newImages);
+        const newPreviews = [...foodDrinksPreview];
+        newPreviews[index] = '';
+        setFoodDrinksPreview(newPreviews);
+        if (foodDrinksRefs[index]?.current) {
+            foodDrinksRefs[index].current.value = '';
+        }
+        console.log(`🗑️ Food/Drinks image ${index} deleted`);
+    };
+
+    const handleDeleteAmbienceImage = (index: number) => {
+        const newImages = [...ambienceImages];
+        newImages.splice(index, 1);
+        setAmbienceImages(newImages);
+        const newPreviews = [...ambiencePreview];
+        newPreviews[index] = '';
+        setAmbiencePreview(newPreviews);
+        if (ambienceRefs[index]?.current) {
+            ambienceRefs[index].current.value = '';
+        }
+        console.log(`🗑️ Ambience image ${index} deleted`);
+    };
+
+    const handleDeleteMenuImage = (index: number) => {
+        const newImages = [...menuImages];
+        newImages.splice(index, 1);
+        setMenuImages(newImages);
+        const newPreviews = [...menuPreview];
+        newPreviews[index] = '';
+        setMenuPreview(newPreviews);
+        if (menuRefs[index]?.current) {
+            menuRefs[index].current.value = '';
+        }
+        console.log(`🗑️ Menu image ${index} deleted`);
     };
 
     const handleImageUpload = (ref: React.RefObject<HTMLInputElement>) => {
@@ -505,21 +553,44 @@ export default function NewClubPage() {
                     {/* Logo Upload */}
                     <div
                         onClick={handleLogoUpload}
-                        className="w-[100px] h-[100px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex flex-col items-center justify-center p-2 cursor-pointer overflow-hidden"
+                        className="w-[160px] h-[160px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex flex-col items-center justify-center p-2 cursor-pointer overflow-hidden group hover:bg-[#0D1F1F]/70 transition-all"
                     >
                         {logoPreview ? (
-                            <img
-                                src={logoPreview}
-                                alt="Logo Preview"
-                                className="w-full h-full object-cover rounded-[13px]"
-                            />
+                            <div className="relative w-full h-full">
+                                <img
+                                    src={logoPreview}
+                                    alt="Logo Preview"
+                                    className="w-full h-full object-cover rounded-[13px]"
+                                />
+                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-[13px] flex items-center justify-center gap-2 flex-col">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleLogoUpload();
+                                        }}
+                                        className="px-2 py-1 bg-[#14FFEC] text-black rounded-lg text-xs font-semibold hover:bg-[#14FFEC]/80 transition-all"
+                                    >
+                                        Replace
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteLogo();
+                                        }}
+                                        className="px-2 py-1 bg-red-500 text-white rounded-lg text-xs font-semibold hover:bg-red-600 transition-all flex items-center gap-1"
+                                    >
+                                        <Trash2 size={12} />
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
                         ) : (
                             <>
                                 <img
                                     src="/admin/upload.svg"
                                     alt="Upload"
-                                    width={30}
-                                    height={30}
+                                    width={40}
+                                    height={40}
                                     className="mb-2"
                                 />
                                 <p className="text-white text-center text-[12px] font-semibold leading-[12px] tracking-[0.5px]">Upload logo</p>
@@ -648,14 +719,37 @@ export default function NewClubPage() {
                                         <div
                                             key={`food-drink-${index}`}
                                             onClick={() => handleImageUpload(foodDrinksRefs[index])}
-                                            className="w-[100px] h-[100px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex items-center justify-center cursor-pointer overflow-hidden"
+                                            className="w-[130px] h-[130px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex items-center justify-center cursor-pointer overflow-hidden group hover:bg-[#0D1F1F]/70 transition-all"
                                         >
                                             {foodDrinksPreview[index] ? (
-                                                <img
-                                                    src={foodDrinksPreview[index]}
-                                                    alt={`Food/Drinks ${index + 1}`}
-                                                    className="w-full h-full object-cover rounded-[13px]"
-                                                />
+                                                <div className="relative w-full h-full">
+                                                    <img
+                                                        src={foodDrinksPreview[index]}
+                                                        alt={`Food/Drinks ${index + 1}`}
+                                                        className="w-full h-full object-cover rounded-[13px]"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-[13px] flex items-center justify-center gap-1 flex-col">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleImageUpload(foodDrinksRefs[index]);
+                                                            }}
+                                                            className="px-2 py-1 bg-[#14FFEC] text-black rounded-lg text-xs font-semibold hover:bg-[#14FFEC]/80 transition-all"
+                                                        >
+                                                            Replace
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteFoodDrinksImage(index);
+                                                            }}
+                                                            className="px-2 py-1 bg-red-500 text-white rounded-lg text-xs font-semibold hover:bg-red-600 transition-all flex items-center gap-1"
+                                                        >
+                                                            <Trash2 size={12} />
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             ) : (
                                                 <div className="w-[25px] h-[25px] bg-[#14FFEC] rounded-full flex items-center justify-center">
                                                     <Plus className="w-[12px] h-[12px] text-[#004342]" />
@@ -685,14 +779,37 @@ export default function NewClubPage() {
                                         <div
                                             key={`ambience-${index}`}
                                             onClick={() => handleImageUpload(ambienceRefs[index])}
-                                            className="w-[100px] h-[100px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex items-center justify-center cursor-pointer overflow-hidden"
+                                            className="w-[130px] h-[130px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex items-center justify-center cursor-pointer overflow-hidden group hover:bg-[#0D1F1F]/70 transition-all"
                                         >
                                             {ambiencePreview[index] ? (
-                                                <img
-                                                    src={ambiencePreview[index]}
-                                                    alt={`Ambience ${index + 1}`}
-                                                    className="w-full h-full object-cover rounded-[13px]"
-                                                />
+                                                <div className="relative w-full h-full">
+                                                    <img
+                                                        src={ambiencePreview[index]}
+                                                        alt={`Ambience ${index + 1}`}
+                                                        className="w-full h-full object-cover rounded-[13px]"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-[13px] flex items-center justify-center gap-1 flex-col">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleImageUpload(ambienceRefs[index]);
+                                                            }}
+                                                            className="px-2 py-1 bg-[#14FFEC] text-black rounded-lg text-xs font-semibold hover:bg-[#14FFEC]/80 transition-all"
+                                                        >
+                                                            Replace
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteAmbienceImage(index);
+                                                            }}
+                                                            className="px-2 py-1 bg-red-500 text-white rounded-lg text-xs font-semibold hover:bg-red-600 transition-all flex items-center gap-1"
+                                                        >
+                                                            <Trash2 size={12} />
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             ) : (
                                                 <div className="w-[25px] h-[25px] bg-[#14FFEC] rounded-full flex items-center justify-center">
                                                     <Plus className="w-[12px] h-[12px] text-[#004342]" />
@@ -722,14 +839,37 @@ export default function NewClubPage() {
                                         <div
                                             key={`menu-${index}`}
                                             onClick={() => handleImageUpload(menuRefs[index])}
-                                            className="w-[100px] h-[100px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex items-center justify-center cursor-pointer overflow-hidden"
+                                            className="w-[130px] h-[130px] bg-[#0D1F1F] rounded-[15px] border border-[#14FFEC] flex items-center justify-center cursor-pointer overflow-hidden group hover:bg-[#0D1F1F]/70 transition-all"
                                         >
                                             {menuPreview[index] ? (
-                                                <img
-                                                    src={menuPreview[index]}
-                                                    alt={`Menu ${index + 1}`}
-                                                    className="w-full h-full object-cover rounded-[13px]"
-                                                />
+                                                <div className="relative w-full h-full">
+                                                    <img
+                                                        src={menuPreview[index]}
+                                                        alt={`Menu ${index + 1}`}
+                                                        className="w-full h-full object-cover rounded-[13px]"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-[13px] flex items-center justify-center gap-1 flex-col">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleImageUpload(menuRefs[index]);
+                                                            }}
+                                                            className="px-2 py-1 bg-[#14FFEC] text-black rounded-lg text-xs font-semibold hover:bg-[#14FFEC]/80 transition-all"
+                                                        >
+                                                            Replace
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteMenuImage(index);
+                                                            }}
+                                                            className="px-2 py-1 bg-red-500 text-white rounded-lg text-xs font-semibold hover:bg-red-600 transition-all flex items-center gap-1"
+                                                        >
+                                                            <Trash2 size={12} />
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             ) : (
                                                 <div className="w-[25px] h-[25px] bg-[#14FFEC] rounded-full flex items-center justify-center">
                                                     <Plus className="w-[12px] h-[12px] text-[#004342]" />

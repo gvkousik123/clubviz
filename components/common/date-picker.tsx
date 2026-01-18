@@ -28,6 +28,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
+    // Set default minDate to today if not provided
+    const effectiveMinDate = minDate || formatDateToDDMMYYYY(new Date());
+
     // Parse the current value to set display month
     useEffect(() => {
         if (value) {
@@ -105,11 +108,10 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 
             // Check if date is within min/max range
             let isDisabledDay = false;
-            if (minDate) {
-                const minDateObj = parseDDMMYYYYToDate(minDate);
-                if (minDateObj && date < minDateObj) {
-                    isDisabledDay = true;
-                }
+            // Always use effective min date (today)
+            const minDateObj = parseDDMMYYYYToDate(effectiveMinDate);
+            if (minDateObj && date < minDateObj) {
+                isDisabledDay = true;
             }
             if (maxDate) {
                 const maxDateObj = parseDDMMYYYYToDate(maxDate);

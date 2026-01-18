@@ -41,6 +41,11 @@ function NewEventPageContent() {
     const [showClubDropdown, setShowClubDropdown] = useState(false);
     const [loadingClubs, setLoadingClubs] = useState(true);
 
+    // Image preview states
+    const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const [posterPreview, setPosterPreview] = useState<string | null>(null);
+    const [reelPreview, setReelPreview] = useState<string | null>(null);
+
     const [selectedGenres, setSelectedGenres] = useState<MusicGenre[]>([]);
     const [activeTab, setActiveTab] = useState('details');
     const [selectedRestriction, setSelectedRestriction] = useState<string | null>(null);
@@ -133,6 +138,20 @@ function NewEventPageContent() {
         const file = e.target.files?.[0];
         if (file) {
             setFormData({ ...formData, organizerLogo: file });
+            // Create preview
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setLogoPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleDeleteLogo = () => {
+        setFormData({ ...formData, organizerLogo: null });
+        setLogoPreview(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
         }
     };
 
@@ -140,6 +159,20 @@ function NewEventPageContent() {
         const file = e.target.files?.[0];
         if (file) {
             setFormData({ ...formData, poster: file });
+            // Create preview
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPosterPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleDeletePoster = () => {
+        setFormData({ ...formData, poster: null });
+        setPosterPreview(null);
+        if (posterInputRef.current) {
+            posterInputRef.current.value = '';
         }
     };
 
@@ -147,6 +180,20 @@ function NewEventPageContent() {
         const file = e.target.files?.[0];
         if (file) {
             setFormData({ ...formData, reel: file });
+            // Create preview (for video, we'll show file name instead)
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setReelPreview(file.name);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleDeleteReel = () => {
+        setFormData({ ...formData, reel: null });
+        setReelPreview(null);
+        if (reelInputRef.current) {
+            reelInputRef.current.value = '';
         }
     };
 
@@ -541,19 +588,44 @@ function NewEventPageContent() {
                                     <div className="self-stretch px-5">
                                         <label className="text-[#14FFEC] font-semibold text-base">Event Organizer logo</label>
                                     </div>
-                                    <div
-                                        onClick={() => handleFileUpload(fileInputRef)}
-                                        className="w-[120px] h-[120px] bg-[#0D1F1F] border border-[#14FFEC] rounded-[15px] flex flex-col items-center justify-center p-2 cursor-pointer"
-                                    >
-                                        <img
-                                            src="/admin/upload.svg"
-                                            alt="Upload"
-                                            width={30}
-                                            height={30}
-                                            className="mb-2"
-                                        />
-                                        <p className="text-white text-center text-base font-semibold">Upload logo here</p>
-                                    </div>
+                                    {logoPreview ? (
+                                        <div className="relative w-[180px] h-[180px] bg-[#0D1F1F] border border-[#14FFEC] rounded-[15px] flex flex-col items-center justify-center p-2 cursor-pointer overflow-hidden group">
+                                            <img
+                                                src={logoPreview}
+                                                alt="Logo Preview"
+                                                className="w-full h-full object-cover rounded-[13px]"
+                                            />
+                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-[13px] flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={() => handleFileUpload(fileInputRef)}
+                                                    className="px-4 py-2 bg-[#14FFEC] text-black rounded-lg font-semibold hover:bg-[#14FFEC]/80 transition-all"
+                                                >
+                                                    Replace
+                                                </button>
+                                                <button
+                                                    onClick={handleDeleteLogo}
+                                                    className="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-all flex items-center gap-2"
+                                                >
+                                                    <Trash2 size={16} />
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div
+                                            onClick={() => handleFileUpload(fileInputRef)}
+                                            className="w-[180px] h-[180px] bg-[#0D1F1F] border border-[#14FFEC] rounded-[15px] flex flex-col items-center justify-center p-2 cursor-pointer hover:bg-[#0D1F1F]/70 transition-all"
+                                        >
+                                            <img
+                                                src="/admin/upload.svg"
+                                                alt="Upload"
+                                                width={40}
+                                                height={40}
+                                                className="mb-2"
+                                            />
+                                            <p className="text-white text-center text-sm font-semibold">Upload logo here</p>
+                                        </div>
+                                    )}
                                     <input
                                         ref={fileInputRef}
                                         type="file"
@@ -573,18 +645,38 @@ function NewEventPageContent() {
                                         <label className="text-[#14FFEC] font-semibold text-base">Event Poster *</label>
                                     </div>
                                     <div className="flex justify-center">
-                                        <div
-                                            onClick={() => handleFileUpload(posterInputRef)}
-                                            className="w-[200px] h-[280px] bg-[#0D1F1F] border border-[#14FFEC] rounded-[15px] flex flex-col items-center justify-center p-4 cursor-pointer"
-                                        >
-                                            <ImageIcon size={40} className="text-[#14FFEC] mb-4" />
-                                            <p className="text-white text-center font-semibold">Upload poster here</p>
-                                            {formData.poster && (
-                                                <p className="text-[#14FFEC] text-sm mt-2 text-center">
-                                                    {formData.poster.name}
-                                                </p>
-                                            )}
-                                        </div>
+                                        {posterPreview ? (
+                                            <div className="relative w-[280px] h-[380px] bg-[#0D1F1F] border border-[#14FFEC] rounded-[15px] flex flex-col items-center justify-center p-4 cursor-pointer overflow-hidden group">
+                                                <img
+                                                    src={posterPreview}
+                                                    alt="Poster Preview"
+                                                    className="w-full h-full object-cover rounded-[13px]"
+                                                />
+                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-[13px] flex items-center justify-center gap-3 flex-col">
+                                                    <button
+                                                        onClick={() => handleFileUpload(posterInputRef)}
+                                                        className="px-4 py-2 bg-[#14FFEC] text-black rounded-lg font-semibold hover:bg-[#14FFEC]/80 transition-all"
+                                                    >
+                                                        Replace
+                                                    </button>
+                                                    <button
+                                                        onClick={handleDeletePoster}
+                                                        className="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-all flex items-center gap-2"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div
+                                                onClick={() => handleFileUpload(posterInputRef)}
+                                                className="w-[280px] h-[380px] bg-[#0D1F1F] border border-[#14FFEC] rounded-[15px] flex flex-col items-center justify-center p-4 cursor-pointer hover:bg-[#0D1F1F]/70 transition-all"
+                                            >
+                                                <ImageIcon size={50} className="text-[#14FFEC] mb-4" />
+                                                <p className="text-white text-center font-semibold">Upload poster here</p>
+                                            </div>
+                                        )}
                                     </div>
                                     <input
                                         ref={posterInputRef}
@@ -601,18 +693,37 @@ function NewEventPageContent() {
                                         <label className="text-[#14FFEC] font-semibold text-base">Event Reel</label>
                                     </div>
                                     <div className="flex justify-center">
-                                        <div
-                                            onClick={() => handleFileUpload(reelInputRef)}
-                                            className="w-[200px] h-[200px] bg-[#0D1F1F] border border-[#14FFEC] rounded-[15px] flex flex-col items-center justify-center p-4 cursor-pointer"
-                                        >
-                                            <VideoIcon size={40} className="text-[#14FFEC] mb-4" />
-                                            <p className="text-white text-center font-semibold">Upload reel here</p>
-                                            {formData.reel && (
-                                                <p className="text-[#14FFEC] text-sm mt-2 text-center">
-                                                    {formData.reel.name}
-                                                </p>
-                                            )}
-                                        </div>
+                                        {reelPreview ? (
+                                            <div className="relative w-[280px] h-[280px] bg-[#0D1F1F] border border-[#14FFEC] rounded-[15px] flex flex-col items-center justify-center p-4 cursor-pointer overflow-hidden group">
+                                                <div className="w-full h-full flex flex-col items-center justify-center">
+                                                    <VideoIcon size={50} className="text-[#14FFEC] mb-4" />
+                                                    <p className="text-white text-center font-semibold text-sm break-words max-w-full">{reelPreview}</p>
+                                                </div>
+                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-[13px] flex items-center justify-center gap-3 flex-col">
+                                                    <button
+                                                        onClick={() => handleFileUpload(reelInputRef)}
+                                                        className="px-4 py-2 bg-[#14FFEC] text-black rounded-lg font-semibold hover:bg-[#14FFEC]/80 transition-all"
+                                                    >
+                                                        Replace
+                                                    </button>
+                                                    <button
+                                                        onClick={handleDeleteReel}
+                                                        className="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-all flex items-center gap-2"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div
+                                                onClick={() => handleFileUpload(reelInputRef)}
+                                                className="w-[280px] h-[280px] bg-[#0D1F1F] border border-[#14FFEC] rounded-[15px] flex flex-col items-center justify-center p-4 cursor-pointer hover:bg-[#0D1F1F]/70 transition-all"
+                                            >
+                                                <VideoIcon size={50} className="text-[#14FFEC] mb-4" />
+                                                <p className="text-white text-center font-semibold">Upload reel here</p>
+                                            </div>
+                                        )}
                                     </div>
                                     <input
                                         ref={reelInputRef}
