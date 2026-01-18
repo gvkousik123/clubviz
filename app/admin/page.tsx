@@ -276,7 +276,10 @@ export default function AdminDashboard() {
                             <div className="flex items-center justify-between">
                                 <h1 className="text-4xl font-bold tracking-wide uppercase">{ownedClubs[0]?.name || 'Club'}</h1>
                                 {/* Story Circle */}
-                                <div className="w-16 h-16 bg-black rounded-full border-2 border-[#14FFEC] flex items-center justify-center relative cursor-pointer hover:border-[#14FFEC] hover:bg-[#14FFEC]/10 transition-colors">
+                                <div
+                                    onClick={() => router.push('/admin/upload-story')}
+                                    className="w-16 h-16 bg-black rounded-full border-2 border-[#14FFEC] flex items-center justify-center relative cursor-pointer hover:border-[#14FFEC] hover:bg-[#14FFEC]/10 transition-colors"
+                                >
                                     <div className="relative w-14 h-14 flex items-center justify-center text-xs text-center text-[#14FFEC]">
                                         <div className="flex flex-col items-center justify-center">
                                             <span className="uppercase font-semibold text-xs">Story</span>
@@ -333,7 +336,7 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-3">
+                            <div className="grid grid-cols-3 gap-3 mb-3">
                                 {/* Update Dynamic Pricing */}
                                 <div
                                     onClick={() => handleNavigation('/admin/update-live-details')}
@@ -364,6 +367,25 @@ export default function AdminDashboard() {
                                     <p className="text-center text-white text-xs mb-2">Club Settings</p>
                                     <div className="bg-[#14FFEC] w-8 h-8 rounded-md flex items-center justify-center">
                                         <Edit className="w-5 h-5 text-black" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* My Stories Button - Full Width */}
+                            <div
+                                onClick={() => handleNavigation('/admin/my-stories')}
+                                className="bg-[#0D1F1F] border border-[#14FFEC]/40 rounded-[15px] p-4 flex items-center justify-between cursor-pointer hover:bg-[#14FFEC]/10 transition-colors"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-[#14FFEC] w-10 h-10 rounded-md flex items-center justify-center">
+                                        <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2m10 2V2M5.5 9h13M6 20h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                                            <circle cx="12" cy="14" r="2" fill="currentColor" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p className="text-white font-medium">My Stories</p>
+                                        <p className="text-gray-400 text-xs">View and manage your stories</p>
                                     </div>
                                 </div>
                             </div>

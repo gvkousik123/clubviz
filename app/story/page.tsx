@@ -1,67 +1,55 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { StoryViewer } from '@/components/story/story-viewer';
-
-// Mock story data - Updated with story folder images and internal stories
-const mockStories = [
-    {
-        id: '1',
-        image: '/story/story1.png',
-        title: 'CLUB AMBIENCE',
-        timestamp: '2 hours ago',
-        duration: 5,
-        internalStories: [
-            { id: '1-1', image: '/story/story1.png', duration: 5 },
-            { id: '1-2', image: '/story/Story2.png', duration: 5 },
-            { id: '1-3', image: '/story/story3.png', duration: 5 },
-        ],
-    },
-    {
-        id: '2',
-        image: '/story/Story2.png',
-        title: 'NIGHT VIBES',
-        timestamp: '4 hours ago',
-        duration: 5,
-        internalStories: [
-            { id: '2-1', image: '/story/Story2.png', duration: 5 },
-            { id: '2-2', image: '/story/story 2.png', duration: 5 },
-        ],
-    },
-    {
-        id: '3',
-        image: '/story/story3.png',
-        title: 'FOOD EXPERIENCE',
-        timestamp: '6 hours ago',
-        duration: 5,
-        internalStories: [
-            { id: '3-1', image: '/story/story3.png', duration: 5 },
-            { id: '3-2', image: '/story/story1.png', duration: 5 },
-            { id: '3-3', image: '/story/Story2.png', duration: 5 },
-            { id: '3-4', image: '/story/story 2.png', duration: 5 },
-        ],
-    },
-    {
-        id: '4',
-        image: '/story/story 2.png',
-        title: 'DRINKS & BAR',
-        timestamp: '8 hours ago',
-        duration: 5,
-        internalStories: [
-            { id: '4-1', image: '/story/story 2.png', duration: 5 },
-            { id: '4-2', image: '/story/story3.png', duration: 5 },
-        ],
-    },
-];
+import { useStories } from '@/hooks/use-stories';
+import { Story } from '@/lib/api-types';
 
 function StoryContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { stories, loading, fetchStories } = useStories();
 
     const initialIndex = searchParams.get('index') ? parseInt(searchParams.get('index')!) : 0;
 
-    const [stories] = useState(mockStories);
+    useEffect(() => {
+        // Fetch all active stories on mount
+        fetchStories(0, 100);
+    }, [fetchStories]);
+
+    // Convert API stories to viewer format
+    const viewerStories = stories.map((story: Story) => ({
+        id: story.id,
+        image: story.mediaUrl || '',
+        title: story.caption || 'Story',
+        timestamp: formatTimestamp(story.createdAt),
+        duration: 5,
+        internalStories: [
+            {
+                id: story.id,
+                image: story.mediaUrl || '',
+                duration: 5,
+                type: story.mediaType === 'VIDEO' ? 'video' : 'image'
+            }
+        ],
+    }));
+
+    function formatTimestamp(dateStr: string): string {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+
+        if (diffHours < 1) {
+            const diffMins = Math.floor(diffMs / (1000 * 60));
+            return `${diffMins} min${diffMins !== 1 ? 's' : ''} ago`;
+        }
+        if (diffHours < 24) {
+            return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+        }
+        return `${Math.floor(diffHours / 24)} day${Math.floor(diffHours / 24) !== 1 ? 's' : ''} ago`;
+    }
 
     const handleClose = () => {
         router.back();
@@ -69,7 +57,7 @@ function StoryContent() {
 
     const handleNext = (storyIndex: number, internalIndex: number) => {
         // Update URL to reflect current story
-        const newStoryId = stories[storyIndex]?.id;
+        const newStoryId = viewerStories[storyIndex]?.id;
         if (newStoryId) {
             router.replace(`/story?index=${storyIndex}&internal=${internalIndex}`, { scroll: false });
         }
@@ -77,15 +65,36 @@ function StoryContent() {
 
     const handlePrevious = (storyIndex: number, internalIndex: number) => {
         // Update URL to reflect current story
-        const newStoryId = stories[storyIndex]?.id;
+        const newStoryId = viewerStories[storyIndex]?.id;
         if (newStoryId) {
             router.replace(`/story?index=${storyIndex}&internal=${internalIndex}`, { scroll: false });
         }
     };
 
+    if (loading && stories.length === 0) {
+        return <LoadingFallback />;
+    }
+
+    if (!loading && viewerStories.length === 0) {
+        return (
+            <div className="min-h-screen bg-[#021313] flex items-center justify-center p-6">
+                <div className="text-center">
+                    <h2 className="text-white text-2xl font-bold mb-4">No Active Stories</h2>
+                    <p className="text-gray-400 mb-6">Check back later for new stories</p>
+                    <button
+                        onClick={() => router.back()}
+                        className="px-6 py-3 bg-[#14FFEC] text-black rounded-lg font-semibold hover:bg-[#14FFEC]/80 transition-all"
+                    >
+                        Go Back
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <StoryViewer
-            stories={stories}
+            stories={viewerStories}
             initialIndex={initialIndex}
             onClose={handleClose}
             onNext={handleNext}
