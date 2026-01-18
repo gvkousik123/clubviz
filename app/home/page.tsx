@@ -174,15 +174,17 @@ const HomePage = () => {
         };
     }, [isLocationDropdownOpen]);
 
-    // TODO: Re-enable autocomplete suggestions API when ready
-    // useEffect(() => {
-    //     const timer = setTimeout(() => {
-    //         if (searchQuery.length >= 2) {
-    //             getAutocompleteSuggestions(searchQuery);
-    //         }
-    //     }, 300);
-    //     return () => clearTimeout(timer);
-    // }, [searchQuery, getAutocompleteSuggestions]);
+    // Autocomplete suggestions with 1.5s debounce
+    useEffect(() => {
+        if (searchQuery.length >= 2) {
+            const timer = setTimeout(() => {
+                getAutocompleteSuggestions(searchQuery);
+            }, 1500);
+            return () => clearTimeout(timer);
+        } else {
+            getAutocompleteSuggestions('');
+        }
+    }, [searchQuery, getAutocompleteSuggestions]);
 
     useEffect(() => {
         if (!isNearbyDropdownOpen) {
@@ -480,42 +482,23 @@ const HomePage = () => {
                 });
                 return;
             }
-
-            // TODO: Re-enable nearby search when ready
-            // try {
-            //     await searchNearby({
-            //         radius: 5000,
-            //         lat: currentLocation?.lat,
-            //         lng: currentLocation?.lng,
-            //     });
-            //     setShowingSearchResults(true);
-            //     setNearbyDropdownOpen(true);
-            // } catch (error: any) {
-            //     console.error('Nearby search failed:', error);
-            //     toast({
-            //         title: 'Nearby search failed',
-            //         description: error.message || 'Could not fetch nearby places.',
-            //         variant: 'destructive',
-            //     });
-            // }
             return;
         }
 
-        // TODO: Re-enable universal search when ready
         // If there is a query, use quick search (universalSearch)
-        // console.log('Searching for:', trimmedQuery);
-        // try {
-        //     setShowingSearchResults(true);
-        //     setNearbyDropdownOpen(false); // Close suggestions on enter
-        //     await universalSearch(trimmedQuery);
-        // } catch (error) {
-        //     console.error('Search failed:', error);
-        //     toast({
-        //         title: 'Search failed',
-        //         description: 'Could not perform search. Please try again.',
-        //         variant: 'destructive',
-        //     });
-        // }
+        console.log('Searching for:', trimmedQuery);
+        try {
+            setShowingSearchResults(true);
+            setNearbyDropdownOpen(false); // Close suggestions on enter
+            await universalSearch(trimmedQuery);
+        } catch (error) {
+            console.error('Search failed:', error);
+            toast({
+                title: 'Search failed',
+                description: 'Could not perform search. Please try again.',
+                variant: 'destructive',
+            });
+        }
     };
 
     const handleClearSearch = () => {
@@ -734,32 +717,38 @@ const HomePage = () => {
                                     className="absolute left-0 right-0 top-full mt-3 w-full max-h-[85vh] overflow-hidden rounded-[26px] border border-white/20 bg-[#041919] p-4 shadow-[0px_20px_60px_rgba(0,0,0,0.65)] z-50 flex flex-col"
                                 >
                                     <div className="flex-1 overflow-y-auto pr-1">
-                                        {searchQuery.length >= 2 && autocompleteSuggestions && autocompleteSuggestions.length > 0 ? (
-                                            <div className="flex flex-col gap-2">
-                                                <h3 className="text-xs text-white/50 px-2 font-bold uppercase tracking-wider mb-2">Suggestions</h3>
-                                                {autocompleteSuggestions.map((suggestion, idx) => (
-                                                    <button
-                                                        key={idx}
-                                                        onClick={() => {
-                                                            setSearchQuery(suggestion.text);
-                                                            // Close dropdown and show results
-                                                            setNearbyDropdownOpen(false);
-                                                            setShowingSearchResults(true);
-                                                            // Trigger main search with the suggestion text
-                                                            universalSearch(suggestion.text);
-                                                        }}
-                                                        className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg transition-colors text-left group w-full"
-                                                    >
-                                                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#14FFEC] group-hover:bg-[#14FFEC]/10">
-                                                            <Search className="w-4 h-4" />
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <p className="text-white text-sm font-semibold">{suggestion.text}</p>
-                                                            <p className="text-white/50 text-xs capitalize">{suggestion.type.toLowerCase()}</p>
-                                                        </div>
-                                                    </button>
-                                                ))}
-                                            </div>
+                                        {searchQuery.length >= 2 ? (
+                                            autocompleteSuggestions && autocompleteSuggestions.length > 0 ? (
+                                                <div className="flex flex-col gap-2">
+                                                    <h3 className="text-xs text-white/50 px-2 font-bold uppercase tracking-wider mb-2">Suggestions</h3>
+                                                    {autocompleteSuggestions.map((suggestion, idx) => (
+                                                        <button
+                                                            key={idx}
+                                                            onClick={() => {
+                                                                setSearchQuery(suggestion.text);
+                                                                // Close dropdown and show results
+                                                                setNearbyDropdownOpen(false);
+                                                                setShowingSearchResults(true);
+                                                                // Trigger main search with the suggestion text
+                                                                universalSearch(suggestion.text);
+                                                            }}
+                                                            className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg transition-colors text-left group w-full"
+                                                        >
+                                                            <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#14FFEC] group-hover:bg-[#14FFEC]/10">
+                                                                <Search className="w-4 h-4" />
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <p className="text-white text-sm font-semibold">{suggestion.text}</p>
+                                                                <p className="text-white/50 text-xs capitalize">{suggestion.type.toLowerCase()}</p>
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-8">
+                                                    <p className="text-white/50 text-sm">No suggestions</p>
+                                                </div>
+                                            )
                                         ) : (
                                             <LocationSuggestionList
                                                 suggestions={nearbySuggestions}
@@ -772,8 +761,8 @@ const HomePage = () => {
                                             />
                                         )}
                                     </div>
-                                    {/* Only show details if NOT showing autocomplete suggestions (i.e. if showing nearby stuff) */}
-                                    {!(searchQuery.length >= 2 && autocompleteSuggestions && autocompleteSuggestions.length > 0) && (
+                                    {/* Only show details if NOT showing autocomplete (i.e. if showing nearby stuff or no query) */}
+                                    {searchQuery.length < 2 && (
                                         <div className="mt-3 pt-3 border-t border-white/10">
                                             <NearbyDetailCard
                                                 detail={nearbyDetails}
