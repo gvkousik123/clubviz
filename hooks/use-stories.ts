@@ -81,10 +81,7 @@ export function useStories() {
         try {
             const response = await StoryService.uploadStory(data);
             if (response.success) {
-                toast({
-                    title: 'Success',
-                    description: 'Story uploaded successfully',
-                });
+                // Don't show toast here - let the component handle it
                 // Refresh my stories
                 fetchMyStories();
                 return response.data;

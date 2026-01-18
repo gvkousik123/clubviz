@@ -99,7 +99,10 @@ export default function UploadStoryPage() {
                     title: 'Success',
                     description: 'Story uploaded successfully!',
                 });
-                router.push('/admin');
+                // Navigate back to admin page after short delay
+                setTimeout(() => {
+                    router.replace('/admin');
+                }, 1500);
             }
         } catch (error: any) {
             console.error('Error uploading story:', error);
