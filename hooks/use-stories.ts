@@ -21,11 +21,15 @@ export function useStories() {
         setError(null);
         try {
             const response = await StoryService.getStories(page, size);
+            console.log('📖 fetchStories - Full response:', response);
+            console.log('📖 fetchStories - response.data:', response.data);
             if (response.success && response.data) {
                 const data = response.data as unknown as StoryListResponse; // Type assertion if needed based on actual API response structure
+                console.log('📖 fetchStories - Extracted data:', data);
 
                 // Handle case where data might be an array directly or a paginated object
                 const content = Array.isArray(data) ? data : (data.content || []);
+                console.log('📖 fetchStories - Extracted content array:', content);
 
                 if (append) {
                     setStories(prev => [...prev, ...content]);
@@ -42,10 +46,11 @@ export function useStories() {
                 }
             } else {
                 setError(response.message || 'Failed to fetch stories');
+                console.warn('📖 fetchStories - Response not successful:', response);
             }
         } catch (err: any) {
             setError(err.message || 'An error occurred while fetching stories');
-            console.error(err);
+            console.error('📖 fetchStories - Error:', err);
         } finally {
             setLoading(false);
         }

@@ -71,6 +71,7 @@ export const StoryService = {
     uploadStory: async (data: CreateStoryRequest): Promise<ApiResponse<Story>> => {
         try {
             const response = await api.post('/story/stories/upload', data);
+            console.log('Upload response:', response);
             return handleApiResponse(response);
         } catch (error) {
             throw new Error(handleApiError(error));

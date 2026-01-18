@@ -440,15 +440,24 @@ export interface Story {
   id: string;
   clubId: string;
   club: Club;
-  mediaUrl: string;
+  mediaUrl?: string;
+  mediaUrl1?: string;
+  mediaUrl2?: string;
+  mediaBase64?: string;
   mediaType: 'image' | 'video';
   duration: number; // in seconds
   title?: string;
   description?: string;
+  caption?: string;
   isActive: boolean;
   viewCount: number;
   createdAt: string;
   expiresAt: string;
+  userId?: string;
+  userFullName?: string;
+  userProfilePicture?: string;
+  fileName?: string;
+  fileSize?: number;
 }
 
 export interface StoryView {

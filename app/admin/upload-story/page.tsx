@@ -93,7 +93,7 @@ export default function UploadStoryPage() {
                 caption: caption.trim() || undefined,
                 fileName: selectedFile.name
             });
-
+            console.log('Upload result:', result);
             if (result) {
                 toast({
                     title: 'Success',

@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { STORAGE_KEYS } from './constants/storage';
+import { ApiResponse } from './api-types';
 
 // API Configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://clubwiz.in';
@@ -146,7 +147,7 @@ export const api = {
 };
 
 // Utility functions for handling responses
-export const handleApiResponse = <T>(response: AxiosResponse<T>): T => {
+export const handleApiResponse = <T>(response: AxiosResponse<ApiResponse<T>>): ApiResponse<T> => {
   return response.data;
 };
 

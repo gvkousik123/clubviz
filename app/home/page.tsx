@@ -95,10 +95,8 @@ const HomePage = () => {
     const [isLoadingAllClubs, setIsLoadingAllClubs] = useState(false);
     const [isLoadingEvents, setIsLoadingEvents] = useState(false);
 
-    // TODO: Re-enable stories API when ready
-    // const { stories, fetchStories, loading: storiesLoading } = useStories();
-    const stories = [];
-    const storiesLoading = false;
+    // Stories API
+    const { stories, fetchStories, loading: storiesLoading } = useStories();
 
     const { toast } = useToast();
 
@@ -290,7 +288,7 @@ const HomePage = () => {
             if (!isGuest) {
                 await loadProfile();
                 // Load stories for authenticated users
-                // fetchStories();
+                fetchStories();
             }
 
             // Load clubs ONCE - ALWAYS use Public API: /clubs/public/list
@@ -1077,6 +1075,7 @@ const HomePage = () => {
                             {/* Vibe Meter / Stories */}
                             {!isGuestMode() && (storiesLoading || stories.length > 0) && (
                                 <section className="pt-2 mb-2">
+                                    {console.log('🏠 Home - Rendering Vibe Meter. storiesLoading:', storiesLoading, 'stories count:', stories.length, 'stories:', stories)}
                                     {storiesLoading ? (
                                         <div className="px-5 flex items-center gap-2 text-white/50 py-4">
                                             <Loader2 className="w-5 h-5 animate-spin" />
@@ -1085,15 +1084,18 @@ const HomePage = () => {
                                     ) : (
                                         <StoriesSection
                                             className="px-1"
-                                            stories={stories.map(s => ({
-                                                id: s.id,
-                                                image: s.mediaUrl,
-                                                title: s.title || s.club?.name || 'Story',
-                                                timestamp: new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                                                clubName: s.club?.name,
-                                                isViewed: false,
-                                                duration: s.duration
-                                            }))}
+                                            stories={stories.map(s => {
+                                                const mediaUrl = s.mediaUrl || s.mediaUrl1 || s.mediaUrl2 || s.mediaBase64 || '';
+                                                return {
+                                                    id: s.id,
+                                                    image: mediaUrl,
+                                                    title: s.title || s.caption || s.club?.name || 'Story',
+                                                    timestamp: new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                                                    clubName: s.club?.name || s.userFullName,
+                                                    isViewed: false,
+                                                    duration: s.duration
+                                                };
+                                            })}
                                         />
                                     )}
                                 </section>
