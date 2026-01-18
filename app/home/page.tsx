@@ -491,6 +491,8 @@ const HomePage = () => {
             setShowingSearchResults(true);
             setNearbyDropdownOpen(false); // Close suggestions on enter
             await universalSearch(trimmedQuery);
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (error) {
             console.error('Search failed:', error);
             toast({
@@ -816,7 +818,7 @@ const HomePage = () => {
                     {/* Search Results or Normal Content */}
                     {showingSearchResults ? (
                         /* Search Results Section */
-                        <section className="px-5 space-y-6 pt-[18vh]">
+                        <section className="px-5 space-y-6">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-white text-lg font-bold">
                                     {`Search Results for "${searchQuery}"`}
