@@ -27,7 +27,8 @@ export default function ManageOffersPage() {
         discountPercentage: '',
         discountAmount: '',
         promoCode: '',
-        minimumBill: '',
+        minimumAmount: '',
+        usageLimit: '',
         startDate: '',
         endDate: '',
         isActive: true
@@ -53,7 +54,13 @@ export default function ManageOffersPage() {
 
                     // Fetch offers for this club
                     const offersResponse = await OffersService.getClubOffers(club.id);
-                    setOffers(offersResponse.data || []);
+                    if (offersResponse.success) {
+                        setOffers(offersResponse.data || []);
+                        console.log('✅ Offers loaded:', offersResponse.data);
+                    } else {
+                        console.warn('⚠️ Failed to load offers, but continuing');
+                        setOffers([]);
+                    }
                 } else {
                     toast({
                         title: "No Club Found",
@@ -63,10 +70,10 @@ export default function ManageOffersPage() {
                     router.push('/admin');
                 }
             } catch (error) {
-                console.error('Error fetching data:', error);
+                console.error('❌ Error fetching data:', error);
                 toast({
                     title: "Error",
-                    description: "Failed to load offers",
+                    description: "Failed to load club information",
                     variant: "destructive",
                 });
             } finally {
@@ -92,7 +99,8 @@ export default function ManageOffersPage() {
             discountPercentage: '',
             discountAmount: '',
             promoCode: '',
-            minimumBill: '',
+            minimumAmount: '',
+            usageLimit: '',
             startDate: '',
             endDate: '',
             isActive: true
@@ -118,22 +126,31 @@ export default function ManageOffersPage() {
                 discountPercentage: formData.discountPercentage ? Number(formData.discountPercentage) : undefined,
                 discountAmount: formData.discountAmount ? Number(formData.discountAmount) : undefined,
                 promoCode: formData.promoCode || undefined,
-                minimumBill: formData.minimumBill ? Number(formData.minimumBill) : undefined,
+                minimumAmount: formData.minimumAmount ? Number(formData.minimumAmount) : undefined,
+                usageLimit: formData.usageLimit ? Number(formData.usageLimit) : undefined,
                 startDate: formData.startDate,
                 endDate: formData.endDate,
                 isActive: formData.isActive
             };
 
             const response = await OffersService.createOffer(clubId, offerData);
-            setOffers(prev => [...prev, response.data]);
-            setShowAddDialog(false);
-            resetForm();
-            toast({
-                title: "Success",
-                description: "Offer created successfully!",
-            });
+            if (response.success && response.data) {
+                setOffers(prev => [...prev, response.data]);
+                setShowAddDialog(false);
+                resetForm();
+                toast({
+                    title: "Success",
+                    description: "Offer created successfully!",
+                });
+            } else {
+                toast({
+                    title: "Error",
+                    description: response.error || "Failed to create offer",
+                    variant: "destructive",
+                });
+            }
         } catch (error) {
-            console.error('Error creating offer:', error);
+            console.error('❌ Error creating offer:', error);
             toast({
                 title: "Error",
                 description: "Failed to create offer",
@@ -156,23 +173,32 @@ export default function ManageOffersPage() {
                 discountPercentage: formData.discountPercentage ? Number(formData.discountPercentage) : undefined,
                 discountAmount: formData.discountAmount ? Number(formData.discountAmount) : undefined,
                 promoCode: formData.promoCode || undefined,
-                minimumBill: formData.minimumBill ? Number(formData.minimumBill) : undefined,
+                minimumAmount: formData.minimumAmount ? Number(formData.minimumAmount) : undefined,
+                usageLimit: formData.usageLimit ? Number(formData.usageLimit) : undefined,
                 startDate: formData.startDate,
                 endDate: formData.endDate,
                 isActive: formData.isActive
             };
 
             const response = await OffersService.updateOffer(clubId, selectedOffer.id!, offerData);
-            setOffers(prev => prev.map(o => o.id === selectedOffer.id ? response.data : o));
-            setShowEditDialog(false);
-            setSelectedOffer(null);
-            resetForm();
-            toast({
-                title: "Success",
-                description: "Offer updated successfully!",
-            });
+            if (response.success && response.data) {
+                setOffers(prev => prev.map(o => o.id === selectedOffer.id ? response.data : o));
+                setShowEditDialog(false);
+                setSelectedOffer(null);
+                resetForm();
+                toast({
+                    title: "Success",
+                    description: "Offer updated successfully!",
+                });
+            } else {
+                toast({
+                    title: "Error",
+                    description: response.error || "Failed to update offer",
+                    variant: "destructive",
+                });
+            }
         } catch (error) {
-            console.error('Error updating offer:', error);
+            console.error('❌ Error updating offer:', error);
             toast({
                 title: "Error",
                 description: "Failed to update offer",
@@ -188,16 +214,24 @@ export default function ManageOffersPage() {
 
         setIsSaving(true);
         try {
-            await OffersService.deleteOffer(clubId, selectedOffer.id!);
-            setOffers(prev => prev.filter(o => o.id !== selectedOffer.id));
-            setShowDeleteDialog(false);
-            setSelectedOffer(null);
-            toast({
-                title: "Success",
-                description: "Offer deleted successfully!",
-            });
+            const response = await OffersService.deleteOffer(clubId, selectedOffer.id!);
+            if (response.success) {
+                setOffers(prev => prev.filter(o => o.id !== selectedOffer.id));
+                setShowDeleteDialog(false);
+                setSelectedOffer(null);
+                toast({
+                    title: "Success",
+                    description: "Offer deleted successfully!",
+                });
+            } else {
+                toast({
+                    title: "Error",
+                    description: response.error || "Failed to delete offer",
+                    variant: "destructive",
+                });
+            }
         } catch (error) {
-            console.error('Error deleting offer:', error);
+            console.error('❌ Error deleting offer:', error);
             toast({
                 title: "Error",
                 description: "Failed to delete offer",
@@ -217,7 +251,8 @@ export default function ManageOffersPage() {
             discountPercentage: offer.discountPercentage?.toString() || '',
             discountAmount: offer.discountAmount?.toString() || '',
             promoCode: offer.promoCode || '',
-            minimumBill: offer.minimumBill?.toString() || '',
+            minimumAmount: offer.minimumAmount?.toString() || '',
+            usageLimit: offer.usageLimit?.toString() || '',
             startDate: offer.startDate,
             endDate: offer.endDate,
             isActive: offer.isActive
@@ -323,10 +358,16 @@ export default function ManageOffersPage() {
                                             <span className="text-white/80">{offer.promoCode}</span>
                                         </div>
                                     )}
-                                    {offer.minimumBill && (
+                                    {offer.minimumAmount && (
                                         <div className="flex items-center gap-2 text-sm">
                                             <DollarSign size={14} className="text-[#14FFEC]" />
-                                            <span className="text-white/80">Min: ₹{offer.minimumBill}</span>
+                                            <span className="text-white/80">Min: ₹{offer.minimumAmount}</span>
+                                        </div>
+                                    )}
+                                    {offer.usageLimit && (
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <Tag size={14} className="text-[#14FFEC]" />
+                                            <span className="text-white/80">Limit: {offer.usageLimit}</span>
                                         </div>
                                     )}
                                 </div>
@@ -427,15 +468,29 @@ export default function ManageOffersPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-sm text-[#14FFEC] mb-1 block">Min Bill ₹</label>
+                                    <label className="text-sm text-[#14FFEC] mb-1 block">Min Amount ₹</label>
                                     <input
                                         type="number"
-                                        value={formData.minimumBill}
-                                        onChange={(e) => handleInputChange('minimumBill', e.target.value)}
+                                        value={formData.minimumAmount}
+                                        onChange={(e) => handleInputChange('minimumAmount', e.target.value)}
                                         className="w-full bg-[#021313] text-white rounded-lg px-3 py-2 text-sm border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
                                         placeholder="0"
                                     />
                                 </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-sm text-[#14FFEC] mb-1 block">Usage Limit</label>
+                                    <input
+                                        type="number"
+                                        value={formData.usageLimit}
+                                        onChange={(e) => handleInputChange('usageLimit', e.target.value)}
+                                        className="w-full bg-[#021313] text-white rounded-lg px-3 py-2 text-sm border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
+                                        placeholder="1"
+                                    />
+                                </div>
+                                <div></div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">

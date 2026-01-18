@@ -1,4 +1,4 @@
-import { apiClient } from '../api-client';
+import apiClient from '../api-client';
 
 export interface ClubOffer {
     id?: string;
@@ -22,7 +22,8 @@ export interface CreateOfferRequest {
     discountPercentage?: number;
     discountAmount?: number;
     promoCode?: string;
-    minimumBill?: number;
+    minimumAmount?: number;
+    usageLimit?: number;
     startDate: string;
     endDate: string;
     isActive: boolean;
@@ -38,61 +39,93 @@ export class OffersService {
      */
     static async getClubOffers(clubId: string): Promise<{ success: boolean; data: ClubOffer[] }> {
         try {
-            const response = await apiClient.get(`${this.BASE_URL}/clubs/${clubId}/offers`);
+            if (!apiClient) {
+                throw new Error('API client not initialized');
+            }
+            console.log(`📡 Fetching offers for club: ${clubId}`);
+            const response = await apiClient.get(`${this.BASE_URL}/pricing-offers/clubs/${clubId}/offers`);
+            console.log(`✅ Offers fetched successfully:`, response.data);
             return {
                 success: true,
-                data: response.data || []
+                data: Array.isArray(response.data) ? response.data : response.data?.data || []
             };
         } catch (error: any) {
-            console.error('Error fetching club offers:', error);
-            throw error;
+            console.error('❌ Error fetching club offers:', error.message, error);
+            return {
+                success: false,
+                data: []
+            };
         }
     }
 
     /**
      * Create a new offer for a club (Admin/SuperAdmin only)
      */
-    static async createOffer(clubId: string, offerData: CreateOfferRequest): Promise<{ success: boolean; data: ClubOffer }> {
+    static async createOffer(clubId: string, offerData: CreateOfferRequest): Promise<{ success: boolean; data?: ClubOffer; error?: string }> {
         try {
-            const response = await apiClient.post(`${this.BASE_URL}/clubs/${clubId}/offers`, offerData);
+            if (!apiClient) {
+                throw new Error('API client not initialized');
+            }
+            console.log(`📡 Creating offer for club: ${clubId}`, offerData);
+            const response = await apiClient.post(`${this.BASE_URL}/pricing-offers/clubs/${clubId}/offers`, offerData);
+            console.log(`✅ Offer created successfully:`, response.data);
             return {
                 success: true,
                 data: response.data
             };
         } catch (error: any) {
-            console.error('Error creating offer:', error);
-            throw error;
+            console.error('❌ Error creating offer:', error.message, error);
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message
+            };
         }
     }
 
     /**
      * Update an existing offer (Admin/SuperAdmin only)
      */
-    static async updateOffer(clubId: string, offerId: string, offerData: UpdateOfferRequest): Promise<{ success: boolean; data: ClubOffer }> {
+    static async updateOffer(clubId: string, offerId: string, offerData: UpdateOfferRequest): Promise<{ success: boolean; data?: ClubOffer; error?: string }> {
         try {
-            const response = await apiClient.put(`${this.BASE_URL}/clubs/${clubId}/offers/${offerId}`, offerData);
+            if (!apiClient) {
+                throw new Error('API client not initialized');
+            }
+            console.log(`📡 Updating offer ${offerId} for club: ${clubId}`, offerData);
+            const response = await apiClient.put(`${this.BASE_URL}/pricing-offers/clubs/${clubId}/offers/${offerId}`, offerData);
+            console.log(`✅ Offer updated successfully:`, response.data);
             return {
                 success: true,
                 data: response.data
             };
         } catch (error: any) {
-            console.error('Error updating offer:', error);
-            throw error;
+            console.error('❌ Error updating offer:', error.message, error);
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message
+            };
         }
     }
 
     /**
      * Delete an offer (Admin/SuperAdmin only)
      */
-    static async deleteOffer(clubId: string, offerId: string): Promise<{ success: boolean }> {
+    static async deleteOffer(clubId: string, offerId: string): Promise<{ success: boolean; error?: string }> {
         try {
-            await apiClient.delete(`${this.BASE_URL}/clubs/${clubId}/offers/${offerId}`);
+            if (!apiClient) {
+                throw new Error('API client not initialized');
+            }
+            console.log(`📡 Deleting offer ${offerId} for club: ${clubId}`);
+            await apiClient.delete(`${this.BASE_URL}/pricing-offers/clubs/${clubId}/offers/${offerId}`);
+            console.log(`✅ Offer deleted successfully`);
             return {
                 success: true
             };
         } catch (error: any) {
-            console.error('Error deleting offer:', error);
-            throw error;
+            console.error('❌ Error deleting offer:', error.message, error);
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message
+            };
         }
     }
 }

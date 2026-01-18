@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { ClubService } from '@/lib/services/club.service';
-import { OffersService, ClubOffer } from '@/lib/services/offers.service';
 import { useToast } from '@/hooks/use-toast';
 
 // Tag Component for reusability
@@ -31,8 +30,6 @@ export default function EditClubPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [clubData, setClubData] = useState<any>(null);
     const [editData, setEditData] = useState<any>({});
-    const [offers, setOffers] = useState<ClubOffer[]>([]);
-    const [isLoadingOffers, setIsLoadingOffers] = useState(false);
 
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [heroImages, setHeroImages] = useState<string[]>([
@@ -93,9 +90,6 @@ export default function EditClubPage() {
                     }
 
                     console.log('✅ Club data loaded:', club);
-
-                    // Load offers for this club
-                    await loadClubOffers();
                 } else {
                     throw new Error(response.message || 'Failed to load club data');
                 }
@@ -116,29 +110,6 @@ export default function EditClubPage() {
             loadClubData();
         }
     }, [clubId, toast, router]);
-
-    // Load club offers
-    const loadClubOffers = async () => {
-        try {
-            setIsLoadingOffers(true);
-            console.log('📡 Fetching offers for club ID:', clubId);
-            const response = await OffersService.getClubOffers(clubId);
-
-            if (response.success && response.data) {
-                // Filter only active offers and match club ID
-                const activeOffers = response.data.filter(
-                    (offer: ClubOffer) => offer.isActive && offer.clubId === clubId
-                );
-                setOffers(activeOffers);
-                console.log('✅ Active offers loaded:', activeOffers);
-            }
-        } catch (error) {
-            console.error('❌ Error loading offers:', error);
-            // Don't show error toast - offers are optional
-        } finally {
-            setIsLoadingOffers(false);
-        }
-    };
 
     const handleInputChange = (field: string, value: any) => {
         setEditData((prev: any) => ({
@@ -469,68 +440,6 @@ export default function EditClubPage() {
                                     ) : (
                                         <p className="text-white/90 text-sm">{editData.description}</p>
                                     )}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Special Offers Section */}
-                        {!isLoadingOffers && offers.length > 0 && (
-                            <div className="flex flex-col gap-[8px] mt-3">
-                                <h3 className="text-[#FFFEFF] text-lg font-semibold mb-1 px-1">Special Offers</h3>
-                                <div className="space-y-2">
-                                    {offers.map((offer) => (
-                                        <div
-                                            key={offer.id}
-                                            className="bg-gradient-to-r from-[#01756C]/20 to-[#08C2B3]/10 border border-[#14FFEC]/30 rounded-[15px] p-3"
-                                        >
-                                            <div className="flex items-start justify-between gap-2">
-                                                <div className="flex-1">
-                                                    <h4 className="text-[#14FFEC] font-semibold text-sm mb-1">
-                                                        {offer.title}
-                                                    </h4>
-                                                    {offer.description && (
-                                                        <p className="text-white/80 text-xs mb-2">{offer.description}</p>
-                                                    )}
-                                                    <div className="flex flex-wrap gap-2 text-xs">
-                                                        {offer.discountPercentage > 0 && (
-                                                            <span className="px-2 py-1 bg-[#14FFEC]/20 text-[#14FFEC] rounded-full">
-                                                                {offer.discountPercentage}% OFF
-                                                            </span>
-                                                        )}
-                                                        {offer.discountAmount > 0 && (
-                                                            <span className="px-2 py-1 bg-[#14FFEC]/20 text-[#14FFEC] rounded-full">
-                                                                ₹{offer.discountAmount} OFF
-                                                            </span>
-                                                        )}
-                                                        {offer.promoCode && (
-                                                            <span className="px-2 py-1 bg-white/10 text-white rounded-full font-mono">
-                                                                {offer.promoCode}
-                                                            </span>
-                                                        )}
-                                                        {offer.minimumBill > 0 && (
-                                                            <span className="text-white/60">
-                                                                Min. bill: ₹{offer.minimumBill}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    {(offer.startDate || offer.endDate) && (
-                                                        <div className="text-white/60 text-xs mt-2">
-                                                            {offer.startDate && offer.endDate && (
-                                                                <span>
-                                                                    Valid: {new Date(offer.startDate).toLocaleDateString()} - {new Date(offer.endDate).toLocaleDateString()}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="flex-shrink-0">
-                                                    <span className="inline-block px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">
-                                                        Active
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
                                 </div>
                             </div>
                         )}
