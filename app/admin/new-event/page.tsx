@@ -76,7 +76,7 @@ function NewEventPageContent() {
         const loadClubs = async () => {
             try {
                 setLoadingClubs(true);
-                console.log('📡 Loading admin clubs from /clubs/admin/all...');
+                console.log('📡 Loading admin club...');
                 const response = await ClubService.getAllClubsAdmin();
 
                 // Handle API response
@@ -87,33 +87,19 @@ function NewEventPageContent() {
                     clubsList = response;
                 }
 
-                console.log('✅ Admin clubs loaded:', clubsList);
+                console.log('✅ Admin club loaded:', clubsList);
                 setClubs(clubsList);
 
-                // Check if clubId is in URL (navigated from club page)
-                const urlClubId = searchParams.get('clubId');
-                if (urlClubId) {
-                    const found = clubsList.find(c => c.id === urlClubId);
-                    if (found) {
-                        setSelectedClubId(urlClubId);
-                        // Hide dropdown when navigating from club page
-                        setShowClubDropdown(false);
-                        console.log('📌 Pre-selected club from URL:', found.name);
-                    } else if (clubsList.length > 0) {
-                        // Fallback if ID not found
-                        setSelectedClubId(clubsList[0].id);
-                    }
-                }
-                // Auto-select first club if available and no URL param
-                else if (clubsList.length > 0) {
+                // Auto-select the single club (there's only one per admin)
+                if (clubsList.length > 0) {
                     setSelectedClubId(clubsList[0].id);
-                    console.log('📌 Auto-selected club:', clubsList[0].name);
+                    console.log('✅ Auto-selected admin club:', clubsList[0].name, '(ID:', clubsList[0].id + ')');
                 }
             } catch (error) {
-                console.error('❌ Error loading clubs:', error);
+                console.error('❌ Error loading club:', error);
                 toast({
                     title: 'Error',
-                    description: 'Failed to load clubs. Please try again.',
+                    description: 'Failed to load club. Please try again.',
                     variant: 'destructive'
                 });
             } finally {
@@ -122,7 +108,7 @@ function NewEventPageContent() {
         };
 
         loadClubs();
-    }, [toast, searchParams]);
+    }, [toast]);
 
     const handleGoBack = () => {
         router.back();
@@ -370,64 +356,11 @@ function NewEventPageContent() {
                 <div className="w-full bg-[#021313] rounded-t-[40px] flex flex-col">
                     {/* Fixed header section that stays in place */}
                     <div className="w-full bg-[#021313] rounded-t-[40px]">
-                        {/* Club Selector - Only show if not navigated from a club page */}
-                        {!searchParams.get('clubId') && (
-                            <div className="w-full px-6 pt-6 pb-2">
-                                <label className="block text-[#14FFEC] font-semibold text-base mb-2">Select Club *</label>
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setShowClubDropdown(!showClubDropdown)}
-                                        className="w-full bg-[#0D1F1F] border border-[#0C898B] rounded-[20px] p-[12px] px-4 flex items-center justify-between text-white hover:bg-[#0F2525] transition-colors"
-                                        disabled={loadingClubs}
-                                    >
-                                        <span className="flex items-center gap-2">
-                                            <Building2 size={18} className="text-[#14FFEC]" />
-                                            {loadingClubs ? 'Loading clubs...' : (selectedClubId ? clubs.find(c => c.id === selectedClubId)?.name || 'Select a club' : 'Select a club')}
-                                        </span>
-                                        <ChevronDown size={18} className={`text-[#14FFEC] transition-transform ${showClubDropdown ? 'rotate-180' : ''}`} />
-                                    </button>
-
-                                    {/* Dropdown Menu */}
-                                    {showClubDropdown && !loadingClubs && clubs.length > 0 && (
-                                        <div className="absolute top-full left-0 right-0 mt-2 bg-[#0D1F1F] border border-[#0C898B] rounded-[15px] z-50 shadow-lg max-h-64 overflow-y-auto">
-                                            {clubs.map((club) => (
-                                                <button
-                                                    key={club.id}
-                                                    onClick={() => {
-                                                        setSelectedClubId(club.id);
-                                                        setShowClubDropdown(false);
-                                                        console.log('✅ Selected club:', club.name, '(ID:', club.id + ')');
-                                                    }}
-                                                    className={`w-full px-4 py-3 text-left flex items-center gap-3 border-b border-[#0C898B] last:border-0 hover:bg-[#0F2525] transition-colors ${selectedClubId === club.id ? 'bg-[#0F2525] border-l-4 border-l-[#14FFEC]' : ''
-                                                        }`}
-                                                >
-                                                    {club.logo && (
-                                                        <img src={club.logo} alt={club.name} className="w-8 h-8 rounded-full object-cover" />
-                                                    )}
-                                                    <span className="text-white font-semibold">{club.name}</span>
-                                                    {selectedClubId === club.id && (
-                                                        <span className="ml-auto text-[#14FFEC]">✓</span>
-                                                    )}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Empty State */}
-                                    {showClubDropdown && !loadingClubs && clubs.length === 0 && (
-                                        <div className="absolute top-full left-0 right-0 mt-2 bg-[#0D1F1F] border border-[#0C898B] rounded-[15px] p-4 text-center text-gray-400">
-                                            No clubs available. Please create a club first.
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
                         {/* Heading container */}
                         <div className="w-full pb-2">
                             <div className="flex items-center justify-center pt-8 pb-4">
                                 <h2 className="text-[28px] font-bold text-white text-center tracking-wider font-['Anton']">
-                                    {selectedClubId ? clubs.find(c => c.id === selectedClubId)?.name || 'EVENT DETAILS' : 'SELECT A CLUB'}
+                                    {selectedClubId ? clubs.find(c => c.id === selectedClubId)?.name || 'CREATE EVENT' : 'LOADING...'}
                                 </h2>
                             </div>
                         </div>
