@@ -22,14 +22,18 @@ export function useStories() {
         try {
             const response = await StoryService.getStories(page, size);
             console.log('📖 fetchStories - Full response:', response);
+            console.log('📖 fetchStories - response.success:', response.success);
             console.log('📖 fetchStories - response.data:', response.data);
+            
             if (response.success && response.data) {
-                const data = response.data as unknown as StoryListResponse; // Type assertion if needed based on actual API response structure
-                console.log('📖 fetchStories - Extracted data:', data);
-
-                // Handle case where data might be an array directly or a paginated object
-                const content = Array.isArray(data) ? data : (data.content || []);
+                // response.data is already the StoryListResponse object because handleApiResponse returns it
+                const apiResponse = response.data as any;
+                console.log('📖 fetchStories - apiResponse structure:', apiResponse);
+                
+                // The API returns: { content: [...], currentPage: 0, totalPages: 1, totalElements: 2, hasNext: false }
+                const content = apiResponse.content || [];
                 console.log('📖 fetchStories - Extracted content array:', content);
+                console.log('📖 fetchStories - Content length:', content.length);
 
                 if (append) {
                     setStories(prev => [...prev, ...content]);
@@ -37,13 +41,14 @@ export function useStories() {
                     setStories(content);
                 }
 
-                if (!Array.isArray(data)) {
-                    setPagination({
-                        page: data.currentPage || page,
-                        hasNext: data.hasNext || false,
-                        totalPages: data.totalPages || 0
-                    });
-                }
+                // Update pagination info
+                setPagination({
+                    page: apiResponse.currentPage || page,
+                    hasNext: apiResponse.hasNext || false,
+                    totalPages: apiResponse.totalPages || 0
+                });
+                
+                console.log('📖 fetchStories - Stories set to state. Total:', content.length);
             } else {
                 setError(response.message || 'Failed to fetch stories');
                 console.warn('📖 fetchStories - Response not successful:', response);

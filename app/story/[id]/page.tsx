@@ -3,57 +3,18 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { StoryViewer } from '@/components/story/story-viewer';
+import { StoryService } from '@/lib/services/story.service';
+import { Story } from '@/lib/api-types';
 
-// Mock story data - Using only the 4 story images from /story folder
-const mockStories = [
-    {
-        id: '1',
-        image: '/story/story1.png',
-        title: 'CLUB AMBIENCE',
-        timestamp: '2 hours ago',
-        duration: 5,
-        internalStories: [
-            { id: '1-1', image: '/story/story1.png', duration: 5 },
-            { id: '1-2', image: '/story/Story2.png', duration: 5 },
-            { id: '1-3', image: '/story/story3.png', duration: 5 },
-        ],
-    },
-    {
-        id: '2',
-        image: '/story/Story2.png',
-        title: 'NIGHT VIBES',
-        timestamp: '4 hours ago',
-        duration: 5,
-        internalStories: [
-            { id: '2-1', image: '/story/Story2.png', duration: 5 },
-            { id: '2-2', image: '/story/story 2.png', duration: 5 },
-        ],
-    },
-    {
-        id: '3',
-        image: '/story/story3.png',
-        title: 'FOOD EXPERIENCE',
-        timestamp: '6 hours ago',
-        duration: 5,
-        internalStories: [
-            { id: '3-1', image: '/story/story3.png', duration: 5 },
-            { id: '3-2', image: '/story/story 2.png', duration: 5 },
-            { id: '3-3', image: '/story/story1.png', duration: 5 },
-            { id: '3-4', image: '/story/Story2.png', duration: 5 },
-        ],
-    },
-    {
-        id: '4',
-        image: '/story/story 2.png',
-        title: 'DRINKS & BAR',
-        timestamp: '8 hours ago',
-        duration: 5,
-        internalStories: [
-            { id: '4-1', image: '/story/story 2.png', duration: 5 },
-            { id: '4-2', image: '/story/story3.png', duration: 5 },
-        ],
-    },
-];
+interface DisplayStory {
+    id: string;
+    image: string;
+    title: string;
+    timestamp: string;
+    clubName?: string;
+    duration: number;
+    internalStories: { id: string; image: string; duration: number }[];
+}
 
 export default function StoryPage() {
     const params = useParams();
@@ -63,18 +24,61 @@ export default function StoryPage() {
     const storyId = params.id as string;
     const initialIndex = searchParams.get('index') ? parseInt(searchParams.get('index')!) : 0;
 
-    const [stories, setStories] = useState(mockStories);
+    const [stories, setStories] = useState<DisplayStory[]>([]);
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // If storyId is provided, find the story and set initial index
-        if (storyId) {
-            const storyIndex = stories.findIndex(story => story.id === storyId);
-            if (storyIndex !== -1) {
-                setCurrentIndex(storyIndex);
+        const fetchStories = async () => {
+            try {
+                setLoading(true);
+                // Fetch all stories from API
+                const response = await StoryService.getStories(0, 50);
+                console.log('📚 Story Page - Fetched stories:', response);
+
+                if (response.success && response.data) {
+                    const apiStories = response.data as any;
+                    const content = Array.isArray(apiStories) ? apiStories : (apiStories.content || []);
+
+                    console.log('📚 Story Page - Content array:', content);
+
+                    // Transform API stories to display format
+                    const displayStories: DisplayStory[] = content.map((story: Story) => {
+                        const mediaUrl = story.mediaUrl || story.mediaUrl1 || story.mediaUrl2 || story.mediaBase64 || '';
+                        return {
+                            id: story.id,
+                            image: mediaUrl,
+                            title: story.title || story.caption || story.club?.name || 'Story',
+                            timestamp: new Date(story.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            clubName: story.club?.name || story.userFullName || 'Story',
+                            duration: story.duration || 5,
+                            internalStories: [
+                                { id: story.id, image: mediaUrl, duration: story.duration || 5 }
+                            ]
+                        };
+                    });
+
+                    console.log('📚 Story Page - Display stories:', displayStories);
+                    setStories(displayStories);
+
+                    // Find the current story by ID
+                    if (storyId) {
+                        const storyIndex = displayStories.findIndex(s => s.id === storyId);
+                        if (storyIndex !== -1) {
+                            setCurrentIndex(storyIndex);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch stories:', error);
+                // Fallback to empty state or error handling
+            } finally {
+                setLoading(false);
             }
-        }
-    }, [storyId, stories]);
+        };
+
+        fetchStories();
+    }, [storyId]);
 
     const handleClose = () => {
         router.back();
@@ -97,6 +101,33 @@ export default function StoryPage() {
             router.replace(`/story/${newStoryId}?index=${storyIndex}&internal=${internalIndex}`, { scroll: false });
         }
     };
+
+    if (loading) {
+        return (
+            <div className="w-full h-screen bg-background-primary flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
+                    <p className="text-text-secondary">Loading story...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!stories || stories.length === 0) {
+        return (
+            <div className="w-full h-screen bg-background-primary flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-text-secondary mb-4">No stories available</p>
+                    <button
+                        onClick={handleClose}
+                        className="px-4 py-2 bg-primary-500 text-white rounded"
+                    >
+                        Go Back
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <StoryViewer
