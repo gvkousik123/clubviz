@@ -30,7 +30,7 @@ export const StoryService = {
     // Get all active stories uploaded by the authenticated user
     getMyStories: async (): Promise<ApiResponse<Story[]>> => {
         try {
-            const response = await api.get('/stories/my-stories');
+            const response = await api.get('/story/my-stories');
             return handleApiResponse(response);
         } catch (error) {
             throw new Error(handleApiError(error));
@@ -40,7 +40,7 @@ export const StoryService = {
     // Update story details (Admin/SuperAdmin only)
     updateStory: async (storyId: string, data: UpdateStoryRequest): Promise<ApiResponse<Story>> => {
         try {
-            const response = await api.put(`/stories/${storyId}`, data);
+            const response = await api.put(`/story/${storyId}`, data);
             return handleApiResponse(response);
         } catch (error) {
             throw new Error(handleApiError(error));
@@ -50,7 +50,7 @@ export const StoryService = {
     // Delete a story (Admin/SuperAdmin only)
     deleteStory: async (storyId: string): Promise<ApiResponse<void>> => {
         try {
-            const response = await api.delete(`/stories/${storyId}`);
+            const response = await api.delete(`/story/${storyId}`);
             return handleApiResponse(response);
         } catch (error) {
             throw new Error(handleApiError(error));
@@ -60,7 +60,7 @@ export const StoryService = {
     // Mark a story as viewed and increment view count
     viewStory: async (storyId: string): Promise<ApiResponse<void>> => {
         try {
-            const response = await api.post(`/stories/${storyId}/view`);
+            const response = await api.post(`/story/${storyId}/view`);
             return handleApiResponse(response);
         } catch (error) {
             throw new Error(handleApiError(error));
@@ -70,7 +70,7 @@ export const StoryService = {
     // Upload a story from base64 data (Admin/SuperAdmin only)
     uploadStory: async (data: CreateStoryRequest): Promise<ApiResponse<Story>> => {
         try {
-            const response = await api.post('/stories/upload', data);
+            const response = await api.post('/story/upload', data);
             return handleApiResponse(response);
         } catch (error) {
             throw new Error(handleApiError(error));
@@ -80,7 +80,7 @@ export const StoryService = {
     // Trigger manual cleanup of expired stories
     cleanupStories: async (): Promise<ApiResponse<void>> => {
         try {
-            const response = await api.post('/stories/cleanup');
+            const response = await api.post('/story/cleanup');
             return handleApiResponse(response);
         } catch (error) {
             throw new Error(handleApiError(error));
@@ -90,7 +90,7 @@ export const StoryService = {
     // Get all active stories (Instagram-like feed)
     getStories: async (page = 0, size = 20): Promise<ApiResponse<StoryListResponse>> => {
         try {
-            const response = await api.get('/stories', {
+            const response = await api.get('/story', {
                 params: { page, size }
             });
             return handleApiResponse(response);
@@ -102,7 +102,7 @@ export const StoryService = {
     // Get statistics about the authenticated user's stories
     getStoryStats: async (): Promise<ApiResponse<StoryStats>> => {
         try {
-            const response = await api.get('/stories/stats');
+            const response = await api.get('/story/stats');
             return handleApiResponse(response);
         } catch (error) {
             throw new Error(handleApiError(error));
