@@ -11,9 +11,11 @@ import {
     MapPin,
     Star,
     Loader2,
-    Share2
+    Share2,
+    Tag as TagIcon
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useOffers } from '@/hooks/use-offers';
 import { PublicClubService, PublicClubDetails } from '@/lib/services/public.service';
 import { isGuestMode } from '@/lib/api-client-public';
 
@@ -36,6 +38,10 @@ export default function ClubDetailPage() {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isLiked, setIsLiked] = useState(false);
     const [isJoinLoading, setIsJoinLoading] = useState(false);
+
+    // Get club ID and initialize offers hook
+    const clubId = params.id as string;
+    const { offers, loading: offersLoading, fetchOffers } = useOffers(clubId);
 
     // Fetch club details
     const fetchClubDetails = async () => {
@@ -68,6 +74,13 @@ export default function ClubDetailPage() {
     useEffect(() => {
         fetchClubDetails();
     }, [params.id]);
+
+    // Fetch offers when club is loaded
+    useEffect(() => {
+        if (clubId) {
+            fetchOffers();
+        }
+    }, [clubId, fetchOffers]);
 
     const handleGoBack = () => {
         console.log('Going back from club page...');
@@ -125,6 +138,22 @@ export default function ClubDetailPage() {
     const prevImage = () => {
         if (!club?.images?.length) return;
         setCurrentImageIndex((prev) => (prev - 1 + club.images.length) % club.images.length);
+    };
+
+    const handleApplyOffer = (offer: any) => {
+        if (offer.promoCode) {
+            // Copy promo code to clipboard
+            navigator.clipboard.writeText(offer.promoCode);
+            toast({
+                title: 'Promo code copied',
+                description: `Code "${offer.promoCode}" copied to clipboard. Use it during booking!`,
+            });
+        } else {
+            toast({
+                title: 'Offer applied',
+                description: `${offer.title} has been applied to your booking.`,
+            });
+        }
     };
 
     if (isLoading) {
@@ -255,12 +284,17 @@ export default function ClubDetailPage() {
                     {/* Location Section */}
                     <div className="w-full mt-5 mb-5">
                         <h3 className="text-white text-xl font-semibold mb-4">Location</h3>
-                        <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[20px] p-4">
-                            <div className="flex items-start gap-3 mb-4">
-                                <MapPin className="w-5 h-5 text-[#FF3B3B] flex-shrink-0" />
-                                <p className="text-white text-sm">{getAddress()}</p>
+                        <Link href="/location/select">
+                            <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[20px] p-4 cursor-pointer hover:bg-[rgba(40,60,61,0.40)] transition">
+                                <div className="flex items-start gap-3 mb-4">
+                                    <MapPin className="w-5 h-5 text-[#FF3B3B] flex-shrink-0" />
+                                    <div className="flex-1">
+                                        <p className="text-white text-sm mb-1">{getAddress()}</p>
+                                        <p className="text-[#14FFEC] text-xs font-medium">Click to select custom location on map</p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        </Link>
                     </div>
 
                     {/* Facilities Section */}
@@ -270,6 +304,62 @@ export default function ClubDetailPage() {
                             <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
                                 {club.facilities.map((facility: any, i: number) => (
                                     <TagComponent key={i} label={facility} icon={<Star className="w-3 h-3" />} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Offers Section */}
+                    {offersLoading && (
+                        <div className="w-full mt-5 mb-5">
+                            <h3 className="text-white text-xl font-semibold mb-4">Special Offers</h3>
+                            <div className="flex items-center justify-center py-8">
+                                <Loader2 className="w-6 h-6 text-[#14FFEC] animate-spin" />
+                            </div>
+                        </div>
+                    )}
+                    {!offersLoading && offers && offers.length > 0 && (
+                        <div className="w-full mt-5 mb-5">
+                            <h3 className="text-white text-xl font-semibold mb-4">Special Offers</h3>
+                            <div className="space-y-3">
+                                {offers.map((offer: any) => (
+                                    <div key={offer.id} className="bg-gradient-to-r from-[#005D5C]/40 to-[#14FFEC]/20 rounded-[20px] p-4 border border-[#14FFEC]/30">
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-[#14FFEC]/20 flex items-center justify-center flex-shrink-0">
+                                                <TagIcon className="w-5 h-5 text-[#14FFEC]" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="text-white font-semibold text-base mb-1">{offer.title}</h4>
+                                                {offer.description && (
+                                                    <p className="text-white/70 text-sm mb-2">{offer.description}</p>
+                                                )}
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    {offer.discountPercentage && (
+                                                        <span className="bg-[#14FFEC] text-black text-xs font-bold px-3 py-1 rounded-full">
+                                                            {offer.discountPercentage}% OFF
+                                                        </span>
+                                                    )}
+                                                    {offer.originalPrice && offer.discountedPrice && (
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-white/50 text-xs line-through">₹{offer.originalPrice}</span>
+                                                            <span className="text-[#14FFEC] text-sm font-bold">₹{offer.discountedPrice}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {offer.validUntil && (
+                                                    <p className="text-white/50 text-xs mt-2">
+                                                        Valid until {new Date(offer.validUntil).toLocaleDateString()}
+                                                    </p>
+                                                )}
+                                                <button
+                                                    onClick={() => handleApplyOffer(offer)}
+                                                    className="mt-3 w-full bg-[#14FFEC] text-black font-bold py-2 px-4 rounded-lg hover:bg-[#14FFEC]/90 transition flex items-center justify-center gap-2"
+                                                >
+                                                    {offer.promoCode ? `Apply Code: ${offer.promoCode}` : 'Apply Offer'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         </div>

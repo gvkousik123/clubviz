@@ -7,8 +7,8 @@ import { Loader2, MapPin } from 'lucide-react';
 // Static libraries array to prevent LoadScript reload warning
 const GOOGLE_LIBRARIES: Array<'marker'> = ['marker'];
 
-// Google Maps API Key - hardcoded for reliability
-const GOOGLE_MAPS_API_KEY = 'AIzaSyDW9KJ9rak_A4DNRAFT203Z_40bmVMi4IM';
+// Google Maps API Key - from environment variable
+const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY || '';
 
 interface GoogleMapPickerProps {
     center: { lat: number; lng: number };

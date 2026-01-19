@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import {
   Toast,
@@ -11,10 +12,21 @@ import {
 } from '@/components/ui/toast'
 
 export function Toaster() {
-  const { toasts } = useToast()
+  const { toasts, dismiss } = useToast()
+
+  useEffect(() => {
+    const handleClick = () => {
+      if (toasts.length > 0) {
+        dismiss()
+      }
+    }
+
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }, [toasts.length, dismiss])
 
   return (
-    <ToastProvider>
+    <ToastProvider duration={3000}>
       {toasts.map(function ({ id, title, description, action, ...props }) {
         return (
           <Toast key={id} {...props}>

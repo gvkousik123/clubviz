@@ -15,14 +15,21 @@ export function useOffers(clubId: string) {
         setError(null);
         try {
             const response = await PricingOfferService.getClubOffers(clubId);
-            if (response.success && response.data) {
-                setOffers(response.data);
+            console.log('🎁 Offers response:', response);
+            
+            if (response && response.data) {
+                console.log('✅ Setting offers:', response.data);
+                setOffers(Array.isArray(response.data) ? response.data : []);
             } else {
-                setError(response.message || 'Failed to fetch offers');
+                console.warn('⚠️ No data in response');
+                setOffers([]);
+                setError('No offers available');
             }
         } catch (err: any) {
-            setError(err.message || 'An error occurred fetching offers');
-            console.error(err);
+            const errorMessage = err.message || 'An error occurred fetching offers';
+            console.error('❌ Fetch offers error:', errorMessage);
+            setError(errorMessage);
+            setOffers([]);
         } finally {
             setLoading(false);
         }
