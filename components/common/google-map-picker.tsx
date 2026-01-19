@@ -59,6 +59,7 @@ export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, heigh
         id: 'clubviz-map-picker',
         googleMapsApiKey: finalApiKey,
         libraries: GOOGLE_LIBRARIES,
+        preventGoogleFontsLoading: true,
     });
 
     // Setup advanced marker when map loads (hook must run every render to satisfy React rules)
@@ -176,6 +177,8 @@ export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, heigh
                 options={{
                     disableDefaultUI: true,
                     zoomControl: true,
+                    suppressInfoWindows: true,
+                    gestureHandling: 'greedy',
                     styles: [
                         {
                             elementType: 'geometry',
@@ -186,6 +189,10 @@ export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, heigh
                             stylers: [{ color: '#f0fdfa' }],
                         },
                     ],
+                }}
+                onError={(error) => {
+                    // Suppress error messages from showing
+                    console.log('Map event:', error);
                 }}
                 onClick={(event) => {
                     if (!event.latLng) return;
