@@ -35,10 +35,10 @@ export const PricingOfferService = {
         try {
             const response = await api.get(`/pricing-offers/pricing-offers/clubs/${clubId}/offers`);
             console.log('📡 Offers API response:', response.data);
-            
+
             // Handle array response directly or wrapped response
             const data = Array.isArray(response.data) ? response.data : response.data?.data || response.data;
-            
+
             return {
                 success: true,
                 data: Array.isArray(data) ? data : [],

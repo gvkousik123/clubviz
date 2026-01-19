@@ -659,6 +659,22 @@ const HomePage = () => {
                                                 </button>
                                             );
                                         })}
+                                        {/* Divider */}
+                                        <div className="h-px bg-white/10 mx-2 my-2" />
+                                        {/* Custom Location Option */}
+                                        <Link
+                                            href="/location/select"
+                                            onClick={() => setLocationDropdownOpen(false)}
+                                            className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/10 transition-colors"
+                                        >
+                                            <div className="w-5 h-5 rounded-full bg-[#14FFEC]/30 flex items-center justify-center flex-shrink-0">
+                                                <MapPin className="w-3 h-3 text-[#14FFEC]" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-[#14FFEC]">Select custom location</p>
+                                                <p className="text-[11px] text-white/50">Use Google Maps</p>
+                                            </div>
+                                        </Link>
                                     </div>
                                 </div>
                             )}

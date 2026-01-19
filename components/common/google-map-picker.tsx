@@ -7,8 +7,8 @@ import { Loader2, MapPin } from 'lucide-react';
 // Static libraries array to prevent LoadScript reload warning
 const GOOGLE_LIBRARIES: Array<'marker'> = ['marker'];
 
-// Google Maps API Key - from environment variable
-const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY || '';
+// Google Maps API Key - from environment variable (NEXT_PUBLIC_ prefix required for browser access)
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 interface GoogleMapPickerProps {
     center: { lat: number; lng: number };
@@ -36,8 +36,18 @@ export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, heigh
     const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
     const legacyMarkerRef = useRef<google.maps.Marker | null>(null);
 
-    // Use hardcoded key or fallback to prop
-    const finalApiKey = apiKey || GOOGLE_MAPS_API_KEY;
+    // Debug: Log environment variable
+    useEffect(() => {
+        const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        console.log('🔍 Google Maps API Key check:', {
+            hasKey: !!key,
+            keyPreview: key ? `${key.substring(0, 10)}...${key.substring(key.length - 10)}` : 'MISSING',
+            envVarName: 'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY'
+        });
+    }, []);
+
+    // Use hardcoded key or fallback to prop, then to env var
+    const finalApiKey = apiKey || GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
     const mapContainerStyle = {
         ...baseContainerStyle,
@@ -105,12 +115,20 @@ export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, heigh
 
     // Now safe to have early returns (hooks already declared)
     if (!finalApiKey) {
+        console.error('❌ Google Maps API key missing! Please check:');
+        console.error('   - Env var: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY');
+        console.error('   - File: .env.local');
+        console.error('   - Restart dev server after changes');
         return (
-            <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-4 text-center text-sm text-white/70">
-                <p className="font-semibold">Google Maps disabled</p>
-                <p className="mt-1 text-white/60">
-                    Google Maps API key is not configured.
+            <div className="rounded-2xl border border-dashed border-yellow-500/50 bg-yellow-500/10 p-4 text-center text-sm text-yellow-100">
+                <p className="font-semibold">⚠️ Google Maps API Key Missing</p>
+                <p className="mt-2 text-xs text-yellow-200">
+                    Add to .env.local:<br />
+                    <code className="block bg-yellow-900/50 px-2 py-1 mt-1 rounded font-mono">
+                        NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSyDW9KJ9rak_A4DNRAFT203Z_40bmVMi4IM
+                    </code>
                 </p>
+                <p className="mt-2 text-xs text-yellow-200">Then restart: <code className="bg-yellow-900/50 px-1 rounded">npm run dev</code></p>
             </div>
         );
     }

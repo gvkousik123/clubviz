@@ -16,7 +16,7 @@ export function useOffers(clubId: string) {
         try {
             const response = await PricingOfferService.getClubOffers(clubId);
             console.log('🎁 Offers response:', response);
-            
+
             if (response && response.data) {
                 console.log('✅ Setting offers:', response.data);
                 setOffers(Array.isArray(response.data) ? response.data : []);
