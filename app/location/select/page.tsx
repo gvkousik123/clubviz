@@ -1,15 +1,11 @@
 ﻿'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Navigation } from 'lucide-react';
+import { Navigation, Check } from 'lucide-react';
 import {
-    DEFAULT_RADIUS,
-    POPULAR_LOCATIONS,
-    SavedLocation,
     persistCustomLocation,
     resolveLocation,
-    selectLocationFromOption,
 } from '@/lib/location';
 import { useToast } from '@/hooks/use-toast';
 import PageHeader from '@/components/common/page-header';
@@ -18,34 +14,34 @@ import { GoogleMapPicker } from '@/components/common/google-map-picker';
 export default function LocationSelectPage() {
     const router = useRouter();
     const { toast } = useToast();
-    const [selectedLocation, setSelectedLocation] = useState<SavedLocation>(() => resolveLocation());
-    const [radius, setRadius] = useState(selectedLocation.radius ?? DEFAULT_RADIUS);
-
-    const presetMatchId = useMemo(() => {
-        const match = POPULAR_LOCATIONS.find((preset) =>
-            Math.abs(preset.lat - selectedLocation.lat) < 0.001 &&
-            Math.abs(preset.lng - selectedLocation.lng) < 0.001
-        );
-        return match?.id ?? POPULAR_LOCATIONS[0].id;
-    }, [selectedLocation.lat, selectedLocation.lng]);
-
-    const handlePresetSelect = (presetId: string) => {
-        const updated = selectLocationFromOption(presetId, 'list');
-        setSelectedLocation(updated);
-        toast({
-            title: 'Location updated',
-            description: updated.label || updated.name,
-        });
-        router.push('/home');
-    };
+    const [selectedLocation, setSelectedLocation] = useState(() => resolveLocation());
+    const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(null);
 
     const handleMapSelect = (coords: { lat: number; lng: number }) => {
-        const updated = persistCustomLocation({
-            name: `Pinned ${coords.lat.toFixed(3)}, ${coords.lng.toFixed(3)}`,
+        setSelectedCoords(coords);
+        setSelectedLocation({
+            ...selectedLocation,
             lat: coords.lat,
             lng: coords.lng,
+        });
+    };
+
+    const handleConfirmLocation = () => {
+        if (!selectedCoords) {
+            toast({
+                title: 'No location selected',
+                description: 'Please select a location on the map first.',
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        const updated = persistCustomLocation({
+            name: `Location (${selectedCoords.lat.toFixed(4)}, ${selectedCoords.lng.toFixed(4)})`,
+            lat: selectedCoords.lat,
+            lng: selectedCoords.lng,
         }, 'map');
-        setSelectedLocation(updated);
+
         toast({
             title: 'Location saved',
             description: 'Your custom location has been saved.',
@@ -63,28 +59,49 @@ export default function LocationSelectPage() {
             return;
         }
 
+        toast({
+            title: 'Requesting location',
+            description: 'Please allow location access in your browser.',
+        });
+
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
-                const updated = persistCustomLocation({
-                    name: 'Current Location',
+                const coords = { lat: latitude, lng: longitude };
+                setSelectedCoords(coords);
+                setSelectedLocation({
+                    ...selectedLocation,
                     lat: latitude,
                     lng: longitude,
-                }, 'geo');
-                setSelectedLocation(updated);
-                toast({
-                    title: 'Location updated',
-                    description: 'Using your current location.',
                 });
-                router.push('/home');
+
+                toast({
+                    title: 'Location detected',
+                    description: 'Your current location has been set.',
+                });
             },
             (error) => {
                 console.error('Geolocation error:', error);
+                let errorMessage = 'Please enable location access or select manually on the map.';
+
+                if (error.code === error.PERMISSION_DENIED) {
+                    errorMessage = 'Location permission denied. Please enable it in your browser settings.';
+                } else if (error.code === error.POSITION_UNAVAILABLE) {
+                    errorMessage = 'Location information unavailable. Please try again.';
+                } else if (error.code === error.TIMEOUT) {
+                    errorMessage = 'Location request timed out. Please try again.';
+                }
+
                 toast({
                     title: 'Unable to access location',
-                    description: 'Please enable location access or pick a location manually.',
+                    description: errorMessage,
                     variant: 'destructive',
                 });
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
             }
         );
     };
@@ -94,43 +111,6 @@ export default function LocationSelectPage() {
             <PageHeader title="Choose your location" />
 
             <div className="px-4 pt-[16vh] space-y-6">
-                {/* Quick Preset Locations */}
-                <div className="space-y-3">
-                    <div className="text-xs uppercase tracking-wide text-white/60 font-semibold">
-                        Quick Picks
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        {POPULAR_LOCATIONS.map((location) => (
-                            <button
-                                key={location.id}
-                                onClick={() => handlePresetSelect(location.id)}
-                                className={`rounded-full px-4 py-2 text-xs font-semibold transition-colors ${presetMatchId === location.id ? 'bg-[#14FFEC] text-black' : 'bg-white/5 text-white/80 hover:bg-white/10'}`}
-                            >
-                                {location.name}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Search Radius Slider */}
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between text-sm text-white/80">
-                            <span>Search radius</span>
-                            <span className="font-semibold text-[#14FFEC]">{Math.round(radius / 1000)} km</span>
-                        </div>
-                        <input
-                            type="range"
-                            min={1000}
-                            max={15000}
-                            step={500}
-                            value={radius}
-                            onChange={(event) => setRadius(Number(event.target.value))}
-                            className="w-full accent-[#14FFEC]"
-                        />
-                    </div>
-                </div>
-
                 {/* Use Current Location Button */}
                 <button
                     onClick={handleUseCurrentLocation}
@@ -139,7 +119,7 @@ export default function LocationSelectPage() {
                     <Navigation className="h-5 w-5 text-[#14FFEC] flex-shrink-0" />
                     <div>
                         <p className="text-sm font-semibold">Use your current location</p>
-                        <p className="text-xs text-white/60">Requires browser permission</p>
+                        <p className="text-xs text-white/60">Click to allow browser permission</p>
                     </div>
                 </button>
 
@@ -148,11 +128,32 @@ export default function LocationSelectPage() {
                     <p className="text-sm font-semibold text-white mb-3">Or select on map</p>
                     <GoogleMapPicker
                         center={{ lat: selectedLocation.lat, lng: selectedLocation.lng }}
-                        radius={radius}
+                        radius={5000}
                         onSelect={handleMapSelect}
-                        height="400px"
+                        height="calc(100vh - 380px)"
                     />
                 </div>
+
+                {/* Selected Coordinates Display */}
+                {selectedCoords && (
+                    <div className="rounded-2xl border border-[#14FFEC]/30 bg-[#14FFEC]/10 p-4">
+                        <p className="text-sm font-semibold text-white mb-2">Selected Coordinates</p>
+                        <div className="space-y-1 text-xs text-white/80 font-mono">
+                            <p>Latitude: {selectedCoords.lat.toFixed(6)}</p>
+                            <p>Longitude: {selectedCoords.lng.toFixed(6)}</p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Confirm Button */}
+                <button
+                    onClick={handleConfirmLocation}
+                    disabled={!selectedCoords}
+                    className="w-full py-3 px-6 rounded-[30px] bg-gradient-to-r from-[#005D5C] to-[#14FFEC] text-white font-bold hover:brightness-110 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                    <Check className="w-5 h-5" />
+                    Confirm Location
+                </button>
             </div>
         </div>
     );
