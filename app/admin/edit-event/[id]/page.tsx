@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import DatePicker from '@/components/common/date-picker';
 import { formatDateTimeForAPI } from '@/lib/date-utils';
 import { MusicGenreAutocomplete, MusicGenre } from '@/components/ui/music-genre-autocomplete';
+import { fileToBase64 } from '@/lib/image-utils';
 
 interface Club {
     id: string;
@@ -119,6 +120,17 @@ export default function EditEventPage() {
                         hasLimitedTickets: event.hasLimitedTickets ?? true,
                         totalTickets: event.totalTickets || event.maxAttendees || 0
                     });
+
+                    // Load existing images for preview
+                    if (event.imageUrl) {
+                        setPosterPreview(event.imageUrl);
+                    }
+                    if (event.organizerLogo || event.organizerLogoUrl) {
+                        setLogoPreview(event.organizerLogo || event.organizerLogoUrl);
+                    }
+                    if (event.reelUrl || event.videoUrl) {
+                        setReelPreview(event.reelUrl || event.videoUrl);
+                    }
 
                     // Set club ID
                     if (event.clubId) {
@@ -310,14 +322,51 @@ export default function EditEventPage() {
                 throw new Error('Please select a club for this event');
             }
 
-            // Prepare event data for API
+            // Prepare event data for API with image support
             const startDateTime = formatDateTimeForAPI(formData.eventDate, formData.eventTime);
 
             if (!startDateTime) {
                 throw new Error('Invalid date or time format');
             }
 
-            // Construct payload - Note: Image fields are NOT sent
+            // Convert images to base64 if they are new uploads (File objects)
+            let eventImageData = null;
+            if (formData.poster instanceof File) {
+                const base64 = await fileToBase64(formData.poster);
+                eventImageData = {
+                    name: formData.poster.name,
+                    contentType: formData.poster.type,
+                    data: base64,
+                    url: "",
+                    type: "EVENT_IMAGE"
+                };
+            }
+
+            let eventReelData = null;
+            if (formData.reel instanceof File) {
+                const base64 = await fileToBase64(formData.reel);
+                eventReelData = {
+                    name: formData.reel.name,
+                    contentType: formData.reel.type,
+                    data: base64,
+                    url: "",
+                    type: "EVENT_REEL"
+                };
+            }
+
+            let eventOrganizerLogoData = null;
+            if (formData.organizerLogo instanceof File) {
+                const base64 = await fileToBase64(formData.organizerLogo);
+                eventOrganizerLogoData = {
+                    name: formData.organizerLogo.name,
+                    contentType: formData.organizerLogo.type,
+                    data: base64,
+                    url: "",
+                    type: "ORGANIZER_LOGO"
+                };
+            }
+
+            // Construct payload - Include images if they were updated
             const eventData: any = {
                 title: formData.eventName.trim(),
                 name: formData.eventName.trim(),
@@ -343,10 +392,23 @@ export default function EditEventPage() {
                 ticketTypes: ticketTypes,
                 hasLimitedTickets: formData.hasLimitedTickets,
                 totalTickets: formData.totalTickets
-                // NOTE: Image fields are intentionally NOT sent
             };
 
+            // Add image data only if new images were uploaded
+            if (eventImageData) {
+                eventData.eventImage = eventImageData;
+            }
+            if (eventReelData) {
+                eventData.eventReel = eventReelData;
+            }
+            if (eventOrganizerLogoData) {
+                eventData.eventOrganizerLogo = eventOrganizerLogoData;
+            }
+
             console.log('🚀 Updating event with payload:', JSON.stringify(eventData, null, 2));
+            console.log('📸 Event Image:', eventImageData ? 'Updated' : 'Not changed');
+            console.log('🎬 Event Reel:', eventReelData ? 'Updated' : 'Not changed');
+            console.log('🏢 Organizer Logo:', eventOrganizerLogoData ? 'Updated' : 'Not changed');
 
             const response = await EventService.updateEvent(eventId, eventData);
 
@@ -888,8 +950,13 @@ export default function EditEventPage() {
                                         <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
                                             <input
                                                 type="number"
-                                                value={formData.totalTickets}
-                                                onChange={(e) => setFormData({ ...formData, totalTickets: parseInt(e.target.value) || 0 })}
+                                                value={formData.totalTickets || ''}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    // Remove leading zeros and parse
+                                                    const numValue = value === '' ? 0 : parseInt(value.replace(/^0+/, '') || '0');
+                                                    setFormData({ ...formData, totalTickets: numValue });
+                                                }}
                                                 className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
                                                 placeholder="100"
                                             />

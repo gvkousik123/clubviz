@@ -65,10 +65,10 @@ export default function MyAccountPage() {
                         <div className="flex flex-col items-center gap-8">
                             <div className="flex flex-col items-center gap-2">
                                 <div className="text-white text-base font-manrope font-medium tracking-[0.50px]">
-                                    {isProfileLoading ? 'Loading...' : `Hi, ${displayName}`}
+                                    {`Hi, ${currentUser?.fullName}`}
                                 </div>
                                 <div className="text-[#C3C2C2] text-[13px] font-manrope font-medium tracking-[0.50px]">
-                                    {displayEmail}
+                                    {currentUser?.email}
                                 </div>
                             </div>
                             <button

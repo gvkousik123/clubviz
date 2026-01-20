@@ -12,22 +12,22 @@ interface UseProfileReturn {
   isProfileLoading: boolean;
   isStatsLoading: boolean;
   isAllProfilesLoading: boolean;
-  
+
   // Data
   profile: UserProfile | null;
   stats: ProfileStats | null;
   allProfiles: ProfileListItem[];
   currentUser: Partial<UserProfile> | null;
-  
+
   // Profile operations
   loadProfile: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
   loadStats: () => Promise<void>;
-  
+
   // Admin operations
   loadAllProfiles: () => Promise<void>;
   getProfileByAdmin: (userId: string) => Promise<UserProfile | null>;
-  
+
   // Utility
   refreshAllData: () => Promise<void>;
   hasRole: (role: string) => boolean;
@@ -41,7 +41,7 @@ interface UseProfileReturn {
 
 export const useProfile = (): UseProfileReturn => {
   const { toast } = useToast();
-  
+
   // State
   const [isLoading, setIsLoading] = useState(false);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
@@ -83,12 +83,12 @@ export const useProfile = (): UseProfileReturn => {
       setProfile(profileData);
       setCurrentUser(ProfileService.getCurrentUser());
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load profile';
-      showErrorToast('Failed to Load Profile', errorMessage);
+      // Silently fail - don't show toast for profile load errors
+      console.error('Profile load error:', error);
     } finally {
       setIsProfileLoading(false);
     }
-  }, [showErrorToast]);
+  }, []);
 
   const updateProfile = useCallback(async (data: any) => {
     setIsLoading(true);
@@ -189,22 +189,22 @@ export const useProfile = (): UseProfileReturn => {
     isProfileLoading,
     isStatsLoading,
     isAllProfilesLoading,
-    
+
     // Data
     profile,
     stats,
     allProfiles,
     currentUser,
-    
+
     // Profile operations
     loadProfile,
     updateProfile,
     loadStats,
-    
+
     // Admin operations
     loadAllProfiles,
     getProfileByAdmin,
-    
+
     // Utility
     refreshAllData,
     hasRole,

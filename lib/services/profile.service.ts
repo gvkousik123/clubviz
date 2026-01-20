@@ -60,7 +60,7 @@ export interface ProfileListItem {
  * Based on API endpoints: /profile, /profile/stats, /profile/all, /profile/admin/{userId}
  */
 export class ProfileService {
-  
+
   // ============================================================================
   // USER PROFILE OPERATIONS
   // ============================================================================
@@ -86,10 +86,10 @@ export class ProfileService {
   static async updateProfile(profileData: ProfileUpdateRequest): Promise<UserProfile> {
     try {
       const response = await api.put<UserProfile>('/profile', profileData);
-      
+
       // Update stored auth data with new profile info
       this.updateStoredProfileData(response.data);
-      
+
       return response.data;
     } catch (error) {
       const errorMessage = handleApiError(error);
@@ -167,7 +167,7 @@ export class ProfileService {
   static updateStoredProfileData(profileData: Partial<UserProfile>): void {
     try {
       if (typeof window === 'undefined') return;
-      
+
       const storedData = this.getStoredAuthData();
       if (storedData) {
         // Merge profile data while preserving auth tokens
@@ -179,7 +179,7 @@ export class ProfileService {
           refreshToken: storedData.refreshToken,
           type: storedData.type,
         };
-        
+
         localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updatedData));
       }
     } catch (error) {

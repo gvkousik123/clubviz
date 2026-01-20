@@ -98,7 +98,7 @@ export default function UploadStoryPage() {
                 toast({
                     title: 'Success',
                     description: 'Story uploaded successfully!',
-                    variant: 'default',
+                    variant: 'success' as any,
                 });
                 // Clear form
                 handleRemoveFile();

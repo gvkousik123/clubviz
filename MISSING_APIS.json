@@ -1,0 +1,1026 @@
+{
+  "baseUrl": "https://clubwiz.in",
+  "missingApis": {
+    "eventTicketing": {
+      "title": "Event Ticketing & Booking (User Side)",
+      "priority": "High",
+      "endpoints": [
+        {
+          "id": "purchase-event-tickets",
+          "title": "Purchase Event Tickets",
+          "description": "Allow users to buy specific event tickets with selection of ticket types and quantities",
+          "method": "POST",
+          "endpoint": "/events/{eventId}/tickets/purchase",
+          "authentication": "Required (Bearer Token)",
+          "requestBody": {
+            "type": "object",
+            "properties": {
+              "ticketSelections": {
+                "type": "array",
+                "description": "Array of ticket type selections",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "ticketTypeId": {
+                      "type": "string",
+                      "description": "ID of the ticket type (e.g., VIP, Regular, Standard)"
+                    },
+                    "quantity": {
+                      "type": "integer",
+                      "description": "Number of tickets to purchase for this type"
+                    }
+                  }
+                }
+              },
+              "totalTickets": {
+                "type": "integer",
+                "description": "Total number of tickets being purchased"
+              },
+              "promoCode": {
+                "type": "string",
+                "description": "Optional promo code for discount"
+              },
+              "paymentMethod": {
+                "type": "string",
+                "enum": ["CREDIT_CARD", "DEBIT_CARD", "UPI", "WALLET"],
+                "description": "Payment method for the booking"
+              }
+            },
+            "required": ["ticketSelections", "totalTickets"]
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "bookingId": "booking_123456",
+              "eventId": "event_789",
+              "eventTitle": "EDM Night 2025",
+              "ticketDetails": [
+                {
+                  "ticketTypeId": "vip_001",
+                  "ticketType": "VIP",
+                  "quantity": 2,
+                  "pricePerTicket": 1000,
+                  "subtotal": 2000
+                },
+                {
+                  "ticketTypeId": "regular_001",
+                  "ticketType": "Regular",
+                  "quantity": 1,
+                  "pricePerTicket": 500,
+                  "subtotal": 500
+                }
+              ],
+              "totalPrice": 2500,
+              "discount": 250,
+              "finalPrice": 2250,
+              "status": "CONFIRMED",
+              "bookingDate": "2026-01-20T10:30:00Z",
+              "eventDate": "2026-01-25T21:00:00Z"
+            }
+          }
+        },
+        {
+          "id": "get-user-tickets",
+          "title": "Get User Purchased Tickets",
+          "description": "Retrieve all event tickets purchased by the logged-in user",
+          "method": "GET",
+          "endpoint": "/user/tickets",
+          "authentication": "Required (Bearer Token)",
+          "queryParameters": {
+            "page": {
+              "type": "integer",
+              "default": 1,
+              "description": "Page number for pagination"
+            },
+            "limit": {
+              "type": "integer",
+              "default": 10,
+              "description": "Number of tickets per page"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["ACTIVE", "USED", "CANCELLED", "EXPIRED"],
+              "description": "Filter by ticket status"
+            },
+            "eventId": {
+              "type": "string",
+              "description": "Optional filter by specific event"
+            }
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "tickets": [
+                {
+                  "ticketId": "ticket_001",
+                  "bookingId": "booking_123456",
+                  "eventId": "event_789",
+                  "eventTitle": "EDM Night 2025",
+                  "eventDate": "2026-01-25T21:00:00Z",
+                  "ticketType": "VIP",
+                  "ticketNumber": "ABC123456",
+                  "qrCode": "data:image/png;base64,...",
+                  "status": "ACTIVE",
+                  "purchaseDate": "2026-01-20T10:30:00Z",
+                  "price": 1000,
+                  "entryAllowed": true
+                }
+              ],
+              "pagination": {
+                "totalElements": 5,
+                "totalPages": 1,
+                "currentPage": 1
+              }
+            }
+          }
+        },
+        {
+          "id": "get-ticket-qr-code",
+          "title": "Get Ticket QR Code",
+          "description": "Generate and retrieve QR code for a specific ticket for entry validation",
+          "method": "GET",
+          "endpoint": "/tickets/{ticketId}/qr-code",
+          "authentication": "Required (Bearer Token)",
+          "responseExample": {
+            "success": true,
+            "data": {
+              "ticketId": "ticket_001",
+              "qrCode": "data:image/png;base64,...",
+              "qrData": "TICKET_ABC123456_2026_01_25",
+              "expiresAt": "2026-01-25T23:59:59Z"
+            }
+          }
+        },
+        {
+          "id": "validate-ticket-qr",
+          "title": "Validate Ticket QR Code (Admin/Entry Point)",
+          "description": "Backend endpoint to validate QR code at entry point (Admin endpoint)",
+          "method": "POST",
+          "endpoint": "/admin/tickets/validate-qr",
+          "authentication": "Required (Bearer Token - Admin)",
+          "requestBody": {
+            "type": "object",
+            "properties": {
+              "qrData": {
+                "type": "string",
+                "description": "QR code data scanned"
+              },
+              "clubId": {
+                "type": "string",
+                "description": "Club/venue ID for validation"
+              }
+            },
+            "required": ["qrData", "clubId"]
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "valid": true,
+              "ticketId": "ticket_001",
+              "userName": "John Doe",
+              "ticketType": "VIP",
+              "eventTitle": "EDM Night 2025",
+              "message": "Entry granted"
+            }
+          }
+        }
+      ]
+    },
+    "clubAdminBookingManagement": {
+      "title": "Club Admin - Booking Management",
+      "priority": "High",
+      "endpoints": [
+        {
+          "id": "get-club-bookings",
+          "title": "Get Club Bookings",
+          "description": "Retrieve all bookings for a specific club with filters for date, status, and type",
+          "method": "GET",
+          "endpoint": "/clubs/{clubId}/bookings",
+          "authentication": "Required (Bearer Token - Club Admin/Owner)",
+          "queryParameters": {
+            "date": {
+              "type": "string",
+              "format": "date",
+              "description": "Filter by booking date (YYYY-MM-DD)"
+            },
+            "startDate": {
+              "type": "string",
+              "format": "date",
+              "description": "Filter bookings from this date onwards"
+            },
+            "endDate": {
+              "type": "string",
+              "format": "date",
+              "description": "Filter bookings up to this date"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["CONFIRMED", "PENDING", "CANCELLED", "NO_SHOW"],
+              "description": "Filter by booking status"
+            },
+            "type": {
+              "type": "string",
+              "enum": ["TABLE", "EVENT", "ALL"],
+              "description": "Filter by booking type"
+            },
+            "page": {
+              "type": "integer",
+              "default": 1,
+              "description": "Page number for pagination"
+            },
+            "limit": {
+              "type": "integer",
+              "default": 20,
+              "description": "Number of bookings per page"
+            }
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "bookings": [
+                {
+                  "bookingId": "booking_001",
+                  "userId": "user_123",
+                  "userName": "John Doe",
+                  "userPhone": "9876543210",
+                  "bookingType": "TABLE",
+                  "bookingDate": "2026-01-20T15:00:00Z",
+                  "guestCount": 4,
+                  "tableNumber": "T5",
+                  "totalPrice": 5000,
+                  "status": "CONFIRMED",
+                  "notes": "VIP customer",
+                  "checkInTime": null,
+                  "checkOutTime": null
+                }
+              ],
+              "pagination": {
+                "totalElements": 25,
+                "totalPages": 2,
+                "currentPage": 1
+              }
+            }
+          }
+        },
+        {
+          "id": "approve-reject-booking",
+          "title": "Approve/Reject Club Booking",
+          "description": "Allow club admin to manually approve or reject a pending booking",
+          "method": "POST",
+          "endpoint": "/clubs/{clubId}/bookings/{bookingId}/manage",
+          "authentication": "Required (Bearer Token - Club Admin/Owner)",
+          "requestBody": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "enum": ["APPROVE", "REJECT"],
+                "description": "Action to perform on the booking"
+              },
+              "reason": {
+                "type": "string",
+                "description": "Reason for rejection (required if action is REJECT)"
+              },
+              "notes": {
+                "type": "string",
+                "description": "Optional notes for the booking"
+              }
+            },
+            "required": ["action"]
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "bookingId": "booking_001",
+              "status": "CONFIRMED",
+              "message": "Booking approved successfully",
+              "updatedAt": "2026-01-20T15:30:00Z"
+            }
+          }
+        },
+        {
+          "id": "check-in-booking",
+          "title": "Check-In Booking",
+          "description": "Record guest check-in at the club",
+          "method": "POST",
+          "endpoint": "/clubs/{clubId}/bookings/{bookingId}/check-in",
+          "authentication": "Required (Bearer Token - Club Admin)",
+          "requestBody": {
+            "type": "object",
+            "properties": {
+              "actualGuestCount": {
+                "type": "integer",
+                "description": "Actual number of guests who arrived"
+              },
+              "notes": {
+                "type": "string",
+                "description": "Optional check-in notes"
+              }
+            }
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "bookingId": "booking_001",
+              "checkInTime": "2026-01-20T21:30:00Z",
+              "actualGuestCount": 4,
+              "status": "CHECKED_IN"
+            }
+          }
+        },
+        {
+          "id": "check-out-booking",
+          "title": "Check-Out Booking",
+          "description": "Record guest check-out and finalize booking",
+          "method": "POST",
+          "endpoint": "/clubs/{clubId}/bookings/{bookingId}/check-out",
+          "authentication": "Required (Bearer Token - Club Admin)",
+          "requestBody": {
+            "type": "object",
+            "properties": {
+              "additionalCharges": {
+                "type": "number",
+                "description": "Any additional charges incurred"
+              },
+              "notes": {
+                "type": "string",
+                "description": "Optional check-out notes"
+              }
+            }
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "bookingId": "booking_001",
+              "checkOutTime": "2026-01-21T02:00:00Z",
+              "totalCharges": 5200,
+              "status": "COMPLETED"
+            }
+          }
+        }
+      ]
+    },
+    "clubAdminAnalytics": {
+      "title": "Club Admin - Analytics & Dashboard",
+      "priority": "Medium",
+      "endpoints": [
+        {
+          "id": "get-club-stats",
+          "title": "Get Club Dashboard Statistics",
+          "description": "Retrieve key analytics and statistics for a club including revenue, occupancy, and bookings",
+          "method": "GET",
+          "endpoint": "/clubs/{clubId}/analytics/stats",
+          "authentication": "Required (Bearer Token - Club Admin/Owner)",
+          "queryParameters": {
+            "period": {
+              "type": "string",
+              "enum": ["TODAY", "WEEK", "MONTH", "YEAR", "CUSTOM"],
+              "default": "TODAY",
+              "description": "Time period for analytics"
+            },
+            "startDate": {
+              "type": "string",
+              "format": "date",
+              "description": "Start date for custom period (required if period is CUSTOM)"
+            },
+            "endDate": {
+              "type": "string",
+              "format": "date",
+              "description": "End date for custom period (required if period is CUSTOM)"
+            }
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "period": "TODAY",
+              "revenue": {
+                "total": 50000,
+                "fromTableBookings": 35000,
+                "fromEventTickets": 15000,
+                "currency": "INR"
+              },
+              "bookings": {
+                "totalBookings": 12,
+                "confirmed": 10,
+                "pending": 1,
+                "cancelled": 1,
+                "checkIns": 8
+              },
+              "occupancy": {
+                "capacityTotal": 500,
+                "currentOccupancy": 340,
+                "occupancyPercentage": 68,
+                "peakHour": "22:00",
+                "peakOccupancy": 420
+              },
+              "events": {
+                "upcomingEvents": 2,
+                "ticketsSold": 150,
+                "eventRevenue": 15000
+              },
+              "avgCheckPrice": 4166.67,
+              "repeatCustomers": 5
+            }
+          }
+        },
+        {
+          "id": "get-event-analytics",
+          "title": "Get Event Analytics",
+          "description": "Retrieve detailed analytics for a specific event including ticket sales, revenue, and attendance",
+          "method": "GET",
+          "endpoint": "/events/{eventId}/analytics",
+          "authentication": "Required (Bearer Token - Event Organizer/Admin)",
+          "queryParameters": {
+            "breakdown": {
+              "type": "string",
+              "enum": ["HOURLY", "DAILY", "BY_TICKET_TYPE"],
+              "description": "Type of data breakdown"
+            }
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "eventId": "event_789",
+              "eventTitle": "EDM Night 2025",
+              "eventDate": "2026-01-25T21:00:00Z",
+              "ticketSales": {
+                "totalTicketsSold": 250,
+                "totalCapacity": 500,
+                "soldPercentage": 50,
+                "byType": [
+                  {
+                    "ticketType": "VIP",
+                    "sold": 50,
+                    "pricePerTicket": 1000,
+                    "revenue": 50000
+                  },
+                  {
+                    "ticketType": "Regular",
+                    "sold": 150,
+                    "pricePerTicket": 500,
+                    "revenue": 75000
+                  },
+                  {
+                    "ticketType": "Standard",
+                    "sold": 50,
+                    "pricePerTicket": 300,
+                    "revenue": 15000
+                  }
+                ]
+              },
+              "totalRevenue": 140000,
+              "expenses": 20000,
+              "netProfit": 120000,
+              "attendance": {
+                "checkIns": 200,
+                "noShows": 50
+              },
+              "demographics": {
+                "maleRatio": 45,
+                "femaleRatio": 50,
+                "otherRatio": 5,
+                "ageDistribution": {
+                  "18-25": 40,
+                  "26-35": 35,
+                  "36-45": 15,
+                  "45+": 10
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "get-club-revenue-report",
+          "title": "Get Club Revenue Report",
+          "description": "Generate detailed revenue report for specified period with breakdown by source",
+          "method": "GET",
+          "endpoint": "/clubs/{clubId}/analytics/revenue",
+          "authentication": "Required (Bearer Token - Club Admin/Owner)",
+          "queryParameters": {
+            "startDate": {
+              "type": "string",
+              "format": "date",
+              "description": "Report start date"
+            },
+            "endDate": {
+              "type": "string",
+              "format": "date",
+              "description": "Report end date"
+            },
+            "breakdown": {
+              "type": "string",
+              "enum": ["DAILY", "WEEKLY", "MONTHLY"],
+              "description": "Revenue breakdown interval"
+            }
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "clubId": "club_001",
+              "period": "2026-01-01 to 2026-01-20",
+              "totalRevenue": 500000,
+              "revenueBySource": {
+                "tableBookings": 350000,
+                "eventTickets": 100000,
+                "offers": 50000
+              },
+              "dailyBreakdown": [
+                {
+                  "date": "2026-01-20",
+                  "revenue": 25000,
+                  "bookings": 10,
+                  "avgCheckPrice": 2500
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "reviewsAndRatings": {
+      "title": "Reviews & Ratings System",
+      "priority": "Medium",
+      "endpoints": [
+        {
+          "id": "submit-club-review",
+          "title": "Submit Club Review",
+          "description": "Allow users to submit a review and rating for a club",
+          "method": "POST",
+          "endpoint": "/clubs/{clubId}/reviews",
+          "authentication": "Required (Bearer Token)",
+          "requestBody": {
+            "type": "object",
+            "properties": {
+              "rating": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 5,
+                "description": "Rating out of 5"
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 100,
+                "description": "Review title"
+              },
+              "reviewText": {
+                "type": "string",
+                "maxLength": 1000,
+                "description": "Detailed review text"
+              },
+              "aspects": {
+                "type": "object",
+                "properties": {
+                  "ambiance": { "type": "number", "minimum": 1, "maximum": 5 },
+                  "service": { "type": "number", "minimum": 1, "maximum": 5 },
+                  "food": { "type": "number", "minimum": 1, "maximum": 5 },
+                  "music": { "type": "number", "minimum": 1, "maximum": 5 },
+                  "pricing": { "type": "number", "minimum": 1, "maximum": 5 }
+                },
+                "description": "Ratings for specific aspects"
+              },
+              "visitDate": {
+                "type": "string",
+                "format": "date",
+                "description": "Date of visit"
+              }
+            },
+            "required": ["rating", "title", "reviewText"]
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "reviewId": "review_001",
+              "clubId": "club_001",
+              "userId": "user_123",
+              "userName": "John Doe",
+              "rating": 4.5,
+              "title": "Amazing ambiance!",
+              "reviewText": "Had a wonderful time at this club...",
+              "createdAt": "2026-01-20T10:30:00Z",
+              "verified": true
+            }
+          }
+        },
+        {
+          "id": "get-club-reviews",
+          "title": "Get Club Reviews",
+          "description": "Retrieve all reviews for a specific club with pagination and filters",
+          "method": "GET",
+          "endpoint": "/clubs/{clubId}/reviews",
+          "authentication": "Optional",
+          "queryParameters": {
+            "page": {
+              "type": "integer",
+              "default": 1,
+              "description": "Page number for pagination"
+            },
+            "limit": {
+              "type": "integer",
+              "default": 10,
+              "description": "Number of reviews per page"
+            },
+            "sortBy": {
+              "type": "string",
+              "enum": ["RECENT", "RATING_HIGH", "RATING_LOW", "HELPFUL"],
+              "default": "RECENT",
+              "description": "Sort order for reviews"
+            },
+            "ratingFilter": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5,
+              "description": "Filter reviews by specific rating"
+            }
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "reviews": [
+                {
+                  "reviewId": "review_001",
+                  "userId": "user_123",
+                  "userName": "John Doe",
+                  "rating": 4.5,
+                  "title": "Amazing ambiance!",
+                  "reviewText": "Had a wonderful time at this club...",
+                  "aspects": {
+                    "ambiance": 5,
+                    "service": 4,
+                    "food": 3,
+                    "music": 5,
+                    "pricing": 4
+                  },
+                  "createdAt": "2026-01-20T10:30:00Z",
+                  "verified": true,
+                  "helpfulCount": 23
+                }
+              ],
+              "pagination": {
+                "totalElements": 150,
+                "totalPages": 15,
+                "currentPage": 1
+              },
+              "averageRating": 4.3,
+              "ratingDistribution": {
+                "5": 60,
+                "4": 50,
+                "3": 25,
+                "2": 10,
+                "1": 5
+              }
+            }
+          }
+        },
+        {
+          "id": "submit-event-review",
+          "title": "Submit Event Review",
+          "description": "Allow users to submit a review and rating for a specific event",
+          "method": "POST",
+          "endpoint": "/events/{eventId}/reviews",
+          "authentication": "Required (Bearer Token)",
+          "requestBody": {
+            "type": "object",
+            "properties": {
+              "rating": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 5,
+                "description": "Rating out of 5"
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 100,
+                "description": "Review title"
+              },
+              "reviewText": {
+                "type": "string",
+                "maxLength": 1000,
+                "description": "Detailed review text"
+              }
+            },
+            "required": ["rating", "title", "reviewText"]
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "reviewId": "review_event_001",
+              "eventId": "event_789",
+              "userId": "user_123",
+              "rating": 4.8,
+              "createdAt": "2026-01-25T23:00:00Z"
+            }
+          }
+        },
+        {
+          "id": "get-event-reviews",
+          "title": "Get Event Reviews",
+          "description": "Retrieve reviews for a specific event",
+          "method": "GET",
+          "endpoint": "/events/{eventId}/reviews",
+          "authentication": "Optional",
+          "queryParameters": {
+            "page": {
+              "type": "integer",
+              "default": 1
+            },
+            "limit": {
+              "type": "integer",
+              "default": 10
+            },
+            "sortBy": {
+              "type": "string",
+              "enum": ["RECENT", "RATING_HIGH", "RATING_LOW"],
+              "default": "RECENT"
+            }
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "reviews": [],
+              "averageRating": 0,
+              "pagination": {}
+            }
+          }
+        },
+        {
+          "id": "admin-reply-review",
+          "title": "Admin Reply to Review",
+          "description": "Allow club owner/admin to reply to a customer review",
+          "method": "POST",
+          "endpoint": "/reviews/{reviewId}/reply",
+          "authentication": "Required (Bearer Token - Club Admin/Owner)",
+          "requestBody": {
+            "type": "object",
+            "properties": {
+              "replyText": {
+                "type": "string",
+                "maxLength": 500,
+                "description": "Reply text from admin"
+              }
+            },
+            "required": ["replyText"]
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "reviewId": "review_001",
+              "reply": {
+                "replyId": "reply_001",
+                "replyText": "Thank you for your feedback...",
+                "repliedBy": "admin_001",
+                "repliedAt": "2026-01-21T10:00:00Z"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "waitlistManagement": {
+      "title": "User - Waitlist Management",
+      "priority": "Low",
+      "endpoints": [
+        {
+          "id": "join-waitlist",
+          "title": "Join Waitlist",
+          "description": "Add user to waitlist when desired table/event is fully booked",
+          "method": "POST",
+          "endpoint": "/clubs/{clubId}/waitlist",
+          "authentication": "Required (Bearer Token)",
+          "requestBody": {
+            "type": "object",
+            "properties": {
+              "preferredDateTime": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Preferred date and time for booking"
+              },
+              "guestCount": {
+                "type": "integer",
+                "description": "Number of guests"
+              },
+              "notificationPreference": {
+                "type": "string",
+                "enum": ["SMS", "EMAIL", "PUSH", "ALL"],
+                "description": "How to notify when slot is available"
+              }
+            },
+            "required": ["preferredDateTime", "guestCount"]
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "waitlistId": "waitlist_001",
+              "clubId": "club_001",
+              "userId": "user_123",
+              "position": 5,
+              "preferredDateTime": "2026-01-25T22:00:00Z",
+              "guestCount": 4,
+              "joinedAt": "2026-01-20T10:30:00Z",
+              "estimatedWaitTime": "2-3 days"
+            }
+          }
+        },
+        {
+          "id": "get-user-waitlist",
+          "title": "Get User Waitlist",
+          "description": "Retrieve all active waitlist entries for the logged-in user",
+          "method": "GET",
+          "endpoint": "/user/waitlist",
+          "authentication": "Required (Bearer Token)",
+          "queryParameters": {
+            "status": {
+              "type": "string",
+              "enum": ["ACTIVE", "OFFERED", "EXPIRED", "CANCELLED"],
+              "description": "Filter by waitlist status"
+            }
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "waitlistEntries": [
+                {
+                  "waitlistId": "waitlist_001",
+                  "clubId": "club_001",
+                  "clubName": "The Club",
+                  "position": 5,
+                  "preferredDateTime": "2026-01-25T22:00:00Z",
+                  "guestCount": 4,
+                  "status": "ACTIVE",
+                  "joinedAt": "2026-01-20T10:30:00Z",
+                  "estimatedWaitTime": "2-3 days"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "cancel-waitlist",
+          "title": "Cancel Waitlist Entry",
+          "description": "Remove user from waitlist",
+          "method": "POST",
+          "endpoint": "/waitlist/{waitlistId}/cancel",
+          "authentication": "Required (Bearer Token)",
+          "requestBody": {
+            "type": "object",
+            "properties": {
+              "reason": {
+                "type": "string",
+                "description": "Reason for cancellation"
+              }
+            }
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "waitlistId": "waitlist_001",
+              "status": "CANCELLED",
+              "cancelledAt": "2026-01-20T12:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    "advancedSearch": {
+      "title": "Advanced Filters & Search",
+      "priority": "Low",
+      "endpoints": [
+        {
+          "id": "get-filter-options",
+          "title": "Get Available Filter Options",
+          "description": "Retrieve all available filter options for clubs and events (amenities, vibes, cuisines, etc.)",
+          "method": "GET",
+          "endpoint": "/search/filter-options",
+          "authentication": "Optional",
+          "responseExample": {
+            "success": true,
+            "data": {
+              "amenities": [
+                "Rooftop",
+                "Pool",
+                "Dance Floor",
+                "Karaoke",
+                "Gaming",
+                "Lounge"
+              ],
+              "vibes": [
+                "Techno",
+                "House",
+                "Bollywood",
+                "Hip-Hop",
+                "Retro",
+                "Chill"
+              ],
+              "cuisines": [
+                "North Indian",
+                "Continental",
+                "Chinese",
+                "Fusion",
+                "Fast Food"
+              ],
+              "facilities": [
+                "Valet Parking",
+                "WiFi",
+                "AC",
+                "Restrooms",
+                "First Aid"
+              ],
+              "priceRange": {
+                "min": 200,
+                "max": 10000,
+                "steps": [
+                  { "label": "Budget", "min": 200, "max": 500 },
+                  { "label": "Moderate", "min": 500, "max": 1500 },
+                  { "label": "Premium", "min": 1500, "max": 5000 },
+                  { "label": "Luxury", "min": 5000, "max": 10000 }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": "search-clubs-advanced",
+          "title": "Advanced Club Search",
+          "description": "Search clubs with advanced filters including amenities, vibes, and facilities",
+          "method": "GET",
+          "endpoint": "/clubs/search",
+          "authentication": "Optional",
+          "queryParameters": {
+            "query": {
+              "type": "string",
+              "description": "Search query"
+            },
+            "location": {
+              "type": "string",
+              "description": "Location/city filter"
+            },
+            "amenities": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Array of amenities to filter"
+            },
+            "vibes": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Array of music vibes to filter"
+            },
+            "cuisines": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Array of cuisines to filter"
+            },
+            "minRating": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 5,
+              "description": "Minimum rating filter"
+            },
+            "priceMin": {
+              "type": "number",
+              "description": "Minimum price range"
+            },
+            "priceMax": {
+              "type": "number",
+              "description": "Maximum price range"
+            },
+            "sortBy": {
+              "type": "string",
+              "enum": ["POPULARITY", "RATING", "PRICE_LOW_HIGH", "PRICE_HIGH_LOW", "NEWEST"],
+              "description": "Sort order"
+            },
+            "page": {
+              "type": "integer",
+              "default": 1
+            },
+            "limit": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          "responseExample": {
+            "success": true,
+            "data": {
+              "clubs": [
+                {
+                  "clubId": "club_001",
+                  "name": "The Club",
+                  "rating": 4.5,
+                  "reviewCount": 250,
+                  "amenities": ["Rooftop", "Dance Floor"],
+                  "vibes": ["Techno", "House"],
+                  "cuisines": ["Continental", "Asian"],
+                  "minPrice": 500,
+                  "distance": 2.5
+                }
+              ],
+              "pagination": {
+                "totalElements": 45,
+                "totalPages": 5,
+                "currentPage": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
