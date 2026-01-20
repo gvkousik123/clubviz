@@ -336,7 +336,7 @@ function EventPreviewContent() {
         <div className="min-h-screen bg-[#021313] text-white">
 
             {/* Hero Section with Event Image */}
-            <div className="relative w-full bg-gray-900 overflow-hidden">
+            <div className="relative w-full bg-gray-900 ">
                 <img
                     src={eventData?.imageUrl || eventData?.image || "/event list/Rectangle 1.jpg"}
                     alt={eventData?.title || "Event"}
@@ -344,7 +344,7 @@ function EventPreviewContent() {
                 />
 
                 {/* Gradient Overlay - darker version */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-[#021313] pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 black/0 pointer-events-none" />
 
                 {/* Back Button */}
                 <div className="absolute top-4 left-4 flex items-center">
@@ -403,7 +403,7 @@ function EventPreviewContent() {
             </div>
 
             {/* Event Details Section */}
-            <div className="w-full bg-[#021313] rounded-t-[40px] -mt-10 relative z-10">
+            <div className="w-full bg-[#021313] rounded-t-[40px] mt-10 relative z-10">
                 <div className="px-4 pt-8 ">
                     {/* Club Name - Show in edit mode */}
                     {isEditing && (eventData?.club?.name || eventData?.clubId) && (
