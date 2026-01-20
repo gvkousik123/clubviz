@@ -55,11 +55,11 @@ export default function ContactInfoPage() {
     return (
         <div className="min-h-screen w-full relative bg-black">
             {/* Hero Section with Event Image */}
-            <div className="relative h-[300px] w-full">
+            <div className="relative w-full bg-gray-900 flex justify-center items-center min-h-[200px] max-h-[400px]">
                 <img
                     src="/event list/Rectangle 1.jpg"
                     alt="Event Banner"
-                    className="w-full h-full object-cover brightness-90"
+                    className="w-auto h-auto max-w-full max-h-[400px] object-contain"
                 />
 
                 {/* Back Button */}

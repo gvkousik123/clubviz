@@ -67,7 +67,7 @@ function NewEventPageContent() {
         poster: null as File | null,
         reel: null as File | null,
         hasLimitedTickets: true,
-        totalTickets: 0
+        totalTickets: ''
     });
 
     const [ticketTypes, setTicketTypes] = useState<TicketType[]>([
@@ -837,12 +837,16 @@ function NewEventPageContent() {
                                         <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-[30px] p-[10px] px-5">
                                             <input
                                                 type="number"
-                                                value={formData.totalTickets || ''}
+                                                value={formData.totalTickets}
                                                 onChange={(e) => {
                                                     const value = e.target.value;
-                                                    // Remove leading zeros and parse
-                                                    const numValue = value === '' ? 0 : parseInt(value.replace(/^0+/, '') || '0');
-                                                    setFormData({ ...formData, totalTickets: numValue });
+                                                    // Keep empty string for placeholder, otherwise parse and remove leading zeros
+                                                    if (value === '') {
+                                                        setFormData({ ...formData, totalTickets: '' });
+                                                    } else {
+                                                        const numValue = parseInt(value.replace(/^0+/, '') || '0');
+                                                        setFormData({ ...formData, totalTickets: numValue });
+                                                    }
                                                 }}
                                                 className="w-full bg-transparent text-white placeholder-[#9D9C9C] outline-none text-base font-semibold"
                                                 placeholder="100"

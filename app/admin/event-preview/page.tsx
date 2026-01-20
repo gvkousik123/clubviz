@@ -183,7 +183,7 @@ function EventPreviewContent() {
                 // Ticket information
                 ticketTypes: eventData.ticketTypes || [],
                 hasLimitedTickets: eventData.hasLimitedTickets || false,
-                totalTickets: eventData.totalTickets || 0
+                totalTickets: eventData.totalTickets && eventData.totalTickets !== 0 ? eventData.totalTickets : ''
             });
         }
         setIsEditing(!isEditing);
@@ -226,7 +226,7 @@ function EventPreviewContent() {
                 // Ticket information
                 ticketTypes: editData.ticketTypes,
                 hasLimitedTickets: editData.hasLimitedTickets,
-                totalTickets: editData.totalTickets ? parseInt(editData.totalTickets) : undefined
+                totalTickets: editData.totalTickets ? parseInt(editData.totalTickets) : null
             };
 
             console.log('📡 Updating event with data:', updateData);
@@ -336,15 +336,16 @@ function EventPreviewContent() {
         <div className="min-h-screen bg-[#021313] text-white">
 
             {/* Hero Section with Event Image */}
-            <div className="relative h-[420px] w-full">
+            <div className="relative w-full bg-gray-900 overflow-hidden" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px', maxHeight: '600px' }}>
                 <img
                     src={eventData?.imageUrl || eventData?.image || "/event list/Rectangle 1.jpg"}
                     alt={eventData?.title || "Event"}
-                    className="w-full h-full object-cover brightness-75"
+                    className="object-contain w-full h-full"
+                    style={{ maxHeight: '600px', maxWidth: '100%' }}
                 />
 
                 {/* Gradient Overlay - darker version */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-[#021313]" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-[#021313] pointer-events-none" />
 
                 {/* Back Button */}
                 <div className="absolute top-4 left-4 flex items-center">
@@ -859,7 +860,7 @@ function EventPreviewContent() {
                                     value={editData.totalTickets}
                                     onChange={(e) => handleInputChange('totalTickets', e.target.value)}
                                     className="w-full bg-[#021313] text-white rounded-lg px-4 py-2 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
-                                    placeholder="Total tickets"
+                                    placeholder="0"
                                 />
                             ) : (
                                 <p className="text-white font-['Manrope'] px-4 py-2">

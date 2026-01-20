@@ -1208,7 +1208,7 @@ const HomePage = () => {
                                                             <img
                                                                 src={event.imageUrl && isValidImageUrl(event.imageUrl) ? event.imageUrl : fallbackImage}
                                                                 alt={event.title}
-                                                                className="w-full h-[180px] object-cover"
+                                                                className="w-full h-[180px] object-contain bg-gray-900"
                                                                 style={{
                                                                     borderWidth: '1.5px',
                                                                     borderStyle: 'solid',

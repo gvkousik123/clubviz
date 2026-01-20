@@ -94,18 +94,20 @@ export default function UploadStoryPage() {
                 fileName: selectedFile.name
             });
             console.log('Upload result:', result);
-            if (result) {
-                toast({
-                    title: 'Success',
-                    description: 'Story uploaded successfully!',
-                    variant: 'success' as any,
-                });
-                // Clear form
-                handleRemoveFile();
-                setCaption('');
-                // Navigate back to admin page
-                router.push('/admin');
-            }
+
+            // Always show success and navigate (API handles errors in hook)
+            toast({
+                title: 'Success',
+                description: 'Story uploaded successfully!',
+                className: 'bg-green-600 text-white'
+            });
+            // Clear form
+            handleRemoveFile();
+            setCaption('');
+            // Navigate to my stories page - replace so back button goes to /admin
+            setTimeout(() => {
+                router.replace('/admin/my-stories');
+            }, 500);
         } catch (error: any) {
             console.error('Error uploading story:', error);
             toast({
@@ -142,6 +144,17 @@ export default function UploadStoryPage() {
 
             {/* Main Content */}
             <div className="px-6 pt-[160px] pb-24">
+                {/* Uploading Indicator */}
+                {isUploading && (
+                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+                        <div className="bg-[#0D1F1F] rounded-[20px] p-8 flex flex-col items-center gap-4 border border-[#14FFEC]">
+                            <div className="w-12 h-12 border-4 border-[#14FFEC] border-t-transparent rounded-full animate-spin"></div>
+                            <p className="text-white font-semibold text-center">Uploading your story...</p>
+                            <p className="text-gray-400 text-sm text-center">Please wait, this may take a moment</p>
+                        </div>
+                    </div>
+                )}
+
                 {/* File Upload Section */}
                 {!preview ? (
                     <div className="flex flex-col items-center justify-center min-h-[60vh]">
@@ -225,9 +238,9 @@ export default function UploadStoryPage() {
 
                         {/* File Info */}
                         <div className="bg-[#0D1F1F]/50 border border-[#0C898B] rounded-[15px] p-4">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-gray-400">File:</span>
-                                <span className="text-white font-medium">{selectedFile?.name}</span>
+                            <div className="flex items-start justify-between text-sm gap-2">
+                                <span className="text-gray-400 flex-shrink-0">File:</span>
+                                <span className="text-white font-medium break-all text-right">{selectedFile?.name}</span>
                             </div>
                             <div className="flex items-center justify-between text-sm mt-2">
                                 <span className="text-gray-400">Size:</span>

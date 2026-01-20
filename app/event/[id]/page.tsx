@@ -176,15 +176,16 @@ export default function EventDetailsPage() {
         <div className="min-h-screen bg-[#021313] text-white">
 
             {/* Hero Section with Event Image */}
-            <div className="relative h-[420px] w-full">
+            <div className="relative w-full bg-gray-900 overflow-hidden" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px', maxHeight: '600px' }}>
                 <img
                     src={eventData?.imageUrl || eventData?.image || "/event list/Rectangle 1.jpg"}
                     alt={eventData?.title || "Event"}
-                    className="w-full h-full object-cover brightness-75"
+                    className="object-contain w-full h-full"
+                    style={{ maxHeight: '600px', maxWidth: '100%' }}
                 />
 
                 {/* Gradient Overlay - darker version */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-[#021313]" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-[#021313] pointer-events-none\" />
 
                 {/* Back Button */}
                 <div className="absolute top-4 left-4 flex items-center">
@@ -320,8 +321,8 @@ export default function EventDetailsPage() {
                         onClick={handleRegister}
                         disabled={isActionLoading}
                         className={`pointer-events-auto shadow-lg shadow-[#14FFEC]/20 w-full max-w-md h-[54px] rounded-[30px] flex justify-center items-center text-base font-bold font-['Manrope'] transition-all active:scale-95 ${eventData?.isRegistered
-                                ? 'bg-red-500/80 text-white hover:bg-red-600'
-                                : 'bg-gradient-to-r from-[#005D5C] to-[#14FFEC] text-white hover:brightness-110'
+                            ? 'bg-red-500/80 text-white hover:bg-red-600'
+                            : 'bg-gradient-to-r from-[#005D5C] to-[#14FFEC] text-white hover:brightness-110'
                             } disabled:opacity-50`}
                     >
                         {isActionLoading ? (

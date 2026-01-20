@@ -114,12 +114,15 @@ export function useStories() {
     const uploadStory = useCallback(async (data: CreateStoryRequest) => {
         setLoading(true);
         try {
-            const response = await StoryService.uploadStory(data);
-            if (response.success) {
+            const response: any = await StoryService.uploadStory(data);
+            // Handle success if response is the story object itself or success=true
+            const isSuccess = response?.success || response?.id || response?.fileName;
+
+            if (isSuccess) {
                 // Don't show toast here - let the component handle it
                 // Refresh my stories
                 fetchMyStories();
-                return response.data;
+                return response.data || response;
             } else {
                 toast({
                     title: 'Error',

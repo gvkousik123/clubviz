@@ -195,12 +195,12 @@ export default function ClubDetailPage() {
     return (
         <div className="min-h-screen bg-[#021313] relative w-full max-w-[430px] mx-auto">
             {/* Hero Image Carousel */}
-            <div className="relative w-full h-[40vh] overflow-hidden">
+            <div className="relative w-full bg-gray-900 overflow-hidden flex justify-center items-center min-h-[300px] max-h-[500px]">
                 <div className="absolute inset-0 flex">
                     {heroImages.map((image, index) => (
                         <img
                             key={index}
-                            className="min-w-full h-full object-cover transition-transform duration-300"
+                            className="min-w-full h-full object-contain transition-transform duration-300"
                             src={image}
                             alt={`Hero ${index + 1}`}
                             style={{
