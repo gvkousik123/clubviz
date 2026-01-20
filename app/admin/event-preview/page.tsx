@@ -336,12 +336,11 @@ function EventPreviewContent() {
         <div className="min-h-screen bg-[#021313] text-white">
 
             {/* Hero Section with Event Image */}
-            <div className="relative w-full bg-gray-900 overflow-hidden" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px', maxHeight: '600px' }}>
+            <div className="relative w-full bg-gray-900 overflow-hidden">
                 <img
                     src={eventData?.imageUrl || eventData?.image || "/event list/Rectangle 1.jpg"}
                     alt={eventData?.title || "Event"}
-                    className="object-contain w-full h-full"
-                    style={{ maxHeight: '600px', maxWidth: '100%' }}
+                    className="w-full h-auto object-cover"
                 />
 
                 {/* Gradient Overlay - darker version */}
@@ -739,7 +738,7 @@ function EventPreviewContent() {
                                             <img
                                                 src={editData.eventImage || eventData?.eventImage || eventData?.imageUrl}
                                                 alt="Event Poster"
-                                                className="w-full h-48 object-cover rounded-lg"
+                                                className="w-full h-auto object-contain rounded-lg"
                                             />
                                             {isEditing && (
                                                 <button className="mt-2 w-full bg-[#14FFEC]/20 text-[#14FFEC] py-2 rounded-lg text-sm font-semibold hover:bg-[#14FFEC]/30 transition-all">
@@ -857,10 +856,10 @@ function EventPreviewContent() {
                             {isEditing ? (
                                 <input
                                     type="number"
-                                    value={editData.totalTickets}
+                                    value={editData.totalTickets || ''}
                                     onChange={(e) => handleInputChange('totalTickets', e.target.value)}
                                     className="w-full bg-[#021313] text-white rounded-lg px-4 py-2 border border-[#14FFEC]/30 focus:border-[#14FFEC] outline-none"
-                                    placeholder="0"
+                                    placeholder="Enter total tickets"
                                 />
                             ) : (
                                 <p className="text-white font-['Manrope'] px-4 py-2">
