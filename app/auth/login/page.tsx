@@ -52,26 +52,35 @@ export default function LoginPage() {
             );
 
             if (result.success) {
-                toast({
-                    title: "Login successful!",
-                    description: "Welcome back to ClubViz!",
-                });
-
-                // Redirect based on user role
                 // Check roles from both direct response and nested user object
                 const roles = result.data?.roles || result.data?.user?.roles || [];
 
                 console.log("👤 User roles:", roles);
 
-                let redirectPath = '/home';
-                if (roles.includes('ROLE_SUPERADMIN')) {
-                    redirectPath = '/superadmin';
-                } else if (roles.includes('ROLE_ADMIN')) {
-                    redirectPath = '/admin';
-                } else if (roles.includes('ROLE_USER')) {
-                    redirectPath = '/home';
+                // ✅ ROLE-BASED ACCESS CONTROL: Only ROLE_USER can access this platform
+                if (!roles.includes('ROLE_USER')) {
+                    console.warn("🚫 Access denied: User does not have ROLE_USER");
+
+                    // Clear auth session immediately
+                    localStorage.removeItem(STORAGE_KEYS.accessToken);
+                    localStorage.removeItem(STORAGE_KEYS.refreshToken);
+                    localStorage.removeItem(STORAGE_KEYS.user);
+
+                    toast({
+                        title: "Access Denied",
+                        description: "This platform is for users only. Your account role does not have access to this application.",
+                        variant: "destructive",
+                    });
+                    return;
                 }
 
+                toast({
+                    title: "Login successful!",
+                    description: "Welcome back to ClubViz!",
+                });
+
+                // For ROLE_USER, redirect to home
+                const redirectPath = '/home';
                 console.log("🔄 Redirecting to:", redirectPath);
                 router.replace(redirectPath);
             } else {

@@ -659,25 +659,34 @@ export class AuthService {
     }
 
     /**
+     * ✅ ROLE-BASED ACCESS CONTROL: Check if user is ROLE_USER
+     * This platform is only for users, not admins or superadmins
+     */
+    static isUserRole(): boolean {
+        return this.hasRole('ROLE_USER');
+    }
+
+    /**
+     * ✅ Validate user has ROLE_USER access (throws error if not)
+     */
+    static validateUserRoleAccess(roles: string[]): boolean {
+        return roles.includes('ROLE_USER');
+    }
+
+    /**
      * Get the highest priority route based on user roles
+     * ✅ NOTE: This platform is for ROLE_USER only
+     * Admin and SuperAdmin roles will be blocked at login time
      */
     static getRouteBasedOnRoles(): string {
         const roles = this.getUserRolesFromStorage();
 
-        // Priority order: SUPERADMIN > ADMIN > USER
-        if (roles.includes('ROLE_SUPERADMIN')) {
-            return '/superadmin';
-        }
-
-        if (roles.includes('ROLE_ADMIN')) {
-            return '/admin';
-        }
-
+        // This platform only allows ROLE_USER
         if (roles.includes('ROLE_USER')) {
             return '/home';
         }
 
-        // Default fallback
+        // Default fallback (should not happen if validation works correctly)
         return '/home';
     }
 
@@ -774,11 +783,23 @@ export class AuthService {
     // ============================================================================
     // GOOGLE AUTHENTICATION
     // ============================================================================
+    // ✅ NOTE: Also validates ROLE_USER access
 
     static async googleSignIn(idToken: string): Promise<any> {
         try {
             const response = await usersApiClient.post('/auth/google', { idToken });
             const result = handleUsersApiResponse<UsersApiAuthResponse>(response);
+
+            // ✅ ROLE-BASED ACCESS CONTROL: Only ROLE_USER can access this platform
+            const roles = result.roles || result.user?.roles || [];
+            if (!this.validateUserRoleAccess(roles)) {
+                console.warn("🚫 Google Sign-In: Access denied - user does not have ROLE_USER");
+
+                // Clear any session data
+                clearAuthSession();
+
+                throw new Error('This platform is for users only. Your account role does not have access to this application.');
+            }
 
             if (result.accessToken) {
                 storeAuthSession(result);

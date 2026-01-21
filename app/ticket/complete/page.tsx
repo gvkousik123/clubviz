@@ -1,12 +1,19 @@
 ﻿'use client';
 
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share, Eye } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ArrowLeft, Share, Eye, Download } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { TicketService } from '@/lib/services/ticket.service';
+import { useToast } from '@/hooks/use-toast';
 
 export default function BookingCompletePage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const ticketId = searchParams.get('ticketId');
     const [showContent, setShowContent] = useState(false);
+    const [isSharing, setIsSharing] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const { toast } = useToast();
 
     useEffect(() => {
         // Small delay to show loading animation first
@@ -21,23 +28,93 @@ export default function BookingCompletePage() {
         router.back();
     };
 
-    const handleShareTicket = () => {
-        // Implement share functionality
-        if (navigator.share) {
-            navigator.share({
-                title: 'My Event Ticket',
-                text: 'Check out my ticket for this amazing event!',
-                url: window.location.href,
+    const handleShareTicket = async () => {
+        if (!ticketId) {
+            toast({
+                title: 'Error',
+                description: 'No ticket ID found',
+                variant: 'destructive',
             });
+            return;
+        }
+
+        setIsSharing(true);
+
+        // Try native share API first
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'My Event Ticket',
+                    text: 'Check out my ticket for this amazing event!',
+                    url: `${window.location.origin}/ticket/view?ticketId=${ticketId}`,
+                });
+            } catch (err) {
+                console.log('Share cancelled or failed');
+            }
         } else {
-            // Fallback for browsers that don't support Web Share API
-            navigator.clipboard.writeText(window.location.href);
-            // Could show a toast here
+            // Fallback to sharing via API
+            try {
+                await TicketService.shareTicket(ticketId, {
+                    platform: 'email',
+                    message: 'Check out my ticket for this amazing event!',
+                });
+
+                // Also copy link to clipboard
+                await navigator.clipboard.writeText(`${window.location.origin}/ticket/view?ticketId=${ticketId}`);
+
+                toast({
+                    title: 'Success',
+                    description: 'Link copied to clipboard!',
+                    variant: 'default',
+                });
+            } catch (err: any) {
+                toast({
+                    title: 'Error',
+                    description: err.message || 'Failed to share ticket',
+                    variant: 'destructive',
+                });
+            }
+        }
+
+        setIsSharing(false);
+    };
+
+    const handleDownloadTicket = async () => {
+        if (!ticketId) {
+            toast({
+                title: 'Error',
+                description: 'No ticket ID found',
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        setIsDownloading(true);
+
+        try {
+            await TicketService.downloadAndSaveTicketPDF(ticketId);
+            toast({
+                title: 'Success',
+                description: 'Ticket downloaded successfully',
+                variant: 'default',
+            });
+        } catch (err: any) {
+            toast({
+                title: 'Error',
+                description: err.message || 'Failed to download ticket',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsDownloading(false);
         }
     };
 
     const handleViewTicket = () => {
-        router.push('/ticket/view');
+        if (ticketId) {
+            router.push(`/ticket/view?ticketId=${ticketId}`);
+        } else {
+            router.push('/ticket/view');
+        }
     };
 
     return (
@@ -100,21 +177,34 @@ export default function BookingCompletePage() {
             {showContent && (
                 <div className="absolute bottom-0 left-0 right-0 p-6 pb-8 space-y-4">
                     <button
-                        onClick={handleShareTicket}
+                        onClick={handleDownloadTicket}
+                        disabled={isDownloading}
                         className="w-full header-gradient text-white font-semibold py-4 px-6 rounded-2xl 
                      shadow-lg shadow-teal-500/25 hover:shadow-xl hover:shadow-teal-500/30 
                      transform hover:scale-[1.02] transition-all duration-300 
                      border border-teal-400/20 backdrop-blur-sm
-                     flex items-center justify-center gap-3"
+                     flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <Download size={20} className={isDownloading ? 'animate-bounce' : ''} />
+                        {isDownloading ? 'DOWNLOADING...' : 'DOWNLOAD TICKET'}
+                    </button>
+
+                    <button
+                        onClick={handleShareTicket}
+                        disabled={isSharing}
+                        className="w-full bg-transparent text-teal-400 font-semibold py-4 px-6 rounded-2xl 
+                     border-2 border-teal-400/50 hover:border-teal-400 hover:bg-teal-400/10
+                     transform hover:scale-[1.02] transition-all duration-300 backdrop-blur-sm
+                     flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Share size={20} />
-                        SHARE TICKET
+                        {isSharing ? 'SHARING...' : 'SHARE TICKET'}
                     </button>
 
                     <button
                         onClick={handleViewTicket}
-                        className="w-full bg-transparent text-teal-400 font-semibold py-4 px-6 rounded-2xl 
-                     border-2 border-teal-400/50 hover:border-teal-400 hover:bg-teal-400/10
+                        className="w-full bg-transparent text-white font-semibold py-4 px-6 rounded-2xl 
+                     border border-white/30 hover:border-white/50 hover:bg-white/5
                      transform hover:scale-[1.02] transition-all duration-300 backdrop-blur-sm
                      flex items-center justify-center gap-3"
                     >
