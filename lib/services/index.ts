@@ -6,6 +6,7 @@ export { ClubService } from './club.service';
 export { EventService } from './event.service';
 export { BookingService } from './booking.service';
 export { TicketService } from './ticket.service';
+export { UserLocationService } from './user-location.service';
 export { MediaService, StoryService, GalleryService, NotificationService, ContentService } from './media.service';
 export { SearchService } from './search.service';
 export { ProfileService } from './profile.service';

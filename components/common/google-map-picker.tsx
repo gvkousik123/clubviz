@@ -65,36 +65,45 @@ export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, heigh
     // Setup advanced marker when map loads (hook must run every render to satisfy React rules)
     useEffect(() => {
         if (!isLoaded || !mapRef.current) return;
+        if (!center || typeof center.lat !== 'number' || typeof center.lng !== 'number') return;
 
         // Remove old marker if it exists
-        if (markerRef.current) {
-            markerRef.current.map = null;
-            markerRef.current = null;
-        }
+        try {
+            if (markerRef.current) {
+                markerRef.current.map = null;
+                markerRef.current = null;
+            }
 
-        if (legacyMarkerRef.current) {
-            legacyMarkerRef.current.setMap(null);
-            legacyMarkerRef.current = null;
+            if (legacyMarkerRef.current) {
+                legacyMarkerRef.current.setMap(null);
+                legacyMarkerRef.current = null;
+            }
+        } catch (error) {
+            console.log('Error removing old markers:', error);
         }
 
         const mapInstance = mapRef.current;
         if (!mapInstance) return;
 
         // Create new advanced marker when supported, fallback to default Marker otherwise
-        if (window.google?.maps?.marker?.AdvancedMarkerElement) {
-            const marker = new window.google.maps.marker.AdvancedMarkerElement({
-                map: mapInstance,
-                position: center,
-                title: 'Current Location',
-            });
-            markerRef.current = marker;
-        } else if (window.google?.maps?.Marker) {
-            const classicMarker = new window.google.maps.Marker({
-                map: mapInstance,
-                position: center,
-                title: 'Current Location',
-            });
-            legacyMarkerRef.current = classicMarker;
+        try {
+            if (window.google?.maps?.marker?.AdvancedMarkerElement) {
+                const marker = new window.google.maps.marker.AdvancedMarkerElement({
+                    map: mapInstance,
+                    position: center,
+                    title: 'Current Location',
+                });
+                markerRef.current = marker;
+            } else if (window.google?.maps?.Marker) {
+                const classicMarker = new window.google.maps.Marker({
+                    map: mapInstance,
+                    position: center,
+                    title: 'Current Location',
+                });
+                legacyMarkerRef.current = classicMarker;
+            }
+        } catch (error) {
+            console.log('Error creating marker:', error);
         }
     }, [isLoaded, center]);
 
@@ -195,10 +204,16 @@ export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, heigh
                     console.log('Map event:', error);
                 }}
                 onClick={(event) => {
-                    if (!event.latLng) return;
-                    const lat = event.latLng.lat();
-                    const lng = event.latLng.lng();
-                    onSelect({ lat, lng });
+                    try {
+                        if (!event || !event.latLng) return;
+                        const lat = event.latLng.lat();
+                        const lng = event.latLng.lng();
+                        if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
+                            onSelect({ lat, lng });
+                        }
+                    } catch (error) {
+                        console.log('Error handling map click:', error);
+                    }
                 }}
             >
                 <CircleF

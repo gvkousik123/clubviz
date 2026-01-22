@@ -24,6 +24,7 @@ import {
 import Sidebar from '@/components/common/sidebar';
 import { useSearch } from '@/hooks/use-search';
 import { PublicClubService, PublicEventService } from '@/lib/services/public.service';
+import { UserLocationService } from '@/lib/services/user-location.service';
 import { isGuestMode } from '@/lib/api-client-public';
 import { LocationSuggestionList } from '@/components/common/location-suggestion-list';
 import { NearbyDetailCard } from '@/components/common/nearby-detail-card';
@@ -248,8 +249,8 @@ const HomePage = () => {
     const locationLabel = isHydrated
         ? (locationConfirmed
             ? (currentLocation?.label || currentLocation?.name || 'Selected Location')
-            : 'Select location')
-        : 'Select location';
+            : 'Location: N/A')
+        : 'Location: N/A';
 
     const handleLocationButtonClick = () => {
         setLocationDropdownOpen((prev) => !prev);
@@ -258,7 +259,23 @@ const HomePage = () => {
     const handleLocationPresetSelect = async (presetId: string) => {
         selectLocationFromOption(presetId);
         try {
+            // Get the selected location
+            const selectedLocation = POPULAR_LOCATIONS.find(loc => loc.id === presetId);
+
+            // Save location to API if user is authenticated (not guest)
+            if (selectedLocation && !isGuestMode()) {
+                await UserLocationService.updateUserLocation({
+                    latitude: selectedLocation.lat,
+                    longitude: selectedLocation.lng,
+                    address: selectedLocation.name,
+                    city: selectedLocation.name
+                });
+            }
+
             await refreshLocation();
+        } catch (error) {
+            console.error('Failed to save location:', error);
+            // Still close dropdown even if API call fails
         } finally {
             setLocationDropdownOpen(false);
         }
@@ -288,6 +305,20 @@ const HomePage = () => {
     useEffect(() => {
         const loadInitialData = async () => {
             const isGuest = isGuestMode();
+
+            // Load user's saved location (for authenticated users)
+            if (!isGuest) {
+                try {
+                    const locationResult = await UserLocationService.getUserLocation();
+                    if (locationResult.success && locationResult.data) {
+                        console.log('User saved location:', locationResult.data);
+                        // Location is available, can be used for searches
+                    }
+                } catch (error) {
+                    console.log('No saved location found:', error);
+                    // User hasn't saved a location yet
+                }
+            }
 
             // Load profile data (only for authenticated users)
             if (!isGuest) {

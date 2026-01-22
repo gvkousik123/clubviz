@@ -30,43 +30,20 @@ export type LocationOption = {
 const STORAGE_KEY = 'clubviz.userLocation';
 export const DEFAULT_RADIUS = 5000; // meters
 
-export const POPULAR_LOCATIONS: LocationOption[] = [
-  {
-    id: 'dabo',
-    name: 'DABO',
-    city: 'Nagpur',
-    address: 'Tiwari Compound, Sitabuldi, Nagpur',
-    lat: 21.1498,
-    lng: 79.0806,
-  },
-  {
-    id: 'raasta',
-    name: 'RAASTA',
-    city: 'Nagpur',
-    address: 'Sitabuldi Square, Nagpur',
-    lat: 21.1307,
-    lng: 79.0669,
-  },
-  {
-    id: 'warehouse',
-    name: 'WAREHOUSE',
-    city: 'Nagpur',
-    address: 'Fountain Square, Nagpur',
-    lat: 21.0645,
-    lng: 79.0193,
-  },
-];
+// Dynamic location options - Fetched from API
+export let POPULAR_LOCATIONS: LocationOption[] = [];
 
+// Default location - Used as fallback before API loads
 export const DEFAULT_LOCATION: SavedLocation = {
-  name: POPULAR_LOCATIONS[0].name,
-  label: POPULAR_LOCATIONS[0].name,
-  lat: POPULAR_LOCATIONS[0].lat,
-  lng: POPULAR_LOCATIONS[0].lng,
-  latitude: POPULAR_LOCATIONS[0].lat,
-  longitude: POPULAR_LOCATIONS[0].lng,
-  city: POPULAR_LOCATIONS[0].city,
-  address: POPULAR_LOCATIONS[0].address,
-  radius: POPULAR_LOCATIONS[0].radius ?? DEFAULT_RADIUS,
+  name: 'Mumbai',
+  label: 'Mumbai',
+  lat: 19.0760,
+  lng: 72.8777,
+  latitude: 19.0760,
+  longitude: 72.8777,
+  city: 'Mumbai',
+  address: 'Mumbai, India',
+  radius: DEFAULT_RADIUS,
   timestamp: new Date(0).toISOString(),
   source: 'default',
 };
@@ -157,7 +134,12 @@ export const resolveLocation = (): SavedLocation => {
     return stored;
   }
 
-  const fallback = buildLocationFromOption(POPULAR_LOCATIONS[0]);
+  // Use first popular location if available, otherwise use default
+  const locationOption = POPULAR_LOCATIONS[0];
+  const fallback = locationOption
+    ? buildLocationFromOption(locationOption)
+    : DEFAULT_LOCATION;
+
   setStoredLocation(fallback);
   return fallback;
 };
@@ -167,6 +149,13 @@ export const selectLocationFromOption = (
   source: LocationSource = 'list'
 ): SavedLocation => {
   const option = POPULAR_LOCATIONS.find((loc) => loc.id === optionId) || POPULAR_LOCATIONS[0];
+
+  // If option is still undefined, use DEFAULT_LOCATION
+  if (!option) {
+    setStoredLocation(DEFAULT_LOCATION);
+    return DEFAULT_LOCATION;
+  }
+
   const payload = buildLocationFromOption(option, source);
   setStoredLocation(payload);
   return payload;
@@ -191,4 +180,30 @@ export const persistCustomLocation = (
   };
   setStoredLocation(payload);
   return payload;
+};
+
+/**
+ * Update POPULAR_LOCATIONS with clubs from API
+ * This should be called once on app initialization
+ */
+export const updatePopularLocationsFromClubs = (clubs: Array<{
+  id: string;
+  name: string;
+  latitude?: number;
+  longitude?: number;
+  location?: string;
+  city?: string;
+  address?: string;
+}>) => {
+  POPULAR_LOCATIONS = clubs
+    .filter(club => club.latitude !== undefined && club.longitude !== undefined)
+    .slice(0, 10)
+    .map(club => ({
+      id: club.id,
+      name: club.name,
+      lat: club.latitude!,
+      lng: club.longitude!,
+      city: club.city || club.location,
+      address: club.address || club.location,
+    }));
 };

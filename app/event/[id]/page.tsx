@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { EventService } from '@/lib/services/event.service';
+import { TicketService } from '@/lib/services/ticket.service';
 import { PublicEventService, PublicEventDetails } from '@/lib/services/public.service';
 import { isGuestMode } from '@/lib/api-client-public';
 
@@ -128,12 +129,21 @@ export default function EventDetailsPage() {
                 setEventData(prev => ({ ...prev, isRegistered: false, rsvpStatus: 'NOT_REGISTERED' }));
                 toast({ title: 'Unregistered', description: 'You have left the event.' });
             } else {
-                await EventService.attendEvent(eventData.id);
-                setEventData(prev => ({ ...prev, isRegistered: true, rsvpStatus: 'REGISTERED' }));
-                toast({ title: 'Success!', description: 'You are registered for this event.' });
+                // Register for event AND create ticket
+                const ticketResponse = await TicketService.registerForEvent(eventData.id);
+
+                if (ticketResponse.success && ticketResponse.data) {
+                    setEventData(prev => ({ ...prev, isRegistered: true, rsvpStatus: 'REGISTERED' }));
+                    toast({
+                        title: 'Success!',
+                        description: `Ticket created: ${ticketResponse.data.ticketNumber}`
+                    });
+                } else {
+                    throw new Error('Failed to create ticket');
+                }
             }
         } catch (err: any) {
-            toast({ title: 'Action failed', description: err.message, variant: 'destructive' });
+            toast({ title: 'Action failed', description: err.message || 'An unexpected error occurred', variant: 'destructive' });
         } finally {
             setIsActionLoading(false);
         }
