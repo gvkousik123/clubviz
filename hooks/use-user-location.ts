@@ -62,7 +62,10 @@ export function useUserLocation() {
         latitude: number,
         longitude: number,
         address?: string,
-        city?: string
+        city?: string,
+        state?: string | null,
+        country?: string | null,
+        pincode?: string | null
     ) => {
         setLoading(true);
         setError(null);
@@ -73,6 +76,9 @@ export function useUserLocation() {
                 longitude,
                 address,
                 city,
+                state,
+                country,
+                pincode,
             });
 
             if (response.success && response.data) {

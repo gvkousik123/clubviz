@@ -22,6 +22,9 @@ export default function LocationSelectPage() {
     const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(null);
     const [locationName, setLocationName] = useState<string>('');
     const [locationCity, setLocationCity] = useState<string>('');
+    const [locationState, setLocationState] = useState<string>('');
+    const [locationCountry, setLocationCountry] = useState<string>('');
+    const [locationPincode, setLocationPincode] = useState<string>('');
     const [isLoadingGeocode, setIsLoadingGeocode] = useState(false);
     const [distanceInfo, setDistanceInfo] = useState<{ distanceKm: number; distanceMiles: number } | null>(null);
     const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
@@ -63,8 +66,27 @@ export default function LocationSelectPage() {
                 const city = data.address.city || data.address.town || data.address.village || '';
                 const state = data.address.state || '';
                 const country = data.address.country || '';
+                const pincode = data.address.postcode || '';
+                const road = data.address.road || '';
+                const suburb = data.address.suburb || '';
 
+                // Set all location details
                 setLocationCity(city);
+                setLocationState(state);
+                setLocationCountry(country);
+                setLocationPincode(pincode);
+
+                // Build full address
+                let fullAddress = '';
+                if (road && suburb) {
+                    fullAddress = `${road}, ${suburb}`;
+                } else if (road) {
+                    fullAddress = road;
+                } else if (suburb) {
+                    fullAddress = suburb;
+                } else {
+                    fullAddress = data.display_name || '';
+                }
 
                 let fullName = '';
                 if (city && country) {
@@ -75,7 +97,7 @@ export default function LocationSelectPage() {
                     fullName = data.display_name || '';
                 }
 
-                setLocationName(fullName);
+                setLocationName(fullAddress || fullName);
                 return fullName;
             }
             return '';
@@ -119,12 +141,15 @@ export default function LocationSelectPage() {
         }
 
         try {
-            // Call API to update user location
+            // Call API to update user location with all details
             await updateUserLocation(
                 selectedCoords.lat,
                 selectedCoords.lng,
                 locationName,
-                locationCity
+                locationCity,
+                locationState || null,
+                locationCountry || null,
+                locationPincode || null
             );
 
             // Success toast is shown by the hook

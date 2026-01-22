@@ -38,6 +38,7 @@ import { useStories } from '@/hooks/use-stories';
 import { StoriesSection } from '@/components/story';
 import { StoryViewer } from '@/components/story/story-viewer';
 import { ClubCard } from '@/components/clubs/club-card';
+import { useUserLocation } from '@/hooks/use-user-location';
 
 // Dummy data
 const heroSlides = [
@@ -110,7 +111,16 @@ const HomePage = () => {
         currentUser,
         isProfileLoading,
         loadProfile
-    } = useProfile();    // Search functionality
+    } = useProfile();
+
+    // User location data from API
+    const {
+        userLocation,
+        hasLocation,
+        loading: locationLoading,
+    } = useUserLocation();
+
+    // Search functionality
     const {
         isSearching,
         isLoadingNearby,
@@ -246,11 +256,34 @@ const HomePage = () => {
         return match?.id ?? null;
     }, [currentLocation]);
 
-    const locationLabel = isHydrated
-        ? (locationConfirmed
-            ? (currentLocation?.label || currentLocation?.name || 'Selected Location')
-            : 'Location: N/A')
-        : 'Location: N/A';
+    // Location display logic with proper priority
+    const getLocationDisplayLabel = () => {
+        if (!isHydrated) return 'N/A';
+
+        // For authenticated users, check saved location from API
+        if (userLocation) {
+            // Priority: City → Address → Coordinates → N/A
+            if (userLocation.city) {
+                return userLocation.city;
+            }
+            if (userLocation.address) {
+                return userLocation.address;
+            }
+            if (userLocation.latitude && userLocation.longitude) {
+                return `${userLocation.latitude.toFixed(4)}, ${userLocation.longitude.toFixed(4)}`;
+            }
+            return 'N/A';
+        }
+
+        // Fallback to currentLocation (from use-search hook)
+        if (locationConfirmed && currentLocation) {
+            return currentLocation.label || currentLocation.name || 'Selected Location';
+        }
+
+        return 'N/A';
+    };
+
+    const locationLabel = getLocationDisplayLabel();
 
     const handleLocationButtonClick = () => {
         setLocationDropdownOpen((prev) => !prev);

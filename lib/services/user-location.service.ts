@@ -21,6 +21,9 @@ export interface UserLocation {
     longitude: number;
     address?: string;
     city?: string;
+    state?: string | null;
+    country?: string | null;
+    pincode?: string | null;
     updatedAt?: string;
 }
 
@@ -32,6 +35,9 @@ export interface UpdateUserLocationRequest {
     longitude: number;
     address?: string;
     city?: string;
+    state?: string | null;
+    country?: string | null;
+    pincode?: string | null;
 }
 
 /**
@@ -68,10 +74,26 @@ export class UserLocationService {
      */
     static async getUserLocation(): Promise<ApiResponse<UserLocation | null>> {
         try {
-            const response = await api.get<ApiResponse<UserLocation>>(
+            const response = await api.get<any>(
                 this.BASE_PATH
             );
-            return handleApiResponse(response);
+
+            // API doesn't return standard ApiResponse, just the location object
+            // Check if response has latitude/longitude (valid location data)
+            if (response.data && typeof response.data.latitude === 'number' && typeof response.data.longitude === 'number') {
+                return {
+                    success: true,
+                    data: response.data,
+                    message: 'Location retrieved successfully'
+                };
+            }
+
+            // No valid location data
+            return {
+                success: true,
+                data: null,
+                message: 'No location saved yet'
+            };
         } catch (error: any) {
             // If 404, user has no location saved yet - return null instead of error
             if (error.response?.status === 404) {
@@ -99,11 +121,23 @@ export class UserLocationService {
         locationData: UpdateUserLocationRequest
     ): Promise<ApiResponse<UserLocation>> {
         try {
-            const response = await api.put<ApiResponse<UserLocation>>(
+            const response = await api.put<any>(
                 this.BASE_PATH,
                 locationData
             );
-            return handleApiResponse(response);
+
+            // API doesn't return standard ApiResponse with success flag
+            // Instead, it returns the updated location object directly
+            // If response has latitude/longitude, it's a success
+            if (response.data && typeof response.data.latitude === 'number' && typeof response.data.longitude === 'number') {
+                return {
+                    success: true,
+                    data: response.data,
+                    message: 'Location updated successfully'
+                };
+            }
+
+            throw new Error('Invalid response from server');
         } catch (error) {
             throw new Error(handleApiError(error));
         }
