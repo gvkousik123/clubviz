@@ -159,7 +159,7 @@ export class UserLocationService {
         targetLongitude: number
     ): Promise<ApiResponse<LocationDistanceResponse>> {
         try {
-            const response = await api.get<ApiResponse<LocationDistanceResponse>>(
+            const response = await api.get<any>(
                 `${this.BASE_PATH}/distance`,
                 {
                     params: {
@@ -168,7 +168,18 @@ export class UserLocationService {
                     }
                 }
             );
-            return handleApiResponse(response);
+
+            // API returns distance object directly, not wrapped in ApiResponse
+            // Check if response has distanceKm and distanceMiles (valid distance data)
+            if (response.data && typeof response.data.distanceKm === 'number' && typeof response.data.distanceMiles === 'number') {
+                return {
+                    success: true,
+                    data: response.data,
+                    message: 'Distance calculated successfully'
+                };
+            }
+
+            throw new Error('Invalid distance response format');
         } catch (error) {
             throw new Error(handleApiError(error));
         }

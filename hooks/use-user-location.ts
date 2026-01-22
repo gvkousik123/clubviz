@@ -118,11 +118,6 @@ export function useUserLocation() {
         targetLongitude: number
     ): Promise<LocationDistanceResponse | null> => {
         if (!hasLocation || !userLocation) {
-            toast({
-                title: 'No saved location',
-                description: 'Please save your location first to calculate distance',
-                variant: 'destructive',
-            });
             return null;
         }
 
@@ -138,18 +133,11 @@ export function useUserLocation() {
             if (response.success && response.data) {
                 return response.data;
             } else {
-                throw new Error(response.message || 'Failed to calculate distance');
+                return null;
             }
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to calculate distance';
             setError(errorMessage);
-
-            toast({
-                title: 'Error',
-                description: errorMessage,
-                variant: 'destructive',
-            });
-
             return null;
         } finally {
             setLoading(false);
