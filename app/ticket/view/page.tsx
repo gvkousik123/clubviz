@@ -3,9 +3,9 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Download, Share, Calendar, MapPin, Clock, Loader2 } from 'lucide-react';
 import { useTicket } from '@/hooks/use-ticket';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 
-export default function TicketViewPage() {
+function TicketViewContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const ticketId = searchParams.get('ticketId');
@@ -130,9 +130,9 @@ export default function TicketViewPage() {
                     {ticket && (
                         <div className="absolute top-4 right-4">
                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${ticket.status === 'ACTIVE' ? 'bg-green-500/20 text-green-400 border border-green-400/30' :
-                                    ticket.status === 'USED' ? 'bg-blue-500/20 text-blue-400 border border-blue-400/30' :
-                                        ticket.status === 'CANCELLED' ? 'bg-red-500/20 text-red-400 border border-red-400/30' :
-                                            'bg-gray-500/20 text-gray-400 border border-gray-400/30'
+                                ticket.status === 'USED' ? 'bg-blue-500/20 text-blue-400 border border-blue-400/30' :
+                                    ticket.status === 'CANCELLED' ? 'bg-red-500/20 text-red-400 border border-red-400/30' :
+                                        'bg-gray-500/20 text-gray-400 border border-gray-400/30'
                                 }`}>
                                 {ticket.status}
                             </span>
@@ -253,5 +253,20 @@ export default function TicketViewPage() {
                 </button>
             </div>
         </div>
+    );
+}
+
+export default function TicketViewPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gradient-to-b from-dark-800 via-dark-900 to-dark-950 text-white flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 animate-spin text-primary-400 mx-auto mb-4" />
+                    <p className="text-gray-300">Loading ticket details...</p>
+                </div>
+            </div>
+        }>
+            <TicketViewContent />
+        </Suspense>
     );
 }

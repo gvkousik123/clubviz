@@ -2,11 +2,11 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Share, Eye, Download } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { TicketService } from '@/lib/services/ticket.service';
 import { useToast } from '@/hooks/use-toast';
 
-export default function BookingCompletePage() {
+function BookingCompleteContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const ticketId = searchParams.get('ticketId');
@@ -214,5 +214,20 @@ export default function BookingCompletePage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function BookingCompletePage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gradient-to-b from-dark-800 via-dark-900 to-black text-white flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-teal-400/30 border-t-teal-400 rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-300">Loading...</p>
+                </div>
+            </div>
+        }>
+            <BookingCompleteContent />
+        </Suspense>
     );
 }
