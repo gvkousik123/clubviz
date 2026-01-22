@@ -2,10 +2,10 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useTicket } from '@/hooks/use-ticket';
 
-export default function TicketCancelPage() {
+function TicketCancelContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const ticketId = searchParams.get('ticketId');
@@ -112,8 +112,8 @@ export default function TicketCancelPage() {
                                 key={reasonOption}
                                 onClick={() => setSelectedReason(reasonOption)}
                                 className={`w-full text-left px-4 py-3 rounded-xl border transition-all duration-200 ${selectedReason === reasonOption
-                                        ? 'bg-primary-600/20 border-primary-400 text-white'
-                                        : 'bg-dark-800/50 border-gray-700 text-gray-300 hover:border-primary-400/50'
+                                    ? 'bg-primary-600/20 border-primary-400 text-white'
+                                    : 'bg-dark-800/50 border-gray-700 text-gray-300 hover:border-primary-400/50'
                                     }`}
                             >
                                 {reasonOption}
@@ -173,5 +173,20 @@ export default function TicketCancelPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function TicketCancelPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gradient-to-b from-dark-800 via-dark-900 to-dark-950 text-white flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-primary-400/30 border-t-primary-400 rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-300">Loading ticket details...</p>
+                </div>
+            </div>
+        }>
+            <TicketCancelContent />
+        </Suspense>
     );
 }
