@@ -58,7 +58,7 @@ export const PaymentGatewayService = {
      */
     createOrder: async (data: CreatePaymentOrderRequest): Promise<ApiResponse<CreatePaymentOrderResponse>> => {
         try {
-            const response = await api.post('/gateway/create-order', data);
+            const response = await api.post('payment/gateway/create-order', data);
             console.log('📝 Create Order Response:', response.data);
             return handleApiResponse(response);
         } catch (error) {
