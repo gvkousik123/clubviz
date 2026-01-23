@@ -35,6 +35,8 @@ export default function RootLayout({
         <link rel="icon" href="/favicon/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/logo/logo.png" />
         <meta name="theme-color" content="#021313" />
+        {/* Cashfree SDK for payment gateway integration */}
+        <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
       </head>
       <body className="antialiased bg-background-primary text-text-primary dark">
         <ToastProvider>
