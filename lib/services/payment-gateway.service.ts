@@ -58,7 +58,7 @@ export const PaymentGatewayService = {
      */
     createOrder: async (data: CreatePaymentOrderRequest): Promise<ApiResponse<CreatePaymentOrderResponse>> => {
         try {
-            const response = await api.post('payment/gateway/create-order', data);
+            const response = await api.post('/payment/gateway/create-order', data);
             console.log('📝 Create Order Response:', response.data);
             return handleApiResponse(response);
         } catch (error) {
@@ -73,7 +73,7 @@ export const PaymentGatewayService = {
      */
     getPaymentStatus: async (orderId: string): Promise<ApiResponse<PaymentStatusResponse>> => {
         try {
-            const response = await api.get(`/gateway/payment-status/${orderId}`);
+            const response = await api.get(`/payment/gateway/payment-status/${orderId}`);
             console.log('📊 Payment Status Response:', response.data);
             return handleApiResponse(response);
         } catch (error) {
