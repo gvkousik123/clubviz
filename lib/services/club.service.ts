@@ -757,4 +757,56 @@ export class ClubService {
       throw new Error(handleApiError(error));
     }
   }
+
+  /**
+   * Get available time slots for booking
+   * GET /clubs/{clubId}/time-slots?date={date}&guests={guestCount}
+   * 
+   * Returns available time slots with:
+   * - Event information (if event scheduled)
+   * - Entry fee details
+   * - Available offers for each time slot
+   */
+  static async getTimeSlots(
+    clubId: string,
+    params: {
+      date: string; // Format: YYYY-MM-DD
+      guests: number;
+    }
+  ): Promise<ApiResponse<{
+    clubId: string;
+    date: string;
+    hasEvent: boolean;
+    eventDetails?: {
+      eventId: string;
+      eventTitle: string;
+      entryFee: number;
+      entryFeePerGuest: number;
+      description: string;
+    };
+    timeSlots: Array<{
+      time: string;
+      available: boolean;
+      offerCount: number;
+      offers: Array<{
+        offerId: string;
+        title: string;
+        discount: number;
+        type: 'PERCENTAGE' | 'FIXED';
+        minBill?: number;
+        validFrom: string;
+        validUntil: string;
+      }>;
+    }>;
+  }>> {
+    try {
+      const response = await api.get<ApiResponse<any>>(
+        `/clubs/${clubId}/time-slots`,
+        { params }
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
 }

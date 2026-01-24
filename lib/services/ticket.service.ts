@@ -233,6 +233,103 @@ export class TicketService {
             throw new Error(handleApiError(error));
         }
     }
+
+    /**
+     * Create a club booking ticket
+     * POST /club-tickets
+     * 
+     * Creates a booking ticket with:
+     * - Booking details (club, event, date, time, guests)
+     * - Pricing information (entry fee, offers, total)
+     * - Customer details
+     * - Payment information
+     * - Generates QR code
+     * - Sends email/SMS confirmation
+     * 
+     * @param bookingData - Complete booking information
+     * @returns Created ticket with QR code and details
+     */
+    static async createClubTicket(
+        bookingData: {
+            clubId: string;
+            eventId?: string | null;
+            bookingDate: string;
+            arrivalTime: string;
+            guestCount: number;
+            tableId?: string;
+            tableNumber?: string;
+            floorNumber?: string;
+            notes?: string;
+            selectedOffer?: {
+                offerId: string;
+                title: string;
+                discount: number;
+                type: 'PERCENTAGE' | 'FIXED';
+            };
+            pricing: {
+                entryFee: number;
+                offerDiscount: number;
+                totalAmount: number;
+            };
+            customerDetails: {
+                username: string;
+                email: string;
+                mobile: string;
+                name?: string;
+            };
+            paymentDetails: {
+                orderId: string;
+                paymentSessionId: string;
+                cfOrderId: string;
+                paymentStatus: string;
+            };
+        }
+    ): Promise<ApiResponse<{
+        ticketId: string;
+        bookingId: string;
+        reservationId: string;
+        qrCode: string;
+        qrCodeUrl: string;
+        clubDetails: {
+            clubId: string;
+            clubName: string;
+            address: string;
+            contactPhone: string;
+        };
+        eventDetails?: {
+            eventId: string;
+            eventTitle: string;
+            entryFee: number;
+        };
+        bookingDetails: {
+            bookingDate: string;
+            arrivalTime: string;
+            guestCount: number;
+            tableNumber?: string;
+            floorNumber?: string;
+            notes?: string;
+        };
+        pricing: {
+            entryFee: number;
+            offerDiscount: number;
+            totalAmount: number;
+        };
+        customerDetails: {
+            name: string;
+            email: string;
+            mobile: string;
+        };
+    }>> {
+        try {
+            const response = await api.post<ApiResponse<any>>(
+                '/club-tickets',
+                bookingData
+            );
+            return handleApiResponse(response);
+        } catch (error) {
+            throw new Error(handleApiError(error));
+        }
+    }
 }
 
 // Export singleton instance for convenience

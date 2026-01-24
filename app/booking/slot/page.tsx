@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus, Minus, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import PageHeader from '@/components/common/page-header';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
+import { ClubService } from '@/lib/services/club.service';
+import { useToast } from '@/hooks/use-toast';
 
 // Generate dates for the calendar
 const generateDates = () => {
@@ -28,20 +30,71 @@ const generateDates = () => {
     return dates;
 };
 
-const timeSlots = [
-    '18:00 PM', '18:30 PM', '19:00 PM', '19:30 PM',
-    '20:00 PM', '20:30 PM', '21:00 PM', '21:30 PM',
-    '22:00 PM', '22:30 PM', '23:00 PM', '23:30 PM'
-];
-
 export default function SlotPage() {
     const router = useRouter();
-    const [guestCount, setGuestCount] = useState(4);
+    const searchParams = useSearchParams();
+    const { toast } = useToast();
+    const [guestCount, setGuestCount] = useState(2);
     const [selectedDate, setSelectedDate] = useState(0);
     const [selectedTime, setSelectedTime] = useState('');
     const [showAllSlots, setShowAllSlots] = useState(false);
     const [selectedOffer, setSelectedOffer] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [hasEvent, setHasEvent] = useState(false);
+    const [eventDetails, setEventDetails] = useState<any>(null);
+    const [timeSlots, setTimeSlots] = useState<any[]>([]);
     const dates = generateDates();
+
+    // Get clubId from URL params
+    const clubId = searchParams.get('clubId') || '';
+
+    // Fetch time slots when date or guest count changes
+    useEffect(() => {
+        if (selectedDate !== null && clubId) {
+            fetchTimeSlots();
+        }
+    }, [selectedDate, guestCount, clubId]);
+
+    const fetchTimeSlots = async () => {
+        if (!clubId) return;
+
+        setLoading(true);
+        try {
+            const selectedDateObj = dates[selectedDate].fullDate;
+            const dateStr = selectedDateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+
+            const response = await ClubService.getTimeSlots(clubId, {
+                date: dateStr,
+                guests: guestCount
+            });
+
+            if (response.success && response.data) {
+                setHasEvent(response.data.hasEvent);
+                setEventDetails(response.data.eventDetails || null);
+                setTimeSlots(response.data.timeSlots || []);
+            }
+        } catch (error: any) {
+            console.error('Failed to fetch time slots:', error);
+            toast({
+                title: 'Error',
+                description: error.message || 'Failed to load available time slots',
+                variant: 'destructive'
+            });
+            // Fallback to static slots on error
+            setTimeSlots([
+                { time: '18:00 PM', available: true, offerCount: 0, offers: [] },
+                { time: '18:30 PM', available: true, offerCount: 1, offers: [{ offerId: 'offer1', title: '20% off on total bill', discount: 20, type: 'PERCENTAGE' }] },
+                { time: '19:00 PM', available: true, offerCount: 1, offers: [] },
+                { time: '19:30 PM', available: true, offerCount: 0, offers: [] },
+                { time: '20:00 PM', available: true, offerCount: 1, offers: [] },
+                { time: '20:30 PM', available: true, offerCount: 1, offers: [] },
+                { time: '21:00 PM', available: true, offerCount: 1, offers: [] },
+                { time: '21:30 PM', available: true, offerCount: 1, offers: [] }
+            ]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleGoBack = () => {
         router.back();
@@ -72,11 +125,30 @@ export default function SlotPage() {
     };
 
     const handleContinue = () => {
+        // Save booking state to sessionStorage for next steps
+        const bookingData = {
+            clubId,
+            guestCount,
+            selectedDate: dates[selectedDate].fullDate.toISOString().split('T')[0],
+            selectedTime,
+            selectedOffer: selectedOffer ? timeSlots.find(slot =>
+                slot.time === selectedTime
+            )?.offers.find((o: any) => o.offerId === selectedOffer) : null,
+            hasEvent,
+            eventDetails,
+        };
+
+        sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
+
         // Navigate to next step in booking flow
         router.push('/booking/table-selection');
     };
 
     const displayedTimeSlots = showAllSlots ? timeSlots : timeSlots.slice(0, 8);
+
+    // Get offers for selected time
+    const selectedTimeSlot = timeSlots.find(slot => slot.time === selectedTime);
+    const availableOffers = selectedTimeSlot?.offers || [];
 
     return (
         <div className="min-h-screen w-full bg-[#021313] overflow-hidden">
@@ -185,96 +257,144 @@ export default function SlotPage() {
                     </div>
                     <div className="w-full h-[18vh] flex flex-col items-center gap-1.5">
                         <div className="w-full h-[14vh] overflow-hidden px-[2vw]">
-                            <div className="grid grid-cols-4 gap-2 justify-items-center">
-                                {displayedTimeSlots.map((time) => (
-                                    <button
-                                        key={time}
-                                        onClick={() => handleTimeSelect(time)}
-                                        className={`w-[4.75rem] px-2 py-1.5 rounded-[1.375rem] flex flex-col items-center gap-0.5 transition-colors ${selectedTime === time
-                                            ? 'bg-[#03867B] border border-[#14FFEC]'
-                                            : 'bg-[#0D1F1F]'
-                                            }`}
-                                    >
-                                        <div className="text-white text-[0.75rem] font-['Manrope'] font-semibold leading-4 tracking-[0.0075rem]">
-                                            {time}
-                                        </div>
-                                        <div className="text-[#14FFEC] text-[0.6875rem] font-['Manrope'] font-semibold leading-4 tracking-[0.006875rem]">
-                                            1 Offer
-                                        </div>
-                                    </button>
+                            {loading ? (
+                                <div className="flex items-center justify-center h-full">
+                                    <div className="text-white text-sm">Loading time slots...</div>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-4 gap-2 justify-items-center">
+                                    {displayedTimeSlots.map((slot: any) => (
+                                        <button
+                                            key={slot.time}
+                                            onClick={() => handleTimeSelect(slot.time)}
+                                            disabled={!slot.available}
+                                            className={`w-[4.75rem] px-2 py-1.5 rounded-[1.375rem] flex flex-col items-center gap-0.5 transition-colors ${selectedTime === slot.time
+                                                    ? 'bg-[#03867B] border border-[#14FFEC]'
+                                                    : slot.available
+                                                        ? 'bg-[#0D1F1F]'
+                                                        : 'bg-[#0D1F1F] opacity-50 cursor-not-allowed'
+                                                }`}
+                                        >
+                                            <div className="text-white text-[0.75rem] font-['Manrope'] font-semibold leading-4 tracking-[0.0075rem]">
+                                                {slot.time}
+                                            </div>
+                                            {slot.offerCount > 0 && (
+                                                <div className="text-[#14FFEC] text-[0.6875rem] font-['Manrope'] font-semibold leading-4 tracking-[0.006875rem]">
+                                                    {slot.offerCount} Offer{slot.offerCount > 1 ? 's' : ''}
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div className="text-[#14FFEC] text-[0.6875rem] font-['Manrope'] font-semibold leading-4 tracking-[0.006875rem]">
+                            1 Offer
+                        </div>
+                    </button>
                                 ))}
+                </div>
+            </div>
+            <button
+                onClick={() => setShowAllSlots(!showAllSlots)}
+                className="flex items-center gap-[0.1375rem]"
+            >
+                <div className="text-white text-sm font-['Manrope'] font-medium leading-4 tracking-[0.007rem]">
+                    View all slots
+                </div>
+                <ChevronDown
+                    size={20}
+                    className={`text-white transition-transform ${showAllSlots ? 'rotate-180' : ''}`}
+                />
+            </button>
+        </div>
+                </div >
+
+        {/* Booking Offers Section */ }
+    {
+        selectedTime && availableOffers.length > 0 && (
+            <div className="w-full max-w-[25rem] mt-6">
+                <div className="w-full py-5 px-4 bg-[#0D1F1F] rounded-[0.9375rem] flex flex-col items-center gap-5">
+                    <div className="w-full flex items-center gap-[0.9375rem]">
+                        <div className="text-[#FFFEFF] text-base font-['Manrope'] font-semibold leading-4 tracking-[0.03125rem]">
+                            Booking offers for {selectedTime}
+                        </div>
+                    </div>
+                    {availableOffers.map((offer: any) => (
+                        <div
+                            key={offer.offerId}
+                            onClick={() => handleOfferSelect(offer.offerId)}
+                            className={
+                                `w-full min-h-[4.5625rem] px-4 pr-[1.3125rem] relative bg-[rgba(13,31,31,0.2)] rounded-[0.625rem] flex flex-col justify-center items-start overflow-hidden cursor-pointer transition-all duration-200 ` +
+                                (selectedOffer === offer.offerId
+                                    ? 'border-1 border-[#14FFEC] shadow-[0_0_12px_3px_rgba(20,255,236,0.18)] bg-[rgba(3,134,123,0.08)]'
+                                    : 'shadow-[0px_0px_6px_1px_rgba(255,255,255,0.18)] hover:bg-[rgba(13,31,31,0.4)]')
+                            }
+                        >
+                            <div className="w-full flex items-start gap-[0.625rem] flex-wrap py-2">
+                                <div className="w-[1.3125rem] h-[1.3125rem] rounded-full border-2 border-[#14FFEC] flex items-center justify-center">
+                                    {selectedOffer === offer.offerId && (
+                                        <div className="w-[0.75rem] h-[0.75rem] rounded-full bg-[#14FFEC]"></div>
+                                    )}
+                                </div>
+                                <div className="flex-1 flex flex-col relative z-20">
+                                    <div className="text-white text-base font-['Manrope'] font-semibold leading-4 tracking-[0.03125rem]">
+                                        {offer.title}
+                                    </div>
+                                    <div className="text-white text-[0.8125rem] font-['Manrope'] font-medium leading-4 tracking-[0.03125rem] mt-1 opacity-80">
+                                        {offer.type === 'PERCENTAGE'
+                                            ? `${offer.discount}% discount`
+                                            : `₹${offer.discount} off`}
+                                        {offer.minBill && ` on bills above ₹${offer.minBill}`}
+                                    </div>
+                                </div>
+                            </div>
+                            {/* Discount Icon */}
+                            <div className="absolute -right-2 top-2 w-20 h-20 flex items-center justify-center opacity-35">
+                                <Image
+                                    src="/common/discount.png"
+                                    alt="Discount"
+                                    width={80}
+                                    height={100}
+                                    className="w-full h-full object-contain"
+                                />
                             </div>
                         </div>
-                        <button
-                            onClick={() => setShowAllSlots(!showAllSlots)}
-                            className="flex items-center gap-[0.1375rem]"
-                        >
-                            <div className="text-white text-sm font-['Manrope'] font-medium leading-4 tracking-[0.007rem]">
-                                View all slots
+                    ))}
+                </div>
+            </div>
+        )
+    }
+
+    {/* Event Info Banner (if event exists) */ }
+    {
+        hasEvent && eventDetails && (
+            <div className="w-full max-w-[25rem] mt-4">
+                <div className="w-full py-4 px-4 bg-gradient-to-r from-[#03867B] to-[#0D1F1F] rounded-[0.9375rem] border border-[#14FFEC]">
+                    <div className="flex items-center gap-3">
+                        <div className="text-[#14FFEC] text-2xl">🎵</div>
+                        <div className="flex-1">
+                            <div className="text-white text-sm font-['Manrope'] font-bold">
+                                {eventDetails.eventTitle}
                             </div>
-                            <ChevronDown
-                                size={20}
-                                className={`text-white transition-transform ${showAllSlots ? 'rotate-180' : ''}`}
-                            />
-                        </button>
+                            <div className="text-[#14FFEC] text-xs font-['Manrope'] font-medium mt-1">
+                                Entry Fee: ₹{eventDetails.entryFeePerGuest} per person
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                {/* Booking Offers Section */}
-                {selectedTime && (
-                    <div className="w-full max-w-[25rem] mt-6">
-                        <div className="w-full py-5 px-4 bg-[#0D1F1F] rounded-[0.9375rem] flex flex-col items-center gap-5">
-                            <div className="w-full flex items-center gap-[0.9375rem]">
-                                <div className="text-[#FFFEFF] text-base font-['Manrope'] font-semibold leading-4 tracking-[0.03125rem]">
-                                    Booking offers for {selectedTime}
-                                </div>
-                            </div>
-                            <div
-                                onClick={() => handleOfferSelect('offer1')}
-                                className={
-                                    `w-full h-[4.5625rem] px-4 pr-[1.3125rem] relative bg-[rgba(13,31,31,0.2)] rounded-[0.625rem] flex flex-col justify-center items-start overflow-hidden cursor-pointer transition-all duration-200 ` +
-                                    (selectedOffer === 'offer1'
-                                        ? 'border-1 border-[#14FFEC] shadow-[0_0_12px_3px_rgba(20,255,236,0.18)] bg-[rgba(3,134,123,0.08)]'
-                                        : 'shadow-[0px_0px_6px_1px_rgba(255,255,255,0.18)] hover:bg-[rgba(13,31,31,0.4)]')
-                                }
-                            >
-                                <div className="w-full flex items-start gap-[0.625rem] flex-wrap">
-                                    <div className="w-[1.3125rem] h-[1.3125rem] rounded-full border-2 border-[#14FFEC] flex items-center justify-center">
-                                        {selectedOffer === 'offer1' && (
-                                            <div className="w-[0.75rem] h-[0.75rem] rounded-full bg-[#14FFEC]"></div>
-                                        )}
-                                    </div>
-                                    <div className="flex-1 flex flex-col relative z-20">
-                                        <div className="text-white text-base font-['Manrope'] font-semibold leading-4 tracking-[0.03125rem]">
-                                            20% off on the total bill {selectedTime}
-                                        </div>
-                                        <div className="text-white text-[0.8125rem] font-['Manrope'] font-medium leading-4 tracking-[0.03125rem] mt-1">
-                                            20% off on the total bill {selectedTime}
-                                        </div>
-                                    </div>
-                                </div>
-                                {/* Discount Icon - Bigger and moved down */}
-                                <div className="absolute -right-2 top-2 w-20 h-20 flex items-center justify-center opacity-35">
-                                    <Image
-                                        src="/common/discount.png"
-                                        alt="Discount"
-                                        width={80}
-                                        height={100}
-                                        className="w-full h-full object-contain"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
+        )
+    }
+            </div >
 
-            {/* Bottom Continue Button */}
-            <BottomContinueButton
-                text="Select Table"
-                onClick={handleContinue}
-                disabled={!selectedTime}
+        {/* Bottom Continue Button */ }
+        < BottomContinueButton
+    text = "Select Table"
+    onClick = { handleContinue }
+    disabled = {!selectedTime
+}
             />
-        </div>
+        </div >
     );
 }
