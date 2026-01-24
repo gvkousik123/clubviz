@@ -1,26 +1,29 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Plus, Minus, ChevronDown } from 'lucide-react';
+import { Plus, Minus, ChevronDown, Loader2 } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import PageHeader from '@/components/common/page-header';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
+import { EventCardRow } from "@/components/events/event-card-row";
+import { api } from '@/lib/api-client';
+import { useToast } from '@/hooks/use-toast';
 
-// Generate dates for the calendar
-const generateDates = () => {
+// Generate dates for the calendar (7 days at a time)
+const generateDates = (startDate: Date = new Date()) => {
     const dates = [];
-    const today = new Date();
     const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
-    for (let i = 0; i < 21; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() + i);
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
 
         dates.push({
             date: date.getDate(),
             day: dayNames[date.getDay()],
-            isToday: i === 0,
+            isToday: date.toDateString() === new Date().toDateString(),
             fullDate: date,
         });
     }
@@ -31,17 +34,94 @@ const generateDates = () => {
 export default function SlotPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { toast } = useToast();
     const [guestCount, setGuestCount] = useState(2);
     const [selectedDate, setSelectedDate] = useState(0);
     const [selectedTime, setSelectedTime] = useState('');
     const [showAllSlots, setShowAllSlots] = useState(false);
     const [selectedOffer, setSelectedOffer] = useState<string | null>(null);
-    const dates = generateDates();
+    const [weekStartDate, setWeekStartDate] = useState(new Date());
+    const [timeSlots, setTimeSlots] = useState<any[]>([]);
+    const [events, setEvents] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [eventsLoading, setEventsLoading] = useState(false);
+    const [clubData, setClubData] = useState<any>(null);
+
+    const dates = generateDates(weekStartDate);
+    const clubId = searchParams.get('clubId') || '697499d433c602133f2a28b7';
 
     // Get event data from URL params
     const eventDataStr = searchParams.get('eventData');
     const eventData = eventDataStr ? JSON.parse(decodeURIComponent(eventDataStr)) : null;
     const isEvent = eventData ? true : false;
+
+    // Fetch time slots for a week
+    const fetchTimeSlots = async (startDate: Date) => {
+        try {
+            setLoading(true);
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 6);
+
+            const start = startDate.toISOString().split('T')[0];
+            const end = endDate.toISOString().split('T')[0];
+
+            const response = await api.get(
+                `/ticket/club-tickets/clubs/${clubId}/time-slots?startDate=${start}&endDate=${end}`
+            );
+
+            if (response.data?.dateSlots) {
+                setTimeSlots(response.data.dateSlots);
+            }
+        } catch (error: any) {
+            console.error('Failed to fetch time slots:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to load time slots',
+                variant: 'destructive',
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch club events
+    const fetchClubEvents = async () => {
+        try {
+            setEventsLoading(true);
+            const response = await api.get(
+                `/event-management/events/club/${clubId}?page=0&size=20&sortBy=startDateTime&sortOrder=asc`
+            );
+
+            if (response.data?.content) {
+                setEvents(response.data.content.filter((evt: any) => !evt.pastEvent));
+            }
+        } catch (error: any) {
+            console.error('Failed to fetch events:', error);
+        } finally {
+            setEventsLoading(false);
+        }
+    };
+
+    // Fetch club details
+    const fetchClubDetails = async () => {
+        try {
+            const response = await api.get(`/club-management/clubs/details/${clubId}`);
+            if (response.data) {
+                setClubData(response.data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch club details:', error);
+        }
+    };
+
+    // Initial data fetch
+    useEffect(() => {
+        if (!isEvent) {
+            fetchTimeSlots(weekStartDate);
+            fetchClubEvents();
+            fetchClubDetails();
+        }
+    }, [clubId, weekStartDate, isEvent]);
 
     const handleGoBack = () => {
         router.back();
@@ -61,6 +141,28 @@ export default function SlotPage() {
 
     const handleDateSelect = (index: number) => {
         setSelectedDate(index);
+        setSelectedTime(''); // Reset selected time when date changes
+    };
+
+    const handleNextWeek = () => {
+        const nextWeek = new Date(weekStartDate);
+        nextWeek.setDate(weekStartDate.getDate() + 7);
+        setWeekStartDate(nextWeek);
+        setSelectedDate(0);
+        setSelectedTime('');
+    };
+
+    const handlePreviousWeek = () => {
+        const prevWeek = new Date(weekStartDate);
+        prevWeek.setDate(weekStartDate.getDate() - 7);
+        const today = new Date();
+
+        // Don't go before today
+        if (prevWeek >= today) {
+            setWeekStartDate(prevWeek);
+            setSelectedDate(0);
+            setSelectedTime('');
+        }
     };
 
     const handleTimeSelect = (time: string) => {
@@ -74,7 +176,7 @@ export default function SlotPage() {
     const handleContinue = () => {
         // Save booking state to sessionStorage for next steps
         const bookingData = {
-            clubId: searchParams.get('clubId'),
+            clubId,
             guestCount,
             selectedDate: dates[selectedDate].fullDate.toISOString().split('T')[0],
             selectedTime: isEvent ? eventData?.eventTime : selectedTime,
@@ -85,34 +187,45 @@ export default function SlotPage() {
 
         sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
 
-        // Navigate to next step in booking flow
-        router.push('/booking/table-selection');
+        // Navigate to pre-booking page instead of table selection
+        router.push('/booking/form');
     };
 
-    // Static time slots for restaurant mode
-    const staticTimeSlots = [
-        { time: '18:00 PM', available: true, offerCount: 0, offers: [] },
-        { time: '18:30 PM', available: true, offerCount: 1, offers: [] },
-        { time: '19:00 PM', available: true, offerCount: 1, offers: [] },
-        { time: '19:30 PM', available: true, offerCount: 0, offers: [] },
-        { time: '20:00 PM', available: true, offerCount: 1, offers: [] },
-        { time: '20:30 PM', available: true, offerCount: 1, offers: [] },
-        { time: '21:00 PM', available: true, offerCount: 1, offers: [] },
-        { time: '21:30 PM', available: true, offerCount: 1, offers: [] },
-        { time: '22:00 PM', available: true, offerCount: 1, offers: [] },
-        { time: '22:30 PM', available: true, offerCount: 1, offers: [] },
-        { time: '23:00 PM', available: true, offerCount: 1, offers: [] },
-        { time: '23:30 PM', available: true, offerCount: 1, offers: [] }
-    ];
+    // Get time slots for selected date
+    const getTimeSlotsForDate = () => {
+        const selectedDateStr = dates[selectedDate]?.fullDate.toISOString().split('T')[0];
+        const dateSlot = timeSlots.find((slot: any) => slot.date === selectedDateStr);
 
-    const displayedTimeSlots = showAllSlots ? staticTimeSlots : staticTimeSlots.slice(0, 8);
+        if (!dateSlot?.timeSlots) return [];
+
+        return dateSlot.timeSlots
+            .filter((slot: any) => slot.isAvailable)
+            .map((slot: any) => {
+                // Convert 24-hour time to 12-hour format
+                const [hours, minutes] = slot.time.split(':');
+                const hour = parseInt(hours);
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+
+                return {
+                    time: `${displayHour}:${minutes} ${ampm}`,
+                    rawTime: slot.time,
+                    available: slot.isAvailable,
+                    offerCount: slot.availableOffers || 0,
+                };
+            });
+    };
+
+    const displayedTimeSlots = showAllSlots
+        ? getTimeSlotsForDate()
+        : getTimeSlotsForDate().slice(0, 8);
 
     return (
         <div className="min-h-screen w-full bg-[#021313] overflow-hidden">
-            <PageHeader title={isEvent ? eventData?.clubName : "DABO CLUB & KITCHEN"} />
+            <PageHeader title={isEvent ? eventData?.clubName : (clubData?.name || "Club Booking")} />
 
             {/* Main Content */}
-            <div className="pt-[18vh] px-[2vw] pb-[8vh] flex flex-col items-center gap-6">
+            <div className="pt-[18vh] px-[2vw] pb-[12vh] flex flex-col items-center gap-6">
                 {/* Guest Selection - Only for restaurant mode */}
                 {!isEvent && (
                     <div className="w-full max-w-[22.625rem] flex flex-col items-center gap-5">
@@ -123,10 +236,10 @@ export default function SlotPage() {
                         </div>
                         <div className="flex items-center gap-4">
                             <button
-                                onClick={incrementGuest}
+                                onClick={decrementGuest}
                                 className="w-[2.9375rem] h-[2.9375rem] bg-[#03867B] rounded-[1.875rem] backdrop-blur-[0.63125rem] flex items-center justify-center"
                             >
-                                <Plus size={18} className="text-white" />
+                                <Minus size={18} className="text-white" />
                             </button>
                             <div className="w-[12.75rem] h-[2.9375rem] bg-[#0D1F1F] rounded-[1.375rem] flex items-center justify-center">
                                 <span className="text-white text-base font-['Manrope'] font-bold leading-5 tracking-[0.01rem]">
@@ -134,10 +247,10 @@ export default function SlotPage() {
                                 </span>
                             </div>
                             <button
-                                onClick={decrementGuest}
+                                onClick={incrementGuest}
                                 className="w-[2.9375rem] h-[2.9375rem] bg-[#03867B] rounded-[1.875rem] backdrop-blur-[0.63125rem] flex items-center justify-center"
                             >
-                                <Minus size={18} className="text-white" />
+                                <Plus size={18} className="text-white" />
                             </button>
                         </div>
                     </div>
@@ -151,7 +264,7 @@ export default function SlotPage() {
                                 Select Date
                             </div>
                         </div>
-                        <div className="w-full overflow-x-auto scrollbar-hide">
+                        <div className="w-full overflow-x-auto scrollbar-hide relative">
                             <div className="flex items-center gap-3 px-4 min-w-max">
                                 {dates.map((dateItem, index) => {
                                     const isWeekend = dateItem.day === 'SUN' || dateItem.day === 'FRI' || dateItem.day === 'SAT';
@@ -271,46 +384,101 @@ export default function SlotPage() {
                                 Select Time
                             </div>
                         </div>
-                        <div className="w-full h-[18vh] flex flex-col items-center gap-1.5">
-                            <div className="w-full h-[14vh] overflow-hidden px-[2vw]">
-                                <div className="grid grid-cols-4 gap-2 justify-items-center">
-                                    {displayedTimeSlots.map((slot: any) => (
-                                        <button
-                                            key={slot.time}
-                                            onClick={() => handleTimeSelect(slot.time)}
-                                            disabled={!slot.available}
-                                            className={`w-[4.75rem] px-2 py-1.5 rounded-[1.375rem] flex flex-col items-center gap-0.5 transition-colors ${selectedTime === slot.time
+
+                        {loading ? (
+                            <div className="w-full h-[14vh] flex items-center justify-center">
+                                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+                            </div>
+                        ) : displayedTimeSlots.length === 0 ? (
+                            <div className="w-full h-[14vh] flex items-center justify-center">
+                                <p className="text-white/60 text-sm">No slots available for this date</p>
+                            </div>
+                        ) : (
+                            <div className="w-full min-h-[18vh] flex flex-col items-center gap-1.5">
+                                <div className="w-full overflow-hidden px-[2vw]">
+                                    <div className="grid grid-cols-4 gap-2 justify-items-center">
+                                        {displayedTimeSlots.map((slot: any, idx: number) => (
+                                            <button
+                                                key={slot.time + idx}
+                                                onClick={() => handleTimeSelect(slot.time)}
+                                                disabled={!slot.available}
+                                                className={`w-[4.75rem] px-2 py-1.5 rounded-[1.375rem] flex flex-col items-center gap-0.5 transition-colors ${selectedTime === slot.time
                                                     ? 'bg-[#03867B] border border-[#14FFEC]'
                                                     : slot.available
                                                         ? 'bg-[#0D1F1F]'
                                                         : 'bg-[#0D1F1F] opacity-50 cursor-not-allowed'
-                                                }`}
-                                        >
-                                            <div className="text-white text-[0.75rem] font-['Manrope'] font-semibold leading-4 tracking-[0.0075rem]">
-                                                {slot.time}
-                                            </div>
-                                            {slot.offerCount > 0 && (
-                                                <div className="text-[#14FFEC] text-[0.6875rem] font-['Manrope'] font-semibold leading-4 tracking-[0.006875rem]">
-                                                    1 Offer
+                                                    }`}
+                                            >
+                                                <div className="text-white text-[0.75rem] font-['Manrope'] font-semibold leading-4 tracking-[0.0075rem]">
+                                                    {slot.time}
                                                 </div>
-                                            )}
-                                        </button>
-                                    ))}
+                                                {slot.offerCount > 0 && (
+                                                    <div className="text-[#14FFEC] text-[0.6875rem] font-['Manrope'] font-semibold leading-4 tracking-[0.006875rem]">
+                                                        {slot.offerCount} Offer{slot.offerCount > 1 ? 's' : ''}
+                                                    </div>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                {getTimeSlotsForDate().length > 8 && (
+                                    <button
+                                        onClick={() => setShowAllSlots(!showAllSlots)}
+                                        className="flex items-center gap-[0.1375rem] mt-2"
+                                    >
+                                        <div className="text-white text-sm font-['Manrope'] font-medium leading-4 tracking-[0.007rem]">
+                                            {showAllSlots ? 'Show less' : 'View all slots'}
+                                        </div>
+                                        <ChevronDown
+                                            size={20}
+                                            className={`text-white transition-transform ${showAllSlots ? 'rotate-180' : ''}`}
+                                        />
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Events Section - Below time slots */}
+                {!isEvent && events.length > 0 && (
+                    <div className="w-full max-w-[25rem] mt-6">
+                        <div className="w-full flex items-center justify-between mb-4 px-2">
+                            <h3 className="text-[#FFFEFF] text-base font-['Manrope'] font-semibold">
+                                Events
+                            </h3>
+                            <Link href={`/events?clubId=${clubId}`} className="text-[#14FFEC] text-sm font-medium">
+                                View All
+                            </Link>
+                        </div>
+
+                        {eventsLoading ? (
+                            <div className="w-full h-[200px] flex items-center justify-center">
+                                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+                            </div>
+                        ) : (
+                            <div className="w-full overflow-x-auto scrollbar-hide">
+                                <div className="flex gap-4 pb-2 pl-2">
+                                    {events
+                                        .filter((event: any) => {
+                                            // Filter events by selected date
+                                            const eventDate = new Date(event.startDateTime);
+                                            const selectedFullDate = dates[selectedDate].fullDate;
+                                            return eventDate.toDateString() === selectedFullDate.toDateString();
+                                        })
+                                        .slice(0, 5)
+                                        .map((event: any) => (
+                                            <EventCardRow
+                                                key={event.id}
+                                                event={{
+                                                    ...event,
+                                                    location: event.location || event.clubName
+                                                }}
+                                            />
+                                        ))}
                                 </div>
                             </div>
-                            <button
-                                onClick={() => setShowAllSlots(!showAllSlots)}
-                                className="flex items-center gap-[0.1375rem]"
-                            >
-                                <div className="text-white text-sm font-['Manrope'] font-medium leading-4 tracking-[0.007rem]">
-                                    View all slots
-                                </div>
-                                <ChevronDown
-                                    size={20}
-                                    className={`text-white transition-transform ${showAllSlots ? 'rotate-180' : ''}`}
-                                />
-                            </button>
-                        </div>
+                        )}
                     </div>
                 )}
 
@@ -365,7 +533,7 @@ export default function SlotPage() {
 
             {/* Bottom Continue Button */}
             <BottomContinueButton
-                text="Select Table"
+                text="Continue"
                 onClick={handleContinue}
                 disabled={!isEvent && !selectedTime}
             />

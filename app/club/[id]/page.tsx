@@ -199,7 +199,7 @@ export default function ClubDetailPage() {
                 {/* Back button */}
                 <button
                     onClick={handleGoBack}
-                    className="absolute left-4 top-12 w-[35px] h-[35px] bg-white/20 rounded-[18px] flex items-center justify-center hover:bg-white/30 transition"
+                    className="absolute left-4 top-6 w-[35px] h-[35px] bg-white/20 rounded-[18px] flex items-center justify-center hover:bg-white/30 transition z-50"
                 >
                     <ArrowLeft className="h-5 w-5 text-white" />
                 </button>
@@ -227,20 +227,19 @@ export default function ClubDetailPage() {
             </div>
 
             {/* Profile picture - centered */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 z-20" style={{ top: 'calc(40vh - 42.5px)' }}>
+            <div className="absolute left-1/2 transform -translate-x-1/2 z-30" style={{ top: 'calc(35vh - 42.5px)' }}>
                 <div className="w-[85px] h-[85px] rounded-full border-4 border-[#08C2B3] overflow-hidden shadow-xl bg-black">
                     <img
                         src={club.logo || ''}
                         alt={club.name}
                         className="w-full h-full object-cover"
-                        onError={(e) => (e.currentTarget.src = heroImages[0])}
                     />
                 </div>
             </div>
 
             {/* Main content */}
             <div className="bg-gradient-to-b from-[#021313] to-[rgba(2,19,19,0)] mt-[-5vh] rounded-t-[40px] relative z-0 px-4 pb-[18px] w-full">
-                <div className="flex flex-col items-center w-full" style={{ paddingTop: 'calc(6vh + 30px)' }}>
+                <div className="flex flex-col items-center w-full" style={{ paddingTop: 'calc(8vh + 30px)' }}>
                     {/* Title */}
                     <h1 className="text-white text-[30px] tracking-[0.36px] text-center font-normal leading-[35px] mb-3 uppercase" style={{ fontFamily: "'Anton', sans-serif" }}>
                         {club.name}
@@ -269,17 +268,14 @@ export default function ClubDetailPage() {
                     {/* Location Section */}
                     <div className="w-full mt-5 mb-5">
                         <h3 className="text-white text-xl font-semibold mb-4">Location</h3>
-                        <Link href="/location/select">
-                            <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[20px] p-4 cursor-pointer hover:bg-[rgba(40,60,61,0.40)] transition">
-                                <div className="flex items-start gap-3 mb-4">
-                                    <MapPin className="w-5 h-5 text-[#FF3B3B] flex-shrink-0" />
-                                    <div className="flex-1">
-                                        <p className="text-white text-sm mb-1">{getAddress()}</p>
-                                        <p className="text-[#14FFEC] text-xs font-medium">Click to select custom location on map</p>
-                                    </div>
+                        <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[20px] p-4">
+                            <div className="flex items-start gap-3">
+                                <MapPin className="w-5 h-5 text-[#FF3B3B] flex-shrink-0 mt-1" />
+                                <div className="flex-1">
+                                    <p className="text-white text-sm mb-2">{getAddress()}</p>
                                 </div>
                             </div>
-                        </Link>
+                        </div>
                     </div>
 
                     {/* Facilities Section */}
@@ -318,17 +314,68 @@ export default function ClubDetailPage() {
                         </div>
                     )}
 
-                    {/* Contact Section */}
-                    {(club.phone || club.email) && (
+                    {/* Today's Offers Section */}
+                    {offers && offers.length > 0 && (
                         <div className="w-full mt-5 mb-5">
-                            <h3 className="text-white text-xl font-semibold mb-4">Contact</h3>
-                            <div className="bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4 space-y-2">
-                                {club.phone && <p className="text-white text-sm">📞 {club.phone}</p>}
-                                {club.email && <p className="text-white text-sm">✉️ {club.email}</p>}
+                            <h3 className="text-white text-xl font-semibold mb-4">Today's Offers</h3>
+                            <div className="bg-[rgba(40,60,61,0.30)] rounded-[15px] overflow-hidden p-3 space-y-2">
+                                {offers.map((offer: any, i: number) => (
+                                    <div key={i} className="bg-[#263438] rounded-[10px] border border-dashed border-[#14FFEC] p-3 flex items-center justify-between">
+                                        <div className="text-white text-sm font-semibold">{offer.title || offer}</div>
+                                        <div className="w-6 h-6 opacity-50">
+                                            <img src="/common/discount.png" alt="Offer" className="w-full h-full object-contain" />
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}
 
+                    {/* Photos/Gallery Section */}
+                    {club.images && club.images.length > 0 && (
+                        <div className="w-full mt-5 mb-5">
+                            <h3 className="text-white text-base font-semibold mb-4">Photos</h3>
+                            <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4 flex flex-wrap gap-2 justify-center">
+                                {club.images.slice(0, 5).map((img: any, i: number) => (
+                                    <div key={i} className={`${i === 0 || i === 1 ? 'w-[48%] h-44' : 'w-[31%] h-28'} bg-gray-700 rounded-[15px] relative overflow-hidden`}>
+                                        <img
+                                            src={img.url || img}
+                                            alt={`Gallery ${i + 1}`}
+                                            className="w-full h-full object-cover rounded-[15px]"
+                                        />
+                                        {i === 4 && club.images.length > 5 && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-[15px]">
+                                                <span className="text-white text-lg font-bold">+{club.images.length - 5}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Contact Section */}
+                    {(club.contactPhone || club.contactEmail) && (
+                        <div className="w-full mt-5 mb-5">
+                            <h3 className="text-white text-xl font-semibold mb-4">Contact</h3>
+                            <div className="bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4 space-y-2">
+                                {club.contactPhone && <p className="text-white text-sm">📞 {club.contactPhone}</p>}
+                                {club.contactEmail && <p className="text-white text-sm">✉️ {club.contactEmail}</p>}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Bar Section */}
+                    {club.barOptions && club.barOptions.length > 0 && (
+                        <div className="w-full mt-5 mb-5">
+                            <h3 className="text-white text-xl font-semibold mb-4">Bar</h3>
+                            <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
+                                {club.barOptions.map((option: any, i: number) => (
+                                    <TagComponent key={i} label={option} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Join Button */}
                     <button
