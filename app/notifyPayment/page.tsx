@@ -35,46 +35,33 @@ function NotifyPaymentContent() {
             const tableData = tableDataStr ? JSON.parse(tableDataStr) : {};
             const customerData = customerDataStr ? JSON.parse(customerDataStr) : {};
 
-            // Calculate pricing
-            const entryFee = bookingData.hasEvent
-                ? (bookingData.eventDetails?.entryFeePerGuest || 0) * bookingData.guestCount
-                : 0;
-            const offerDiscount = bookingData.selectedOffer
-                ? (bookingData.selectedOffer.type === 'PERCENTAGE'
-                    ? (entryFee * bookingData.selectedOffer.discount / 100)
-                    : bookingData.selectedOffer.discount)
-                : 0;
-            const totalAmount = entryFee - offerDiscount;
+            // Parse arrival time to match new API format
+            const [timeStr, period] = (bookingData.selectedTime || '18:00 PM').split(' ');
+            const [hourStr, minuteStr] = timeStr.split(':');
+            let hour = parseInt(hourStr);
+            if (period === 'PM' && hour !== 12) hour += 12;
+            if (period === 'AM' && hour === 12) hour = 0;
 
-            // Create ticket
+            // Create ticket with new API structure
             const ticketResponse = await TicketService.createClubTicket({
                 clubId: bookingData.clubId,
-                eventId: bookingData.hasEvent ? bookingData.eventDetails?.eventId : null,
+                clubName: bookingData.clubName || 'Club',
+                userId: customerData.userId || 'guest',
+                userEmail: customerData.email || '',
+                userName: customerData.name || customerData.username || 'Guest',
+                userPhone: customerData.phone || customerData.mobile || '',
                 bookingDate: bookingData.selectedDate,
-                arrivalTime: bookingData.selectedTime,
+                arrivalTime: {
+                    hour: hour,
+                    minute: parseInt(minuteStr || '0'),
+                    second: 0,
+                    nano: 0
+                },
                 guestCount: bookingData.guestCount,
-                tableId: tableData.tableId,
-                tableNumber: tableData.tableNumber,
-                floorNumber: tableData.floorNumber,
-                notes: tableData.notes || customerData.occasion,
-                selectedOffer: bookingData.selectedOffer,
-                pricing: {
-                    entryFee,
-                    offerDiscount,
-                    totalAmount
-                },
-                customerDetails: {
-                    username: customerData.username || customerData.name || 'Guest',
-                    email: customerData.email || '',
-                    mobile: customerData.phone || customerData.mobile || '',
-                    name: customerData.name || 'Guest'
-                },
-                paymentDetails: {
-                    orderId: orderId,
-                    paymentSessionId: paymentData.payment_session_id || '',
-                    cfOrderId: paymentData.cf_order_id || '',
-                    paymentStatus: 'SUCCESS'
-                }
+                offerId: bookingData.selectedOffer?.offerId,
+                occasion: tableData.notes || customerData.occasion,
+                floorPreference: tableData.floorNumber,
+                currency: 'INR'
             });
 
             if (ticketResponse.success && ticketResponse.data) {
@@ -194,15 +181,15 @@ function NotifyPaymentContent() {
 
     const handleContinue = () => {
         if (status === 'success') {
-            // Redirect to booking confirmation with ticket ID
+            // Redirect to review-pre-booking success page with ticket ID
             if (ticketId) {
-                router.push(`/booking/confirmation?ticketId=${ticketId}`);
+                router.push(`/booking/review-pre-booking?ticketId=${ticketId}`);
             } else {
-                router.push('/booking/confirmation');
+                router.push('/booking/review-pre-booking');
             }
         } else if (status === 'failed') {
-            // Go back to booking or payment page
-            router.push('/event/pay');
+            // Go back to review booking page
+            router.push('/booking/review-booking');
         } else {
             // For pending, go to booking history
             router.push('/account/bookings');

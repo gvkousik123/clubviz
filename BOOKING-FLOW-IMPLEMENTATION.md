@@ -231,79 +231,42 @@ sessionStorage.setItem('customerDetails', JSON.stringify({
 ```json
 {
   "clubId": "club-123",
-  "eventId": "event-456",
+  "clubName": "Dabo Club & Kitchen",
+  "userId": "user-789",
+  "userEmail": "david@test.com",
+  "userName": "David Simon",
+  "userPhone": "+91 9XXXX9XXXX",
   "bookingDate": "2026-01-25",
-  "arrivalTime": "18:30 PM",
+  "arrivalTime": {
+    "hour": 18,
+    "minute": 30,
+    "second": 0,
+    "nano": 0
+  },
   "guestCount": 2,
-  "tableNumber": "TG-03",
-  "floorNumber": "Ground Floor",
-  "notes": "Birthday",
-  "selectedOffer": {
-    "offerId": "offer-1",
-    "title": "20% off",
-    "discount": 20,
-    "type": "PERCENTAGE"
-  },
-  "pricing": {
-    "entryFee": 1000,
-    "offerDiscount": 200,
-    "totalAmount": 800
-  },
-  "customerDetails": {
-    "username": "david",
-    "email": "david@test.com",
-    "mobile": "+91 9XXXX9XXXX",
-    "name": "David Simon"
-  },
-  "paymentDetails": {
-    "orderId": "order_123",
-    "paymentSessionId": "session_456",
-    "cfOrderId": "cf_789",
-    "paymentStatus": "SUCCESS"
-  }
+  "offerId": "offer-1",
+  "occasion": "Birthday",
+  "floorPreference": "Ground Floor",
+  "currency": "INR"
 }
 ```
 
 **Response:**
 ```json
 {
-  "success": true,
-  "data": {
-    "ticketId": "ticket-789",
-    "bookingId": "booking-123",
-    "reservationId": "BO-290",
-    "qrCode": "https://api.qrserver.com/v1/...",
-    "qrCodeUrl": "https://...",
-    "clubDetails": {
-      "clubId": "club-123",
-      "clubName": "Dabo Club & Kitchen",
-      "address": "6, New Manish Nagar, Nagpur",
-      "contactPhone": "+91 XXXXXXXXXX"
-    },
-    "eventDetails": {
-      "eventId": "event-456",
-      "eventTitle": "DJ Night",
-      "entryFee": 500
-    },
-    "bookingDetails": {
-      "bookingDate": "2026-01-25",
-      "arrivalTime": "18:30 PM",
-      "guestCount": 2,
-      "tableNumber": "TG-03",
-      "floorNumber": "Ground Floor",
-      "notes": "Birthday"
-    },
-    "pricing": {
-      "entryFee": 1000,
-      "offerDiscount": 200,
-      "totalAmount": 800
-    },
-    "customerDetails": {
-      "name": "David Simon",
-      "email": "david@test.com",
-      "mobile": "+91 9XXXX9XXXX"
-    }
-  }
+  "ticketId": "ticket-789",
+  "ticketNumber": "BQ-290",
+  "status": "BOOKED",
+  "totalAmount": 800,
+  "currency": "INR"
+}
+```
+
+**Error Response:**
+```json
+{
+  "status": "error",
+  "message": "Invalid booking data"
 }
 ```
 

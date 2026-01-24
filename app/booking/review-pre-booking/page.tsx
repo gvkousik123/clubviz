@@ -1,16 +1,22 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Calendar, MapPin, ArrowUpRight, ChevronRight, X } from 'lucide-react';
 import PageHeader from '@/components/common/page-header';
 
 export default function ReviewEventBookingPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const ticketId = searchParams.get('ticketId');
 
     const handleViewTicket = () => {
-        router.push('/booking/confirmation');
+        if (ticketId) {
+            router.push(`/booking/confirmation?ticketId=${ticketId}`);
+        } else {
+            router.push('/booking/confirmation');
+        }
     };
 
     const handleCancelBooking = () => {

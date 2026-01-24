@@ -1,18 +1,57 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Calendar, MapPin, ArrowUpRight, ChevronRight } from 'lucide-react';
 import PageHeader from '@/components/common/page-header';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
+import { usePayment } from '@/hooks/use-payment';
+import { useProfile } from '@/hooks/use-profile';
 
 export default function ReviewEventBookingPage() {
     const router = useRouter();
+    const { initiatePayment, loading } = usePayment();
+    const { profile } = useProfile();
+    const [bookingData, setBookingData] = useState<any>(null);
 
+    useEffect(() => {
+        // Load booking data from sessionStorage
+        const data = sessionStorage.getItem('bookingData');
+        if (data) {
+            setBookingData(JSON.parse(data));
+        }
+    }, []);
 
-    const handleContinue = () => {
-        router.push('/booking/review-pre-booking');
+    const handleContinue = async () => {
+        try {
+            if (!bookingData || !profile) {
+                console.error('Missing booking or profile data');
+                return;
+            }
+
+            // Calculate total amount (entry fee for events, 0 for restaurants - pay at venue)
+            const amount = bookingData.isEvent
+                ? (bookingData.eventDetails?.entryFee || 0) * bookingData.guestCount
+                : 0;
+
+            // If no amount to pay (restaurant), skip to pre-booking
+            if (amount === 0) {
+                router.push('/booking/review-pre-booking');
+                return;
+            }
+
+            // Initiate payment for events
+            await initiatePayment({
+                amount,
+                currency: 'INR',
+                customer_username: profile.username || 'guest',
+                customer_email: profile.email || '',
+                customer_mobile: profile.mobile || ''
+            });
+        } catch (error) {
+            console.error('Payment initiation error:', error);
+        }
     };
     return (
         <div className="w-full min-h-screen relative bg-[#021313]">
@@ -166,8 +205,9 @@ export default function ReviewEventBookingPage() {
             {/* Bottom confirm button */}
             <div className="fixed bottom-0 left-0 right-0 z-50">
                 <BottomContinueButton
-                    text="Confirm Booking"
+                    text={loading ? "Processing..." : "Confirm Booking"}
                     onClick={handleContinue}
+                    disabled={loading}
                 />
             </div>
         </div>

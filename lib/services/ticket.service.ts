@@ -161,7 +161,7 @@ export class TicketService {
 
     /**
      * Get ticket details by ticket ID
-     * GET /ticket/tickets/{ticketId}
+     * GET /club-tickets/{ticketId}
      * 
      * @param ticketId - The ticket ID to retrieve
      * @returns Complete ticket information
@@ -169,7 +169,35 @@ export class TicketService {
     static async getTicketDetails(ticketId: string): Promise<ApiResponse<TicketDetails>> {
         try {
             const response = await api.get<ApiResponse<TicketDetails>>(
-                `${this.TICKET_BASE}/tickets/${ticketId}`
+                `/club-tickets/${ticketId}`
+            );
+            return handleApiResponse(response);
+        } catch (error) {
+            throw new Error(handleApiError(error));
+        }
+    }
+    /**
+     * Get ticket by ticket number
+     * GET /club-tickets/by-number/{ticketNumber}
+     * 
+     * @param ticketNumber - The ticket number (e.g., BQ-290)
+     * @returns Ticket information
+     */
+    static async getTicketByNumber(
+        ticketNumber: string
+    ): Promise<ApiResponse<{
+        ticketId: string;
+        ticketNumber: string;
+        clubId: string;
+        userId: string;
+        bookingDate: string;
+        arrivalTime: string;
+        guestCount: number;
+        status: 'BOOKED' | 'VALIDATED' | 'CANCELLED';
+    }>> {
+        try {
+            const response = await api.get<ApiResponse<any>>(
+                `/club-tickets/by-number/${ticketNumber}`
             );
             return handleApiResponse(response);
         } catch (error) {
@@ -177,6 +205,117 @@ export class TicketService {
         }
     }
 
+    /**
+     * Validate a ticket (staff use)
+     * POST /club-tickets/{ticketId}/validate
+     * 
+     * @param ticketId - The ticket ID to validate
+     * @param validatedBy - Staff member ID who validated the ticket
+     * @returns Validation confirmation
+     */
+    static async validateTicket(
+        ticketId: string,
+        validatedBy: string
+    ): Promise<ApiResponse<{
+        ticketId: string;
+        status: string;
+        validatedAt: string;
+        validatedBy: string;
+    }>> {
+        try {
+            const response = await api.post<ApiResponse<any>>(
+                `/club-tickets/${ticketId}/validate?validatedBy=${validatedBy}`,
+                {}
+            );
+            return handleApiResponse(response);
+        } catch (error) {
+            throw new Error(handleApiError(error));
+        }
+    }
+
+    /**
+     * Cancel a club ticket
+     * POST /club-tickets/{ticketId}/cancel
+     * 
+     * @param ticketId - The ticket ID to cancel
+     * @param cancelData - Cancellation reason and notes
+     * @returns Cancellation confirmation
+     */
+    static async cancelClubTicket(
+        ticketId: string,
+        cancelData: {
+            reason: string;
+            additionalNotes?: string;
+        }
+    ): Promise<ApiResponse<{
+        ticketId: string;
+        status: string;
+        cancelledAt: string;
+    }>> {
+        try {
+            const response = await api.post<ApiResponse<any>>(
+                `/club-tickets/${ticketId}/cancel`,
+                cancelData
+            );
+            return handleApiResponse(response);
+        } catch (error) {
+            throw new Error(handleApiError(error));
+        }
+    }
+
+    /**
+     * Get all tickets for a user
+     * GET /club-tickets/user/{userId}
+     * 
+     * @param userId - The user ID
+     * @returns List of user's tickets
+     */
+    static async getUserTickets(
+        userId: string
+    ): Promise<ApiResponse<Array<{
+        ticketId: string;
+        ticketNumber: string;
+        clubName: string;
+        bookingDate: string;
+        status: 'BOOKED' | 'VALIDATED' | 'CANCELLED';
+    }>>> {
+        try {
+            const response = await api.get<ApiResponse<any>>(
+                `/club-tickets/user/${userId}`
+            );
+            return handleApiResponse(response);
+        } catch (error) {
+            throw new Error(handleApiError(error));
+        }
+    }
+
+    /**
+     * Get available time slots for a club on a specific date
+     * GET /club-tickets/clubs/{clubId}/time-slots
+     * 
+     * @param clubId - The club ID
+     * @param date - The date in YYYY-MM-DD format
+     * @returns Available time slots with offer information
+     */
+    static async getAvailableTimeSlots(
+        clubId: string,
+        date: string
+    ): Promise<ApiResponse<{
+        timeSlots: Array<{
+            time: string;
+            availableOffers: number;
+            isAvailable: boolean;
+        }>;
+    }>> {
+        try {
+            const response = await api.get<ApiResponse<any>>(
+                `/club-tickets/clubs/${clubId}/time-slots?date=${date}`
+            );
+            return handleApiResponse(response);
+        } catch (error) {
+            throw new Error(handleApiError(error));
+        }
+    }
     /**
      * Download ticket as PDF file
      * GET /ticket/tickets/{ticketId}/download
@@ -239,86 +378,40 @@ export class TicketService {
      * POST /club-tickets
      * 
      * Creates a booking ticket with:
-     * - Booking details (club, event, date, time, guests)
-     * - Pricing information (entry fee, offers, total)
-     * - Customer details
-     * - Payment information
-     * - Generates QR code
-     * - Sends email/SMS confirmation
+     * - Booking details (club, date, time, guests)
+     * - User information
+     * - Generates ticket number and QR code
      * 
      * @param bookingData - Complete booking information
-     * @returns Created ticket with QR code and details
+     * @returns Created ticket with ticket number and total amount
      */
     static async createClubTicket(
         bookingData: {
             clubId: string;
-            eventId?: string | null;
-            bookingDate: string;
-            arrivalTime: string;
+            clubName: string;
+            userId: string;
+            userEmail: string;
+            userName: string;
+            userPhone: string;
+            bookingDate: string; // YYYY-MM-DD
+            arrivalTime: {
+                hour: number;
+                minute: number;
+                second: number;
+                nano: number;
+            };
             guestCount: number;
-            tableId?: string;
-            tableNumber?: string;
-            floorNumber?: string;
-            notes?: string;
-            selectedOffer?: {
-                offerId: string;
-                title: string;
-                discount: number;
-                type: 'PERCENTAGE' | 'FIXED';
-            };
-            pricing: {
-                entryFee: number;
-                offerDiscount: number;
-                totalAmount: number;
-            };
-            customerDetails: {
-                username: string;
-                email: string;
-                mobile: string;
-                name?: string;
-            };
-            paymentDetails: {
-                orderId: string;
-                paymentSessionId: string;
-                cfOrderId: string;
-                paymentStatus: string;
-            };
+            offerId?: string;
+            occasion?: string;
+            floorPreference?: string;
+            currency: string;
         }
     ): Promise<ApiResponse<{
         ticketId: string;
-        bookingId: string;
-        reservationId: string;
-        qrCode: string;
-        qrCodeUrl: string;
-        clubDetails: {
-            clubId: string;
-            clubName: string;
-            address: string;
-            contactPhone: string;
-        };
-        eventDetails?: {
-            eventId: string;
-            eventTitle: string;
-            entryFee: number;
-        };
-        bookingDetails: {
-            bookingDate: string;
-            arrivalTime: string;
-            guestCount: number;
-            tableNumber?: string;
-            floorNumber?: string;
-            notes?: string;
-        };
-        pricing: {
-            entryFee: number;
-            offerDiscount: number;
-            totalAmount: number;
-        };
-        customerDetails: {
-            name: string;
-            email: string;
-            mobile: string;
-        };
+        ticketNumber: string;
+        status: string;
+        totalAmount: number;
+        currency: string;
     }>> {
         try {
             const response = await api.post<ApiResponse<any>>(
