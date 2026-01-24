@@ -46,6 +46,8 @@ export default function SlotPage() {
     const [loading, setLoading] = useState(false);
     const [eventsLoading, setEventsLoading] = useState(false);
     const [clubData, setClubData] = useState<any>(null);
+    const [offers, setOffers] = useState<any[]>([]);
+    const [offersLoading, setOffersLoading] = useState(false);
 
     const dates = generateDates(weekStartDate);
     const clubId = searchParams.get('clubId') || '697499d433c602133f2a28b7';
@@ -102,6 +104,27 @@ export default function SlotPage() {
         }
     };
 
+    // Fetch offers for selected date
+    const fetchOffers = async (selectedDateObj?: any) => {
+        try {
+            setOffersLoading(true);
+            const dateToUse = selectedDateObj || dates[selectedDate];
+            const dateStr = dateToUse.fullDate.toISOString().split('T')[0];
+
+            const response = await api.get(
+                `/pricing-offers/pricing-offers/clubs/${clubId}/offers?date=${dateStr}`
+            );
+
+            if (response.data) {
+                setOffers(response.data);
+            }
+        } catch (error: any) {
+            console.error('Failed to fetch offers:', error);
+        } finally {
+            setOffersLoading(false);
+        }
+    };
+
     // Fetch club details
     const fetchClubDetails = async () => {
         try {
@@ -122,6 +145,13 @@ export default function SlotPage() {
             fetchClubDetails();
         }
     }, [clubId, weekStartDate, isEvent]);
+
+    // Fetch offers when date or time changes
+    useEffect(() => {
+        if (!isEvent && selectedTime) {
+            fetchOffers();
+        }
+    }, [selectedDate, selectedTime]);
 
     const handleGoBack = () => {
         router.back();
@@ -477,6 +507,17 @@ export default function SlotPage() {
                                             />
                                         ))}
                                 </div>
+                                {events.filter((event: any) => {
+                                    const eventDate = new Date(event.startDateTime);
+                                    const selectedFullDate = dates[selectedDate].fullDate;
+                                    return eventDate.toDateString() === selectedFullDate.toDateString();
+                                }).length === 0 && (
+                                        <div className="w-full h-[100px] flex items-center justify-center">
+                                            <p className="text-[#FFFEFF] text-sm font-['Manrope'] font-semibold">
+                                                No DJ available
+                                            </p>
+                                        </div>
+                                    )}
                             </div>
                         )}
                     </div>
@@ -491,41 +532,59 @@ export default function SlotPage() {
                                     Booking offers for {selectedTime}
                                 </div>
                             </div>
-                            <div
-                                onClick={() => handleOfferSelect('offer1')}
-                                className={
-                                    `w-full h-[4.5625rem] px-4 pr-[1.3125rem] relative bg-[rgba(13,31,31,0.2)] rounded-[0.625rem] flex flex-col justify-center items-start overflow-hidden cursor-pointer transition-all duration-200 ` +
-                                    (selectedOffer === 'offer1'
-                                        ? 'border-1 border-[#14FFEC] shadow-[0_0_12px_3px_rgba(20,255,236,0.18)] bg-[rgba(3,134,123,0.08)]'
-                                        : 'shadow-[0px_0px_6px_1px_rgba(255,255,255,0.18)] hover:bg-[rgba(13,31,31,0.4)]')
-                                }
-                            >
-                                <div className="w-full flex items-start gap-[0.625rem] flex-wrap">
-                                    <div className="w-[1.3125rem] h-[1.3125rem] rounded-full border-2 border-[#14FFEC] flex items-center justify-center">
-                                        {selectedOffer === 'offer1' && (
-                                            <div className="w-[0.75rem] h-[0.75rem] rounded-full bg-[#14FFEC]"></div>
-                                        )}
-                                    </div>
-                                    <div className="flex-1 flex flex-col relative z-20">
-                                        <div className="text-white text-base font-['Manrope'] font-semibold leading-4 tracking-[0.03125rem]">
-                                            20% off on the total bill {selectedTime}
-                                        </div>
-                                        <div className="text-white text-[0.8125rem] font-['Manrope'] font-medium leading-4 tracking-[0.03125rem] mt-1">
-                                            20% off on the total bill {selectedTime}
-                                        </div>
-                                    </div>
+
+                            {offersLoading ? (
+                                <div className="w-full flex items-center justify-center py-4">
+                                    <Loader2 className="w-6 h-6 text-[#14FFEC] animate-spin" />
                                 </div>
-                                {/* Discount Icon */}
-                                <div className="absolute -right-2 top-2 w-20 h-20 flex items-center justify-center opacity-35">
-                                    <Image
-                                        src="/common/discount.png"
-                                        alt="Discount"
-                                        width={80}
-                                        height={100}
-                                        className="w-full h-full object-contain"
-                                    />
+                            ) : offers.length === 0 ? (
+                                <div className="w-full text-center py-4">
+                                    <p className="text-[#C6C6C6] text-sm font-['Manrope']">No offers available</p>
                                 </div>
-                            </div>
+                            ) : (
+                                <div className="w-full flex flex-col gap-3">
+                                    {offers.map((offer: any, idx: number) => (
+                                        <div
+                                            key={offer.id}
+                                            onClick={() => handleOfferSelect(offer.id)}
+                                            className={
+                                                `w-full h-[4.5625rem] px-4 pr-[1.3125rem] relative bg-[rgba(13,31,31,0.2)] rounded-[0.625rem] flex flex-col justify-center items-start overflow-hidden cursor-pointer transition-all duration-200 ` +
+                                                (selectedOffer === offer.id
+                                                    ? 'border-1 border-[#14FFEC] shadow-[0_0_12px_3px_rgba(20,255,236,0.18)] bg-[rgba(3,134,123,0.08)]'
+                                                    : 'shadow-[0px_0px_6px_1px_rgba(255,255,255,0.18)] hover:bg-[rgba(13,31,31,0.4)]')
+                                            }
+                                        >
+                                            <div className="w-full flex items-start gap-[0.625rem] flex-wrap">
+                                                <div className="w-[1.3125rem] h-[1.3125rem] rounded-full border-2 border-[#14FFEC] flex items-center justify-center flex-shrink-0">
+                                                    {selectedOffer === offer.id && (
+                                                        <div className="w-[0.75rem] h-[0.75rem] rounded-full bg-[#14FFEC]"></div>
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 flex flex-col relative z-20 min-w-0">
+                                                    <div className="text-white text-base font-['Manrope'] font-semibold leading-4 tracking-[0.03125rem] truncate">
+                                                        {offer.title}
+                                                    </div>
+                                                    <div className="text-white text-[0.8125rem] font-['Manrope'] font-medium leading-4 tracking-[0.03125rem] mt-1 truncate">
+                                                        {offer.offerType === 'PERCENTAGE_DISCOUNT'
+                                                            ? `${offer.discountPercentage}% off`
+                                                            : `₹${offer.discountAmount} off`} | {offer.description}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {/* Discount Icon */}
+                                            <div className="absolute -right-2 top-2 w-20 h-20 flex items-center justify-center opacity-35">
+                                                <Image
+                                                    src="/common/discount.png"
+                                                    alt="Discount"
+                                                    width={80}
+                                                    height={100}
+                                                    className="w-full h-full object-contain"
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
