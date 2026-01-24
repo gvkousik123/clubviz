@@ -49,7 +49,6 @@ function BookingCompleteContent() {
                     url: `${window.location.origin}/ticket/view?ticketId=${ticketId}`,
                 });
             } catch (err) {
-                console.log('Share cancelled or failed');
             }
         } else {
             // Fallback to sharing via API

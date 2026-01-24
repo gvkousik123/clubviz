@@ -34,7 +34,6 @@ export default function EventsListPage() {
         try {
             // ONLY use Public API - defined in API-DOCUMENTATION.json
             // Endpoint: GET /event-management/events/list
-            console.log('🔍 Fetching events with params:', { page, size: 20, sortBy: 'startDateTime', sortOrder: 'asc' });
             const response = await PublicEventService.getPublicEvents({
                 page,
                 size: 20,
@@ -42,11 +41,9 @@ export default function EventsListPage() {
                 sortOrder: 'asc',
                 status: 'UPCOMING'
             });
-            console.log('✅ Events API Response:', response);
 
             if (response && response.content) {
                 const newEvents = response.content;
-                console.log('📊 Received events:', newEvents.length, newEvents);
                 if (append) {
                     setEvents(prev => [...prev, ...newEvents]);
                 } else {
@@ -57,7 +54,6 @@ export default function EventsListPage() {
                     hasNext: response.hasNext || false
                 });
             } else {
-                console.log('❌ No events in response');
                 if (!append) {
                     setEvents([]);
                 }
@@ -82,20 +78,16 @@ export default function EventsListPage() {
     const fetchMyRegisteredEvents = async () => {
         setLoadingMyEvents(true);
         try {
-            console.log('🔍 Fetching my registered events...');
             const response = await PublicEventService.getMyRegistrations({
                 page: 0,
                 size: 20,
                 sortBy: 'startDateTime',
                 sortOrder: 'asc'
             });
-            console.log('✅ My Registered Events API Response:', response);
 
             if (response && response.content && response.content.length > 0) {
-                console.log('📊 Received registered events:', response.content.length);
                 setMyRegisteredEvents(response.content);
             } else {
-                console.log('❌ No registered events found');
                 setMyRegisteredEvents([]);
             }
         } catch (err) {

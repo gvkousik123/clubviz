@@ -85,13 +85,11 @@ export default function EditEventPage() {
         const loadEventData = async () => {
             try {
                 setIsLoadingEvent(true);
-                console.log('📡 Loading event data for ID:', eventId);
 
                 const response = await EventService.getEventDetails(eventId);
 
                 if (response.success && response.data) {
                     const event = response.data as any;
-                    console.log('✅ Event loaded:', event);
 
                     // Parse date and time from startDateTime
                     let eventDate = '';
@@ -184,7 +182,6 @@ export default function EditEventPage() {
         const loadClubs = async () => {
             try {
                 setLoadingClubs(true);
-                console.log('📡 Loading manageable clubs...');
                 const response = await ClubService.getManageableClubs({ page: 0, size: 100 });
 
                 let clubsList: Club[] = [];
@@ -194,10 +191,8 @@ export default function EditEventPage() {
                     clubsList = Array.isArray((response as any).content) ? (response as any).content : Array.isArray(response) ? response : [];
                 }
 
-                console.log('✅ Clubs loaded:', clubsList);
                 setClubs(clubsList);
             } catch (error) {
-                console.error('❌ Error loading clubs:', error);
                 toast({
                     title: 'Error',
                     description: 'Failed to load clubs. Please try again.',
@@ -405,15 +400,9 @@ export default function EditEventPage() {
                 eventData.eventOrganizerLogo = eventOrganizerLogoData;
             }
 
-            console.log('🚀 Updating event with payload:', JSON.stringify(eventData, null, 2));
-            console.log('📸 Event Image:', eventImageData ? 'Updated' : 'Not changed');
-            console.log('🎬 Event Reel:', eventReelData ? 'Updated' : 'Not changed');
-            console.log('🏢 Organizer Logo:', eventOrganizerLogoData ? 'Updated' : 'Not changed');
-
             const response = await EventService.updateEvent(eventId, eventData);
 
             if (response && (response.success || response.data)) {
-                console.log('✅ Event updated successfully:', response);
 
                 toast({
                     title: 'Event Updated Successfully',
@@ -436,7 +425,6 @@ export default function EditEventPage() {
             }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to update event. Please try again.';
-            console.error('❌ Event update error:', error);
 
             toast({
                 title: 'Error',

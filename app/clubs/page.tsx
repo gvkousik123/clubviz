@@ -123,28 +123,20 @@ export default function ClubsListPage() {
     const loadFilterOptions = async () => {
         setLoadingFilters(true);
         try {
-            console.log('📥 Loading filter options...');
             const [categoriesData, locationsData] = await Promise.all([
                 PublicClubService.getClubCategories(),
                 PublicClubService.getClubLocations()
             ]);
 
-            console.log('📊 Raw categories response:', categoriesData);
-            console.log('📊 Raw locations response:', locationsData);
 
             // Handle both array and object responses
             const categoriesArray = Array.isArray(categoriesData) ? categoriesData : (categoriesData?.content || []);
             const locationsArray = Array.isArray(locationsData) ? locationsData : (locationsData?.content || []);
 
-            console.log('✅ Processed categories:', categoriesArray);
-            console.log('✅ Processed locations:', locationsArray);
 
             // Filter out empty values and set state
             const filteredCategories = categoriesArray.filter((cat: any) => cat && (typeof cat === 'string' ? cat.trim() : cat));
             const filteredLocations = locationsArray.filter((loc: any) => loc && (typeof loc === 'string' ? loc.trim() : loc));
-
-            console.log('✅ Filtered categories count:', filteredCategories.length);
-            console.log('✅ Filtered locations count:', filteredLocations.length);
 
             setCategories(filteredCategories);
             setLocations(filteredLocations);
@@ -186,9 +178,7 @@ export default function ClubsListPage() {
 
             // ONLY use Public API - defined in API-DOCUMENTATION.json
             // Endpoint: GET /clubs/public/list
-            console.log('🔍 Fetching clubs with params:', params);
             const response = await PublicClubService.getPublicClubsList(params);
-            console.log('✅ Clubs API Response:', response);
 
             if (response && response.content && response.content.length > 0) {
                 const apiClubs: Club[] = response.content.map((club: any, index: number) => ({
@@ -200,12 +190,10 @@ export default function ClubsListPage() {
                     address: club.location || club.description || '',
                     category: club.category || 'Club'
                 }));
-                console.log('📊 Mapped clubs:', apiClubs.length, apiClubs);
                 setClubs(apiClubs);
                 setTotalPages(response.totalPages || 1);
                 setHasMore(response.hasNext || false);
             } else {
-                console.log('❌ No clubs available from API');
                 setClubs([]);
                 setTotalPages(1);
                 setHasMore(false);
@@ -389,7 +377,6 @@ export default function ClubsListPage() {
                             {(selectedCategory || selectedLocation) && (
                                 <button
                                     onClick={() => {
-                                        console.log('🔄 Clearing filters and reloading clubs...');
                                         setSelectedCategory('');
                                         setSelectedLocation('');
                                         setCurrentPage(0);

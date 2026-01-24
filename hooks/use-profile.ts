@@ -79,12 +79,13 @@ export const useProfile = (): UseProfileReturn => {
   const loadProfile = useCallback(async () => {
     setIsProfileLoading(true);
     try {
-      const profileData = await ProfileService.getProfile();
-      setProfile(profileData);
+      // Disabled: Profile API call causes CORS errors
+      // const profileData = await ProfileService.getProfile();
+      // setProfile(profileData);
       setCurrentUser(ProfileService.getCurrentUser());
     } catch (error) {
       // Silently fail - don't show toast for profile load errors
-      console.error('Profile load error:', error);
+      // console.error('Profile load error:', error);
     } finally {
       setIsProfileLoading(false);
     }

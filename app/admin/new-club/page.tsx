@@ -64,7 +64,6 @@ export default function NewClubPage() {
     useEffect(() => {
         const checkExistingClub = async () => {
             try {
-                console.log('🔍 Checking if admin already has a club...');
                 const response = await ClubService.getAllClubsAdmin();
 
                 let clubsData: any[] = [];
@@ -75,7 +74,6 @@ export default function NewClubPage() {
                 }
 
                 if (clubsData && Array.isArray(clubsData) && clubsData.length > 0) {
-                    console.log('⚠️ Admin already has a club! Redirecting to admin dashboard.');
                     toast({
                         title: "Club Already Exists",
                         description: "You can only have one club. Please edit your existing club or contact support.",
@@ -85,10 +83,8 @@ export default function NewClubPage() {
                     router.push('/admin');
                     return;
                 }
-                console.log('✅ No existing club found. User can create one.');
                 setIsCheckingClubs(false);
             } catch (error) {
-                console.error('❌ Error checking clubs:', error);
                 setIsCheckingClubs(false);
             }
         };
@@ -113,7 +109,6 @@ export default function NewClubPage() {
                     });
                 }
             } catch (error) {
-                console.error('Failed to fetch lookup data:', error);
                 toast({
                     title: "Error",
                     description: "Failed to load club categories",
@@ -134,10 +129,8 @@ export default function NewClubPage() {
                         email: user.email || 'admin@example.com',
                         phone: user.phoneNumber || user.mobileNumber || '+91-9876543210'
                     });
-                    console.log('📱 Loaded Admin Details:', { email: user.email, phone: user.phoneNumber || user.mobileNumber });
                 }
             } catch (error) {
-                console.error('Failed to load admin details:', error);
             }
         };
 
@@ -148,7 +141,6 @@ export default function NewClubPage() {
                 if (locationData) {
                     const location = JSON.parse(locationData);
                     setSelectedLocation(location);
-                    console.log('📍 Loaded Selected Location:', location);
                 }
             } catch (error) {
                 console.error('Failed to load location:', error);
@@ -162,7 +154,6 @@ export default function NewClubPage() {
                 if (musicGenresData) {
                     const genres = JSON.parse(musicGenresData);
                     setSelectedMusicGenres(genres);
-                    console.log('🎵 Loaded Selected Music Genres:', genres);
                 }
             } catch (error) {
                 console.error('Failed to load music genres:', error);
@@ -179,11 +170,9 @@ export default function NewClubPage() {
             if (e.key === 'clubviz-selected-location' && e.newValue) {
                 const location = JSON.parse(e.newValue);
                 setSelectedLocation(location);
-                console.log('📍 Location Updated:', location);
             } else if (e.key === 'clubviz-selected-music-genres' && e.newValue) {
                 const genres = JSON.parse(e.newValue);
                 setSelectedMusicGenres(genres);
-                console.log('🎵 Music Genres Updated:', genres);
             }
         };
 
@@ -229,10 +218,8 @@ export default function NewClubPage() {
             const reader = new FileReader();
             reader.onload = (event) => {
                 setLogoPreview(event.target?.result as string);
-                console.log('✅ Logo preview generated');
             };
             reader.readAsDataURL(file);
-            console.log('📸 Logo file stored:', file.name, file.size, 'bytes');
         }
     };
 
@@ -242,7 +229,6 @@ export default function NewClubPage() {
         if (logoInputRef.current) {
             logoInputRef.current.value = '';
         }
-        console.log('🗑️ Logo deleted');
     };
 
     const handleFoodDrinksImageChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
@@ -258,10 +244,8 @@ export default function NewClubPage() {
                 const newPreviews = [...foodDrinksPreview];
                 newPreviews[index] = event.target?.result as string;
                 setFoodDrinksPreview(newPreviews);
-                console.log(`✅ Food/Drinks image ${index} preview generated`);
             };
             reader.readAsDataURL(file);
-            console.log(`📸 Food/Drinks image ${index} uploaded:`, file.name, file.size, 'bytes');
         }
     };
 
@@ -278,10 +262,8 @@ export default function NewClubPage() {
                 const newPreviews = [...ambiencePreview];
                 newPreviews[index] = event.target?.result as string;
                 setAmbiencePreview(newPreviews);
-                console.log(`✅ Ambience image ${index} preview generated`);
             };
             reader.readAsDataURL(file);
-            console.log(`📸 Ambience image ${index} uploaded:`, file.name, file.size, 'bytes');
         }
     };
 
@@ -298,10 +280,8 @@ export default function NewClubPage() {
                 const newPreviews = [...menuPreview];
                 newPreviews[index] = event.target?.result as string;
                 setMenuPreview(newPreviews);
-                console.log(`✅ Menu image ${index} preview generated`);
             };
             reader.readAsDataURL(file);
-            console.log(`📸 Menu image ${index} uploaded:`, file.name, file.size, 'bytes');
         }
     };
 
@@ -315,7 +295,6 @@ export default function NewClubPage() {
         if (foodDrinksRefs[index]?.current) {
             foodDrinksRefs[index].current.value = '';
         }
-        console.log(`🗑️ Food/Drinks image ${index} deleted`);
     };
 
     const handleDeleteAmbienceImage = (index: number) => {
@@ -328,7 +307,6 @@ export default function NewClubPage() {
         if (ambienceRefs[index]?.current) {
             ambienceRefs[index].current.value = '';
         }
-        console.log(`🗑️ Ambience image ${index} deleted`);
     };
 
     const handleDeleteMenuImage = (index: number) => {
@@ -341,7 +319,6 @@ export default function NewClubPage() {
         if (menuRefs[index]?.current) {
             menuRefs[index].current.value = '';
         }
-        console.log(`🗑️ Menu image ${index} deleted`);
     };
 
     const handleImageUpload = (ref: React.RefObject<HTMLInputElement>) => {
@@ -354,8 +331,6 @@ export default function NewClubPage() {
             router.push('/admin/add-location');
         } else if (path === '/tags/music') {
             router.push('/admin/tags/music');
-        } else {
-            console.log(`Navigating to ${path}`);
         }
     };
 
@@ -477,15 +452,9 @@ export default function NewClubPage() {
                     "exclusions": exclusionsArray
                 }
             };
-
-            console.log('🚀 Creating Club with Images - Payload:', clubData);
-            console.log('📡 API Call: POST /clubs/create-json-with-images');
-            console.log('📸 Total Images:', allImages.length);
-
             // Call the service to create the club
             const response = await ClubService.createClub(clubData as any);
 
-            console.log('✅ Club created successfully:', response);
 
             toast({
                 title: "Success",

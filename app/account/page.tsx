@@ -33,7 +33,6 @@ export default function MyAccountPage() {
     };
 
     const handleEditPreferences = (type: string) => {
-        console.log('Edit preferences:', type);
         router.push('/account/edit');
     };
 

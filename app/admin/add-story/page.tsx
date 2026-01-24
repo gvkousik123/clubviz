@@ -51,7 +51,6 @@ export default function AddStoryPage() {
     };
 
     const handleImageSelect = (imagePath: string) => {
-        console.log('Selected image:', imagePath);
         setSelectedImage(imagePath);
     };
 
@@ -60,8 +59,6 @@ export default function AddStoryPage() {
     };
 
     const handleAddToStory = () => {
-        console.log('Adding to story:', selectedImage);
-        // Here you would handle saving the image to the story
         // After saving, close the full view
         setSelectedImage(null);
     };

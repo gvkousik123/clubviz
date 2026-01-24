@@ -79,7 +79,6 @@ export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, heigh
                 legacyMarkerRef.current = null;
             }
         } catch (error) {
-            console.log('Error removing old markers:', error);
         }
 
         const mapInstance = mapRef.current;

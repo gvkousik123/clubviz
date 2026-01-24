@@ -238,7 +238,8 @@ export default function ConfirmationPage() {
                             <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium mt-1">Pay your bill between 7:00 PM to 11 PM</p>
                         </div>
                     </div>
-                </div>                {/* What to do next section */}
+                </div>
+            )}
             <div className="w-full bg-[#0D1F1F] rounded-[1.25rem] overflow-hidden p-2">
                 <div className="px-6 py-2">
                     <h3 className="text-white text-lg font-['Manrope'] font-bold mb-3">
@@ -265,6 +266,5 @@ export default function ConfirmationPage() {
                 </div>
             </div>
         </div>
-        </div >
     );
 }

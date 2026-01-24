@@ -37,7 +37,6 @@ export default function MyStoriesPage() {
 
             // Fetch my stories
             const storiesResponse = await StoryService.getMyStories();
-            console.log('My Stories Response:', storiesResponse);
 
             // Handle different response formats
             let storiesData: Story[] = [];
@@ -55,7 +54,6 @@ export default function MyStoriesPage() {
 
             // Fetch stats
             const statsResponse = await StoryService.getStoryStats();
-            console.log('Stats Response:', statsResponse);
             setStats(statsResponse as any);
         } catch (error) {
             console.error('Error loading stories:', error);
@@ -88,10 +86,8 @@ export default function MyStoriesPage() {
 
             // Get the correct ID field
             const storyId = (selectedStory as any).storyId || selectedStory.id;
-            console.log('Deleting story with ID:', storyId);
 
             const response = await StoryService.deleteStory(storyId);
-            console.log('Delete response:', response);
 
             // Response successful - just close and show toast
             toast({
@@ -107,7 +103,6 @@ export default function MyStoriesPage() {
 
             // Reload stats
             const statsResponse = await StoryService.getStoryStats();
-            console.log('Stats response:', statsResponse);
             setStats(statsResponse as any);
 
         } catch (error: any) {
@@ -130,12 +125,10 @@ export default function MyStoriesPage() {
 
             // Get the correct ID field
             const storyId = (selectedStory as any).storyId || selectedStory.id;
-            console.log('Updating story with ID:', storyId, 'Caption:', editCaption);
 
             const response = await StoryService.updateStory(storyId, {
                 caption: editCaption,
             });
-            console.log('Update response:', response);
 
             // Response successful - just close and show toast
             toast({

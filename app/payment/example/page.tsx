@@ -46,7 +46,6 @@ export default function PaymentExamplePage() {
         });
 
         if (success) {
-            console.log('Payment initiated successfully');
         }
     };
 

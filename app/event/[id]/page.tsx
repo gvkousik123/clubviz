@@ -18,68 +18,29 @@ import { EventService } from '@/lib/services/event.service';
 import { TicketService } from '@/lib/services/ticket.service';
 import { PublicEventService, PublicEventDetails } from '@/lib/services/public.service';
 import { isGuestMode } from '@/lib/api-client-public';
+// Use centralized data store for cached event details
+import { useEventDetail } from '@/lib/store';
+import { EventDetailSkeleton } from '@/components/ui/skeleton-loaders';
 
 export default function EventDetailsPage() {
     const router = useRouter();
     const params = useParams();
     const { toast } = useToast();
 
-    const [eventData, setEventData] = useState<any>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const eventId = params.id as string;
     const [isLiked, setIsLiked] = useState(false);
     const [isActionLoading, setIsActionLoading] = useState(false);
 
+    // ==================== OPTIMIZED: Use cached event data ====================
+    // This prevents duplicate API calls when navigating back and forth
+    const { event: eventData, loading: isLoading, error, refetch } = useEventDetail(eventId);
+
+    // Update liked state when event data changes
     useEffect(() => {
-        const loadEventData = async () => {
-            try {
-                const eventId = params.id as string;
-                if (!eventId) {
-                    setError('No event ID provided');
-                    setIsLoading(false);
-                    return;
-                }
-
-                console.log('🔍 Loading event:', eventId, 'Guest mode:', isGuestMode());
-
-                let eventDetails = null;
-
-                if (isGuestMode()) {
-                    // Use public event service for guests
-                    eventDetails = await PublicEventService.getPublicEventById(eventId);
-                    console.log('✅ Public event data:', eventDetails);
-                } else {
-                    // Use regular event service for authenticated users
-                    const response = await EventService.getEventDetails(eventId);
-                    console.log('✅ Authenticated event response:', response);
-
-                    // Handle both wrapped and direct response formats
-                    if (response && typeof response === 'object') {
-                        if (response.data) {
-                            eventDetails = response.data;
-                        } else if (response.id) {
-                            eventDetails = response;
-                        }
-                    }
-                }
-
-                if (eventDetails) {
-                    setEventData(eventDetails);
-                    setIsLiked(eventDetails.isRegistered || false);
-                    setError(null);
-                } else {
-                    setError('Failed to load event data');
-                }
-            } catch (err: any) {
-                console.error('💥 Error loading event:', err);
-                setError(err.message || 'Error loading event details');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        loadEventData();
-    }, [params.id]);
+        if (eventData) {
+            setIsLiked(eventData.isRegistered || false);
+        }
+    }, [eventData]);
 
     const handleShare = async () => {
         try {
@@ -153,16 +114,9 @@ export default function EventDetailsPage() {
         router.back();
     };
 
-    // Show loading state
+    // Show loading state with skeleton
     if (isLoading) {
-        return (
-            <div className="min-h-screen bg-[#021313] text-white flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="w-12 h-12 text-[#14FFEC] animate-spin mx-auto mb-4" />
-                    <p>Loading event details...</p>
-                </div>
-            </div>
-        );
+        return <EventDetailSkeleton />;
     }
 
     // Show error state

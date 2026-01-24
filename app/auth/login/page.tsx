@@ -44,7 +44,6 @@ export default function LoginPage() {
         setIsLoading(true);
 
         try {
-            console.log("🔐 Attempting login...");
 
             const result = await AuthService.signIn(
                 usernameOrEmail.trim(),
@@ -55,7 +54,6 @@ export default function LoginPage() {
                 // Check roles from both direct response and nested user object
                 const roles = result.data?.roles || result.data?.user?.roles || [];
 
-                console.log("👤 User roles:", roles);
 
                 // ✅ ROLE-BASED ACCESS CONTROL: Only ROLE_USER can access this platform
                 if (!roles.includes('ROLE_USER')) {
@@ -81,7 +79,6 @@ export default function LoginPage() {
 
                 // For ROLE_USER, redirect to home
                 const redirectPath = '/home';
-                console.log("🔄 Redirecting to:", redirectPath);
                 router.replace(redirectPath);
             } else {
                 throw new Error(result.error || result.message || 'Login failed');

@@ -56,7 +56,6 @@ export default function ManageOffersPage() {
                     const offersResponse = await OffersService.getClubOffers(club.id);
                     if (offersResponse.success) {
                         setOffers(offersResponse.data || []);
-                        console.log('✅ Offers loaded:', offersResponse.data);
                     } else {
                         console.warn('⚠️ Failed to load offers, but continuing');
                         setOffers([]);

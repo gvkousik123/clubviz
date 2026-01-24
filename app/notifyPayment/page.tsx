@@ -101,7 +101,6 @@ function NotifyPaymentContent() {
                 const storedNotification = PaymentGatewayService.getStoredNotification(orderIdParam);
 
                 if (storedNotification) {
-                    console.log('Found stored notification:', storedNotification);
                     await handlePaymentNotification(storedNotification);
                     return;
                 }

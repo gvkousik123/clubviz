@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/auth/auth-provider"
 import { DirectLoginWrapper } from "@/components/auth/direct-login-wrapper"
 import { ToastProvider } from "@/components/ui/toast"
 import { Toaster } from "@/components/ui/toaster"
+import { DataProvider } from "@/lib/store"
 
 export const metadata: Metadata = {
   title: "ClubViz - Ultimate Platform for Booking Clubs",
@@ -41,13 +42,15 @@ export default function RootLayout({
       <body className="antialiased bg-background-primary text-text-primary dark">
         <ToastProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
-            <AuthProvider>
-              <DirectLoginWrapper>
-                <main className="min-h-screen max-w-md mx-auto relative overflow-hidden">
-                  {children}
-                </main>
-              </DirectLoginWrapper>
-            </AuthProvider>
+            <DataProvider>
+              <AuthProvider>
+                <DirectLoginWrapper>
+                  <main className="min-h-screen max-w-md mx-auto relative overflow-hidden">
+                    {children}
+                  </main>
+                </DirectLoginWrapper>
+              </AuthProvider>
+            </DataProvider>
           </ThemeProvider>
           <Toaster />
         </ToastProvider>

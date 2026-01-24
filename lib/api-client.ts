@@ -28,17 +28,17 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = authValue;
     }
 
-    // Log all requests for debugging
-    console.log(`📤 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, {
-      headers: config.headers,
-      data: config.data,
-      hasToken: !!token,
-    });
+    // Log all requests for debugging (disabled in production)
+    // console.log(`📤 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, {
+    //   headers: config.headers,
+    //   data: config.data,
+    //   hasToken: !!token,
+    // });
 
     return config;
   },
   (error) => {
-    console.error('❌ Request interceptor error:', error);
+    // console.error('❌ Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -60,24 +60,24 @@ const handleForcedLogout = () => {
 // Response interceptor for handling common errors
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
-    // Log all successful responses for debugging
-    console.log(`✅ API Response: ${response.status} ${response.config.url}`, {
-      data: response.data,
-      headers: response.headers,
-    });
+    // Log all successful responses for debugging (disabled in production)
+    // console.log(`✅ API Response: ${response.status} ${response.config.url}`, {
+    //   data: response.data,
+    //   headers: response.headers,
+    // });
     return response;
   },
   (error) => {
-    // Log all errors for debugging
-    console.error(`❌ API Error: ${error.response?.status} ${error.config?.url}`, {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-    });
+    // Log all errors for debugging (disabled in production)
+    // console.error(`❌ API Error: ${error.response?.status} ${error.config?.url}`, {
+    //   status: error.response?.status,
+    //   data: error.response?.data,
+    //   message: error.message,
+    // });
 
     // Handle 401 (Unauthorized) and 403 (Forbidden) - force logout silently
     if (error.response?.status === 401 || error.response?.status === 403) {
-      console.warn(`Authentication failed (${error.response.status}): Forcing logout...`);
+      // console.warn(`Authentication failed (${error.response.status}): Forcing logout...`);
       handleForcedLogout();
       return Promise.reject(error);
     }

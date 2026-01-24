@@ -159,7 +159,6 @@ function ClubPreviewContent() {
                 }
             };
 
-            console.log('📡 Updating club:', updatePayload);
             await ClubService.updateClub(clubId, updatePayload);
 
             // Update local state with new data

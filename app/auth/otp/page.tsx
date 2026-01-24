@@ -84,12 +84,9 @@ export default function OTPVerificationScreen() {
         setError(null);
 
         try {
-            console.log("🔍 Verifying OTP:", otpValue);
-            console.log("📧 Using email:", email);
 
             // Call backend /validate with email and OTP
             const response: any = await MobileAuthService.validateOtp(email, otpValue);
-            console.log('✅ /validate response:', response);
 
             // Check if validation was successful - check for returnCode 100 or success flag
             const returnCode = response.returnCode || response.code;
@@ -106,7 +103,6 @@ export default function OTPVerificationScreen() {
 
             // If JWT token is returned (existing user OR pre-auth token), store it
             if (response.jwtToken && response.jwtToken !== 'null' && response.jwtToken !== '') {
-                console.log("✅ Token received from OTP validation");
 
                 // Store this token as a temporary "pre-auth" token for the next step (Signin/Signup)
                 // The backend requires this token in the Authorization header for signin/signup
@@ -127,14 +123,12 @@ export default function OTPVerificationScreen() {
                 // IMPORTANT: Navigate to Signup by default as requested
                 // User can switch to Signin from there if needed
                 setTimeout(() => {
-                    console.log("🔄 Redirecting to /auth/signup...");
                     router.replace('/auth/signup');
                 }, 1000); // Small delay to let user see toast
                 return;
             }
             else {
                 // Should not happen if API is correct, but safe fallback
-                console.log("ℹ️ No Token - Redirecting to signup");
                 router.replace('/auth/signup');
             }
 
@@ -144,7 +138,6 @@ export default function OTPVerificationScreen() {
                 description: "Please complete your registration",
             });
 
-            console.log("🔄 New user - Redirecting to register page...");
             router.replace('/auth/register');
 
         } catch (error: any) {
@@ -170,7 +163,6 @@ export default function OTPVerificationScreen() {
         setError(null);
 
         try {
-            console.log("Resending OTP to:", email, phoneNumber);
 
             // Resend OTP using backend with email and phone
             const sendResult = await MobileAuthService.sendOtp(email, phoneNumber);
