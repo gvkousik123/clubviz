@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { X, Loader2 } from 'lucide-react';
 import PageHeader from '@/components/common/page-header';
 import { api } from '@/lib/api-client';
 
-export default function ReviewEventBookingPage() {
+function ReviewEventBookingPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [ticket, setTicket] = useState<any>(null);
@@ -237,5 +237,17 @@ export default function ReviewEventBookingPage() {
                 </div>
             </div>
         </div >
+    );
+}
+
+export default function ReviewEventBookingPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen w-full bg-[#021313] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+            </div>
+        }>
+            <ReviewEventBookingPageContent />
+        </Suspense>
     );
 }

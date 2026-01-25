@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, Share2, Loader2 } from 'lucide-react';
 import { TicketService } from '@/lib/services/ticket.service';
 import { useToast } from '@/hooks/use-toast';
 
-export default function BookingConfirmPage() {
+function BookingConfirmPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
@@ -133,5 +133,17 @@ export default function BookingConfirmPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function BookingConfirmPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen w-full bg-[#021313] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+            </div>
+        }>
+            <BookingConfirmPageContent />
+        </Suspense>
     );
 }

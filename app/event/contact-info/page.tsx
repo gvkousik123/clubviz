@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ChevronLeft, Phone, Mail, Edit3, X, Check } from 'lucide-react';
+import { ChevronLeft, Phone, Mail, Edit3, X, Check, Loader2 } from 'lucide-react';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,7 +17,7 @@ const scrollbarHideStyle = `
   }
 `;
 
-export default function ContactInfoPage() {
+function ContactInfoPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
@@ -274,5 +274,17 @@ export default function ContactInfoPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function ContactInfoPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen w-full bg-[#021313] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+            </div>
+        }>
+            <ContactInfoPageContent />
+        </Suspense>
     );
 }

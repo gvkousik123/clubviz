@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus, Minus, ChevronDown, Loader2 } from 'lucide-react';
 import Image from 'next/image';
@@ -31,7 +31,7 @@ const generateDates = (startDate: Date = new Date()) => {
     return dates;
 };
 
-export default function SlotPage() {
+function SlotPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
@@ -732,5 +732,17 @@ export default function SlotPage() {
                 disabled={!isEvent && !selectedTime}
             />
         </div>
+    );
+}
+
+export default function SlotPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen w-full bg-[#021313] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+            </div>
+        }>
+            <SlotPageContent />
+        </Suspense>
     );
 }

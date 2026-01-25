@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
     MapPin,
@@ -14,7 +14,7 @@ import BottomContinueButton from '@/components/common/bottom-continue-button';
 import { EventService } from '@/lib/services/event.service';
 import { useToast } from '@/hooks/use-toast';
 
-export default function TicketsPage() {
+function TicketsPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
@@ -405,5 +405,17 @@ export default function TicketsPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function TicketsPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen w-full bg-[#021313] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+            </div>
+        }>
+            <TicketsPageContent />
+        </Suspense>
     );
 }

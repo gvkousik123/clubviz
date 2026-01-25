@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MapPin, Calendar, Mail, Phone, Plus, Minus, Loader2 } from 'lucide-react';
 import PageHeader from '@/components/common/page-header';
@@ -19,7 +19,7 @@ const scrollbarHideStyle = `
   }
 `;
 
-export default function ReviewBookingPage() {
+function ReviewBookingPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
@@ -329,5 +329,17 @@ export default function ReviewBookingPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function ReviewBookingPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen w-full bg-[#021313] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+            </div>
+        }>
+            <ReviewBookingPageContent />
+        </Suspense>
     );
 }
