@@ -1,0 +1,216 @@
+{
+  "createNoEventClubTicket": {
+    "baseUrl": "https://clubwiz.in/ticket",
+    "apiName": "Create No-Event Club Ticket",
+    "method": "POST",
+    "endpoint": "/club-tickets/no-event",
+    "description": "Create a club ticket for a regular visit without any event. Entry fee is zero.",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "*/*"
+    },
+    "request": {
+      "clubId": "string",
+      "clubName": "string",
+      "userId": "string",
+      "userEmail": "string",
+      "userName": "string",
+      "userPhone": "string",
+      "bookingDate": "YYYY-MM-DD",
+      "arrivalTime": "HH:mm:ss",
+      "guestCount": "number",
+      "eventId": "string | null",
+      "offerId": "string | null",
+      "occasion": "string",
+      "floorPreference": "string",
+      "currency": "string"
+    },
+    "successResponse": {
+      "ticketId": "string",
+      "ticketNumber": "string",
+      "qrCode": "base64 string",
+      "clubId": "string",
+      "clubName": "string",
+      "userName": "string",
+      "userEmail": "string",
+      "userPhone": "string",
+      "bookingDate": "YYYY-MM-DD",
+      "arrivalTime": "HH:mm:ss",
+      "guestCount": "number",
+      "eventId": "null",
+      "eventTitle": "null",
+      "hasEvent": false,
+      "entryFee": 0,
+      "offerTitle": "null",
+      "offerDescription": "null",
+      "offerDiscount": 0,
+      "totalAmount": 0,
+      "currency": "null",
+      "occasion": "string",
+      "floorPreference": "string",
+      "status": "ACTIVE",
+      "isValidated": false,
+      "validatedAt": "null",
+      "createdAt": "ISO-8601 timestamp",
+      "cancellationReason": "null",
+      "cancelledAt": "null"
+    },
+    "errorResponse": {
+      "status": "error",
+      "message": "string",
+      "details": "Refer to other APIs for error behavior"
+    }
+  },
+  "getTicketByTicketID": {
+    "baseUrl": "https://clubwiz.in/ticket",
+    "apiName": "Get Ticket by ID",
+    "method": "GET",
+    "endpoint": "/club-tickets/{ticketId}",
+    "description": "Retrieve complete ticket details using ticket ID.",
+    "pathParams": {
+      "ticketId": "string"
+    },
+    "headers": {
+      "Accept": "*/*"
+    },
+    "successResponse": {
+      "ticketId": "string",
+      "ticketNumber": "string",
+      "qrCode": "base64 string",
+      "clubId": "string",
+      "clubName": "string",
+      "userName": "string",
+      "userEmail": "string",
+      "userPhone": "string",
+      "bookingDate": "YYYY-MM-DD",
+      "arrivalTime": "HH:mm:ss",
+      "guestCount": "number",
+      "eventId": "null",
+      "eventTitle": "null",
+      "hasEvent": false,
+      "entryFee": 0,
+      "offerTitle": "null",
+      "offerDescription": "null",
+      "offerDiscount": 0,
+      "totalAmount": 0,
+      "currency": "null",
+      "occasion": "string",
+      "floorPreference": "string",
+      "status": "ACTIVE | CANCELLED",
+      "isValidated": false,
+      "validatedAt": "null",
+      "createdAt": "ISO-8601 timestamp",
+      "cancellationReason": "string | null",
+      "cancelledAt": "ISO-8601 timestamp | null"
+    },
+    "errorResponse": {
+      "status": "error",
+      "message": "Ticket not found or invalid ticket ID"
+    }
+  },
+  "getTicketByTicketNumber": {
+    "baseUrl": "https://clubwiz.in/ticket",
+    "apiName": "Get Ticket by Ticket Number",
+    "method": "GET",
+    "endpoint": "/club-tickets/by-number/{ticketNumber}",
+    "description": "Retrieve ticket details using human-readable ticket number.",
+    "pathParams": {
+      "ticketNumber": "string"
+    },
+    "headers": {
+      "Accept": "*/*"
+    },
+    "successResponse": {
+      "ticketId": "string",
+      "ticketNumber": "string",
+      "qrCode": "base64 string",
+      "clubId": "string",
+      "clubName": "string",
+      "userName": "string",
+      "userEmail": "string",
+      "userPhone": "string",
+      "bookingDate": "YYYY-MM-DD",
+      "arrivalTime": "HH:mm:ss",
+      "guestCount": "number",
+      "eventId": "null",
+      "eventTitle": "null",
+      "hasEvent": false,
+      "entryFee": 0,
+      "offerTitle": "null",
+      "offerDescription": "null",
+      "offerDiscount": 0,
+      "totalAmount": 0,
+      "currency": "null",
+      "occasion": "string",
+      "floorPreference": "string",
+      "status": "ACTIVE | CANCELLED",
+      "isValidated": false,
+      "validatedAt": "null",
+      "createdAt": "ISO-8601 timestamp",
+      "cancellationReason": "string | null",
+      "cancelledAt": "ISO-8601 timestamp | null"
+    },
+    "errorResponse": {
+      "status": "error",
+      "message": "Ticket not found"
+    }
+  },
+  "getTicketsByUserID": {
+    "baseUrl": "https://clubwiz.in/ticket",
+    "apiName": "Get Tickets by User",
+    "method": "GET",
+    "endpoint": "/club-tickets/user/{userId}",
+    "description": "Retrieve all tickets booked by a user.",
+    "pathParams": {
+      "userId": "string"
+    },
+    "headers": {
+      "Accept": "*/*"
+    },
+    "successResponse": [
+      {
+        " res": [
+          "ticket  response",
+          "ticet rsponse"
+        ]
+      }
+    ],
+    "errorResponse": {
+      "status": "error",
+      "message": "User not found or no tickets available"
+    }
+  },
+  "cancelTicket": {
+    "baseUrl": "https://clubwiz.in/ticket",
+    "apiName": "Cancel Ticket",
+    "method": "POST",
+    "endpoint": "/club-tickets/{ticketId}/cancel",
+    "description": "Cancel an active ticket with a reason.",
+    "headers": {
+      "Authorization": "Bearer <JWT>",
+      "Content-Type": "application/json",
+      "Accept": "*/*"
+    },
+    "pathParams": {
+      "ticketId": "string"
+    },
+    "request": {
+      "reason": "string",
+      "additionalNotes": "string"
+    },
+    "successResponse": {
+      "ticketId": "string",
+      "ticketNumber": "string",
+      "clubId": "string",
+      "clubName": "string",
+      "status": "CANCELLED",
+      "cancellationReason": "string",
+      "cancelledAt": "ISO-8601 timestamp",
+      "createdAt": "ISO-8601 timestamp"
+    },
+    "errorResponse": {
+      "status": "error",
+      "message": "Ticket already cancelled or invalid ticket ID"
+    }
+  }
+}

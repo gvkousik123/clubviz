@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import PageHeader from '@/components/common/page-header';
-import { TicketService } from '@/lib/services/ticket.service';
+import { api } from '@/lib/api-client';
 import { Loader2 } from 'lucide-react';
 
 export default function ConfirmationPage() {
@@ -19,7 +19,6 @@ export default function ConfirmationPage() {
         if (ticketId) {
             fetchTicketDetails(ticketId);
         } else {
-            // Fallback: use mock data if no ticketId
             setLoading(false);
         }
     }, [searchParams]);
@@ -27,9 +26,9 @@ export default function ConfirmationPage() {
     const fetchTicketDetails = async (ticketId: string) => {
         try {
             setLoading(true);
-            const response = await TicketService.getTicketDetails(ticketId);
+            const response = await api.get(`/ticket/club-tickets/${ticketId}`);
 
-            if (response.success && response.data) {
+            if (response.data) {
                 setTicket(response.data);
             } else {
                 setError('Failed to load ticket details');
@@ -48,10 +47,48 @@ export default function ConfirmationPage() {
 
             {/* Loading State */}
             {loading && (
-                <div className="flex items-center justify-center h-screen">
-                    <div className="text-center">
-                        <Loader2 className="w-12 h-12 text-[#14FFEC] animate-spin mx-auto mb-4" />
-                        <p className="text-white">Loading your ticket...</p>
+                <div className="px-4 pt-[20vh] pb-24">
+                    {/* Combined Ticket Card Skeleton */}
+                    <div className="w-full bg-[#0D1F1F] rounded-[1.25rem] border border-[#14FFEC] mb-4 relative">
+                        {/* QR Code Section Skeleton */}
+                        <div className="w-full py-5 flex flex-col items-center">
+                            <div className="w-[160px] h-[160px] bg-[#00534C] rounded animate-pulse"></div>
+                        </div>
+
+                        {/* Divider */}
+                        <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent opacity-30"></div>
+
+                        {/* Details Section Skeleton */}
+                        <div className="w-full p-6">
+                            {/* Club Name Skeleton */}
+                            <div className="h-6 bg-[#00534C] rounded w-2/3 animate-pulse mb-4"></div>
+
+                            {/* Date/Time Skeleton */}
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="w-4 h-4 bg-[#00534C] rounded animate-pulse"></div>
+                                <div className="h-5 bg-[#00534C] rounded w-1/2 animate-pulse"></div>
+                            </div>
+
+                            {/* Location Skeleton */}
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="w-4 h-4 bg-[#00534C] rounded animate-pulse"></div>
+                                <div className="h-5 bg-[#00534C] rounded w-3/4 animate-pulse"></div>
+                            </div>
+
+                            {/* Guest Count Skeleton */}
+                            <div className="h-5 bg-[#00534C] rounded w-1/3 animate-pulse mb-6"></div>
+
+                            {/* Ticket Number Skeleton */}
+                            <div className="bg-[#00534C]/30 rounded-lg p-3 mb-4">
+                                <div className="h-4 bg-[#00534C] rounded w-1/2 animate-pulse"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Action Buttons Skeleton */}
+                    <div className="flex gap-3">
+                        <div className="flex-1 h-12 bg-[#0D1F1F] rounded-full animate-pulse"></div>
+                        <div className="flex-1 h-12 bg-[#0D1F1F] rounded-full animate-pulse"></div>
                     </div>
                 </div>
             )}
@@ -108,7 +145,7 @@ export default function ConfirmationPage() {
                             <div className="flex items-center gap-2 mb-2">
                                 <span className="text-[#B6B6B6] text-sm font-['Manrope'] font-medium">Reservation ID:</span>
                                 <span className="text-[#14FFEC] text-sm font-['Manrope'] font-bold">
-                                    {ticket?.reservationId || ticket?.bookingId || 'BO-290'}
+                                    {ticket?.ticketNumber || 'N/A'}
                                 </span>
                             </div>
                         </div>
@@ -132,54 +169,38 @@ export default function ConfirmationPage() {
                                 <div>
                                     <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium leading-4">Name</p>
                                     <p className="text-white text-sm font-['Manrope'] font-bold mt-1">
-                                        {ticket?.customerDetails?.name || 'David Simon'}
+                                        {ticket?.userName || 'Guest'}
                                     </p>
                                 </div>
 
                                 <div>
                                     <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium leading-4">Booking date</p>
                                     <p className="text-white text-sm font-['Manrope'] font-bold mt-1">
-                                        {ticket?.bookingDetails?.bookingDate || '04 Apr | 4:00 pm'}
+                                        {ticket?.bookingDate && ticket?.arrivalTime
+                                            ? `${new Date(ticket.bookingDate).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })} | ${ticket.arrivalTime.substring(0, 5)}`
+                                            : 'N/A'}
                                     </p>
                                 </div>
 
                                 <div>
                                     <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium leading-4">Contact Number</p>
                                     <p className="text-white text-sm font-['Manrope'] font-bold mt-1">
-                                        {ticket?.customerDetails?.mobile || '+91 9XXXX9XXXX'}
+                                        {ticket?.userPhone || 'N/A'}
                                     </p>
                                 </div>
 
                                 <div>
                                     <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium leading-4">Number of Guest(s)</p>
                                     <p className="text-white text-sm font-['Manrope'] font-bold mt-1">
-                                        {ticket?.bookingDetails?.guestCount || 2} Guests
+                                        {ticket?.guestCount || 0} Guests
                                     </p>
                                 </div>
 
-                                {ticket?.bookingDetails?.tableNumber && (
+                                {ticket?.occasion && (
                                     <div>
-                                        <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium leading-4">Table Number</p>
+                                        <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium leading-4">Occasion</p>
                                         <p className="text-white text-sm font-['Manrope'] font-bold mt-1">
-                                            {ticket.bookingDetails.tableNumber}
-                                        </p>
-                                    </div>
-                                )}
-
-                                {ticket?.bookingDetails?.notes && (
-                                    <div>
-                                        <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium leading-4">Notes</p>
-                                        <p className="text-white text-sm font-['Manrope'] font-bold mt-1">
-                                            {ticket.bookingDetails.notes}
-                                        </p>
-                                    </div>
-                                )}
-
-                                {ticket?.bookingDetails?.floorNumber && (
-                                    <div>
-                                        <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium leading-4">Floor Number</p>
-                                        <p className="text-white text-sm font-['Manrope'] font-bold mt-1">
-                                            {ticket.bookingDetails.floorNumber}
+                                            {ticket.occasion}
                                         </p>
                                     </div>
                                 )}
@@ -232,11 +253,21 @@ export default function ConfirmationPage() {
                         )}
 
                         {/* Benefits Section */}
-                        <div className="px-6 py-5 pt-2">
-                            <p className="text-[#14FFEC] text-xs font-['Manrope'] font-medium mb-1">Benefits</p>
-                            <p className="text-white text-sm font-['Manrope'] font-bold">Flat 30% OFF</p>
-                            <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium mt-1">Pay your bill between 7:00 PM to 11 PM</p>
-                        </div>
+                        {ticket?.offerTitle && (
+                            <div className="px-6 pb-5 border-t border-[#FFFFFF30]">
+                                <div className="pt-4">
+                                    <p className="text-[#14FFEC] text-xs font-['Manrope'] font-medium mb-2">Benefits</p>
+                                    <p className="text-white text-sm font-['Manrope'] font-bold">
+                                        {ticket.offerTitle}
+                                    </p>
+                                    {ticket.offerDescription && (
+                                        <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium mt-1">
+                                            {ticket.offerDescription}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

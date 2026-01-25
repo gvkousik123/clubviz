@@ -169,7 +169,7 @@ export class TicketService {
     static async getTicketDetails(ticketId: string): Promise<ApiResponse<TicketDetails>> {
         try {
             const response = await api.get<ApiResponse<TicketDetails>>(
-                `/club-tickets/${ticketId}`
+                `/ticket/club-tickets/${ticketId}`
             );
             return handleApiResponse(response);
         } catch (error) {
@@ -197,7 +197,7 @@ export class TicketService {
     }>> {
         try {
             const response = await api.get<ApiResponse<any>>(
-                `/club-tickets/by-number/${ticketNumber}`
+                `/ticket/club-tickets/by-number/${ticketNumber}`
             );
             return handleApiResponse(response);
         } catch (error) {
@@ -224,7 +224,7 @@ export class TicketService {
     }>> {
         try {
             const response = await api.post<ApiResponse<any>>(
-                `/club-tickets/${ticketId}/validate?validatedBy=${validatedBy}`,
+                `/ticket/club-tickets/${ticketId}/validate?validatedBy=${validatedBy}`,
                 {}
             );
             return handleApiResponse(response);
@@ -254,7 +254,7 @@ export class TicketService {
     }>> {
         try {
             const response = await api.post<ApiResponse<any>>(
-                `/club-tickets/${ticketId}/cancel`,
+                `/ticket/club-tickets/${ticketId}/cancel`,
                 cancelData
             );
             return handleApiResponse(response);
@@ -281,7 +281,7 @@ export class TicketService {
     }>>> {
         try {
             const response = await api.get<ApiResponse<any>>(
-                `/club-tickets/user/${userId}`
+                `/ticket/club-tickets/user/${userId}`
             );
             return handleApiResponse(response);
         } catch (error) {
@@ -309,7 +309,7 @@ export class TicketService {
     }>> {
         try {
             const response = await api.get<ApiResponse<any>>(
-                `/club-tickets/clubs/${clubId}/time-slots?date=${date}`
+                `/ticket/club-tickets/clubs/${clubId}/time-slots?date=${date}`
             );
             return handleApiResponse(response);
         } catch (error) {
@@ -374,6 +374,74 @@ export class TicketService {
     }
 
     /**
+     * Create a no-event club booking ticket
+     * POST /club-tickets/no-event
+     * 
+     * Creates a booking ticket for regular club visits without any event
+     * Entry fee is zero for no-event bookings
+     * 
+     * @param bookingData - Complete booking information
+     * @returns Created ticket with ticket number and QR code
+     */
+    static async createNoEventClubTicket(
+        bookingData: {
+            clubId: string;
+            clubName: string;
+            userId: string;
+            userEmail: string;
+            userName: string;
+            userPhone: string;
+            bookingDate: string; // YYYY-MM-DD
+            arrivalTime: string; // HH:mm:ss
+            guestCount: number;
+            eventId?: string | null;
+            offerId?: string | null;
+            occasion?: string;
+            floorPreference?: string;
+            currency: string;
+        }
+    ): Promise<ApiResponse<{
+        ticketId: string;
+        ticketNumber: string;
+        qrCode: string;
+        clubId: string;
+        clubName: string;
+        userName: string;
+        userEmail: string;
+        userPhone: string;
+        bookingDate: string;
+        arrivalTime: string;
+        guestCount: number;
+        eventId: string | null;
+        eventTitle: string | null;
+        hasEvent: boolean;
+        entryFee: number;
+        offerTitle: string | null;
+        offerDescription: string | null;
+        offerDiscount: number;
+        totalAmount: number;
+        currency: string | null;
+        occasion: string;
+        floorPreference: string;
+        status: string;
+        isValidated: boolean;
+        validatedAt: string | null;
+        createdAt: string;
+        cancellationReason: string | null;
+        cancelledAt: string | null;
+    }>> {
+        try {
+            const response = await api.post<ApiResponse<any>>(
+                '/ticket/club-tickets/no-event',
+                bookingData
+            );
+            return handleApiResponse(response);
+        } catch (error) {
+            throw new Error(handleApiError(error));
+        }
+    }
+
+    /**
      * Create a club booking ticket
      * POST /club-tickets
      * 
@@ -415,7 +483,7 @@ export class TicketService {
     }>> {
         try {
             const response = await api.post<ApiResponse<any>>(
-                '/club-tickets',
+                '/ticket/club-tickets',
                 bookingData
             );
             return handleApiResponse(response);

@@ -142,10 +142,27 @@ export default function ClubDetailPage() {
     if (error || !club) {
         return (
             <div className="min-h-screen bg-[#021313] flex flex-col items-center justify-center p-4">
-                <p className="text-white mb-4">{error || 'Club not found'}</p>
-                <button onClick={handleGoBack} className="text-[#14FFEC] flex items-center gap-2 hover:opacity-80">
-                    <ArrowLeft className="w-4 h-4" /> Go Back
-                </button>
+                <div className="text-center">
+                    <div className="w-16 h-16 bg-[#0D1F1F] rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-3xl">😕</span>
+                    </div>
+                    <p className="text-white mb-2 text-lg font-semibold">{error || 'Club not found'}</p>
+                    <p className="text-[#B6B6B6] mb-6 text-sm">Unable to load club details. Please try again.</p>
+                    <div className="flex gap-3 justify-center">
+                        <button
+                            onClick={() => refetch()}
+                            className="bg-[#14FFEC] text-black px-6 py-2 rounded-full font-medium hover:brightness-90 transition"
+                        >
+                            Try Again
+                        </button>
+                        <button
+                            onClick={handleGoBack}
+                            className="bg-[#0D1F1F] text-[#14FFEC] px-6 py-2 rounded-full font-medium hover:brightness-110 transition flex items-center gap-2"
+                        >
+                            <ArrowLeft className="w-4 h-4" /> Go Back
+                        </button>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -248,7 +265,11 @@ export default function ClubDetailPage() {
                     {/* Action Buttons - Reserve a spot */}
                     <div className="w-full mt-6 mb-4 flex justify-center">
                         <button
-                            onClick={() => router.push(`/booking/slot?clubId=${clubId}`)}
+                            onClick={() => {
+                                // Store club data in sessionStorage for booking flow
+                                sessionStorage.setItem('currentClubData', JSON.stringify(club));
+                                router.push(`/booking/slot?clubId=${clubId}`);
+                            }}
                             className="py-3 px-8 rounded-[25px] bg-[#14FFEC] text-black font-bold hover:brightness-90 transition flex items-center justify-center gap-2"
                         >
                             Reserve your spot

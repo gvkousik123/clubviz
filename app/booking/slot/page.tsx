@@ -45,9 +45,12 @@ export default function SlotPage() {
     const [events, setEvents] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [eventsLoading, setEventsLoading] = useState(false);
-    const [clubData, setClubData] = useState<any>(null);
     const [offers, setOffers] = useState<any[]>([]);
     const [offersLoading, setOffersLoading] = useState(false);
+    const [occasion, setOccasion] = useState('');
+    const [floorPreference, setFloorPreference] = useState('');
+    const [clubData, setClubData] = useState<any>(null);
+    const [clubLoading, setClubLoading] = useState(false);
 
     const dates = generateDates(weekStartDate);
     const clubId = searchParams.get('clubId') || '697499d433c602133f2a28b7';
@@ -104,6 +107,24 @@ export default function SlotPage() {
         }
     };
 
+    // Fetch club data
+    const fetchClubData = async () => {
+        try {
+            setClubLoading(true);
+            // Try the public clubs endpoint that might have more complete data
+            const response = await api.get(`/public/clubs/${clubId}`);
+            if (response.data) {
+                setClubData(response.data);
+            }
+        } catch (error: any) {
+            console.error('Failed to fetch club data:', error);
+            // Use a default name if fetch fails
+            setClubData({ name: 'Club' });
+        } finally {
+            setClubLoading(false);
+        }
+    };
+
     // Fetch offers for selected date
     const fetchOffers = async (selectedDateObj?: any) => {
         try {
@@ -116,7 +137,39 @@ export default function SlotPage() {
             );
 
             if (response.data) {
-                setOffers(response.data);
+                // Filter offers based on:
+                // 1. Active status
+                // 2. Valid date range (not expired)
+                // 3. Available offers count in selected time slot
+                const now = new Date();
+                const validOffers = response.data.filter((offer: any) => {
+                    const endDate = new Date(offer.endDate);
+                    const startDate = new Date(offer.startDate);
+
+                    // Check if offer is active and within date range
+                    const isDateValid = offer.isActive && endDate >= now && startDate <= now;
+
+                    // Check if the selected time slot has available offers
+                    if (selectedTime) {
+                        const selectedDateStr = dates[selectedDate]?.fullDate.toISOString().split('T')[0];
+                        const dateSlot = timeSlots.find((slot: any) => slot.date === selectedDateStr);
+                        const timeSlot = dateSlot?.timeSlots?.find((ts: any) => {
+                            const [hours, minutes] = ts.time.split(':');
+                            const hour = parseInt(hours);
+                            const ampm = hour >= 12 ? 'PM' : 'AM';
+                            const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+                            const formattedTime = `${displayHour}:${minutes} ${ampm}`;
+                            return formattedTime === selectedTime;
+                        });
+
+                        // Only show offer if the time slot has availableOffers > 0
+                        return isDateValid && timeSlot && (timeSlot.availableOffers || 0) > 0;
+                    }
+
+                    return isDateValid;
+                });
+
+                setOffers(validOffers);
             }
         } catch (error: any) {
             console.error('Failed to fetch offers:', error);
@@ -125,33 +178,33 @@ export default function SlotPage() {
         }
     };
 
-    // Fetch club details
-    const fetchClubDetails = async () => {
-        try {
-            const response = await api.get(`/club-management/clubs/details/${clubId}`);
-            if (response.data) {
-                setClubData(response.data);
-            }
-        } catch (error) {
-            console.error('Failed to fetch club details:', error);
-        }
-    };
-
     // Initial data fetch
     useEffect(() => {
+        // Try to get club data from sessionStorage first (passed from club page)
+        const storedClubData = sessionStorage.getItem('currentClubData');
+        if (storedClubData) {
+            try {
+                setClubData(JSON.parse(storedClubData));
+            } catch (error) {
+                console.error('Failed to parse stored club data:', error);
+                fetchClubData();
+            }
+        } else {
+            fetchClubData();
+        }
+
         if (!isEvent) {
             fetchTimeSlots(weekStartDate);
             fetchClubEvents();
-            fetchClubDetails();
         }
     }, [clubId, weekStartDate, isEvent]);
 
     // Fetch offers when date or time changes
     useEffect(() => {
-        if (!isEvent && selectedTime) {
+        if (!isEvent && selectedTime && timeSlots.length > 0) {
             fetchOffers();
         }
-    }, [selectedDate, selectedTime]);
+    }, [selectedDate, selectedTime, timeSlots]);
 
     const handleGoBack = () => {
         router.back();
@@ -204,21 +257,42 @@ export default function SlotPage() {
     };
 
     const handleContinue = () => {
-        // Save booking state to sessionStorage for next steps
-        const bookingData = {
-            clubId,
-            guestCount,
-            selectedDate: dates[selectedDate].fullDate.toISOString().split('T')[0],
-            selectedTime: isEvent ? eventData?.eventTime : selectedTime,
-            selectedOffer,
-            isEvent,
-            eventDetails: isEvent ? eventData : null,
-        };
+        if (!isEvent) {
+            // For club booking - navigate to review-booking
+            if (!selectedTime) {
+                alert('Please select a time slot');
+                return;
+            }
 
-        sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
+            const bookingData = {
+                clubId,
+                clubName: clubData?.name || 'Club',
+                clubData: clubData,
+                bookingDate: dates[selectedDate].fullDate.toISOString().split('T')[0],
+                arrivalTime: selectedTime,
+                guestCount,
+                offerId: selectedOffer || null,
+                selectedOffer: offers.find((o: any) => o.id === selectedOffer),
+            };
 
-        // Navigate to pre-booking page instead of table selection
-        router.push('/booking/form');
+            // Store in sessionStorage instead of URL
+            sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
+            router.push('/booking/review-booking');
+        } else {
+            // For event booking - navigate to form
+            const bookingData = {
+                clubId,
+                guestCount,
+                selectedDate: dates[selectedDate].fullDate.toISOString().split('T')[0],
+                selectedTime: eventData?.eventTime,
+                selectedOffer,
+                isEvent,
+                eventDetails: eventData,
+            };
+
+            sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
+            router.push('/booking/form');
+        }
     };
 
     // Get time slots for selected date
@@ -256,6 +330,7 @@ export default function SlotPage() {
 
             {/* Main Content */}
             <div className="pt-[18vh] px-[2vw] pb-[12vh] flex flex-col items-center gap-6">
+
                 {/* Guest Selection - Only for restaurant mode */}
                 {!isEvent && (
                     <div className="w-full max-w-[22.625rem] flex flex-col items-center gap-5">
@@ -465,6 +540,66 @@ export default function SlotPage() {
                                         />
                                     </button>
                                 )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Offers Section - Show when time is selected */}
+                {!isEvent && selectedTime && offers.length > 0 && (
+                    <div className="w-full max-w-[25rem]">
+                        <div className="w-full flex items-center justify-between mb-4 px-2">
+                            <h3 className="text-[#FFFEFF] text-base font-['Manrope'] font-semibold">
+                                Available Offers
+                            </h3>
+                        </div>
+
+                        {offersLoading ? (
+                            <div className="w-full h-[100px] flex items-center justify-center">
+                                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+                            </div>
+                        ) : (
+                            <div className="w-full flex flex-col gap-3">
+                                {offers.map((offer: any) => (
+                                    <button
+                                        key={offer.id}
+                                        onClick={() => handleOfferSelect(offer.id)}
+                                        className={`w-full p-4 rounded-[1.375rem] border-2 transition-all text-left ${selectedOffer === offer.id
+                                            ? 'bg-[#03867B] border-[#14FFEC]'
+                                            : 'bg-[#0D1F1F] border-[#14FFEC]/20 hover:border-[#14FFEC]/50'
+                                            }`}
+                                    >
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-1">
+                                                <h4 className="text-white font-['Manrope'] font-bold text-sm leading-5">
+                                                    {offer.offerName || offer.name || 'Special Offer'}
+                                                </h4>
+                                                {offer.offerDescription && (
+                                                    <p className="text-[#B6B6B6] font-['Manrope'] font-medium text-xs leading-4 mt-1">
+                                                        {offer.offerDescription}
+                                                    </p>
+                                                )}
+                                                {offer.discountPercentage && (
+                                                    <p className="text-[#14FFEC] font-['Manrope'] font-bold text-sm mt-2">
+                                                        {offer.discountPercentage}% OFF
+                                                    </p>
+                                                )}
+                                            </div>
+                                            <div
+                                                className={`w-5 h-5 rounded-full border-2 flex-shrink-0 ml-2 ${selectedOffer === offer.id
+                                                    ? 'bg-[#14FFEC] border-[#14FFEC]'
+                                                    : 'border-[#14FFEC]/50'
+                                                    }`}
+                                            >
+                                                {selectedOffer === offer.id && (
+                                                    <div className="w-full h-full flex items-center justify-center">
+                                                        <div className="w-2 h-2 bg-[#021313] rounded-full" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
                             </div>
                         )}
                     </div>
