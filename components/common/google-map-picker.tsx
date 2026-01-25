@@ -435,7 +435,15 @@ export function GoogleMapPicker({ center, currentLocation, selectedLocation, rad
                         const lat = event.latLng.lat();
                         const lng = event.latLng.lng();
                         if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
+                            // Trigger selection
                             onSelect({ lat, lng });
+
+                            // Navigate map to selected location
+                            if (mapRef.current) {
+                                mapRef.current.setCenter({ lat, lng });
+                                mapRef.current.panTo({ lat, lng });
+                                mapRef.current.setZoom(15);
+                            }
                         }
                     } catch (error) {
                         console.log('Error handling map click:', error);
