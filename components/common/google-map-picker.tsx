@@ -273,17 +273,20 @@ export function GoogleMapPicker({ center, currentLocation, selectedLocation, rad
                     const lat = place.geometry.location.lat();
                     const lng = place.geometry.location.lng();
 
-                    // Update map center
-                    if (mapRef.current) {
-                        mapRef.current.panTo({ lat, lng });
-                        mapRef.current.setZoom(11);
-                    }
+                    // Update search display first
+                    setSearchValue(place.name || place.formatted_address || '');
 
-                    // Trigger selection
+                    // Trigger selection callback
                     onSelect({ lat, lng });
 
-                    // Update search display
-                    setSearchValue(place.name || place.formatted_address || '');
+                    // Update map center with a small delay to ensure map is ready
+                    setTimeout(() => {
+                        if (mapRef.current) {
+                            mapRef.current.setCenter({ lat, lng });
+                            mapRef.current.panTo({ lat, lng });
+                            mapRef.current.setZoom(15);
+                        }
+                    }, 100);
                 }
             });
 
