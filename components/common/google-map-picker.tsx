@@ -72,6 +72,7 @@ export function GoogleMapPicker({ center, currentLocation, selectedLocation, rad
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [searchValue, setSearchValue] = useState('');
+    const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
 
     // Debug: Log environment variable
     useEffect(() => {
@@ -415,7 +416,7 @@ export function GoogleMapPicker({ center, currentLocation, selectedLocation, rad
             <GoogleMap
                 onLoad={handleMapLoad}
                 onUnmount={handleMapUnmount}
-                center={center}
+                center={mapCenter || center}
                 zoom={13}
                 mapContainerStyle={{ width: '100%', height: isFullscreen ? '100%' : `calc(100% - 40px)` }}
                 options={{
@@ -435,6 +436,9 @@ export function GoogleMapPicker({ center, currentLocation, selectedLocation, rad
                         const lat = event.latLng.lat();
                         const lng = event.latLng.lng();
                         if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
+                            // Update internal map center state to stay at this location
+                            setMapCenter({ lat, lng });
+
                             // Trigger selection
                             onSelect({ lat, lng });
 
