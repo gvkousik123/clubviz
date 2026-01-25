@@ -83,31 +83,8 @@ export default function EventDetailsPage() {
             return;
         }
 
-        setIsActionLoading(true);
-        try {
-            if (eventData.isRegistered || eventData.rsvpStatus === 'REGISTERED') {
-                await EventService.leaveEvent(eventData.id);
-                setEventData(prev => ({ ...prev, isRegistered: false, rsvpStatus: 'NOT_REGISTERED' }));
-                toast({ title: 'Unregistered', description: 'You have left the event.' });
-            } else {
-                // Register for event AND create ticket
-                const ticketResponse = await TicketService.registerForEvent(eventData.id);
-
-                if (ticketResponse.success && ticketResponse.data) {
-                    setEventData(prev => ({ ...prev, isRegistered: true, rsvpStatus: 'REGISTERED' }));
-                    toast({
-                        title: 'Success!',
-                        description: `Ticket created: ${ticketResponse.data.ticketNumber}`
-                    });
-                } else {
-                    throw new Error('Failed to create ticket');
-                }
-            }
-        } catch (err: any) {
-            toast({ title: 'Action failed', description: err.message || 'An unexpected error occurred', variant: 'destructive' });
-        } finally {
-            setIsActionLoading(false);
-        }
+        // Navigate to ticket booking flow instead of just registering
+        router.push(`/event/tickets?eventId=${eventData.id}`);
     };
 
     const handleBackClick = () => {
@@ -284,17 +261,12 @@ export default function EventDetailsPage() {
                     <button
                         onClick={handleRegister}
                         disabled={isActionLoading}
-                        className={`pointer-events-auto shadow-lg shadow-[#14FFEC]/20 w-full max-w-md h-[54px] rounded-[30px] flex justify-center items-center text-base font-bold font-['Manrope'] transition-all active:scale-95 ${eventData?.isRegistered
-                            ? 'bg-red-500/80 text-white hover:bg-red-600'
-                            : 'bg-gradient-to-r from-[#005D5C] to-[#14FFEC] text-white hover:brightness-110'
-                            } disabled:opacity-50`}
+                        className="pointer-events-auto shadow-lg shadow-[#14FFEC]/20 w-full max-w-md h-[54px] rounded-[30px] flex justify-center items-center text-base font-bold font-['Manrope'] transition-all active:scale-95 bg-gradient-to-r from-[#005D5C] to-[#14FFEC] text-white hover:brightness-110 disabled:opacity-50"
                     >
                         {isActionLoading ? (
                             <Loader2 className="w-6 h-6 animate-spin" />
-                        ) : eventData?.isRegistered ? (
-                            'Cancel Registration'
                         ) : (
-                            'Register Now'
+                            'Book Now'
                         )}
                     </button>
                 </div>

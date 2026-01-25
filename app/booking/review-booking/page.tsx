@@ -179,8 +179,8 @@ export default function ReviewEventBookingPage() {
                 guestCount: Number(bookingData.guestCount || 2),
                 eventId: null,
                 offerId: bookingData.offerId || null,
-                occasion: String(bookingData.occasion || ''),
-                floorPreference: String(bookingData.floorPreference || ''),
+                occasion: String(bookingData.occasion || 'Casual Dining'),
+                floorPreference: String(bookingData.floorPreference || 'Main Floor'),
                 currency: 'INR'
             };
 
@@ -285,7 +285,7 @@ export default function ReviewEventBookingPage() {
 
     return (
         <div className="w-full min-h-screen relative bg-[#021313]">
-            <PageHeader title="REVIEW EVENT BOOKING" />
+            <PageHeader title="REVIEW BOOKING" />
 
             {/* Main Content Container */}
             <div className="absolute top-[10rem] left-0 right-0 bottom-0 bg-[#021313] overflow-y-auto scrollbar-hide">

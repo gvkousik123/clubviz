@@ -1,24 +1,76 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
     MapPin,
     Calendar,
     ChevronLeft,
     Minus,
-    Plus
+    Plus,
+    Loader2
 } from 'lucide-react';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
+import { EventService } from '@/lib/services/event.service';
+import { useToast } from '@/hooks/use-toast';
 
 export default function TicketsPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const { toast } = useToast();
+
+    // Get eventId from URL params
+    const eventId = searchParams.get('eventId') || '';
+
     const [activeTab, setActiveTab] = useState('early');
     const [tickets, setTickets] = useState({
         maleStag: 0,
         femaleStag: 0,
         couple: 0,
     });
+    const [eventData, setEventData] = useState<any>(null);
+    const [ticketTypes, setTicketTypes] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (eventId) {
+            loadEventAndTickets();
+        } else {
+            toast({
+                title: 'Error',
+                description: 'Event ID is missing',
+                variant: 'destructive',
+            });
+            router.back();
+        }
+    }, [eventId]);
+
+    const loadEventAndTickets = async () => {
+        try {
+            setLoading(true);
+
+            // Fetch event details
+            const eventResponse = await EventService.getEventById(eventId);
+            if (eventResponse.success && eventResponse.data) {
+                setEventData(eventResponse.data);
+            }
+
+            // Fetch ticket types for the event
+            const ticketTypesResponse = await EventService.getEventTicketTypes(eventId);
+            if (ticketTypesResponse.success && ticketTypesResponse.data) {
+                setTicketTypes(ticketTypesResponse.data);
+            }
+        } catch (error: any) {
+            console.error('Failed to load event data:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to load event details',
+                variant: 'destructive',
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleTabChange = (tab: string) => {
         setActiveTab(tab);
@@ -37,16 +89,45 @@ export default function TicketsPage() {
     };
 
     const handleProceedToPay = () => {
-        router.push('/event/contact-info');
+        // Calculate total tickets
+        const totalTickets = tickets.maleStag + tickets.femaleStag + tickets.couple;
+
+        if (totalTickets === 0) {
+            toast({
+                title: 'No tickets selected',
+                description: 'Please select at least one ticket',
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        // Pass event data and ticket selections to contact info page
+        const params = new URLSearchParams({
+            eventId: eventId,
+            ticketType: activeTab,
+            maleStag: tickets.maleStag.toString(),
+            femaleStag: tickets.femaleStag.toString(),
+            couple: tickets.couple.toString(),
+        });
+
+        router.push(`/event/contact-info?${params.toString()}`);
     };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen w-full bg-[#021313] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen w-full relative">
             {/* Hero Section with Event Image */}
             <div className="relative h-[320px] w-full">
                 <img
-                    src="/event list/Rectangle 1.jpg"
-                    alt="Timeless Tuesdays Event"
+                    src={eventData?.imageUrl || eventData?.image || "/event list/Rectangle 1.jpg"}
+                    alt={eventData?.title || "Event"}
                     className="w-full h-full object-cover brightness-90"
                 />
 
@@ -65,7 +146,7 @@ export default function TicketsPage() {
             {/* Event Info Card */}
             <div className="w-full bg-gradient-to-b from-[#0D696D] to-[#000000] rounded-t-[40px] -mt-20 relative z-10 pt-4 pb-8">
                 <h1 className="text-center text-white text-2xl font-['Anton'] tracking-[2.4px] leading-8">
-                    Timeless Tuesdays Ft. DJ Xpensive
+                    {eventData?.title || "Event"}
                 </h1>
 
                 {/* Separator Line */}
@@ -77,13 +158,17 @@ export default function TicketsPage() {
                 <div className="px-9 flex flex-col gap-4 mt-2">
                     <div className="flex items-center gap-3">
                         <MapPin size={24} className="text-[#14FFEC]" />
-                        <p className="text-white font-['Manrope'] font-bold">Dabo club & kitchen, Nagpur</p>
+                        <p className="text-white font-['Manrope'] font-bold">
+                            {eventData?.venue || 'Venue'}
+                        </p>
                     </div>
 
                     <div className="flex items-center gap-3">
                         <Calendar size={24} className="text-[#14FFEC]" />
                         <div className="bg-white/10 px-6 py-2 rounded-full">
-                            <p className="text-white font-['Manrope'] font-bold">24 Dec | 7:00 pm</p>
+                            <p className="text-white font-['Manrope'] font-bold">
+                                {eventData?.date || 'Date'} | {eventData?.time || 'Time'}
+                            </p>
                         </div>
                     </div>
                 </div>

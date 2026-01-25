@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, Phone, Mail, Edit3, X, Check } from 'lucide-react';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
+import { useToast } from '@/hooks/use-toast';
 
 // Add custom CSS for hiding scrollbar while keeping functionality
 const scrollbarHideStyle = `
@@ -18,9 +19,18 @@ const scrollbarHideStyle = `
 
 export default function ContactInfoPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const { toast } = useToast();
+
+    // Get params from URL
+    const eventId = searchParams.get('eventId') || '';
+    const ticketType = searchParams.get('ticketType') || 'early';
+    const maleStag = parseInt(searchParams.get('maleStag') || '0');
+    const femaleStag = parseInt(searchParams.get('femaleStag') || '0');
+    const couple = parseInt(searchParams.get('couple') || '0');
 
     // Apply the scrollbar-hide style
-    React.useEffect(() => {
+    useEffect(() => {
         // Create style element and append to head
         const style = document.createElement('style');
         style.innerHTML = scrollbarHideStyle;
@@ -41,15 +51,32 @@ export default function ContactInfoPage() {
         email: 'DavidSimon@test.com'
     });
 
-    // State for selected tickets
-    const [selectedTickets, setSelectedTickets] = useState({
-        maleStag: 1,
-        couple: 1,
-        female: 0
-    });
-
     const handleNext = () => {
-        router.push('/event/mobile'); // Adjust this route as needed
+        // Validate that we have contact info
+        if (!contactInfo.phone || !contactInfo.email) {
+            toast({
+                title: 'Error',
+                description: 'Please provide contact information',
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        // Pass all data to the next page
+        const params = new URLSearchParams({
+            eventId,
+            ticketType,
+            maleStag: maleStag.toString(),
+            femaleStag: femaleStag.toString(),
+            couple: couple.toString(),
+            maleName: contactInfo.maleName,
+            femaleName: contactInfo.femaleName,
+            stagName: contactInfo.stagName,
+            phone: contactInfo.phone,
+            email: contactInfo.email,
+        });
+
+        router.push(`/event/review-booking?${params.toString()}`);
     };
 
     return (
@@ -131,37 +158,39 @@ export default function ContactInfoPage() {
                     <div className="mb-5">
                         <div className="flex justify-between items-center mb-2">
                             <div className="text-white font-['Manrope'] font-semibold">No. of ticket</div>
-                            <div className="flex gap-3">
-                                {selectedTickets.maleStag > 0 && (
+                            <div className="flex flex-wrap gap-3 justify-end">
+                                {maleStag > 0 && (
                                     <div className="flex items-center gap-2">
-                                        <div className="text-white font-['Manrope']">1 x</div>
+                                        <div className="text-white font-['Manrope']">{maleStag} x</div>
                                         <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-full px-3 py-1 flex items-center">
                                             <div className="w-3 h-3 rounded-full bg-[#14FFEC] mr-2"></div>
                                             <span className="text-white text-sm">Male stag Entry</span>
-                                            <div className="bg-[#0D1F1F] rounded-full p-1 ml-2">
-                                                <X size={14} className="text-white" />
-                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                {femaleStag > 0 && (
+                                    <div className="flex items-center gap-2">
+                                        <div className="text-white font-['Manrope']">{femaleStag} x</div>
+                                        <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-full px-3 py-1 flex items-center">
+                                            <div className="w-3 h-3 rounded-full bg-[#14FFEC] mr-2"></div>
+                                            <span className="text-white text-sm">Female stag Entry</span>
+                                        </div>
+                                    </div>
+                                )}
+                                {couple > 0 && (
+                                    <div className="flex items-center gap-2">
+                                        <div className="text-white font-['Manrope']">{couple} x</div>
+                                        <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-full px-3 py-1 flex items-center">
+                                            <div className="w-3 h-3 rounded-full bg-[#14FFEC] mr-2"></div>
+                                            <span className="text-white text-sm">Couple Entry</span>
                                         </div>
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        <div className="flex justify-end mb-4">
-                            <div className="flex gap-2">
-                                <div className="text-white font-['Manrope']">1 x</div>
-                                <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-full px-3 py-1 flex items-center">
-                                    <div className="w-3 h-3 rounded-full bg-[#14FFEC] mr-2"></div>
-                                    <span className="text-white text-sm">Couple Entry</span>
-                                    <div className="bg-[#0D1F1F] rounded-full p-1 ml-2">
-                                        <X size={14} className="text-white" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         {/* Divider */}
-                        <div className="h-[1px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent opacity-40 mb-5"></div>
+                        <div className="h-[1px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent opacity-40 mb-5 mt-4"></div>
                     </div>
 
                     {/* Couple Ticket Info */}

@@ -431,13 +431,25 @@ export class TicketService {
         cancelledAt: string | null;
     }>> {
         try {
+            console.log('🔵 TicketService: Sending POST request to /ticket/club-tickets/no-event');
+            console.log('🔵 Request data:', JSON.stringify(bookingData, null, 2));
+
             const response = await api.post<ApiResponse<any>>(
                 '/ticket/club-tickets/no-event',
                 bookingData
             );
+
+            console.log('🟢 TicketService: Success response:', response.data);
             return handleApiResponse(response);
-        } catch (error) {
-            throw new Error(handleApiError(error));
+        } catch (error: any) {
+            console.error('🔴 TicketService: Error caught:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                fullError: error
+            });
+            throw error; // Throw original error to preserve response data
         }
     }
 
@@ -489,6 +501,83 @@ export class TicketService {
             return handleApiResponse(response);
         } catch (error) {
             throw new Error(handleApiError(error));
+        }
+    }
+
+    /**
+     * Create an event ticket booking
+     * POST /club-tickets/event
+     * 
+     * Creates a ticket for an event with:
+     * - Event ID (REQUIRED)
+     * - Club details
+     * - Selected ticket types and quantities
+     * - User contact information
+     * - Payment details
+     * 
+     * @param ticketData - Complete event ticket booking information
+     * @returns Created ticket with ticket number, QR code, and total amount
+     */
+    static async createEventTicket(
+        ticketData: {
+            eventId: string; // REQUIRED for event tickets
+            clubId: string;
+            clubName: string;
+            userId: string;
+            userEmail: string;
+            userName: string;
+            userPhone: string;
+            bookingDate: string; // YYYY-MM-DD
+            arrivalTime: string; // HH:mm:ss
+            guestCount: number;
+            selectedTickets: Array<{
+                ticketTypeId: string;
+                ticketTypeName: string;
+                quantity: number;
+                price: number;
+            }>;
+            offerId?: string | null;
+            currency: string;
+            totalAmount: number;
+        }
+    ): Promise<ApiResponse<{
+        ticketId: string;
+        ticketNumber: string;
+        qrCode: string;
+        eventId: string;
+        eventTitle: string;
+        clubId: string;
+        clubName: string;
+        status: string;
+        totalAmount: number;
+        currency: string;
+        selectedTickets: Array<{
+            ticketTypeId: string;
+            ticketTypeName: string;
+            quantity: number;
+            price: number;
+        }>;
+        createdAt: string;
+    }>> {
+        try {
+            console.log('🔵 TicketService: Creating EVENT ticket with eventId:', ticketData.eventId);
+            console.log('🔵 Request data:', JSON.stringify(ticketData, null, 2));
+
+            const response = await api.post<ApiResponse<any>>(
+                '/ticket/club-tickets/event',
+                ticketData
+            );
+
+            console.log('🟢 TicketService: Event ticket created successfully:', response.data);
+            return handleApiResponse(response);
+        } catch (error: any) {
+            console.error('🔴 TicketService: Event ticket creation error:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+            });
+            throw error;
         }
     }
 }

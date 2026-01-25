@@ -1,14 +1,47 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { ChevronLeft, Share2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ChevronLeft, Share2, Loader2 } from 'lucide-react';
+import { TicketService } from '@/lib/services/ticket.service';
+import { useToast } from '@/hooks/use-toast';
 
 export default function BookingConfirmPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const { toast } = useToast();
+    const ticketId = searchParams.get('ticketId');
+
+    const [loading, setLoading] = useState(true);
+    const [ticketData, setTicketData] = useState<any>(null);
+
+    useEffect(() => {
+        if (ticketId) {
+            fetchTicketDetails();
+        }
+    }, [ticketId]);
+
+    const fetchTicketDetails = async () => {
+        try {
+            setLoading(true);
+            const response = await TicketService.getTicketDetails(ticketId!);
+            if (response.success && response.data) {
+                setTicketData(response.data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch ticket:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to load ticket details',
+                variant: 'destructive',
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleViewTicket = () => {
-        router.push('/event/ticket');
+        router.push(`/event/ticket?ticketId=${ticketId}`);
     };
 
     const handleShareTicket = () => {
@@ -17,18 +50,31 @@ export default function BookingConfirmPage() {
         if (navigator.share) {
             navigator.share({
                 title: 'My Event Ticket',
-                text: 'Check out my ticket for the event!',
+                text: `Check out my ticket for ${ticketData?.eventTitle || 'the event'}!`,
                 url: window.location.href,
             })
                 .catch((error) => console.log('Error sharing', error));
         } else {
-            alert('Share functionality not available');
+            // Fallback: copy link
+            navigator.clipboard.writeText(window.location.href);
+            toast({
+                title: 'Link copied',
+                description: 'Ticket link copied to clipboard',
+            });
         }
     };
 
     const handleBack = () => {
-        router.back();
+        router.push('/events'); // Go to events list
     };
+
+    if (loading) {
+        return (
+            <div className="w-full min-h-screen bg-[#021313] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="w-full min-h-screen relative bg-[#021313]">
