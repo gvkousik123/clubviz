@@ -37,6 +37,8 @@ const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
 
 interface GoogleMapPickerProps {
     center: { lat: number; lng: number };
+    currentLocation?: { lat: number; lng: number } | null; // Blue pin - user's saved location
+    selectedLocation?: { lat: number; lng: number } | null; // Purple pin - tapped location
     radius?: number;
     onSelect: (coords: { lat: number; lng: number }) => void;
     apiKey?: string;
@@ -57,10 +59,14 @@ const resolveHeight = (height?: number | string): string => {
     return height || '450px';
 };
 
-export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, height, showFullscreenButton = true }: GoogleMapPickerProps) {
+export function GoogleMapPicker({ center, currentLocation, selectedLocation, radius = 5000, onSelect, apiKey, height, showFullscreenButton = true }: GoogleMapPickerProps) {
     const mapRef = useRef<google.maps.Map | null>(null);
-    const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
-    const legacyMarkerRef = useRef<google.maps.Marker | null>(null);
+    // Current location marker (blue)
+    const currentMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+    const currentLegacyMarkerRef = useRef<google.maps.Marker | null>(null);
+    // Selected location marker (purple)
+    const selectedMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+    const selectedLegacyMarkerRef = useRef<google.maps.Marker | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -133,49 +139,111 @@ export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, heigh
         preventGoogleFontsLoading: true,
     });
 
-    // Setup advanced marker when map loads (hook must run every render to satisfy React rules)
+    // Setup current location marker (blue)
     useEffect(() => {
-        if (!isLoaded || !mapRef.current) return;
-        if (!center || typeof center.lat !== 'number' || typeof center.lng !== 'number') return;
-
-        // Remove old marker if it exists
-        try {
-            if (markerRef.current) {
-                markerRef.current.map = null;
-                markerRef.current = null;
-            }
-
-            if (legacyMarkerRef.current) {
-                legacyMarkerRef.current.setMap(null);
-                legacyMarkerRef.current = null;
-            }
-        } catch (error) {
+        if (!isLoaded || !mapRef.current || !currentLocation) {
+            // Clear current marker if no location
+            try {
+                if (currentMarkerRef.current) {
+                    currentMarkerRef.current.map = null;
+                    currentMarkerRef.current = null;
+                }
+                if (currentLegacyMarkerRef.current) {
+                    currentLegacyMarkerRef.current.setMap(null);
+                    currentLegacyMarkerRef.current = null;
+                }
+            } catch (error) { }
+            return;
         }
 
         const mapInstance = mapRef.current;
-        if (!mapInstance) return;
 
-        // Create new advanced marker when supported, fallback to default Marker otherwise
         try {
-            if (window.google?.maps?.marker?.AdvancedMarkerElement) {
-                const marker = new window.google.maps.marker.AdvancedMarkerElement({
+            // Remove old marker
+            if (currentMarkerRef.current) {
+                currentMarkerRef.current.map = null;
+                currentMarkerRef.current = null;
+            }
+            if (currentLegacyMarkerRef.current) {
+                currentLegacyMarkerRef.current.setMap(null);
+                currentLegacyMarkerRef.current = null;
+            }
+
+            // Create blue pin for current location
+            if (window.google?.maps?.Marker) {
+                const marker = new window.google.maps.Marker({
                     map: mapInstance,
-                    position: center,
-                    title: 'Current Location',
+                    position: currentLocation,
+                    title: 'Your Saved Location',
+                    icon: {
+                        path: window.google.maps.SymbolPath.CIRCLE,
+                        scale: 8,
+                        fillColor: '#3B82F6',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 2,
+                    },
+                    zIndex: 100,
                 });
-                markerRef.current = marker;
-            } else if (window.google?.maps?.Marker) {
-                const classicMarker = new window.google.maps.Marker({
-                    map: mapInstance,
-                    position: center,
-                    title: 'Current Location',
-                });
-                legacyMarkerRef.current = classicMarker;
+                currentLegacyMarkerRef.current = marker;
             }
         } catch (error) {
-            console.log('Error creating marker:', error);
+            console.log('Error creating current location marker:', error);
         }
-    }, [isLoaded, center]);
+    }, [isLoaded, currentLocation]);
+
+    // Setup selected location marker (purple)
+    useEffect(() => {
+        if (!isLoaded || !mapRef.current || !selectedLocation) {
+            // Clear selected marker if no location
+            try {
+                if (selectedMarkerRef.current) {
+                    selectedMarkerRef.current.map = null;
+                    selectedMarkerRef.current = null;
+                }
+                if (selectedLegacyMarkerRef.current) {
+                    selectedLegacyMarkerRef.current.setMap(null);
+                    selectedLegacyMarkerRef.current = null;
+                }
+            } catch (error) { }
+            return;
+        }
+
+        const mapInstance = mapRef.current;
+
+        try {
+            // Remove old marker
+            if (selectedMarkerRef.current) {
+                selectedMarkerRef.current.map = null;
+                selectedMarkerRef.current = null;
+            }
+            if (selectedLegacyMarkerRef.current) {
+                selectedLegacyMarkerRef.current.setMap(null);
+                selectedLegacyMarkerRef.current = null;
+            }
+
+            // Create purple/magenta pin for selected location
+            if (window.google?.maps?.Marker) {
+                const marker = new window.google.maps.Marker({
+                    map: mapInstance,
+                    position: selectedLocation,
+                    title: 'Selected Location',
+                    icon: {
+                        path: window.google.maps.SymbolPath.CIRCLE,
+                        scale: 10,
+                        fillColor: '#A855F7',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 3,
+                    },
+                    zIndex: 200,
+                });
+                selectedLegacyMarkerRef.current = marker;
+            }
+        } catch (error) {
+            console.log('Error creating selected location marker:', error);
+        }
+    }, [isLoaded, selectedLocation]);
 
     const handleMapLoad = useCallback((map: google.maps.Map) => {
         mapRef.current = map;
@@ -183,13 +251,23 @@ export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, heigh
 
     const handleMapUnmount = useCallback(() => {
         mapRef.current = null;
-        if (markerRef.current) {
-            markerRef.current.map = null;
-            markerRef.current = null;
+        // Clean up current location marker
+        if (currentMarkerRef.current) {
+            currentMarkerRef.current.map = null;
+            currentMarkerRef.current = null;
         }
-        if (legacyMarkerRef.current) {
-            legacyMarkerRef.current.setMap(null);
-            legacyMarkerRef.current = null;
+        if (currentLegacyMarkerRef.current) {
+            currentLegacyMarkerRef.current.setMap(null);
+            currentLegacyMarkerRef.current = null;
+        }
+        // Clean up selected location marker
+        if (selectedMarkerRef.current) {
+            selectedMarkerRef.current.map = null;
+            selectedMarkerRef.current = null;
+        }
+        if (selectedLegacyMarkerRef.current) {
+            selectedLegacyMarkerRef.current.setMap(null);
+            selectedLegacyMarkerRef.current = null;
         }
     }, []);
 
@@ -305,11 +383,21 @@ export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, heigh
             )}
 
             <div className="flex items-center justify-between bg-[#021010]/90 px-4 py-2.5 text-xs text-white/70">
-                <span className="flex items-center gap-2 font-semibold uppercase tracking-wide">
-                    <MapPin className="h-3.5 w-3.5 text-[#14FFEC]" /> Tap anywhere to pin
-                </span>
+                <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-blue-500 border border-white"></div>
+                        <span className="text-[10px]">Saved</span>
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                        <div className="w-3 h-3 rounded-full bg-purple-500 border-2 border-white"></div>
+                        <span className="text-[10px]">Selected</span>
+                    </span>
+                    <span className="flex items-center gap-1 font-semibold">
+                        <MapPin className="h-3 w-3 text-[#14FFEC]" /> Tap to pin
+                    </span>
+                </div>
                 {isFullscreen && (
-                    <span className="text-[#14FFEC] font-medium">Press ESC to exit</span>
+                    <span className="text-[#14FFEC] font-medium">ESC to exit</span>
                 )}
             </div>
         </div>

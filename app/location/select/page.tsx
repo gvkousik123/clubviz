@@ -365,6 +365,8 @@ export default function LocationSelectPage() {
                     <div className="rounded-3xl overflow-hidden shadow-2xl border border-[#14FFEC]/20">
                         <GoogleMapPicker
                             center={mapCenter}
+                            currentLocation={hasLocation && userLocation ? { lat: userLocation.latitude, lng: userLocation.longitude } : null}
+                            selectedLocation={selectedCoords}
                             radius={5000}
                             onSelect={handleMapSelect}
                             height="450px"
