@@ -176,12 +176,13 @@ export function GoogleMapPicker({ center, currentLocation, selectedLocation, rad
                     position: currentLocation,
                     title: 'Your Saved Location',
                     icon: {
-                        path: window.google.maps.SymbolPath.CIRCLE,
-                        scale: 8,
+                        path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
                         fillColor: '#3B82F6',
                         fillOpacity: 1,
                         strokeColor: '#ffffff',
                         strokeWeight: 2,
+                        scale: 1.5,
+                        anchor: new window.google.maps.Point(12, 22),
                     },
                     zIndex: 100,
                 });
@@ -229,12 +230,13 @@ export function GoogleMapPicker({ center, currentLocation, selectedLocation, rad
                     position: selectedLocation,
                     title: 'Selected Location',
                     icon: {
-                        path: window.google.maps.SymbolPath.CIRCLE,
-                        scale: 10,
+                        path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
                         fillColor: '#A855F7',
                         fillOpacity: 1,
                         strokeColor: '#ffffff',
-                        strokeWeight: 3,
+                        strokeWeight: 2.5,
+                        scale: 2,
+                        anchor: new window.google.maps.Point(12, 22),
                     },
                     zIndex: 200,
                 });
