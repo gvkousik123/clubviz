@@ -276,7 +276,7 @@ export function GoogleMapPicker({ center, currentLocation, selectedLocation, rad
                     // Update map center
                     if (mapRef.current) {
                         mapRef.current.panTo({ lat, lng });
-                        mapRef.current.setZoom(15);
+                        mapRef.current.setZoom(11);
                     }
 
                     // Trigger selection
@@ -379,33 +379,35 @@ export function GoogleMapPicker({ center, currentLocation, selectedLocation, rad
             style={isFullscreen ? { width: '100%', height: '100vh', borderRadius: 0 } : mapContainerStyle}
             className="relative"
         >
-            {/* Search Box */}
-            <div className="absolute top-3 left-3 right-14 z-10">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#14FFEC]" />
-                    <input
-                        ref={searchInputRef}
-                        type="text"
-                        placeholder="Search for a place..."
-                        value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-[#0a3a3a]/95 border border-[#14FFEC]/30 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-[#14FFEC] focus:ring-1 focus:ring-[#14FFEC] shadow-lg"
-                    />
-                    {searchValue && (
-                        <button
-                            onClick={() => {
-                                setSearchValue('');
-                                if (searchInputRef.current) {
-                                    searchInputRef.current.value = '';
-                                }
-                            }}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
-                        >
-                            <X className="h-4 w-4" />
-                        </button>
-                    )}
+            {/* Search Box - Hidden in fullscreen */}
+            {!isFullscreen && (
+                <div className="absolute top-3 left-3 right-14 z-10">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#14FFEC]" />
+                        <input
+                            ref={searchInputRef}
+                            type="text"
+                            placeholder="Search for a place..."
+                            value={searchValue}
+                            onChange={(e) => setSearchValue(e.target.value)}
+                            className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-[#0a3a3a]/95 border border-[#14FFEC]/30 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-[#14FFEC] focus:ring-1 focus:ring-[#14FFEC] shadow-lg"
+                        />
+                        {searchValue && (
+                            <button
+                                onClick={() => {
+                                    setSearchValue('');
+                                    if (searchInputRef.current) {
+                                        searchInputRef.current.value = '';
+                                    }
+                                }}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
 
             <GoogleMap
                 onLoad={handleMapLoad}
