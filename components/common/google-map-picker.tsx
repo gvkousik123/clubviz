@@ -2,10 +2,10 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CircleF, GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { Loader2, MapPin, Maximize2, Minimize2 } from 'lucide-react';
+import { Loader2, MapPin, Maximize2, Minimize2, Search, X } from 'lucide-react';
 
 // Static libraries array to prevent LoadScript reload warning
-const GOOGLE_LIBRARIES: Array<'marker'> = ['marker'];
+const GOOGLE_LIBRARIES: ('marker' | 'places')[] = ['marker', 'places'];
 
 // Google Maps API Key - from environment variable (NEXT_PUBLIC_ prefix required for browser access)
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
@@ -61,6 +61,8 @@ const resolveHeight = (height?: number | string): string => {
 
 export function GoogleMapPicker({ center, currentLocation, selectedLocation, radius = 5000, onSelect, apiKey, height, showFullscreenButton = true }: GoogleMapPickerProps) {
     const mapRef = useRef<google.maps.Map | null>(null);
+    const searchInputRef = useRef<HTMLInputElement | null>(null);
+    const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
     // Current location marker (blue)
     const currentMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
     const currentLegacyMarkerRef = useRef<google.maps.Marker | null>(null);
@@ -69,6 +71,7 @@ export function GoogleMapPicker({ center, currentLocation, selectedLocation, rad
     const selectedLegacyMarkerRef = useRef<google.maps.Marker | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [searchValue, setSearchValue] = useState('');
 
     // Debug: Log environment variable
     useEffect(() => {
@@ -251,6 +254,51 @@ export function GoogleMapPicker({ center, currentLocation, selectedLocation, rad
         mapRef.current = map;
     }, []);
 
+    // Setup Google Places Autocomplete
+    useEffect(() => {
+        if (!isLoaded || !searchInputRef.current || !window.google?.maps?.places) return;
+
+        try {
+            // Create autocomplete instance
+            const autocomplete = new window.google.maps.places.Autocomplete(searchInputRef.current, {
+                fields: ['geometry', 'name', 'formatted_address'],
+                types: ['geocode', 'establishment'],
+            });
+
+            // When place is selected
+            autocomplete.addListener('place_changed', () => {
+                const place = autocomplete.getPlace();
+
+                if (place.geometry?.location) {
+                    const lat = place.geometry.location.lat();
+                    const lng = place.geometry.location.lng();
+
+                    // Update map center
+                    if (mapRef.current) {
+                        mapRef.current.panTo({ lat, lng });
+                        mapRef.current.setZoom(15);
+                    }
+
+                    // Trigger selection
+                    onSelect({ lat, lng });
+
+                    // Update search display
+                    setSearchValue(place.name || place.formatted_address || '');
+                }
+            });
+
+            autocompleteRef.current = autocomplete;
+        } catch (error) {
+            console.log('Error setting up autocomplete:', error);
+        }
+
+        return () => {
+            if (autocompleteRef.current) {
+                window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
+            }
+        };
+    }, [isLoaded, onSelect]);
+
     const handleMapUnmount = useCallback(() => {
         mapRef.current = null;
         // Clean up current location marker
@@ -331,6 +379,34 @@ export function GoogleMapPicker({ center, currentLocation, selectedLocation, rad
             style={isFullscreen ? { width: '100%', height: '100vh', borderRadius: 0 } : mapContainerStyle}
             className="relative"
         >
+            {/* Search Box */}
+            <div className="absolute top-3 left-3 right-14 z-10">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#14FFEC]" />
+                    <input
+                        ref={searchInputRef}
+                        type="text"
+                        placeholder="Search for a place..."
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
+                        className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-[#0a3a3a]/95 border border-[#14FFEC]/30 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-[#14FFEC] focus:ring-1 focus:ring-[#14FFEC] shadow-lg"
+                    />
+                    {searchValue && (
+                        <button
+                            onClick={() => {
+                                setSearchValue('');
+                                if (searchInputRef.current) {
+                                    searchInputRef.current.value = '';
+                                }
+                            }}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    )}
+                </div>
+            </div>
+
             <GoogleMap
                 onLoad={handleMapLoad}
                 onUnmount={handleMapUnmount}
