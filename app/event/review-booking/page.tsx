@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { MapPin, Calendar, Mail, Phone, Plus, Minus, Loader2 } from 'lucide-react';
 import PageHeader from '@/components/common/page-header';
 import { TicketService } from '@/lib/services/ticket.service';
-import { EventService } from '@/lib/services/event.service';
 import { useToast } from '@/hooks/use-toast';
+import { usePayment } from '@/hooks/use-payment';
 
 // Add custom CSS for hiding scrollbar while keeping functionality
 const scrollbarHideStyle = `
@@ -21,58 +21,57 @@ const scrollbarHideStyle = `
 
 function ReviewBookingPageContent() {
     const router = useRouter();
-    const searchParams = useSearchParams();
     const { toast } = useToast();
+    const { quickPay, loading: paymentLoading } = usePayment();
 
-    // Get all params from URL
-    const eventId = searchParams.get('eventId') || '';
-    const ticketType = searchParams.get('ticketType') || 'early';
-    const maleStag = parseInt(searchParams.get('maleStag') || '0');
-    const femaleStag = parseInt(searchParams.get('femaleStag') || '0');
-    const couple = parseInt(searchParams.get('couple') || '0');
-    const maleName = searchParams.get('maleName') || '';
-    const femaleName = searchParams.get('femaleName') || '';
-    const stagName = searchParams.get('stagName') || '';
-    const phone = searchParams.get('phone') || '';
-    const email = searchParams.get('email') || '';
-
-    const [eventData, setEventData] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+    // Get data from sessionStorage
+    const [bookingData, setBookingData] = useState<any>(null);
     const [isCreatingTicket, setIsCreatingTicket] = useState(false);
 
-    // Apply the scrollbar-hide style
+    const eventId = bookingData?.eventId || '';
+    const ticketType = bookingData?.ticketType || 'early';
+    const maleStag = bookingData?.maleStag || 0;
+    const femaleStag = bookingData?.femaleStag || 0;
+    const couple = bookingData?.couple || 0;
+    const maleName = bookingData?.maleName || '';
+    const femaleName = bookingData?.femaleName || '';
+    const stagName = bookingData?.stagName || '';
+    const phone = bookingData?.phone || '';
+    const email = bookingData?.email || '';
+
+    // Load booking data from sessionStorage
     useEffect(() => {
         const style = document.createElement('style');
         style.innerHTML = scrollbarHideStyle;
         document.head.appendChild(style);
 
-        if (eventId) {
-            loadEventData();
+        const savedData = sessionStorage.getItem('eventBookingData');
+        if (savedData) {
+            try {
+                const data = JSON.parse(savedData);
+                setBookingData(data);
+            } catch (error) {
+                console.error('Failed to parse booking data:', error);
+                toast({
+                    title: 'Error',
+                    description: 'Failed to load booking data',
+                    variant: 'destructive',
+                });
+                router.push('/events');
+            }
+        } else {
+            toast({
+                title: 'Error',
+                description: 'No booking data found',
+                variant: 'destructive',
+            });
+            router.push('/events');
         }
 
         return () => {
             document.head.removeChild(style);
         };
-    }, [eventId]);
-
-    const loadEventData = async () => {
-        try {
-            setLoading(true);
-            const response = await EventService.getEventById(eventId);
-            if (response.success && response.data) {
-                setEventData(response.data);
-            }
-        } catch (error) {
-            console.error('Failed to load event:', error);
-            toast({
-                title: 'Error',
-                description: 'Failed to load event details',
-                variant: 'destructive',
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, []);
 
     const calculateTotalAmount = () => {
         const prices = ticketType === 'early' ? {
@@ -89,90 +88,33 @@ function ReviewBookingPageContent() {
     };
 
     const handlePayment = async () => {
-        setIsCreatingTicket(true);
-        try {
-            // Prepare ticket data with eventId
-            const selectedTickets = [];
-            if (maleStag > 0) {
-                selectedTickets.push({
-                    ticketTypeId: `${ticketType}-male-stag`,
-                    ticketTypeName: `${ticketType === 'early' ? 'Early Bird' : 'General'} Male Stag Entry`,
-                    quantity: maleStag,
-                    price: ticketType === 'early' ? 1500 : 2000
-                });
-            }
-            if (femaleStag > 0) {
-                selectedTickets.push({
-                    ticketTypeId: `${ticketType}-female-stag`,
-                    ticketTypeName: `${ticketType === 'early' ? 'Early Bird' : 'General'} Female Stag Entry`,
-                    quantity: femaleStag,
-                    price: ticketType === 'early' ? 0 : 2000
-                });
-            }
-            const ticketData = {
-                eventId: eventId, // CRITICAL: Pass eventId for event tickets
-                clubId: eventData?.club?.id || eventData?.clubId || '',
-                clubName: eventData?.club?.name || eventData?.venue || '',
-                userId: 'current-user-id', // TODO: Get from auth context
-                userEmail: email,
-                userName: maleName || stagName || 'Guest',
-                userPhone: phone,
-                bookingDate: eventData?.date || new Date().toISOString().split('T')[0],
-                arrivalTime: eventData?.time || '19:00:00', // 24-hour format HH:mm:ss
-                maleCount: maleStag,
-                femaleCount: femaleStag,
-                coupleCount: couple,
-                offerId: offerId || null,
-                occasion: eventData?.title || 'Event',
-                floorPreference: 'General'
-            };
+        const totalAmount = calculateTotalAmount();
 
-            console.log('🎟️ Creating EVENT ticket with eventId:', eventId);
-            console.log('📤 Ticket data:', ticketData);
+        // Store booking data for after payment
+        const ticketBookingData = {
+            eventId,
+            ticketType,
+            maleStag,
+            femaleStag,
+            couple,
+            maleName,
+            femaleName,
+            stagName,
+            phone,
+            email,
+            totalAmount
+        };
+        sessionStorage.setItem('pendingEventBooking', JSON.stringify(ticketBookingData));
 
-            const response = await TicketService.createEventTicket(ticketData);
-
-            // Check if ticketId exists in response data (API was successful)
-            if (response.data?.ticketId) {
-                console.log('✅ Event ticket created:', response.data);
-                toast({
-                    title: 'Success!',
-                    description: 'Ticket created successfully',
-                });
-
-                // Store full ticket response in sessionStorage
-                sessionStorage.setItem('ticketResponse', JSON.stringify(response.data));
-                // Navigate to confirmation page
-                router.push(`/event/confirm-booking?ticketId=${response.data.ticketId}`);
-            } else {
-                console.error('❌ No ticketId in response:', response);
-                toast({
-                    title: 'Error',
-                    description: 'Failed to create ticket - no ticketId in response',
-                    variant: 'destructive',
-                });
-                setIsCreatingTicket(false);
-            }
-        } catch (error: any) {
-            console.error('❌ Failed to create event ticket:', error);
-
-            // Check if it's a duplicate booking error
-            const errorMessage = error.message || 'Failed to create ticket';
-            const isDuplicateBooking = errorMessage.includes('already have an active ticket');
-
-            toast({
-                title: 'Error',
-                description: isDuplicateBooking
-                    ? 'Already slotted booked - select another slot'
-                    : errorMessage,
-                variant: 'destructive',
-            });
-        } finally {
-            setIsCreatingTicket(false);
-        }
+        // Initiate payment
+        await quickPay(totalAmount, {
+            username: maleName || stagName || 'Guest',
+            email: email,
+            mobile: phone
+        });
     };
 
-    if (loading) {
+    if (!bookingData) {
         return (
             <div className="min-h-screen w-full bg-[#021313] flex items-center justify-center">
                 <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
@@ -186,7 +128,7 @@ function ReviewBookingPageContent() {
 
             {/* Main Content - Scrollable */}
             <div className="pt-[20vh] pb-24 h-screen overflow-y-auto scrollbar-hide">
-                {/* Club Details Section */}
+                {/* Event Details Section */}
                 <div className="px-4 mb-6">
                     <div className="flex items-center gap-4 mb-4">
                         <h2 className="text-white font-['Manrope'] font-semibold text-lg whitespace-nowrap">Event Details</h2>
@@ -196,17 +138,17 @@ function ReviewBookingPageContent() {
                     <div className="bg-[#0D1F1F] rounded-xl p-5 space-y-4">
                         <div className="flex items-center gap-3">
                             <img src="/common/MaskHappy.svg" alt="Event" width="24" height="24" />
-                            <p className="text-white font-['Manrope'] font-medium">{eventData?.title || 'Event'}</p>
+                            <p className="text-white font-['Manrope'] font-medium">Timeless Tuesdays Ft. DJ Xpensive</p>
                         </div>
 
                         <div className="flex items-center gap-3">
                             <MapPin size={20} className="text-[#14FFEC]" />
-                            <p className="text-white font-['Manrope'] font-medium">{eventData?.venue || 'Venue'}</p>
+                            <p className="text-white font-['Manrope'] font-medium">Dabo club & kitchen, Nagpur</p>
                         </div>
 
                         <div className="flex items-center gap-3">
                             <Calendar size={20} className="text-[#14FFEC]" />
-                            <p className="text-white font-['Manrope'] font-medium">{eventData?.date || 'Date'} | {eventData?.time || 'Time'}</p>
+                            <p className="text-white font-['Manrope'] font-medium">24 Dec | 7:00 pm</p>
                         </div>
                     </div>
                 </div>
@@ -324,10 +266,10 @@ function ReviewBookingPageContent() {
                         <div className="w-[160px] h-[55px] bg-[#0F6861] rounded-[30px] flex justify-center items-center">
                             <button
                                 onClick={handlePayment}
-                                disabled={isCreatingTicket}
+                                disabled={paymentLoading || isCreatingTicket}
                                 className="w-full h-full flex justify-center items-center disabled:opacity-50"
                             >
-                                {isCreatingTicket ? (
+                                {(paymentLoading || isCreatingTicket) ? (
                                     <Loader2 className="w-5 h-5 text-white animate-spin" />
                                 ) : (
                                     <span className="text-center text-white text-[18px] font-['Manrope'] font-bold tracking-[0.05px]">

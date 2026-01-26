@@ -62,21 +62,22 @@ function ContactInfoPageContent() {
             return;
         }
 
-        // Pass all data to the next page
-        const params = new URLSearchParams({
+        // Store booking data in sessionStorage
+        const bookingData = {
             eventId,
             ticketType,
-            maleStag: maleStag.toString(),
-            femaleStag: femaleStag.toString(),
-            couple: couple.toString(),
+            maleStag,
+            femaleStag,
+            couple,
             maleName: contactInfo.maleName,
             femaleName: contactInfo.femaleName,
             stagName: contactInfo.stagName,
             phone: contactInfo.phone,
             email: contactInfo.email,
-        });
+        };
+        sessionStorage.setItem('eventBookingData', JSON.stringify(bookingData));
 
-        router.push(`/event/review-booking?${params.toString()}`);
+        router.push(`/event/review-booking`);
     };
 
     return (
@@ -148,8 +149,8 @@ function ContactInfoPageContent() {
             </div>
 
             {/* Contact Info Section */}
-            <div className="w-full absolute bottom-0 rounded-t-[60px] bg-gradient-to-b from-[#021313] to-black border-t border-[#0C898B] min-h-[42%] z-20">
-                <div className="px-6 pt-10 overflow-y-auto h-[calc(100vh-460px)] pb-24 scrollbar-hide">
+            <div className="w-full absolute bottom-0 rounded-t-[60px] bg-gradient-to-b from-[#021313] to-black border-t border-[#0C898B] min-h-[42%] max-h-[42%] z-20 flex flex-col">
+                <div className="px-6 pt-10 overflow-y-auto flex-1 scrollbar-hide">
                     <h2 className="text-white text-center text-base font-['Anton'] font-normal tracking-wide mb-8">
                         # TICKET INFORMATION
                     </h2>
