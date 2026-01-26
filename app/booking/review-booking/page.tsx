@@ -10,6 +10,7 @@ import { usePayment } from '@/hooks/use-payment';
 import { useProfile } from '@/hooks/use-profile';
 import { api } from '@/lib/api-client';
 import { TicketService } from '@/lib/services/ticket.service';
+import { toast } from '@/components/ui/use-toast';
 
 interface ClubData {
     id: string;
@@ -207,19 +208,27 @@ export default function ReviewEventBookingPage() {
                 floorPreference: String(bookingData.floorPreference || 'Main Floor')
             };
 
-            console.log('📤 Sending ticket creation request:', ticketData);
 
             const response = await TicketService.createNoEventClubTicket(ticketData);
 
-            console.log('✅ Ticket created successfully:', response);
 
-            if (response.data?.ticketId) {
+            // Check if ticketId exists in response data (API was successful)
+            if (response?.ticketId) {
+                toast({
+                    title: 'Success',
+                    description: 'Your booking has been created successfully!',
+                });
                 // Store full ticket response in sessionStorage
-                sessionStorage.setItem('ticketResponse', JSON.stringify(response.data));
+                sessionStorage.setItem('ticketResponse', JSON.stringify(response));
                 // Navigate to confirm booking page with ticket ID
-                router.push(`/booking/confirm-booking?ticketId=${response.data.ticketId}`);
+                router.push(`/booking/confirm-booking?ticketId=${response.ticketId}`);
             } else {
                 console.error('❌ No ticket ID in response:', response);
+                toast({
+                    title: 'Error',
+                    description: 'Failed to create ticket - no ticketId in response',
+                    variant: 'destructive',
+                });
                 setIsCreatingTicket(false);
             }
         } catch (error: any) {

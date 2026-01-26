@@ -132,7 +132,8 @@ function ReviewBookingPageContent() {
 
             const response = await TicketService.createEventTicket(ticketData);
 
-            if (response.success && response.data) {
+            // Check if ticketId exists in response data (API was successful)
+            if (response.data?.ticketId) {
                 console.log('✅ Event ticket created:', response.data);
                 toast({
                     title: 'Success!',
@@ -143,12 +144,27 @@ function ReviewBookingPageContent() {
                 sessionStorage.setItem('ticketResponse', JSON.stringify(response.data));
                 // Navigate to confirmation page
                 router.push(`/event/confirm-booking?ticketId=${response.data.ticketId}`);
+            } else {
+                console.error('❌ No ticketId in response:', response);
+                toast({
+                    title: 'Error',
+                    description: 'Failed to create ticket - no ticketId in response',
+                    variant: 'destructive',
+                });
+                setIsCreatingTicket(false);
             }
         } catch (error: any) {
             console.error('❌ Failed to create event ticket:', error);
+
+            // Check if it's a duplicate booking error
+            const errorMessage = error.message || 'Failed to create ticket';
+            const isDuplicateBooking = errorMessage.includes('already have an active ticket');
+
             toast({
                 title: 'Error',
-                description: error.message || 'Failed to create ticket',
+                description: isDuplicateBooking
+                    ? 'Already slotted booked - select another slot'
+                    : errorMessage,
                 variant: 'destructive',
             });
         } finally {

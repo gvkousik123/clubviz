@@ -32,6 +32,8 @@ export default function TicketPage() {
     const [ticketData, setTicketData] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);
+    const [cancelReason, setCancelReason] = useState('');
+    const [additionalNotes, setAdditionalNotes] = useState('');
 
     // Add animation styles and load ticket data
     useEffect(() => {
@@ -115,229 +117,273 @@ export default function TicketPage() {
 
     const handleCloseCancelPopup = () => {
         setShowCancelPopup(false);
+        setCancelReason('');
+        setAdditionalNotes('');
     };
 
     const handleConfirmCancel = async () => {
+        if (!cancelReason.trim()) {
+            toast({
+                title: 'Required',
+                description: 'Please provide a reason for cancellation',
+                variant: 'destructive',
+            });
+            return;
+        }
+
         try {
             setIsCancelling(true);
             const response = await TicketService.cancelClubTicket(ticketId!, {
-                reason: 'User requested cancellation',
+                reason: cancelReason,
+                additionalNotes: additionalNotes || undefined,
             });
 
-            if (response.success) {
-                toast({
-                    title: 'Success',
-                    description: 'Ticket cancelled successfully',
+            if (response.success || response.data) {
+                description: 'Ticket cancelled successfully',
                 });
-                router.push('/booking');
-            }
-        } catch (error: any) {
-            toast({
-                title: 'Error',
-                description: error.message || 'Failed to cancel ticket',
-                variant: 'destructive',
-            });
-        } finally {
-            setIsCancelling(false);
-            setShowCancelPopup(false);
+            router.push('/booking');
         }
-    };
-
-    if (loading) {
-        return (
-            <div className="w-full min-h-screen bg-[#021313] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
-            </div>
-        );
+        } catch (error: any) {
+        toast({
+            title: 'Error',
+            description: error.message || 'Failed to cancel ticket',
+            variant: 'destructive',
+        });
+    } finally {
+        setIsCancelling(false);
+        setShowCancelPopup(false);
     }
+};
 
+if (loading) {
     return (
-        <div className="min-h-screen w-full bg-[#021313] relative">
-            {/* Header */}
-            <div className="w-full h-[12vh] bg-[#074344] rounded-b-[25px] flex items-center justify-between px-6 relative">
-                <button
-                    onClick={handleBack}
-                    className="w-10 h-10 bg-[#FFFFFF33] rounded-full flex items-center justify-center"
-                >
-                    <ChevronLeft size={24} className="text-white" />
-                </button>
+        <div className="w-full min-h-screen bg-[#021313] flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+        </div>
+    );
+}
 
-                <h1 className="text-white text-xl font-['Manrope'] font-bold absolute left-1/2 transform -translate-x-1/2">
-                    MY TICKET
-                </h1>
+return (
+    <div className="min-h-screen w-full bg-[#021313] relative">
+        {/* Header */}
+        <div className="w-full h-[12vh] bg-[#074344] rounded-b-[25px] flex items-center justify-between px-6 relative">
+            <button
+                onClick={handleBack}
+                className="w-10 h-10 bg-[#FFFFFF33] rounded-full flex items-center justify-center"
+            >
+                <ChevronLeft size={24} className="text-white" />
+            </button>
 
-                <button
-                    onClick={handleShare}
-                    className="w-10 h-10 bg-[#FFFFFF33] rounded-full flex items-center justify-center"
-                >
-                    <Share2 size={20} className="text-white" />
-                </button>
-            </div>
+            <h1 className="text-white text-xl font-['Manrope'] font-bold absolute left-1/2 transform -translate-x-1/2">
+                MY TICKET
+            </h1>
 
-            {/* Main Ticket Content */}
-            <div className="px-4 pt-6 pb-4">
-                {/* Ticket Card with Event Image */}
-                <div className="w-full bg-[#0D1F1F] rounded-[20px] border border-[#14FFEC] overflow-visible relative">
-                    {/* Event Image Section */}
-                    <div className="relative w-full h-[200px] overflow-hidden">
-                        <Image
-                            src="/event list/Rectangle 3.jpg"
-                            alt="Event"
-                            layout="fill"
-                            objectFit="cover"
-                            className="w-full h-full  rounded-[20px]"
-                            priority
-                        />
-                    </div>
+            <button
+                onClick={handleShare}
+                className="w-10 h-10 bg-[#FFFFFF33] rounded-full flex items-center justify-center"
+            >
+                <Share2 size={20} className="text-white" />
+            </button>
+        </div>
 
-                    {/* Dashed separator line with ticket cuts */}
-                    <div className="relative w-full flex items-center justify-center py-[1px]">
-                        <div className="w-full border-t-2 border-dashed border-[#14FFEC]"></div>
-                        <div className="absolute -top-6 -left-6 w-12 h-12 bg-[#021313] rounded-full z-10"></div>
-                        <div className="absolute -top-6 -right-6 w-12 h-12 bg-[#021313] rounded-full z-10"></div>
-                    </div>
+        {/* Main Ticket Content */}
+        <div className="px-4 pt-6 pb-4">
+            {/* Ticket Card with Event Image */}
+            <div className="w-full bg-[#0D1F1F] rounded-[20px] border border-[#14FFEC] overflow-visible relative">
+                {/* Event Image Section */}
+                <div className="relative w-full h-[200px] overflow-hidden">
+                    <Image
+                        src="/event list/Rectangle 3.jpg"
+                        alt="Event"
+                        layout="fill"
+                        objectFit="cover"
+                        className="w-full h-full  rounded-[20px]"
+                        priority
+                    />
+                </div>
 
-                    {/* Ticket Details */}
-                    <div className="p-5">
-                        <div className="grid grid-cols-2 gap-y-4">
-                            <div>
-                                <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Location</p>
-                                <p className="text-white text-sm font-['Manrope'] font-bold mt-1">Dabo club & kitchen, Nagpur</p>
-                            </div>
+                {/* Dashed separator line with ticket cuts */}
+                <div className="relative w-full flex items-center justify-center py-[1px]">
+                    <div className="w-full border-t-2 border-dashed border-[#14FFEC]"></div>
+                    <div className="absolute -top-6 -left-6 w-12 h-12 bg-[#021313] rounded-full z-10"></div>
+                    <div className="absolute -top-6 -right-6 w-12 h-12 bg-[#021313] rounded-full z-10"></div>
+                </div>
 
-                            <div>
-                                <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Time</p>
-                                <p className="text-white text-sm font-['Manrope'] font-bold mt-1">07:00 PM</p>
-                            </div>
-
-                            <div>
-                                <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Name</p>
-                                <p className="text-white text-sm font-['Manrope'] font-bold mt-1">David Simon</p>
-                            </div>
-
-                            <div>
-                                <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Dress code</p>
-                                <p className="text-white text-sm font-['Manrope'] font-bold mt-1">Funky Pop</p>
-                            </div>
-
-                            <div>
-                                <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Date</p>
-                                <p className="text-white text-sm font-['Manrope'] font-bold mt-1">24th December 2024</p>
-                            </div>
-
-                            <div>
-                                <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">No. of people</p>
-                                <p className="text-white text-sm font-['Manrope'] font-bold mt-1">3 Entries</p>
-                            </div>
+                {/* Ticket Details */}
+                <div className="p-5">
+                    <div className="grid grid-cols-2 gap-y-4">
+                        <div>
+                            <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Club</p>
+                            <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.clubName || 'Club'}</p>
                         </div>
 
-                        {/* Benefits Section */}
+                        <div>
+                            <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Time</p>
+                            <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.arrivalTime || 'N/A'}</p>
+                        </div>
+
+                        <div>
+                            <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Name</p>
+                            <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.userName || 'Guest'}</p>
+                        </div>
+
+                        <div>
+                            <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Occasion</p>
+                            <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.occasion || 'Casual'}</p>
+                        </div>
+
+                        <div>
+                            <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Date</p>
+                            <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.bookingDate || 'N/A'}</p>
+                        </div>
+
+                        <div>
+                            <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Status</p>
+                            <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.status || 'N/A'}</p>
+                        </div>
+                    </div>
+
+                    {/* Floor Preference */}
+                    {ticketData?.floorPreference && (
                         <div className="mt-4">
-                            <p className="text-[#14FFEC] text-xs font-['Manrope'] font-medium">Benefits</p>
-                            <p className="text-white text-sm font-['Manrope'] font-bold mt-1">Flat 10% OFF on IFML</p>
-                            <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium mt-1">Redeem your offer before 11:00 PM</p>
+                            <p className="text-[#14FFEC] text-xs font-['Manrope'] font-medium">Floor Preference</p>
+                            <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData.floorPreference}</p>
                         </div>
-                    </div>
+                    )}
+                </div>
 
-                    {/* Dashed separator line with ticket cuts */}
-                    <div className="relative w-full flex items-center justify-center py-[1px]">
-                        <div className="w-full border-t-2 border-dashed border-[#14FFEC]"></div>
-                        <div className="absolute -top-6 -left-6 w-12 h-12 bg-[#021313] rounded-full z-10"></div>
-                        <div className="absolute -top-6 -right-6 w-12 h-12 bg-[#021313] rounded-full z-10"></div>
-                    </div>
+                {/* Dashed separator line with ticket cuts */}
+                <div className="relative w-full flex items-center justify-center py-[1px]">
+                    <div className="w-full border-t-2 border-dashed border-[#14FFEC]"></div>
+                    <div className="absolute -top-6 -left-6 w-12 h-12 bg-[#021313] rounded-full z-10"></div>
+                    <div className="absolute -top-6 -right-6 w-12 h-12 bg-[#021313] rounded-full z-10"></div>
+                </div>
 
-                    {/* QR Code Section */}
-                    <div className="p-5 flex flex-col items-center">
-                        <p className="text-white text-sm font-['Manrope'] font-medium mb-3 text-center">
-                            Scan this QR code at the entry
-                        </p>
+                {/* QR Code Section */}
+                <div className="p-5 flex flex-col items-center">
+                    <p className="text-white text-sm font-['Manrope'] font-medium mb-3 text-center">
+                        Scan this QR code at the entry
+                    </p>
+                    {ticketData?.qrCode && (
                         <div className="mb-3">
-                            <Image
-                                src="/booking/main-qr.png"
+                            <img
+                                src={`data:image/png;base64,${ticketData.qrCode}`}
                                 alt="QR Code"
-                                width={140}
-                                height={140}
                                 className="w-[140px] h-[140px]"
                             />
                         </div>
-                        <div className="flex items-center gap-2">
-                            <p className="text-white text-sm font-['Manrope'] font-medium">Ticket ID -</p>
-                            <p className="text-white text-sm font-['Manrope'] font-bold">19584265</p>
-                        </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                        <p className="text-white text-sm font-['Manrope'] font-medium">Ticket -</p>
+                        <p className="text-white text-sm font-['Manrope'] font-bold">{ticketData?.ticketNumber || ticketData?.ticketId}</p>
                     </div>
                 </div>
             </div>
-
-            {/* Action Buttons */}
-            <div className="px-6 mt-8 mb-10 space-y-3">
-                <button
-                    onClick={handleDownload}
-                    className="w-full h-[50px] rounded-full bg-[#074344] border border-[#14FFEC] flex justify-center items-center"
-                >
-                    <span className="text-white text-lg font-['Manrope'] font-medium">
-                        Download ticket
-                    </span>
-                </button>
-
-                <button
-                    onClick={handleCancel}
-                    className="w-full h-[50px] rounded-full bg-transparent border border-[#FFFFFF33] flex justify-center items-center"
-                >
-                    <span className="text-white text-lg font-['Manrope'] font-medium">
-                        Cancel ticket
-                    </span>
-                </button>
-            </div>
-
-            {/* Cancel Ticket Popup Overlay */}
-            {showCancelPopup && (
-                <div className="fixed inset-0 z-50 flex items-end justify-center">
-                    {/* Backdrop */}
-                    <div
-                        className="absolute inset-0 bg-black/80"
-                        onClick={handleCloseCancelPopup}
-                    ></div>
-
-                    {/* Popup Content */}
-                    <div className="relative w-full bg-[#021313] rounded-t-3xl p-6 z-10 animate-slide-up">
-                        {/* Close Button */}
-                        <button
-                            className="absolute -top-10 left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full bg-white flex items-center justify-center"
-                            onClick={handleCloseCancelPopup}
-                        >
-                            <X size={16} className="text-black" />
-                        </button>
-
-                        <div className="flex flex-col items-center">
-                            <h2 className="text-white text-xl font-['Manrope'] font-bold mb-6">CANCEL TICKET</h2>
-
-                            {/* Ticket Icon */}
-                            <div className="w-12 h-12 mb-6">
-                                <svg width="52" height="51" viewBox="0 0 52 51" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="26" cy="25.5" r="25.5" fill="#074344" />
-                                    <path d="M36 15H15.375C14.8777 15 14.4008 15.1975 14.0492 15.5492C13.6975 15.9008 13.5 16.3777 13.5 16.875V34.6875C13.5001 34.8473 13.541 35.0044 13.6189 35.1439C13.6968 35.2834 13.809 35.4008 13.945 35.4847C14.0809 35.5686 14.2361 35.6164 14.3957 35.6236C14.5553 35.6307 14.7141 35.5969 14.857 35.5254L18.1875 33.8602L21.518 35.5254C21.6482 35.5906 21.7919 35.6245 21.9375 35.6245C22.0831 35.6245 22.2268 35.5906 22.357 35.5254L25.6875 33.8602L29.018 35.5254C29.1482 35.5906 29.2919 35.6245 29.4375 35.6245C29.5831 35.6245 29.7268 35.5906 29.857 35.5254L33.1875 33.8602L36.518 35.5254C36.6609 35.5969 36.8197 35.6307 36.9793 35.6236C37.1389 35.6164 37.2941 35.5686 37.43 35.4847C37.566 35.4008 37.6782 35.2834 37.7561 35.1439C37.834 35.0044 37.8749 34.8473 37.875 34.6875V16.875C37.875 16.3777 37.6775 15.9008 37.3258 15.5492C36.9742 15.1975 36.4973 15 36 15ZM29.1633 26.5242C29.2504 26.6113 29.3195 26.7147 29.3666 26.8285C29.4138 26.9423 29.438 27.0643 29.438 27.1875C29.438 27.3107 29.4138 27.4327 29.3666 27.5465C29.3195 27.6603 29.2504 27.7637 29.1633 27.8508C29.0762 27.9379 28.9728 28.007 28.859 28.0541C28.7452 28.1013 28.6232 28.1255 28.5 28.1255C28.3768 28.1255 28.2548 28.1013 28.141 28.0541C28.0272 28.007 27.9238 27.9379 27.8367 27.8508L25.6875 25.7004L23.5383 27.8508C23.4512 27.9379 23.3478 28.007 23.234 28.0541C23.1202 28.1013 22.9982 28.1255 22.875 28.1255C22.7518 28.1255 22.6298 28.1013 22.516 28.0541C22.4022 28.007 22.2988 27.9379 22.2117 27.8508C22.1246 27.7637 22.0555 27.6603 22.0084 27.5465C21.9612 27.4327 21.937 27.3107 21.937 27.1875C21.937 27.0643 21.9612 26.9423 22.0084 26.8285C22.0555 26.7147 22.1246 26.6113 22.2117 26.5242L24.3621 24.375L22.2117 22.2258C22.0358 22.0499 21.937 21.8113 21.937 21.5625C21.937 21.3137 22.0358 21.0751 22.2117 20.8992C22.3876 20.7233 22.6262 20.6245 22.875 20.6245C23.1238 20.6245 23.3624 20.7233 23.5383 20.8992L25.6875 23.0496L27.8367 20.8992C27.9238 20.8121 28.0272 20.743 28.141 20.6959C28.2548 20.6487 28.3768 20.6245 28.5 20.6245C28.6232 20.6245 28.7452 20.6487 28.859 20.6959C28.9728 20.743 29.0762 20.8121 29.1633 20.8992C29.2504 20.9863 29.3195 21.0897 29.3666 21.2035C29.4138 21.3173 29.438 21.4393 29.438 21.5625C29.438 21.6857 29.4138 21.8077 29.3666 21.9215C29.3195 22.0353 29.2504 22.1387 29.1633 22.2258L27.0129 24.375L29.1633 26.5242Z" fill="#14FFEC" />
-                                </svg>
-                            </div>
-
-                            {/* Confirmation Text */}
-                            <p className="text-white text-lg font-['Manrope'] font-medium text-center mb-8">
-                                ARE YOU SURE YOU WANT<br />
-                                CANCEL THE TICKET
-                            </p>
-
-                            {/* Cancel Button */}
-                            <button
-                                onClick={handleConfirmCancel}
-                                className="w-full h-[50px] rounded-full border border-white/30 flex justify-center items-center"
-                            >
-                                <span className="text-white text-lg font-['Manrope'] font-medium">
-                                    Cancel Ticket
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
-    );
+
+        {/* Action Buttons */}
+        <div className="px-6 mt-8 mb-10 space-y-3">
+            <button
+                onClick={handleDownload}
+                className="w-full h-[50px] rounded-full bg-[#074344] border border-[#14FFEC] flex justify-center items-center"
+            >
+                <span className="text-white text-lg font-['Manrope'] font-medium">
+                    Download ticket
+                </span>
+            </button>
+
+            <button
+                onClick={handleCancel}
+                className="w-full h-[50px] rounded-full bg-transparent border border-[#FFFFFF33] flex justify-center items-center"
+            >
+                <span className="text-white text-lg font-['Manrope'] font-medium">
+                    Cancel ticket
+                </span>
+            </button>
+        </div>
+
+        {/* Cancel Ticket Popup Overlay */}
+        {showCancelPopup && (
+            <div className="fixed inset-0 z-50 flex items-end justify-center">
+                {/* Backdrop */}
+                <div
+                    className="absolute inset-0 bg-black/80"
+                    onClick={handleCloseCancelPopup}
+                ></div>
+
+                {/* Popup Content */}
+                <div className="relative w-full bg-[#021313] rounded-t-3xl p-6 z-10 animate-slide-up max-h-[80vh] overflow-y-auto">
+                    {/* Close Button */}
+                    <button
+                        className="absolute -top-10 left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full bg-white flex items-center justify-center"
+                        onClick={handleCloseCancelPopup}
+                    >
+                        <X size={16} className="text-black" />
+                    </button>
+
+                    <div className="flex flex-col">
+                        <h2 className="text-white text-xl font-['Manrope'] font-bold mb-6 text-center">CANCEL TICKET</h2>
+
+                        {/* Ticket Icon */}
+                        <div className="w-12 h-12 mb-6 mx-auto">
+                            <svg width="52" height="51" viewBox="0 0 52 51" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="26" cy="25.5" r="25.5" fill="#074344" />
+                                <path d="M36 15H15.375C14.8777 15 14.4008 15.1975 14.0492 15.5492C13.6975 15.9008 13.5 16.3777 13.5 16.875V34.6875C13.5001 34.8473 13.541 35.0044 13.6189 35.1439C13.6968 35.2834 13.809 35.4008 13.945 35.4847C14.0809 35.5686 14.2361 35.6164 14.3957 35.6236C14.5553 35.6307 14.7141 35.5969 14.857 35.5254L18.1875 33.8602L21.518 35.5254C21.6482 35.5906 21.7919 35.6245 21.9375 35.6245C22.0831 35.6245 22.2268 35.5906 22.357 35.5254L25.6875 33.8602L29.018 35.5254C29.1482 35.5906 29.2919 35.6245 29.4375 35.6245C29.5831 35.6245 29.7268 35.5906 29.857 35.5254L33.1875 33.8602L36.518 35.5254C36.6609 35.5969 36.8197 35.6307 36.9793 35.6236C37.1389 35.6164 37.2941 35.5686 37.43 35.4847C37.566 35.4008 37.6782 35.2834 37.7561 35.1439C37.834 35.0044 37.8749 34.8473 37.875 34.6875V16.875C37.875 16.3777 37.6775 15.9008 37.3258 15.5492C36.9742 15.1975 36.4973 15 36 15ZM29.1633 26.5242C29.2504 26.6113 29.3195 26.7147 29.3666 26.8285C29.4138 26.9423 29.438 27.0643 29.438 27.1875C29.438 27.3107 29.4138 27.4327 29.3666 27.5465C29.3195 27.6603 29.2504 27.7637 29.1633 27.8508C29.0762 27.9379 28.9728 28.007 28.859 28.0541C28.7452 28.1013 28.6232 28.1255 28.5 28.1255C28.3768 28.1255 28.2548 28.1013 28.141 28.0541C28.0272 28.007 27.9238 27.9379 27.8367 27.8508L25.6875 25.7004L23.5383 27.8508C23.4512 27.9379 23.3478 28.007 23.234 28.0541C23.1202 28.1013 22.9982 28.1255 22.875 28.1255C22.7518 28.1255 22.6298 28.1013 22.516 28.0541C22.4022 28.007 22.2988 27.9379 22.2117 27.8508C22.1246 27.7637 22.0555 27.6603 22.0084 27.5465C21.9612 27.4327 21.937 27.3107 21.937 27.1875C21.937 27.0643 21.9612 26.9423 22.0084 26.8285C22.0555 26.7147 22.1246 26.6113 22.2117 26.5242L24.3621 24.375L22.2117 22.2258C22.0358 22.0499 21.937 21.8113 21.937 21.5625C21.937 21.3137 22.0358 21.0751 22.2117 20.8992C22.3876 20.7233 22.6262 20.6245 22.875 20.6245C23.1238 20.6245 23.3624 20.7233 23.5383 20.8992L25.6875 23.0496L27.8367 20.8992C27.9238 20.8121 28.0272 20.743 28.141 20.6959C28.2548 20.6487 28.3768 20.6245 28.5 20.6245C28.6232 20.6245 28.7452 20.6487 28.859 20.6959C28.9728 20.743 29.0762 20.8121 29.1633 20.8992C29.2504 20.9863 29.3195 21.0897 29.3666 21.2035C29.4138 21.3173 29.438 21.4393 29.438 21.5625C29.438 21.6857 29.4138 21.8077 29.3666 21.9215C29.3195 22.0353 29.2504 22.1387 29.1633 22.2258L27.0129 24.375L29.1633 26.5242Z" fill="#14FFEC" />
+                            </svg>
+                        </div>
+
+                        {/* Cancellation Reason Input */}
+                        <div className="mb-4">
+                            <label className="text-white text-sm font-['Manrope'] font-medium mb-2 block">
+                                Reason for Cancellation <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={cancelReason}
+                                onChange={(e) => setCancelReason(e.target.value)}
+                                placeholder="e.g., Change of plans, Emergency..."
+                                className="w-full h-12 px-4 bg-[#0D1F1F] border border-[#14FFEC]/30 rounded-lg text-white font-['Manrope'] placeholder:text-[#B6B6B6] focus:outline-none focus:border-[#14FFEC]"
+                            />
+                        </div>
+
+                        {/* Additional Notes Input */}
+                        <div className="mb-6">
+                            <label className="text-white text-sm font-['Manrope'] font-medium mb-2 block">
+                                Additional Notes (Optional)
+                            </label>
+                            <textarea
+                                value={additionalNotes}
+                                onChange={(e) => setAdditionalNotes(e.target.value)}
+                                placeholder="Any additional information..."
+                                rows={3}
+                                className="w-full px-4 py-3 bg-[#0D1F1F] border border-[#14FFEC]/30 rounded-lg text-white font-['Manrope'] placeholder:text-[#B6B6B6] focus:outline-none focus:border-[#14FFEC] resize-none"
+                            />
+                        </div>
+
+                        {/* Cancel Button */}
+                        <button
+                            onClick={handleConfirmCancel}
+                            disabled={isCancelling}
+                            className="w-full h-[50px] rounded-full border border-white/30 flex justify-center items-center disabled:opacity-50"
+                        >
+                            {isCancelling ? (
+                                <Loader2 className="w-6 h-6 text-white animate-spin" />
+                            ) : (
+                                <span className="text-white text-lg font-['Manrope'] font-medium">
+                                    Confirm Cancellation
+                                </span>
+                            )}
+                        </button>
+                    </div>
+                </div>
+                Cancel Ticket
+            </span>
+        )}
+    </button>
+                    </div >
+                </div >
+            </div >
+        )}
+    </div >
+);
 }
