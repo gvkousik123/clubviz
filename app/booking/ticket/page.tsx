@@ -34,6 +34,11 @@ export default function BookingTicketPage() {
     const [cancelReason, setCancelReason] = useState('');
     const [additionalNotes, setAdditionalNotes] = useState('');
 
+    // Debug: Log when ticketData changes
+    useEffect(() => {
+        console.log('🎫 TicketData State Updated:', ticketData);
+    }, [ticketData]);
+
     // Add animation styles and load ticket data
     useEffect(() => {
         const style = document.createElement('style');
@@ -54,17 +59,34 @@ export default function BookingTicketPage() {
         try {
             setLoading(true);
             const response = await TicketService.getTicketDetails(ticketId!);
-            if (response.success && response.data) {
-                setTicketData(response.data);
+
+            let data: any = null;
+            // Handle different response structures
+            if (response && typeof response === 'object') {
+                // Check for nested data property
+                if ((response as any).data) {
+                    data = (response as any).data;
+                }
+                // Check if response itself is the data (check for ticketId field)
+                else if ((response as any).ticketId || (response as any).clubName) {
+                    data = response;
+                }
+            }
+
+
+            if (data) {
+                setTicketData(data);
 
                 // Show success toast
                 toast({
                     title: 'Success',
                     description: 'Ticket loaded successfully',
                 });
+            } else {
+                throw new Error('No ticket data in response');
             }
         } catch (error) {
-            console.error('Failed to fetch ticket:', error);
+            console.error('❌ Failed to fetch ticket:', error);
             toast({
                 title: 'Error',
                 description: 'Failed to load ticket',
