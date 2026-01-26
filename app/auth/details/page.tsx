@@ -160,8 +160,6 @@ export default function DetailsPage() {
             localStorage.removeItem('tempPhoneNumber');
             localStorage.removeItem('verificationResult');
 
-            console.log("✅ All steps completed successfully!");
-            console.log("📊 Stored tokens and user data");
 
             toast({
                 title: isExistingUser ? "Welcome back!" : "Registration completed!",
@@ -180,15 +178,11 @@ export default function DetailsPage() {
 
                     if (userRoles.includes('ROLE_SUPERADMIN')) {
                         redirectRoute = '/superadmin';
-                        console.log("🔑 Redirecting SUPERADMIN to /superadmin");
                     } else if (userRoles.includes('ROLE_ADMIN')) {
                         redirectRoute = '/admin';
-                        console.log("🔑 Redirecting ADMIN to /admin");
                     } else if (userRoles.includes('ROLE_USER')) {
                         redirectRoute = '/home';
-                        console.log("🔑 Redirecting USER to /home");
                     } else {
-                        console.log("ℹ️ No specific role found, defaulting to /home");
                     }
                 }
             } catch (error) {

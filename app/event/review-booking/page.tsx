@@ -109,15 +109,6 @@ function ReviewBookingPageContent() {
                     price: ticketType === 'early' ? 0 : 2000
                 });
             }
-            if (couple > 0) {
-                selectedTickets.push({
-                    ticketTypeId: `${ticketType}-couple`,
-                    ticketTypeName: `${ticketType === 'early' ? 'Early Bird' : 'General'} Couple Entry`,
-                    quantity: couple,
-                    price: ticketType === 'early' ? 0 : 2000
-                });
-            }
-
             const ticketData = {
                 eventId: eventId, // CRITICAL: Pass eventId for event tickets
                 clubId: eventData?.club?.id || eventData?.clubId || '',
@@ -127,11 +118,13 @@ function ReviewBookingPageContent() {
                 userName: maleName || stagName || 'Guest',
                 userPhone: phone,
                 bookingDate: eventData?.date || new Date().toISOString().split('T')[0],
-                arrivalTime: eventData?.time || '19:00:00',
-                guestCount: maleStag + femaleStag + (couple * 2),
-                selectedTickets: selectedTickets,
-                currency: 'INR',
-                totalAmount: calculateTotalAmount()
+                arrivalTime: eventData?.time || '19:00:00', // 24-hour format HH:mm:ss
+                maleCount: maleStag,
+                femaleCount: femaleStag,
+                coupleCount: couple,
+                offerId: offerId || null,
+                occasion: eventData?.title || 'Event',
+                floorPreference: 'General'
             };
 
             console.log('🎟️ Creating EVENT ticket with eventId:', eventId);
@@ -146,6 +139,8 @@ function ReviewBookingPageContent() {
                     description: 'Ticket created successfully',
                 });
 
+                // Store full ticket response in sessionStorage
+                sessionStorage.setItem('ticketResponse', JSON.stringify(response.data));
                 // Navigate to confirmation page
                 router.push(`/event/confirm-booking?ticketId=${response.data.ticketId}`);
             }

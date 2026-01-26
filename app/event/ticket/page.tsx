@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { Share2, ChevronLeft, X } from 'lucide-react';
+import { Share2, ChevronLeft, X, Loader2 } from 'lucide-react';
+import { TicketService } from '@/lib/services/ticket.service';
+import { useToast } from '@/hooks/use-toast';
 
 // Add custom CSS for animation
 const slideUpAnimation = `
@@ -22,18 +24,53 @@ const slideUpAnimation = `
 
 export default function TicketPage() {
     const router = useRouter();
-    const [showCancelPopup, setShowCancelPopup] = useState(false);
+    const searchParams = useSearchParams();
+    const { toast } = useToast();
+    const ticketId = searchParams.get('ticketId');
 
-    // Add animation styles
-    React.useEffect(() => {
+    const [showCancelPopup, setShowCancelPopup] = useState(false);
+    const [ticketData, setTicketData] = useState<any>(null);
+    const [loading, setLoading] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
+
+    // Add animation styles and load ticket data
+    useEffect(() => {
         const style = document.createElement('style');
         style.innerHTML = slideUpAnimation;
         document.head.appendChild(style);
 
+        // Load ticket data from sessionStorage or fetch
+        const storedData = sessionStorage.getItem('ticketData');
+        if (storedData) {
+            setTicketData(JSON.parse(storedData));
+            sessionStorage.removeItem('ticketData');
+        } else if (ticketId) {
+            fetchTicketData();
+        }
+
         return () => {
             document.head.removeChild(style);
         };
-    }, []);
+    }, [ticketId]);
+
+    const fetchTicketData = async () => {
+        try {
+            setLoading(true);
+            const response = await TicketService.getTicketDetails(ticketId!);
+            if (response.success && response.data) {
+                setTicketData(response.data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch ticket:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to load ticket',
+                variant: 'destructive',
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleBack = () => {
         router.back();
@@ -42,18 +79,34 @@ export default function TicketPage() {
     const handleShare = () => {
         if (navigator.share) {
             navigator.share({
-                title: 'My Event Ticket',
-                text: 'Check out my ticket for this event!',
+                title: 'My Ticket',
+                text: `Check out my ticket for ${ticketData?.clubName || 'the club'}!`,
                 url: window.location.href,
             }).catch((error) => console.log('Error sharing', error));
         } else {
-            alert('Share functionality not available');
+            toast({
+                title: 'Info',
+                description: 'Share functionality not available',
+            });
         }
     };
 
-    const handleDownload = () => {
-        // Implement ticket download functionality
-        alert('Downloading ticket...');
+    const handleDownload = async () => {
+        try {
+            if (ticketId) {
+                await TicketService.downloadAndSaveTicketPDF(ticketId);
+                toast({
+                    title: 'Success',
+                    description: 'Ticket downloaded successfully',
+                });
+            }
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: 'Failed to download ticket',
+                variant: 'destructive',
+            });
+        }
     };
 
     const handleCancel = () => {
@@ -64,9 +117,39 @@ export default function TicketPage() {
         setShowCancelPopup(false);
     };
 
-    const handleConfirmCancel = () => {
-        router.push('/event/ticket/cancel-confirmation');
+    const handleConfirmCancel = async () => {
+        try {
+            setIsCancelling(true);
+            const response = await TicketService.cancelClubTicket(ticketId!, {
+                reason: 'User requested cancellation',
+            });
+
+            if (response.success) {
+                toast({
+                    title: 'Success',
+                    description: 'Ticket cancelled successfully',
+                });
+                router.push('/booking');
+            }
+        } catch (error: any) {
+            toast({
+                title: 'Error',
+                description: error.message || 'Failed to cancel ticket',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsCancelling(false);
+            setShowCancelPopup(false);
+        }
     };
+
+    if (loading) {
+        return (
+            <div className="w-full min-h-screen bg-[#021313] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen w-full bg-[#021313] relative">

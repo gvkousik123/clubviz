@@ -81,7 +81,6 @@ function NewEventPageContent() {
         const loadClubs = async () => {
             try {
                 setLoadingClubs(true);
-                console.log('📡 Loading admin club...');
                 const response = await ClubService.getAllClubsAdmin();
 
                 // Handle API response
@@ -92,13 +91,11 @@ function NewEventPageContent() {
                     clubsList = response;
                 }
 
-                console.log('✅ Admin club loaded:', clubsList);
                 setClubs(clubsList);
 
                 // Auto-select the single club (there's only one per admin)
                 if (clubsList.length > 0) {
                     setSelectedClubId(clubsList[0].id);
-                    console.log('✅ Auto-selected admin club:', clubsList[0].name, '(ID:', clubsList[0].id + ')');
                 }
             } catch (error) {
                 console.error('❌ Error loading club:', error);
@@ -310,17 +307,10 @@ function NewEventPageContent() {
                 performerImages: []
             };
 
-            console.log('🚀 Creating event with images - Payload:', eventData);
-            console.log('📡 API Call: POST /events/create-json-with-images');
-            console.log('📸 Event Image:', eventImageData ? 'Yes' : 'No');
-            console.log('🎬 Event Reel:', eventReelData ? 'Yes' : 'No');
-            console.log('🏢 Organizer Logo:', eventOrganizerLogoData ? 'Yes' : 'No');
-
             // Use the specific endpoint for JSON+Images
             const response: any = await EventService.createEventWithImages(eventData);
 
             if (response && (response.id || response.success || response.data)) {
-                console.log('✅ Event created successfully:', response);
 
                 toast({
                     title: 'Event Created Successfully',

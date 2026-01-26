@@ -127,10 +127,35 @@ export default function ReviewEventBookingPage() {
                 return;
             }
 
-            // Format arrival time as HH:mm:ss (not an object!)
+            // Convert arrival time from 12-hour format (HH:mm AM/PM) to 24-hour format (HH:mm:ss)
             const arrivalTimeStr = bookingData.arrivalTime || '18:00';
-            const [hours, minutes] = arrivalTimeStr.split(':');
-            const formattedTime = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:00`;
+            let hours24: string;
+            let minutes: string;
+
+            if (arrivalTimeStr.includes('AM') || arrivalTimeStr.includes('PM')) {
+                // Parse 12-hour format: "02:00 PM" -> "14:00:00"
+                const timeParts = arrivalTimeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+                if (timeParts) {
+                    let hours = parseInt(timeParts[1], 10);
+                    minutes = timeParts[2];
+                    const period = timeParts[3].toUpperCase();
+
+                    if (period === 'PM' && hours !== 12) hours += 12;
+                    if (period === 'AM' && hours === 12) hours = 0;
+
+                    hours24 = hours.toString().padStart(2, '0');
+                } else {
+                    hours24 = '18';
+                    minutes = '00';
+                }
+            } else {
+                // Parse 24-hour format: "14:00" -> "14:00:00"
+                const [h, m] = arrivalTimeStr.split(':');
+                hours24 = h.padStart(2, '0');
+                minutes = m.padStart(2, '0');
+            }
+
+            const formattedTime = `${hours24}:${minutes}:00`;
 
             // Validate required fields (userId, userEmail, userName are required)
             const userId = currentUser.id || currentUser.userId;
@@ -177,11 +202,9 @@ export default function ReviewEventBookingPage() {
                 bookingDate: String(bookingData.bookingDate),
                 arrivalTime: formattedTime,
                 guestCount: Number(bookingData.guestCount || 2),
-                eventId: null,
                 offerId: bookingData.offerId || null,
                 occasion: String(bookingData.occasion || 'Casual Dining'),
-                floorPreference: String(bookingData.floorPreference || 'Main Floor'),
-                currency: 'INR'
+                floorPreference: String(bookingData.floorPreference || 'Main Floor')
             };
 
             console.log('📤 Sending ticket creation request:', ticketData);
@@ -191,8 +214,10 @@ export default function ReviewEventBookingPage() {
             console.log('✅ Ticket created successfully:', response);
 
             if (response.data?.ticketId) {
-                // Navigate to pre-booking page with ticket ID
-                router.push(`/booking/review-pre-booking?ticketId=${response.data.ticketId}`);
+                // Store full ticket response in sessionStorage
+                sessionStorage.setItem('ticketResponse', JSON.stringify(response.data));
+                // Navigate to confirm booking page with ticket ID
+                router.push(`/booking/confirm-booking?ticketId=${response.data.ticketId}`);
             } else {
                 console.error('❌ No ticket ID in response:', response);
                 setIsCreatingTicket(false);

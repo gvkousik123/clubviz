@@ -42,25 +42,36 @@ export interface ValidateQRRequest {
  */
 export interface TicketDetails {
     ticketId: string;
-    bookingId: string;
-    eventId: string;
-    eventTitle: string;
-    eventDate: string;
-    ticketType: string;
     ticketNumber: string;
     qrCode: string;
-    status: 'ACTIVE' | 'USED' | 'CANCELLED' | 'EXPIRED';
-    purchaseDate: string;
-    price: number;
-    venue: {
-        name: string;
-        address: string;
-    };
-    userDetails: {
-        name: string;
-        email: string;
-        phone: string;
-    };
+    clubId: string;
+    clubName: string;
+    userName: string;
+    userEmail: string;
+    userPhone: string;
+    bookingDate: string;
+    arrivalTime: string;
+    guestCount?: number; // For no-event tickets
+    maleCount?: number; // For event tickets
+    femaleCount?: number; // For event tickets
+    coupleCount?: number; // For event tickets
+    eventId: string | null;
+    eventTitle: string | null;
+    hasEvent: boolean;
+    entryFee: number;
+    offerTitle: string | null;
+    offerDescription: string | null;
+    offerDiscount: number;
+    totalAmount: number;
+    currency: string | null;
+    occasion?: string;
+    floorPreference?: string;
+    status: 'ACTIVE' | 'CANCELLED';
+    isValidated: boolean;
+    validatedAt: string | null;
+    createdAt: string;
+    cancellationReason: string | null;
+    cancelledAt: string | null;
 }
 
 /**
@@ -379,6 +390,7 @@ export class TicketService {
      * 
      * Creates a booking ticket for regular club visits without any event
      * Entry fee is zero for no-event bookings
+     * NOTE: Does NOT include eventId field, uses guestCount only
      * 
      * @param bookingData - Complete booking information
      * @returns Created ticket with ticket number and QR code
@@ -392,13 +404,11 @@ export class TicketService {
             userName: string;
             userPhone: string;
             bookingDate: string; // YYYY-MM-DD
-            arrivalTime: string; // HH:mm:ss
-            guestCount: number;
-            eventId?: string | null;
+            arrivalTime: string; // HH:mm:ss (24-hour format)
+            guestCount: number; // REQUIRED - total number of guests
             offerId?: string | null;
             occasion?: string;
             floorPreference?: string;
-            currency: string;
         }
     ): Promise<ApiResponse<{
         ticketId: string;
@@ -412,7 +422,6 @@ export class TicketService {
         bookingDate: string;
         arrivalTime: string;
         guestCount: number;
-        eventId: string | null;
         eventTitle: string | null;
         hasEvent: boolean;
         entryFee: number;
@@ -434,9 +443,12 @@ export class TicketService {
             console.log('🔵 TicketService: Sending POST request to /ticket/club-tickets/no-event');
             console.log('🔵 Request data:', JSON.stringify(bookingData, null, 2));
 
+            // Remove eventId if present for no-event tickets
+            const { ...payload } = bookingData;
+
             const response = await api.post<ApiResponse<any>>(
                 '/ticket/club-tickets/no-event',
-                bookingData
+                payload
             );
 
             console.log('🟢 TicketService: Success response:', response.data);
@@ -511,12 +523,12 @@ export class TicketService {
      * Creates a ticket for an event with:
      * - Event ID (REQUIRED)
      * - Club details
-     * - Selected ticket types and quantities
+     * - Guest count breakdown (maleCount, femaleCount, coupleCount)
      * - User contact information
-     * - Payment details
+     * - Offer details
      * 
      * @param ticketData - Complete event ticket booking information
-     * @returns Created ticket with ticket number, QR code, and total amount
+     * @returns Created ticket with ticket number, QR code, and details
      */
     static async createEventTicket(
         ticketData: {
@@ -528,43 +540,53 @@ export class TicketService {
             userName: string;
             userPhone: string;
             bookingDate: string; // YYYY-MM-DD
-            arrivalTime: string; // HH:mm:ss
-            guestCount: number;
-            selectedTickets: Array<{
-                ticketTypeId: string;
-                ticketTypeName: string;
-                quantity: number;
-                price: number;
-            }>;
+            arrivalTime: string; // HH:mm:ss (24-hour format)
+            maleCount: number; // Required for event tickets
+            femaleCount: number; // Required for event tickets
+            coupleCount: number; // Required for event tickets
+            ticketDescription?: string;
             offerId?: string | null;
-            currency: string;
-            totalAmount: number;
+            occasion?: string;
+            floorPreference?: string;
         }
     ): Promise<ApiResponse<{
         ticketId: string;
         ticketNumber: string;
         qrCode: string;
-        eventId: string;
-        eventTitle: string;
         clubId: string;
         clubName: string;
-        status: string;
+        userName: string;
+        userEmail: string;
+        userPhone: string;
+        bookingDate: string;
+        arrivalTime: string;
+        maleCount: number;
+        femaleCount: number;
+        coupleCount: number;
+        eventId: string | null;
+        eventTitle: string | null;
+        hasEvent: boolean;
+        entryFee: number;
+        offerTitle: string | null;
+        offerDescription: string | null;
+        offerDiscount: number;
         totalAmount: number;
-        currency: string;
-        selectedTickets: Array<{
-            ticketTypeId: string;
-            ticketTypeName: string;
-            quantity: number;
-            price: number;
-        }>;
+        currency: string | null;
+        occasion: string;
+        floorPreference: string;
+        status: string;
+        isValidated: boolean;
+        validatedAt: string | null;
         createdAt: string;
+        cancellationReason: string | null;
+        cancelledAt: string | null;
     }>> {
         try {
             console.log('🔵 TicketService: Creating EVENT ticket with eventId:', ticketData.eventId);
             console.log('🔵 Request data:', JSON.stringify(ticketData, null, 2));
 
             const response = await api.post<ApiResponse<any>>(
-                '/ticket/club-tickets/event',
+                '/ticket/club-tickets',
                 ticketData
             );
 
