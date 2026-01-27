@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, Phone, Mail, Edit3, X, Check, Loader2 } from 'lucide-react';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
 import { useToast } from '@/hooks/use-toast';
+import { STORAGE_KEYS } from '@/lib/constants/storage';
 
 // Add custom CSS for hiding scrollbar while keeping functionality
 const scrollbarHideStyle = `
@@ -29,6 +30,8 @@ function ContactInfoPageContent() {
     const femaleStag = parseInt(searchParams.get('femaleStag') || '0');
     const couple = parseInt(searchParams.get('couple') || '0');
 
+    const [eventData, setEventData] = useState<any>(null);
+
     // Apply the scrollbar-hide style
     useEffect(() => {
         // Create style element and append to head
@@ -36,19 +39,44 @@ function ContactInfoPageContent() {
         style.innerHTML = scrollbarHideStyle;
         document.head.appendChild(style);
 
+        // Load event data from sessionStorage
+        const storedEventData = sessionStorage.getItem('currentEventData');
+        if (storedEventData) {
+            setEventData(JSON.parse(storedEventData));
+        }
+
         // Cleanup on unmount
         return () => {
             document.head.removeChild(style);
         };
     }, []);
 
-    // State for form inputs
-    const [contactInfo, setContactInfo] = useState({
-        maleName: 'David Simon',
-        femaleName: 'Sammy Simon',
-        stagName: 'Mukul Mehta',
-        phone: '+91 9XXXX9XXXXX',
-        email: 'DavidSimon@test.com'
+    // State for form inputs - get from localStorage with fallback
+    const [contactInfo, setContactInfo] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const userStr = localStorage.getItem(STORAGE_KEYS.user);
+            if (userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    return {
+                        maleName: user.username || 'David Simon',
+                        femaleName: 'Sammy Simon',
+                        stagName: user.username || 'Mukul Mehta',
+                        phone: user.mobile || '+91 9876543210',
+                        email: user.email || 'DavidSimon@test.com'
+                    };
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                }
+            }
+        }
+        return {
+            maleName: 'David Simon',
+            femaleName: 'Sammy Simon',
+            stagName: 'Mukul Mehta',
+            phone: '+91 9876543210',
+            email: 'DavidSimon@test.com'
+        };
     });
 
     const handleNext = () => {
@@ -74,6 +102,7 @@ function ContactInfoPageContent() {
             stagName: contactInfo.stagName,
             phone: contactInfo.phone,
             email: contactInfo.email,
+            eventData: eventData // Pass event data along
         };
         sessionStorage.setItem('eventBookingData', JSON.stringify(bookingData));
 
@@ -85,8 +114,8 @@ function ContactInfoPageContent() {
             {/* Hero Section with Event Image */}
             <div className="relative w-full bg-gray-900 flex justify-center items-center min-h-[200px] max-h-[400px]">
                 <img
-                    src="/event list/Rectangle 1.jpg"
-                    alt="Event Banner"
+                    src={eventData?.imageUrl || eventData?.image || "/event list/Rectangle 1.jpg"}
+                    alt={eventData?.title || "Event Banner"}
                     className="w-auto h-auto max-w-full max-h-[400px] object-contain"
                 />
 
@@ -115,7 +144,7 @@ function ContactInfoPageContent() {
             {/* Event Info Card */}
             <div className="w-full bg-gradient-to-b from-[#0D696D] to-[#000000] rounded-t-[40px] -mt-20 relative z-10 pt-4 pb-16">
                 <h1 className="text-center text-white text-2xl font-['Anton'] tracking-[2.4px] leading-8">
-                    Timeless Tuesdays Ft. DJ Xpensive
+                    {eventData?.title || "Event"}
                 </h1>
 
                 {/* Separator Line */}
@@ -130,7 +159,7 @@ function ContactInfoPageContent() {
                             <path d="M12 12.75C13.6569 12.75 15 11.4069 15 9.75C15 8.09315 13.6569 6.75 12 6.75C10.3431 6.75 9 8.09315 9 9.75C9 11.4069 10.3431 12.75 12 12.75Z" stroke="#14FFEC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             <path d="M19.5 9.75C19.5 16.5 12 21.75 12 21.75C12 21.75 4.5 16.5 4.5 9.75C4.5 7.76088 5.29018 5.85322 6.6967 4.4467C8.10322 3.04018 10.0109 2.25 12 2.25C13.9891 2.25 15.8968 3.04018 17.3033 4.4467C18.7098 5.85322 19.5 7.76088 19.5 9.75V9.75Z" stroke="#14FFEC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        <p className="text-white font-['Manrope'] font-bold">Dabo club & kitchen, Nagpur</p>
+                        <p className="text-white font-['Manrope'] font-bold">{eventData?.venue || 'Venue'}</p>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -141,7 +170,7 @@ function ContactInfoPageContent() {
                             <rect x="3" y="4" width="18" height="18" rx="2" stroke="#14FFEC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                         <div className="bg-[#0D4444] border border-[#14FFEC]/40 px-6 py-2 rounded-full">
-                            <p className="text-white font-['Manrope'] font-bold">24 Dec | 7:00 pm</p>
+                            <p className="text-white font-['Manrope'] font-bold">{eventData?.date || 'Date'} | {eventData?.time || 'Time'}</p>
                         </div>
                     </div>
                 </div>

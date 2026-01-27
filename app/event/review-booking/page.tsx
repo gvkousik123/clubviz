@@ -38,6 +38,7 @@ function ReviewBookingPageContent() {
     const stagName = bookingData?.stagName || '';
     const phone = bookingData?.phone || '';
     const email = bookingData?.email || '';
+    const eventData = bookingData?.eventData || null;
 
     // Load booking data from sessionStorage
     useEffect(() => {
@@ -102,15 +103,19 @@ function ReviewBookingPageContent() {
             stagName,
             phone,
             email,
-            totalAmount
+            totalAmount,
+            eventData
         };
         sessionStorage.setItem('pendingEventBooking', JSON.stringify(ticketBookingData));
+
+        // Format mobile number - remove country code and special characters
+        const mobile = phone.replace(/[^0-9]/g, '').slice(-10); // Get last 10 digits
 
         // Initiate payment
         await quickPay(totalAmount, {
             username: maleName || stagName || 'Guest',
             email: email,
-            mobile: phone
+            mobile: mobile || '9876543210' // Use fallback if mobile is not available
         });
     };
 
@@ -138,17 +143,17 @@ function ReviewBookingPageContent() {
                     <div className="bg-[#0D1F1F] rounded-xl p-5 space-y-4">
                         <div className="flex items-center gap-3">
                             <img src="/common/MaskHappy.svg" alt="Event" width="24" height="24" />
-                            <p className="text-white font-['Manrope'] font-medium">Timeless Tuesdays Ft. DJ Xpensive</p>
+                            <p className="text-white font-['Manrope'] font-medium">{eventData?.title || 'Event'}</p>
                         </div>
 
                         <div className="flex items-center gap-3">
                             <MapPin size={20} className="text-[#14FFEC]" />
-                            <p className="text-white font-['Manrope'] font-medium">Dabo club & kitchen, Nagpur</p>
+                            <p className="text-white font-['Manrope'] font-medium">{eventData?.venue || 'Venue'}</p>
                         </div>
 
                         <div className="flex items-center gap-3">
                             <Calendar size={20} className="text-[#14FFEC]" />
-                            <p className="text-white font-['Manrope'] font-medium">24 Dec | 7:00 pm</p>
+                            <p className="text-white font-['Manrope'] font-medium">{eventData?.date || 'Date'} | {eventData?.time || 'Time'}</p>
                         </div>
                     </div>
                 </div>

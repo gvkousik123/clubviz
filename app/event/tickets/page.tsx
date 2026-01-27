@@ -101,6 +101,9 @@ function TicketsPageContent() {
             return;
         }
 
+        // Store event data in sessionStorage to avoid API call
+        sessionStorage.setItem('currentEventData', JSON.stringify(eventData));
+
         // Pass event data and ticket selections to contact info page
         const params = new URLSearchParams({
             eventId: eventId,
@@ -175,7 +178,7 @@ function TicketsPageContent() {
                 <div className="mt-6"></div>
             </div>
             {/* Bottom Section with Ticket Selection */}
-            <div className="w-full absolute bottom-0 rounded-t-[60px] bg-gradient-to-b from-[#021313] to-black border-t border-[#0C898B] min-h-[50%] z-20 mt-8">
+            <div className="w-full rounded-t-[60px] bg-gradient-to-b from-[#021313] to-black border-t border-[#0C898B] z-20 -mt-8 pb-32">
                 <div className="px-6 pt-8">
                     <h2 className="text-white text-center text-base font-['Anton'] font-normal tracking-wide mb-3">SELECT YOUR ENTRY TICKETS</h2>
 
