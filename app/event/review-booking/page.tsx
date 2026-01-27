@@ -50,6 +50,7 @@ function ReviewBookingPageContent() {
         if (savedData) {
             try {
                 const data = JSON.parse(savedData);
+                console.log('Booking data loaded:', data);
                 setBookingData(data);
             } catch (error) {
                 console.error('Failed to parse booking data:', error);
@@ -61,6 +62,7 @@ function ReviewBookingPageContent() {
                 router.push('/events');
             }
         } else {
+            console.log('No booking data in sessionStorage');
             toast({
                 title: 'Error',
                 description: 'No booking data found',
@@ -70,9 +72,11 @@ function ReviewBookingPageContent() {
         }
 
         return () => {
-            document.head.removeChild(style);
+            if (document.head.contains(style)) {
+                document.head.removeChild(style);
+            }
         };
-    }, []);
+    }, [router, toast]);
 
     const calculateTotalAmount = () => {
         const prices = ticketType === 'early' ? {
@@ -111,11 +115,11 @@ function ReviewBookingPageContent() {
         // Format mobile number - remove country code and special characters
         const mobile = phone.replace(/[^0-9]/g, '').slice(-10); // Get last 10 digits
 
-        // Initiate payment
+        // Initiate payment with contact info (usePayment hook will get additional details from localStorage)
         await quickPay(totalAmount, {
             username: maleName || stagName || 'Guest',
             email: email,
-            mobile: mobile || '9876543210' // Use fallback if mobile is not available
+            mobile: mobile || '' // Will use fallback in usePayment hook if empty
         });
     };
 
@@ -126,6 +130,14 @@ function ReviewBookingPageContent() {
             </div>
         );
     }
+
+    // Provide fallback event data if not loaded
+    const displayEventData = eventData || {
+        title: 'Event',
+        venue: 'Venue',
+        date: 'Date',
+        time: 'Time'
+    };
 
     return (
         <div className="min-h-screen w-full bg-[#021313] relative">
@@ -143,17 +155,17 @@ function ReviewBookingPageContent() {
                     <div className="bg-[#0D1F1F] rounded-xl p-5 space-y-4">
                         <div className="flex items-center gap-3">
                             <img src="/common/MaskHappy.svg" alt="Event" width="24" height="24" />
-                            <p className="text-white font-['Manrope'] font-medium">{eventData?.title || 'Event'}</p>
+                            <p className="text-white font-['Manrope'] font-medium">{displayEventData?.title || 'Event'}</p>
                         </div>
 
                         <div className="flex items-center gap-3">
                             <MapPin size={20} className="text-[#14FFEC]" />
-                            <p className="text-white font-['Manrope'] font-medium">{eventData?.venue || 'Venue'}</p>
+                            <p className="text-white font-['Manrope'] font-medium">{displayEventData?.venue || 'Venue'}</p>
                         </div>
 
                         <div className="flex items-center gap-3">
                             <Calendar size={20} className="text-[#14FFEC]" />
-                            <p className="text-white font-['Manrope'] font-medium">{eventData?.date || 'Date'} | {eventData?.time || 'Time'}</p>
+                            <p className="text-white font-['Manrope'] font-medium">{displayEventData?.date || 'Date'} | {displayEventData?.time || 'Time'}</p>
                         </div>
                     </div>
                 </div>

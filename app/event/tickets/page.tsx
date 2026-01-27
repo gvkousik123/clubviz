@@ -49,10 +49,26 @@ function TicketsPageContent() {
         try {
             setLoading(true);
 
-            // Fetch event details
-            const eventResponse = await EventService.getEventById(eventId);
+            // Fetch event details from the correct endpoint
+            const eventResponse = await EventService.getEventDetails(eventId);
             if (eventResponse.success && eventResponse.data) {
-                setEventData(eventResponse.data);
+                const eventData = eventResponse.data;
+                console.log('Event details loaded:', eventData);
+
+                // Format the event data for display
+                const formattedEventData = {
+                    id: eventData.id,
+                    title: eventData.title || 'Event',
+                    venue: eventData.location || eventData.club?.name || 'Venue',
+                    clubName: eventData.club?.name || '',
+                    date: eventData.formattedDate || eventData.startDateTime || 'Date',
+                    time: eventData.formattedTime || eventData.startDateTime || 'Time',
+                    image: eventData.imageUrl || eventData.images?.[0] || eventData.club?.logo || '/event list/Rectangle 1.jpg',
+                    description: eventData.description || '',
+                    startDateTime: eventData.startDateTime,
+                    endDateTime: eventData.endDateTime
+                };
+                setEventData(formattedEventData);
             }
 
             // Fetch ticket types for the event

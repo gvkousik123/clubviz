@@ -16,14 +16,20 @@ function PaymentProcessContent() {
     useEffect(() => {
         const initializePayment = async () => {
             try {
-                // Get data from URL parameters or localStorage
-                const amount = searchParams.get('amount');
-                const username = searchParams.get('username');
-                const email = searchParams.get('email');
-                const mobile = searchParams.get('mobile');
+                // Get data from sessionStorage (secure, not from URL params)
+                const paymentDataStr = typeof window !== 'undefined' ? sessionStorage.getItem('pendingPaymentData') : null;
+
+                if (!paymentDataStr) {
+                    setStatus('failed');
+                    setMessage('Missing payment information. Please try again.');
+                    return;
+                }
+
+                const paymentData = JSON.parse(paymentDataStr);
+                const { amount, customer_username, customer_email, customer_mobile, currency } = paymentData;
 
                 // Validate required fields
-                if (!amount || !username || !email || !mobile) {
+                if (!amount || !customer_email || !customer_mobile) {
                     setStatus('failed');
                     setMessage('Missing payment information. Please try again.');
                     return;
@@ -32,13 +38,21 @@ function PaymentProcessContent() {
                 setStatus('processing');
                 setMessage('Creating payment order...');
 
+                console.log('Creating payment order with:', {
+                    amount,
+                    currency: currency || 'INR',
+                    customer_username,
+                    customer_email,
+                    customer_mobile
+                });
+
                 // Create payment order
                 const orderResponse = await PaymentGatewayService.createOrder({
-                    amount: parseFloat(amount),
-                    currency: 'INR',
-                    customer_username: username,
-                    customer_email: email,
-                    customer_mobile: mobile
+                    amount: amount,
+                    currency: currency || 'INR',
+                    customer_username: customer_username || 'Guest',
+                    customer_email: customer_email,
+                    customer_mobile: customer_mobile
                 });
 
                 console.log('Order response:', orderResponse);
@@ -62,6 +76,9 @@ function PaymentProcessContent() {
                     timestamp: new Date().toISOString()
                 }));
 
+                // Clear sensitive data from sessionStorage
+                sessionStorage.removeItem('pendingPaymentData');
+
                 setMessage('Redirecting to payment gateway...');
 
                 // Initialize Cashfree SDK
@@ -77,7 +94,7 @@ function PaymentProcessContent() {
         };
 
         initializePayment();
-    }, [searchParams]);
+    }, []);
 
     const initializeCashfree = (sessionId: string) => {
         try {

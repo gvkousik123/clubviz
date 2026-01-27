@@ -306,6 +306,20 @@ export class EventService {
   }
 
   /**
+   * Get event details (API: GET /event-management/events/{id}/details)
+   * This endpoint provides complete event details including club info, timing, etc.
+   */
+  static async getEventDetails(eventId: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.get(`/event-management/events/${eventId}/details`);
+      return handleApiResponse(response);
+    } catch (error) {
+      console.error('Error fetching event details:', error);
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
    * Get events by club (API: GET /events/club/{clubId})
    */
   static async getEventsByClub(
