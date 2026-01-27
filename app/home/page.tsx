@@ -1087,15 +1087,7 @@ const HomePage = () => {
                             {!isGuestMode() && (storiesLoading || stories.length > 0) && (
                                 <section className="pt-2 mb-2">
                                     {storiesLoading ? (
-                                        <div>
-                                            <div className="flex items-center justify-between mb-4 px-5">
-                                                <h2 className="text-white text-lg font-medium">Vibe Meter</h2>
-                                            </div>
-                                            <div className="px-5 flex items-center gap-2 text-white/50 py-4">
-                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                                <span className="text-sm">Loading stories...</span>
-                                            </div>
-                                        </div>
+                                        <StoriesSectionSkeleton count={7} />
                                     ) : (
                                         <StoriesSection
                                             className="px-1"
@@ -1149,9 +1141,12 @@ const HomePage = () => {
                                 </div>
                                 <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
                                     {isLoadingAllClubs ? (
-                                        <div className="flex items-center justify-center w-full py-8">
-                                            <Loader2 className="w-6 h-6 text-[#14FFEC] animate-spin" />
-                                        </div>
+                                        Array.from({ length: 4 }).map((_, i) => (
+                                            <div key={i} className="w-[336px] h-[201px] relative flex-shrink-0 mr-1">
+                                                <div className="w-[336px] h-[169px] left-0 top-0 absolute bg-gradient-to-r from-[#1a2a2a] via-[#2a3a3a] to-[#1a2a2a] animate-pulse rounded-[15px]"></div>
+                                                <div className="w-[320px] h-[85px] left-[8px] top-[125px] absolute bg-gradient-to-r from-[#1a2a2a] via-[#2a3a3a] to-[#1a2a2a] animate-pulse rounded-[15px]"></div>
+                                            </div>
+                                        ))
                                     ) : allClubs.length > 0 ? (
                                         allClubs.map((club, index) => {
                                             const fallbackImage = venueFallback[index % venueFallback.length]?.image || '';
@@ -1189,9 +1184,15 @@ const HomePage = () => {
                                 </div>
                                 <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
                                     {isLoadingEvents ? (
-                                        <div className="flex items-center justify-center w-full py-8">
-                                            <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
-                                        </div>
+                                        Array.from({ length: 3 }).map((_, i) => (
+                                            <div key={i} className="w-[222px] h-[305px] flex-shrink-0 relative rounded-[20px] overflow-hidden bg-gradient-to-r from-[#1a2a2a] via-[#2a3a3a] to-[#1a2a2a] animate-pulse">
+                                                <div className="w-full h-[180px] bg-[#0a1a1a]"></div>
+                                                <div className="p-4 space-y-2">
+                                                    <div className="h-4 bg-[#0a1a1a] rounded w-3/4"></div>
+                                                    <div className="h-3 bg-[#0a1a1a] rounded w-1/2"></div>
+                                                </div>
+                                            </div>
+                                        ))
                                     ) : events.length > 0 ? (
                                         events.slice(0, 5).map((event, index) => {
                                             const eventDate = new Date(event.startDateTime);

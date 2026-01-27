@@ -140,23 +140,15 @@ export default function Sidebar({
                             onClick={onClose}
                             className="text-white text-sm font-['Manrope'] font-medium leading-tight tracking-wide hover:text-[#14FFEC] transition-colors text-center cursor-pointer"
                         >
-                            MY ACCOUNT
+                            MY PROFILE
                         </Link>
                         <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
                         <Link
-                            href="/favorites/events"
+                            href="/booking"
                             onClick={onClose}
                             className="text-white text-sm font-['Manrope'] font-medium leading-tight tracking-wide hover:text-[#14FFEC] transition-colors text-center cursor-pointer"
                         >
-                            FAVOURITE EVENTS
-                        </Link>
-                        <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
-                        <Link
-                            href="/favorites/clubs"
-                            onClick={onClose}
-                            className="text-white text-sm font-['Manrope'] font-medium leading-tight tracking-wide hover:text-[#14FFEC] transition-colors text-center cursor-pointer"
-                        >
-                            FAVOURITE CLUBS
+                            MY BOOKINGS
                         </Link>
                         <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
                         <Link
