@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Share2, ChevronLeft, X, Loader2 } from 'lucide-react';
 import { TicketService } from '@/lib/services/ticket.service';
@@ -21,7 +21,7 @@ const slideUpAnimation = `
   }
 `;
 
-export default function BookingTicketPage() {
+function BookingTicketPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
@@ -440,5 +440,20 @@ export default function BookingTicketPage() {
             )
             }
         </div >
+    );
+}
+
+export default function BookingTicketPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen w-full bg-[#021313] flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin mx-auto mb-4" />
+                    <p className="text-white text-sm">Loading ticket...</p>
+                </div>
+            </div>
+        }>
+            <BookingTicketPageContent />
+        </Suspense>
     );
 }
