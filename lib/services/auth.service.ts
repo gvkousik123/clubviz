@@ -120,10 +120,19 @@ const handleUsersApiResponse = <T>(response: any): T => {
 
 const handleUsersApiError = (error: any): string => {
     if (error.response?.data?.message) {
-        return error.response.data.message;
+        let message = error.response.data.message;
+        // Map backend error messages to user-friendly messages
+        if (message.includes('Bad credentials')) {
+            return 'Invalid credentials. Please check your username/email and password.';
+        }
+        return message;
     }
     if (error.response?.data?.error) {
-        return error.response.data.error;
+        let error_msg = error.response.data.error;
+        if (error_msg.includes('Bad credentials')) {
+            return 'Invalid credentials. Please check your username/email and password.';
+        }
+        return error_msg;
     }
     if (error.message) {
         return error.message;

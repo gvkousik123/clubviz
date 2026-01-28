@@ -108,7 +108,7 @@ function BookingConfirmPageContent() {
         );
     }
 
-        export default function BookingConfirmPage() {
+    export default function BookingConfirmPage() {
         return (
             <Suspense fallback={
                 <div className="min-h-screen w-full bg-[#021313] flex items-center justify-center">
