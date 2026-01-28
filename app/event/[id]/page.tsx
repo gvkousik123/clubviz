@@ -11,7 +11,8 @@ import {
     MapPin,
     Users,
     ChevronLeft,
-    Loader2
+    Loader2,
+    Building2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { EventService } from '@/lib/services/event.service';
@@ -172,18 +173,47 @@ export default function EventDetailsPage() {
                         </button>
                     </div>
 
-                    {/* Date & Time */}
-                    <div className="flex items-center justify-center gap-2 px-2 mb-4">
-                        <Calendar size={20} className="text-[#14FFEC]" />
-                        <div className="bg-white/10 px-4 py-2 rounded-full">
-                            <p className="text-white font-['Manrope'] text-sm">{eventData?.formattedDate} | {eventData?.formattedTime}</p>
+                    {/* Date - Left Aligned */}
+                    <div className="flex items-center gap-3 px-4 mb-6">
+                        <Calendar size={20} className="text-[#14FFEC] flex-shrink-0" />
+                        <p className="text-white font-['Manrope'] text-sm">{eventData?.formattedDate}</p>
+                    </div>
+
+                    {/* Club Logo with Name and Location */}
+                    <div className="px-4 mb-6 flex gap-4">
+                        {/* Club Logo */}
+                        <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden flex-shrink-0">
+                            <img
+                                src={eventData?.club?.logo || "/common/avatar-default.jpg"}
+                                alt={eventData?.club?.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => (e.currentTarget.src = "/common/avatar-default.jpg")}
+                            />
+                        </div>
+
+                        {/* Club Name and Location Info */}
+                        <div className="flex-1 min-w-0">
+                            <p className="text-white font-['Manrope'] text-left text-base font-semibold mb-2">
+                                {eventData?.club?.name || 'Club TBD'}
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <Building2 size={16} className="text-[#14FFEC] flex-shrink-0" />
+                                <p className="text-white font-['Manrope'] text-left text-xs">{eventData?.location || 'Location TBD'}</p>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Location Info */}
-                    <div className="flex items-center gap-3 mb-4 px-2 justify-center">
-                        <MapPin size={20} className="text-[#14FFEC] flex-shrink-0" />
-                        <p className="text-white font-['Manrope'] text-center text-sm">{eventData?.club?.name || eventData?.location || 'Location TBD'}</p>
+                    {/* Time and Duration - Separated Below Location */}
+                    <div className="px-4 mb-4 space-y-2">
+                        <div className="flex items-center gap-3">
+                            <Clock size={20} className="text-[#14FFEC] flex-shrink-0" />
+                            <p className="text-white font-['Manrope'] text-sm">{eventData?.formattedTime || 'Time TBD'}</p>
+                        </div>
+                        {eventData?.duration && (
+                            <div className="flex items-center gap-3 pl-8">
+                                <p className="text-white/70 font-['Manrope'] text-xs">Duration: {eventData.duration}</p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Registration Status Badge */}
@@ -268,31 +298,73 @@ export default function EventDetailsPage() {
                     </div>
                 )}
 
-                {/* Organizer/Club */}
+                {/* Organizer/Club Section */}
                 {(eventData?.club || eventData?.organizer) && (
-                    <div className="px-6 mb-6">
-                        <h2 className="text-white text-lg font-['Manrope'] mb-3 font-bold">Event Organised & Presented by</h2>
-                        <Link href={`/club/${eventData?.club?.id}`} className="block">
-                            <div className="bg-[#0D1F1F] rounded-lg p-4 flex items-center gap-3 hover:bg-[#0F252D] transition-colors">
-                                <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden flex-shrink-0">
-                                    <img
-                                        src={eventData?.club?.logo || eventData?.organizer?.avatar || "/common/avatar-default.jpg"}
-                                        alt="Host"
-                                        className="w-full h-full object-cover"
-                                        onError={(e) => (e.currentTarget.src = "/common/avatar-default.jpg")}
-                                    />
+                    <>
+                        <div className="px-6 mb-6">
+                            <h2 className="text-white text-lg font-['Manrope'] mb-3 font-bold">Event Organised & Presented by</h2>
+
+                            {/* Club - Always show if present */}
+                            {eventData?.club && (
+                                <Link href={`/club/${eventData?.club?.id}`} className="block mb-4">
+                                    <div className="bg-[#0D1F1F] rounded-lg p-4 flex items-center gap-3 hover:bg-[#0F252D] transition-colors">
+                                        <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden flex-shrink-0">
+                                            <img
+                                                src={eventData?.club?.logo || "/common/avatar-default.jpg"}
+                                                alt="Club"
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => (e.currentTarget.src = "/common/avatar-default.jpg")}
+                                            />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-white font-['Manrope'] font-bold truncate">
+                                                {eventData?.club?.name}
+                                            </h3>
+                                            <p className="text-[#14FFEC] text-xs">
+                                                Visit Club
+                                            </p>
+                                        </div>
+                                    </div>
+                                </Link>
+                            )}
+
+                            {/* Organizer - Show separately if present, otherwise show N/A */}
+                            {eventData?.organizer ? (
+                                <div className="bg-[#0D1F1F] rounded-lg p-4 flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden flex-shrink-0">
+                                        <img
+                                            src={eventData?.organizer?.avatar || "/common/avatar-default.jpg"}
+                                            alt="Organizer"
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => (e.currentTarget.src = "/common/avatar-default.jpg")}
+                                        />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="text-white font-['Manrope'] font-bold truncate">
+                                            {eventData?.organizer?.displayName}
+                                        </h3>
+                                        <p className="text-[#14FFEC] text-xs">
+                                            Organizer
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="text-white font-['Manrope'] font-bold truncate">
-                                        {eventData?.club?.name || eventData?.organizer?.displayName || 'Organizer'}
-                                    </h3>
-                                    <p className="text-[#14FFEC] text-xs">
-                                        {eventData?.club ? 'Visit Club' : 'Organizer'}
-                                    </p>
+                            ) : (
+                                <div className="bg-[#0D1F1F] rounded-lg p-4 flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center flex-shrink-0">
+                                        <span className="text-[#14FFEC] font-bold">N/A</span>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="text-white font-['Manrope'] font-bold">
+                                            Not Specified
+                                        </h3>
+                                        <p className="text-[#14FFEC] text-xs">
+                                            Organizer
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                        </Link>
-                    </div>
+                            )}
+                        </div>
+                    </>
                 )}
 
                 {/* Bottom Action Button */}

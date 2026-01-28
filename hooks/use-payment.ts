@@ -13,7 +13,7 @@ export function usePayment() {
     const [error, setError] = useState<string | null>(null);
 
     /**
-     * Initiate payment flow - directly call create order API and redirect to Cashfree
+     * Initiate payment flow - directly call create order API and use Cashfree SDK
      */
     const initiatePayment = useCallback(
         async (paymentData: CreatePaymentOrderRequest) => {
@@ -32,52 +32,60 @@ export function usePayment() {
 
                 console.log('Creating payment order with:', paymentData);
 
-                // Call create order API directly
+                // Call create order API
                 const orderResponse = await PaymentGatewayService.createOrder(paymentData);
 
                 console.log('Create Order Response:', orderResponse);
 
-                // Check if response has data
-                if (!orderResponse || !orderResponse.data) {
-                    throw new Error('Invalid response from payment gateway');
-                }
+                // Extract payment_session_id from response - handle various response structures
+                let payment_session_id = null;
+                let order_id = null;
 
-                const { order_id, payment_session_id, cf_order_id } = orderResponse.data;
+                if (orderResponse?.data?.payment_session_id) {
+                    payment_session_id = orderResponse.data.payment_session_id;
+                    order_id = orderResponse.data.order_id;
+                } else if (orderResponse?.payment_session_id) {
+                    payment_session_id = orderResponse.payment_session_id;
+                    order_id = orderResponse.order_id;
+                }
 
                 if (!payment_session_id) {
-                    throw new Error('Payment session ID not received');
+                    console.error('Full response:', JSON.stringify(orderResponse, null, 2));
+                    throw new Error('Payment session ID not received from gateway');
                 }
 
-                console.log('Payment session ID:', payment_session_id);
-                console.log('Order ID:', order_id);
+                console.log('✅ Payment session ID:', payment_session_id);
+                console.log('✅ Order ID:', order_id);
 
                 // Store order details in localStorage for reference
-                localStorage.setItem('current_payment_order', JSON.stringify({
-                    order_id,
-                    payment_session_id,
-                    cf_order_id,
-                    amount: paymentData.amount,
-                    timestamp: new Date().toISOString()
-                }));
+                if (order_id) {
+                    localStorage.setItem('current_payment_order', JSON.stringify({
+                        order_id,
+                        payment_session_id,
+                        amount: paymentData.amount,
+                        timestamp: new Date().toISOString()
+                    }));
+                    sessionStorage.setItem('paymentOrderId', order_id);
+                }
 
-                // Store payment data in sessionStorage for notifyPayment page
-                sessionStorage.setItem('paymentOrderId', order_id);
+                // Use Cashfree SDK checkout method (same as test2.html)
+                console.log('🔗 Opening Cashfree checkout with session:', payment_session_id);
 
-                // Construct Cashfree payment gateway URL with return URL
-                // Cashfree will redirect to our notifyPayment page after payment
-                const returnUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://clubviz-web.vercel.app'}/notifyPayment?order_id=${order_id}`;
-                const cashfreeUrl = `https://sandbox.cashfree.com/pg/view/gateway/${payment_session_id}`;
+                if (typeof window !== 'undefined' && (window as any).Cashfree) {
+                    const cashfree = (window as any).Cashfree({
+                        mode: "sandbox"
+                    });
 
-                console.log('Redirecting to Cashfree:', cashfreeUrl);
-                console.log('Return URL will be:', returnUrl);
-
-                // Redirect to Cashfree payment gateway
-                // Cashfree will redirect back to /notifyPayment after payment completion
-                window.location.href = cashfreeUrl;
+                    cashfree.checkout({
+                        paymentSessionId: payment_session_id
+                    });
+                } else {
+                    throw new Error('Cashfree SDK not loaded');
+                }
 
                 return true;
             } catch (err: any) {
-                console.error('Payment initiation error:', err);
+                console.error('❌ Payment initiation error:', err);
                 setError(err.message);
                 setLoading(false);
 
