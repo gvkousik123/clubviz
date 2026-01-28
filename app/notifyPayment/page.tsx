@@ -16,6 +16,56 @@ function NotifyPaymentContent() {
     const [ticketId, setTicketId] = useState<string | null>(null);
     const [isCreatingTicket, setIsCreatingTicket] = useState(false);
 
+    const createEventTicket = async (paymentData: any, orderId: string) => {
+        setIsCreatingTicket(true);
+        setMessage('Creating your event ticket...');
+
+        try {
+            // Get event booking data from sessionStorage
+            const eventBookingStr = sessionStorage.getItem('pendingEventBooking');
+
+            if (!eventBookingStr) {
+                console.error('No event booking data found');
+                setMessage('Payment successful! Your booking has been confirmed.');
+                return;
+            }
+
+            const eventBooking = JSON.parse(eventBookingStr);
+            console.log('Creating event ticket with data:', eventBooking);
+
+            // Create event ticket using TicketService
+            // This will be the API endpoint for event ticket creation
+            const ticketResponse = await TicketService.createEventTicket({
+                eventId: eventBooking.eventId,
+                userId: eventBooking.userId,
+                userEmail: eventBooking.email,
+                userName: eventBooking.maleName || eventBooking.stagName || 'Guest',
+                userPhone: eventBooking.phone,
+                ticketType: eventBooking.ticketType,
+                maleStag: eventBooking.maleStag,
+                femaleStag: eventBooking.femaleStag,
+                couple: eventBooking.couple,
+                totalAmount: eventBooking.totalAmount,
+                orderId: orderId,
+                currency: 'INR'
+            });
+
+            if (ticketResponse.success && ticketResponse.data) {
+                setTicketId(ticketResponse.data.ticketId || ticketResponse.data.id);
+                setMessage('Event ticket created successfully!');
+
+                // Clear booking data from sessionStorage
+                sessionStorage.removeItem('pendingEventBooking');
+            }
+        } catch (error: any) {
+            console.error('Failed to create event ticket:', error);
+            // Don't fail the whole flow, just log the error
+            setMessage('Payment successful! You can view your booking in your account.');
+        } finally {
+            setIsCreatingTicket(false);
+        }
+    };
+
     const createClubTicket = async (paymentData: any, orderId: string) => {
         setIsCreatingTicket(true);
         setMessage('Creating your ticket...');
@@ -123,8 +173,17 @@ function NotifyPaymentContent() {
                         PaymentGatewayService.clearNotification(orderIdParam);
                         localStorage.removeItem('current_payment_order');
 
-                        // Create club ticket after successful payment
-                        await createClubTicket(paymentStatus, orderIdParam);
+                        // Check if this is an event booking or club booking
+                        const eventBookingStr = sessionStorage.getItem('pendingEventBooking');
+                        const clubBookingStr = sessionStorage.getItem('bookingData');
+
+                        if (eventBookingStr) {
+                            // Create event ticket after successful payment
+                            await createEventTicket(paymentStatus, orderIdParam);
+                        } else if (clubBookingStr) {
+                            // Create club ticket after successful payment
+                            await createClubTicket(paymentStatus, orderIdParam);
+                        }
 
                     } else if (paymentStatus.order_status === 'EXPIRED') {
                         setStatus('failed');

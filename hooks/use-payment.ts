@@ -35,13 +35,21 @@ export function usePayment() {
                 // Call create order API directly
                 const orderResponse = await PaymentGatewayService.createOrder(paymentData);
 
-                console.log('Order response:', orderResponse);
+                console.log('Create Order Response:', orderResponse);
 
-                if (!orderResponse.success || !orderResponse.data) {
-                    throw new Error(orderResponse.message || 'Failed to create payment order');
+                // Check if response has data
+                if (!orderResponse || !orderResponse.data) {
+                    throw new Error('Invalid response from payment gateway');
                 }
 
                 const { order_id, payment_session_id, cf_order_id } = orderResponse.data;
+
+                if (!payment_session_id) {
+                    throw new Error('Payment session ID not received');
+                }
+
+                console.log('Payment session ID:', payment_session_id);
+                console.log('Order ID:', order_id);
 
                 // Store order details in localStorage for reference
                 localStorage.setItem('current_payment_order', JSON.stringify({
@@ -52,20 +60,26 @@ export function usePayment() {
                     timestamp: new Date().toISOString()
                 }));
 
-                // Construct Cashfree payment gateway URL
-                const cashfreeMode = process.env.NEXT_PUBLIC_CASHFREE_MODE || 'sandbox';
-                const cashfreeUrl = `https://${cashfreeMode}.cashfree.com/pg/view/gateway/${payment_session_id}`;
+                // Store payment data in sessionStorage for notifyPayment page
+                sessionStorage.setItem('paymentOrderId', order_id);
+
+                // Construct Cashfree payment gateway URL with return URL
+                // Cashfree will redirect to our notifyPayment page after payment
+                const returnUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://clubviz-web.vercel.app'}/notifyPayment?order_id=${order_id}`;
+                const cashfreeUrl = `https://sandbox.cashfree.com/pg/view/gateway/${payment_session_id}`;
 
                 console.log('Redirecting to Cashfree:', cashfreeUrl);
+                console.log('Return URL will be:', returnUrl);
 
                 // Redirect to Cashfree payment gateway
-                // Cashfree will redirect back to /notifyPayment after payment
+                // Cashfree will redirect back to /notifyPayment after payment completion
                 window.location.href = cashfreeUrl;
 
                 return true;
             } catch (err: any) {
                 console.error('Payment initiation error:', err);
                 setError(err.message);
+                setLoading(false);
 
                 toast({
                     title: 'Payment Error',
@@ -74,8 +88,6 @@ export function usePayment() {
                 });
 
                 return false;
-            } finally {
-                setLoading(false);
             }
         },
         [router, toast]

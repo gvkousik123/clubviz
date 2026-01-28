@@ -13,6 +13,7 @@ import {
 import BottomContinueButton from '@/components/common/bottom-continue-button';
 import { EventService } from '@/lib/services/event.service';
 import { useToast } from '@/hooks/use-toast';
+import { useEventDetail } from '@/lib/store';
 
 function TicketsPageContent() {
     const router = useRouter();
@@ -21,6 +22,9 @@ function TicketsPageContent() {
 
     // Get eventId from URL params
     const eventId = searchParams.get('eventId') || '';
+
+    // Use cached event data from the store
+    const { event: cachedEventData, loading: eventLoading } = useEventDetail(eventId);
 
     const [activeTab, setActiveTab] = useState('early');
     const [tickets, setTickets] = useState({
@@ -32,10 +36,94 @@ function TicketsPageContent() {
     const [ticketTypes, setTicketTypes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Helper function to get pricing for a specific ticket type
+    const getTicketPrice = (type: 'maleStag' | 'femaleStag' | 'couple', category: 'early' | 'general') => {
+        if (!ticketTypes || ticketTypes.length === 0) {
+            // Fallback to default prices if no ticket types are available
+            if (category === 'early') {
+                return type === 'maleStag' ? { price: 1500, cover: 1000 } :
+                    type === 'femaleStag' ? { price: 0, cover: 0, isFree: true } :
+                        { price: 0, cover: 0, isFree: true };
+            } else {
+                return type === 'maleStag' ? { price: 2000, cover: 1000 } :
+                    type === 'femaleStag' ? { price: 2000, cover: 1000 } :
+                        { price: 2000, cover: 1000 };
+            }
+        }
+
+        // Map type and category to ticket name
+        const ticketNameMap: Record<string, string> = {
+            'maleStag-early': 'Early Bird Male Stag',
+            'femaleStag-early': 'Early Bird Female Stag',
+            'couple-early': 'Early Bird Couple',
+            'maleStag-general': 'General Male Stag',
+            'femaleStag-general': 'General Female Stag',
+            'couple-general': 'General Couple',
+        };
+
+        const ticketName = ticketNameMap[`${type}-${category}`];
+        const ticketType = ticketTypes.find(t =>
+            t.name && t.name.toLowerCase().includes(type.toLowerCase()) &&
+            t.name.toLowerCase().includes(category)
+        ) || ticketTypes.find(t => t.name === ticketName);
+
+        if (ticketType) {
+            return {
+                price: ticketType.price || 0,
+                cover: ticketType.coverCharge || 0,
+                isFree: ticketType.price === 0 || ticketType.price === null
+            };
+        }
+
+        // Fallback prices
+        return category === 'early'
+            ? (type === 'maleStag' ? { price: 1500, cover: 1000 } : { price: 0, cover: 0, isFree: true })
+            : { price: 2000, cover: 1000 };
+    };
+
+    // Format price text
+    const formatPriceText = (pricing: { price: number; cover?: number; isFree?: boolean }) => {
+        if (pricing.isFree) return 'Free Entry';
+        if (pricing.cover && pricing.cover > 0) {
+            return `Rs ${pricing.price} (Cover - ${pricing.cover})`;
+        }
+        return `Rs ${pricing.price}`;
+    };
+
+    // Format and set event data when cached data is available
     useEffect(() => {
-        if (eventId) {
-            loadEventAndTickets();
-        } else {
+        if (cachedEventData) {
+            console.log('Using cached event data:', cachedEventData);
+
+            // Format the event data for display
+            const formattedEventData = {
+                id: cachedEventData.id,
+                title: cachedEventData.title || 'Event',
+                venue: cachedEventData.location || cachedEventData.club?.name || 'Venue',
+                clubName: cachedEventData.club?.name || '',
+                date: cachedEventData.formattedDate || cachedEventData.startDateTime || 'Date',
+                time: cachedEventData.formattedTime || cachedEventData.startDateTime || 'Time',
+                image: cachedEventData.imageUrl || cachedEventData.images?.[0] || cachedEventData.club?.logo || '/event list/Rectangle 1.jpg',
+                description: cachedEventData.description || '',
+                startDateTime: cachedEventData.startDateTime,
+                endDateTime: cachedEventData.endDateTime,
+                club: cachedEventData.club,
+                ticketTypes: cachedEventData.ticketTypes || []
+            };
+
+            setEventData(formattedEventData);
+
+            // Extract ticket types if available
+            if (cachedEventData.ticketTypes && Array.isArray(cachedEventData.ticketTypes)) {
+                setTicketTypes(cachedEventData.ticketTypes);
+            }
+
+            setLoading(false);
+        }
+    }, [cachedEventData]);
+
+    useEffect(() => {
+        if (!eventId) {
             toast({
                 title: 'Error',
                 description: 'Event ID is missing',
@@ -44,49 +132,6 @@ function TicketsPageContent() {
             router.back();
         }
     }, [eventId]);
-
-    const loadEventAndTickets = async () => {
-        try {
-            setLoading(true);
-
-            // Fetch event details from the correct endpoint
-            const eventResponse = await EventService.getEventDetails(eventId);
-            if (eventResponse.success && eventResponse.data) {
-                const eventData = eventResponse.data;
-                console.log('Event details loaded:', eventData);
-
-                // Format the event data for display
-                const formattedEventData = {
-                    id: eventData.id,
-                    title: eventData.title || 'Event',
-                    venue: eventData.location || eventData.club?.name || 'Venue',
-                    clubName: eventData.club?.name || '',
-                    date: eventData.formattedDate || eventData.startDateTime || 'Date',
-                    time: eventData.formattedTime || eventData.startDateTime || 'Time',
-                    image: eventData.imageUrl || eventData.images?.[0] || eventData.club?.logo || '/event list/Rectangle 1.jpg',
-                    description: eventData.description || '',
-                    startDateTime: eventData.startDateTime,
-                    endDateTime: eventData.endDateTime
-                };
-                setEventData(formattedEventData);
-            }
-
-            // Fetch ticket types for the event
-            const ticketTypesResponse = await EventService.getEventTicketTypes(eventId);
-            if (ticketTypesResponse.success && ticketTypesResponse.data) {
-                setTicketTypes(ticketTypesResponse.data);
-            }
-        } catch (error: any) {
-            console.error('Failed to load event data:', error);
-            toast({
-                title: 'Error',
-                description: 'Failed to load event details',
-                variant: 'destructive',
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleTabChange = (tab: string) => {
         setActiveTab(tab);
@@ -227,7 +272,7 @@ function TicketsPageContent() {
                             <div className="flex justify-between items-center">
                                 <div>
                                     <p className="text-white font-['Manrope'] font-medium">Male Stag Entry</p>
-                                    <p className="text-[#14FFEC] font-['Manrope'] font-medium">Rs 1500 (Cover - 1000)</p>
+                                    <p className="text-[#14FFEC] font-['Manrope'] font-medium">{formatPriceText(getTicketPrice('maleStag', 'early'))}</p>
                                 </div>
                                 <div className="bg-[#313131] rounded-[22px] px-3 py-1 flex items-center">
                                     <button
@@ -260,7 +305,7 @@ function TicketsPageContent() {
                             <div className="flex justify-between items-center">
                                 <div>
                                     <p className="text-white font-['Manrope'] font-medium">Female stag Entry</p>
-                                    <p className="text-[#14FFEC] font-['Manrope'] font-medium">Free Entry</p>
+                                    <p className="text-[#14FFEC] font-['Manrope'] font-medium">{formatPriceText(getTicketPrice('femaleStag', 'early'))}</p>
                                 </div>
                                 <div className="bg-[#313131] rounded-[22px] px-3 py-1 flex items-center">
                                     <button
@@ -293,7 +338,7 @@ function TicketsPageContent() {
                             <div className="flex justify-between items-center">
                                 <div>
                                     <p className="text-white font-['Manrope'] font-medium">Couple Entry</p>
-                                    <p className="text-[#14FFEC] font-['Manrope'] font-medium">Free Entry</p>
+                                    <p className="text-[#14FFEC] font-['Manrope'] font-medium">{formatPriceText(getTicketPrice('couple', 'early'))}</p>
                                 </div>
                                 <div className="bg-[#313131] rounded-[22px] px-3 py-1 flex items-center">
                                     <button
@@ -324,7 +369,7 @@ function TicketsPageContent() {
                             <div className="flex justify-between items-center">
                                 <div>
                                     <p className="text-white font-['Manrope'] font-semibold">Male Stag Entry</p>
-                                    <p className="text-[#14FFEC] font-['Manrope'] font-semibold">Rs 2000 (Cover - 1000)</p>
+                                    <p className="text-[#14FFEC] font-['Manrope'] font-semibold">{formatPriceText(getTicketPrice('maleStag', 'general'))}</p>
                                 </div>
                                 <div className="bg-[#313131] rounded-[22px] px-3 py-1 flex items-center">
                                     <button
@@ -357,7 +402,7 @@ function TicketsPageContent() {
                             <div className="flex justify-between items-center">
                                 <div>
                                     <p className="text-white font-['Manrope'] font-semibold">Female stag Entry</p>
-                                    <p className="text-[#14FFEC] font-['Manrope'] font-semibold">Rs 2000 (Cover - 1000)</p>
+                                    <p className="text-[#14FFEC] font-['Manrope'] font-semibold">{formatPriceText(getTicketPrice('femaleStag', 'general'))}</p>
                                 </div>
                                 <div className="bg-[#313131] rounded-[22px] px-3 py-1 flex items-center">
                                     <button
@@ -390,7 +435,7 @@ function TicketsPageContent() {
                             <div className="flex justify-between items-center">
                                 <div>
                                     <p className="text-white font-['Manrope'] font-semibold">Couple Entry</p>
-                                    <p className="text-[#14FFEC] font-['Manrope'] font-semibold">Rs 2000 (Cover - 1000)</p>
+                                    <p className="text-[#14FFEC] font-['Manrope'] font-semibold">{formatPriceText(getTicketPrice('couple', 'general'))}</p>
                                 </div>
                                 <div className="bg-[#313131] rounded-[22px] px-3 py-1 flex items-center">
                                     <button

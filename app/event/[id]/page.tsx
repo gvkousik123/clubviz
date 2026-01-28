@@ -183,7 +183,7 @@ export default function EventDetailsPage() {
                     {/* Location Info */}
                     <div className="flex items-center gap-3 mb-4 px-2 justify-center">
                         <MapPin size={20} className="text-[#14FFEC] flex-shrink-0" />
-                        <p className="text-white font-['Manrope'] text-center text-sm">{eventData?.location || eventData?.club?.name || 'Location TBD'}</p>
+                        <p className="text-white font-['Manrope'] text-center text-sm">{eventData?.club?.name || eventData?.location || 'Location TBD'}</p>
                     </div>
 
                     {/* Registration Status Badge */}
@@ -229,10 +229,49 @@ export default function EventDetailsPage() {
                     <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
                 </div>
 
+                {/* Artist Section */}
+                {eventData?.eventArtistName && (
+                    <div className="px-6 mb-6">
+                        <h2 className="text-white text-lg font-['Manrope'] mb-3 font-bold">Artist</h2>
+                        <div className="bg-[#0D1F1F] rounded-lg p-4">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden flex-shrink-0">
+                                    <img
+                                        src={eventData?.artistImage || "/common/avatar-default.jpg"}
+                                        alt={eventData?.eventArtistName}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => (e.currentTarget.src = "/common/avatar-default.jpg")}
+                                    />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-white font-['Manrope'] font-bold">
+                                        {eventData.eventArtistName}
+                                    </h3>
+                                </div>
+                            </div>
+                            {eventData?.aboutEventArtist && (
+                                <div>
+                                    <h4 className="text-[#14FFEC] text-sm font-semibold mb-2">Description</h4>
+                                    <p className="text-white/80 text-sm leading-relaxed whitespace-pre-line">
+                                        {eventData.aboutEventArtist}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Separator Line */}
+                {eventData?.eventArtistName && (
+                    <div className="flex justify-center my-4">
+                        <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
+                    </div>
+                )}
+
                 {/* Organizer/Club */}
                 {(eventData?.club || eventData?.organizer) && (
                     <div className="px-6 mb-6">
-                        <h2 className="text-white text-lg font-['Manrope'] mb-3 font-bold">Host</h2>
+                        <h2 className="text-white text-lg font-['Manrope'] mb-3 font-bold">Event Organised & Presented by</h2>
                         <Link href={`/club/${eventData?.club?.id}`} className="block">
                             <div className="bg-[#0D1F1F] rounded-lg p-4 flex items-center gap-3 hover:bg-[#0F252D] transition-colors">
                                 <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden flex-shrink-0">
