@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { PaymentGatewayService, CreatePaymentOrderRequest } from '@/lib/services/payment-gateway.service';
+import { TicketService } from '@/lib/services/ticket.service';
 import { useToast } from './use-toast';
 import { STORAGE_KEYS } from '@/lib/constants/storage';
 
@@ -66,6 +67,66 @@ export function usePayment() {
                         timestamp: new Date().toISOString()
                     }));
                     sessionStorage.setItem('paymentOrderId', order_id);
+                }
+
+                // NEW FLOW: Create ticket BEFORE redirecting to Cashfree
+                // Check if we have booking data in sessionStorage
+                const eventBookingStr = sessionStorage.getItem('pendingEventBooking');
+                const clubBookingStr = sessionStorage.getItem('bookingData');
+
+                if (eventBookingStr || clubBookingStr) {
+                    console.log('📝 Step 2: Creating ticket with orderId before payment...');
+
+                    try {
+                        if (eventBookingStr) {
+                            // Create event ticket with orderId
+                            const eventBooking = JSON.parse(eventBookingStr);
+
+                            await TicketService.createEventTicketWithOrder({
+                                eventId: eventBooking.eventId,
+                                clubId: eventBooking.clubId,
+                                userId: eventBooking.userId,
+                                userEmail: eventBooking.email || paymentData.customer_email,
+                                userName: eventBooking.userName || eventBooking.maleName || eventBooking.stagName || paymentData.customer_username,
+                                userPhone: eventBooking.phone || paymentData.customer_mobile,
+                                bookingDate: eventBooking.bookingDate,
+                                arrivalTime: eventBooking.arrivalTime,
+                                maleCount: eventBooking.maleCount || eventBooking.maleStag || 0,
+                                femaleCount: eventBooking.femaleCount || eventBooking.femaleStag || 0,
+                                coupleCount: eventBooking.coupleCount || eventBooking.couple || 0,
+                                orderId: order_id, // Link ticket to payment order
+                                offerId: eventBooking.offerId || null,
+                                occasion: eventBooking.occasion || 'Event',
+                                floorPreference: eventBooking.floorPreference || 'Main Floor'
+                            });
+
+                            console.log('✅ Event ticket created with orderId:', order_id);
+                        } else if (clubBookingStr) {
+                            // Create club ticket with orderId
+                            const clubBooking = JSON.parse(clubBookingStr);
+
+                            await TicketService.createClubTicketWithOrder({
+                                clubId: clubBooking.clubId,
+                                userId: clubBooking.userId,
+                                userEmail: clubBooking.email || paymentData.customer_email,
+                                userName: clubBooking.userName || paymentData.customer_username,
+                                userPhone: clubBooking.phone || paymentData.customer_mobile,
+                                bookingDate: clubBooking.bookingDate || clubBooking.selectedDate,
+                                arrivalTime: clubBooking.arrivalTime || clubBooking.selectedTime || '18:00:00',
+                                guestCount: clubBooking.guestCount || 2,
+                                orderId: order_id, // Link ticket to payment order
+                                offerId: clubBooking.offerId || null,
+                                occasion: clubBooking.occasion || 'Casual Dining',
+                                floorPreference: clubBooking.floorPreference || 'Main Floor'
+                            });
+
+                            console.log('✅ Club ticket created with orderId:', order_id);
+                        }
+                    } catch (ticketError: any) {
+                        console.error('⚠️ Ticket creation failed (will retry after payment):', ticketError);
+                        // Don't fail the payment flow if ticket creation fails
+                        // The generate ticket API will handle it after payment
+                    }
                 }
 
                 // Use Cashfree SDK checkout method (same as test2.html)

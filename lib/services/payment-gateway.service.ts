@@ -83,6 +83,25 @@ export const PaymentGatewayService = {
     },
 
     /**
+     * Generate ticket after payment completion
+     * POST /club-tickets/generate
+     * 
+     * This endpoint is called AFTER payment is completed and verified.
+     * It checks the payment status and generates/returns the ticket if payment is successful.
+     */
+    generateTicket: async (data: { orderId: string }): Promise<ApiResponse<any>> => {
+        try {
+            console.log('🎫 Generating ticket for orderId:', data.orderId);
+            const response = await api.post('/ticket/club-tickets/generate', data);
+            console.log('✅ Generate Ticket Response:', response.data);
+            return handleApiResponse(response);
+        } catch (error) {
+            console.error('❌ Generate Ticket Error:', error);
+            throw new Error(handleApiError(error));
+        }
+    },
+
+    /**
      * Webhook handler for Cashfree notifications
      * This should be called from the /notifyPayment endpoint
      */
@@ -209,5 +228,78 @@ export const PaymentGatewayService = {
             // Initial poll
             poll();
         });
+    },
+
+    /**
+     * INTERNAL METHOD: Verify order status by orderId
+     * This is called internally to prevent replay attacks
+     * Only generates tickets if the order status is PAID and hasn't been processed before
+     * 
+     * @param orderId - The order ID to verify
+     * @returns Order status and whether it's safe to generate tickets
+     */
+    verifyOrderStatusInternal: async (orderId: string): Promise<{
+        isValid: boolean;
+        status: string;
+        alreadyProcessed: boolean;
+        orderData: PaymentStatusResponse | null;
+    }> => {
+        try {
+            console.log('🔐 [INTERNAL] Verifying order status for:', orderId);
+
+            // Get the order status from backend
+            const statusResponse = await PaymentGatewayService.getPaymentStatus(orderId);
+
+            if (!statusResponse.success || !statusResponse.data) {
+                console.error('❌ [INTERNAL] Failed to get order status');
+                return {
+                    isValid: false,
+                    status: 'UNKNOWN',
+                    alreadyProcessed: false,
+                    orderData: null
+                };
+            }
+
+            const orderData = statusResponse.data;
+            const isPaid = orderData.order_status === 'PAID';
+
+            // Check if we've already processed this order (replay attack prevention)
+            const processedKey = `order_processed_${orderId}`;
+            const alreadyProcessed = localStorage.getItem(processedKey) === 'true';
+
+            console.log('🔐 [INTERNAL] Order verification result:', {
+                orderId,
+                status: orderData.order_status,
+                isPaid,
+                alreadyProcessed
+            });
+
+            return {
+                isValid: isPaid && !alreadyProcessed,
+                status: orderData.order_status,
+                alreadyProcessed,
+                orderData
+            };
+        } catch (error) {
+            console.error('❌ [INTERNAL] Error verifying order status:', error);
+            return {
+                isValid: false,
+                status: 'ERROR',
+                alreadyProcessed: false,
+                orderData: null
+            };
+        }
+    },
+
+    /**
+     * Mark order as processed to prevent duplicate ticket generation
+     * 
+     * @param orderId - The order ID to mark as processed
+     */
+    markOrderAsProcessed: (orderId: string): void => {
+        const processedKey = `order_processed_${orderId}`;
+        localStorage.setItem(processedKey, 'true');
+        localStorage.setItem(`${processedKey}_timestamp`, new Date().toISOString());
+        console.log('✅ [INTERNAL] Order marked as processed:', orderId);
     }
 };

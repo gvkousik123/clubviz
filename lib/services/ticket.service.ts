@@ -472,9 +472,10 @@ export class TicketService {
      * Creates a booking ticket with:
      * - Booking details (club, date, time, guests)
      * - User information
+     * - Payment orderId for linking
      * - Generates ticket number and QR code
      * 
-     * @param bookingData - Complete booking information
+     * @param bookingData - Complete booking information including orderId
      * @returns Created ticket with ticket number and total amount
      */
     static async createClubTicket(
@@ -496,6 +497,7 @@ export class TicketService {
             offerId?: string;
             occasion?: string;
             floorPreference?: string;
+            orderId?: string; // Payment order ID for linking
             currency: string;
         }
     ): Promise<ApiResponse<{
@@ -525,9 +527,10 @@ export class TicketService {
      * - Club details
      * - Guest count breakdown (maleCount, femaleCount, coupleCount)
      * - User contact information
+     * - Payment orderId for linking
      * - Offer details
      * 
-     * @param ticketData - Complete event ticket booking information
+     * @param ticketData - Complete event ticket booking information including orderId
      * @returns Created ticket with ticket number, QR code, and details
      */
     static async createEventTicket(
@@ -548,6 +551,7 @@ export class TicketService {
             offerId?: string | null;
             occasion?: string;
             floorPreference?: string;
+            orderId?: string; // Payment order ID for linking
         }
     ): Promise<ApiResponse<{
         ticketId: string;
@@ -600,6 +604,89 @@ export class TicketService {
                 statusText: error.response?.statusText,
             });
             throw error;
+        }
+    }
+
+    /**
+     * Create event ticket for pre-payment flow
+     * POST /club-tickets/event
+     * 
+     * This is called BEFORE payment, with orderId from payment order creation.
+     * The ticket is created in pending state and will be activated after payment.
+     * 
+     * @param ticketData - Event ticket data with orderId
+     * @returns Created ticket response
+     */
+    static async createEventTicketWithOrder(
+        ticketData: {
+            eventId: string;
+            clubId: string;
+            userId: string;
+            userEmail: string;
+            userName: string;
+            userPhone: string;
+            bookingDate: string;
+            arrivalTime: string;
+            maleCount: number;
+            femaleCount: number;
+            coupleCount: number;
+            orderId: string; // REQUIRED - links to payment order
+            offerId?: string | null;
+            occasion?: string;
+            floorPreference?: string;
+        }
+    ): Promise<ApiResponse<any>> {
+        try {
+            console.log('🔵 Creating event ticket with orderId (pre-payment):', ticketData.orderId);
+            const response = await api.post<ApiResponse<any>>(
+                '/ticket/club-tickets/event',
+                ticketData
+            );
+            console.log('✅ Event ticket created (pending payment):', response.data);
+            return handleApiResponse(response);
+        } catch (error) {
+            console.error('❌ Event ticket creation error:', error);
+            throw new Error(handleApiError(error));
+        }
+    }
+
+    /**
+     * Create club ticket for pre-payment flow
+     * POST /club-tickets/no-event
+     * 
+     * This is called BEFORE payment, with orderId from payment order creation.
+     * The ticket is created in pending state and will be activated after payment.
+     * 
+     * @param ticketData - Club ticket data with orderId
+     * @returns Created ticket response
+     */
+    static async createClubTicketWithOrder(
+        ticketData: {
+            clubId: string;
+            userId: string;
+            userEmail: string;
+            userName: string;
+            userPhone: string;
+            bookingDate: string;
+            arrivalTime: string;
+            guestCount: number;
+            orderId: string; // REQUIRED - links to payment order
+            offerId?: string | null;
+            occasion?: string;
+            floorPreference?: string;
+        }
+    ): Promise<ApiResponse<any>> {
+        try {
+            console.log('🔵 Creating club ticket with orderId (pre-payment):', ticketData.orderId);
+            const response = await api.post<ApiResponse<any>>(
+                '/ticket/club-tickets/no-event',
+                ticketData
+            );
+            console.log('✅ Club ticket created (pending payment):', response.data);
+            return handleApiResponse(response);
+        } catch (error) {
+            console.error('❌ Club ticket creation error:', error);
+            throw new Error(handleApiError(error));
         }
     }
 }

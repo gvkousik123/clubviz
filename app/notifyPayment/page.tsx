@@ -31,10 +31,11 @@ function NotifyPaymentContent() {
             }
 
             const eventBooking = JSON.parse(eventBookingStr);
-            console.log('Creating event ticket with data:', eventBooking);
+            console.log('🎫 Creating event ticket with orderId:', orderId);
 
-            // Create event ticket using TicketService
-            // This will be the API endpoint for event ticket creation
+            // STEP 2: Persist ticket info + orderId with ticketing API
+            // This creates the ticket record in the database with the orderId
+            // linking the payment to the ticket for tracking and verification
             const ticketResponse = await TicketService.createEventTicket({
                 eventId: eventBooking.eventId,
                 userId: eventBooking.userId,
@@ -46,7 +47,7 @@ function NotifyPaymentContent() {
                 femaleStag: eventBooking.femaleStag,
                 couple: eventBooking.couple,
                 totalAmount: eventBooking.totalAmount,
-                orderId: orderId,
+                orderId: orderId, // Link ticket to payment order
                 currency: 'INR'
             });
 
@@ -85,6 +86,8 @@ function NotifyPaymentContent() {
             const tableData = tableDataStr ? JSON.parse(tableDataStr) : {};
             const customerData = customerDataStr ? JSON.parse(customerDataStr) : {};
 
+            console.log('🎫 Creating club ticket with orderId:', orderId);
+
             // Parse arrival time to match new API format
             const [timeStr, period] = (bookingData.selectedTime || '18:00 PM').split(' ');
             const [hourStr, minuteStr] = timeStr.split(':');
@@ -92,7 +95,9 @@ function NotifyPaymentContent() {
             if (period === 'PM' && hour !== 12) hour += 12;
             if (period === 'AM' && hour === 12) hour = 0;
 
-            // Create ticket with new API structure
+            // STEP 2: Persist ticket info + orderId with ticketing API
+            // This creates the ticket record in the database with the orderId
+            // linking the payment to the ticket for tracking and verification
             const ticketResponse = await TicketService.createClubTicket({
                 clubId: bookingData.clubId,
                 clubName: bookingData.clubName || 'Club',
@@ -111,6 +116,7 @@ function NotifyPaymentContent() {
                 offerId: bookingData.selectedOffer?.offerId,
                 occasion: tableData.notes || customerData.occasion,
                 floorPreference: tableData.floorNumber,
+                orderId: orderId, // Link ticket to payment order
                 currency: 'INR'
             });
 
@@ -147,57 +153,94 @@ function NotifyPaymentContent() {
                 setOrderId(orderIdParam);
                 setMessage('Checking payment status...');
 
-                // Try to get notification from localStorage first
-                const storedNotification = PaymentGatewayService.getStoredNotification(orderIdParam);
+                // STEP 1: Call internal verification method to prevent replay attacks
+                console.log('🔐 Step 1: Verifying order status internally...');
+                const verification = await PaymentGatewayService.verifyOrderStatusInternal(orderIdParam);
 
-                if (storedNotification) {
-                    await handlePaymentNotification(storedNotification);
+                if (!verification.isValid) {
+                    if (verification.alreadyProcessed) {
+                        console.log('⚠️ Order already processed, skipping ticket generation');
+                        setStatus('success');
+                        setMessage('Payment already processed. Check your tickets.');
+                        setPaymentDetails(verification.orderData);
+                        return;
+                    }
+
+                    if (verification.status === 'EXPIRED') {
+                        setStatus('failed');
+                        setMessage('Payment session expired. Please try again.');
+                        return;
+                    }
+
+                    if (verification.status === 'ACTIVE') {
+                        setStatus('pending');
+                        setMessage('Payment is still being processed...');
+                        return;
+                    }
+
+                    setStatus('failed');
+                    setMessage('Payment verification failed.');
                     return;
                 }
 
-                // If no stored notification, poll for payment status
-                setMessage('Waiting for payment confirmation...');
+                // STEP 2: Order is PAID and not processed yet - safe to generate tickets
+                console.log('✅ Step 2: Order verified as PAID and not processed yet');
+                setPaymentDetails(verification.orderData);
+                setStatus('success');
+                setMessage('Payment completed successfully!');
+
+                // Clear localStorage
+                PaymentGatewayService.clearNotification(orderIdParam);
+                localStorage.removeItem('current_payment_order');
+
+                // STEP 3: Call generate ticket API
+                // This API checks payment status and generates ticket if payment is successful
+                console.log('🎫 Step 3: Calling generate ticket API with orderId:', orderIdParam);
+                setIsCreatingTicket(true);
+                setMessage('Generating your ticket...');
 
                 try {
-                    const paymentStatus = await PaymentGatewayService.pollPaymentStatus(orderIdParam, 60, 3000);
+                    const generateResponse = await PaymentGatewayService.generateTicket({
+                        orderId: orderIdParam
+                    });
 
-                    console.log('Payment status from polling:', paymentStatus);
+                    console.log('✅ Generate ticket response:', generateResponse);
 
-                    setPaymentDetails(paymentStatus);
+                    if (generateResponse.success && generateResponse.data) {
+                        // Extract ticket ID from response
+                        const generatedTicketId = generateResponse.data.ticketId ||
+                            generateResponse.data.id ||
+                            generateResponse.data.ticket?.ticketId;
 
-                    if (paymentStatus.order_status === 'PAID') {
-                        setStatus('success');
-                        setMessage('Payment completed successfully!');
-
-                        // Clear localStorage
-                        PaymentGatewayService.clearNotification(orderIdParam);
-                        localStorage.removeItem('current_payment_order');
-
-                        // Check if this is an event booking or club booking
-                        const eventBookingStr = sessionStorage.getItem('pendingEventBooking');
-                        const clubBookingStr = sessionStorage.getItem('bookingData');
-
-                        if (eventBookingStr) {
-                            // Create event ticket after successful payment
-                            await createEventTicket(paymentStatus, orderIdParam);
-                        } else if (clubBookingStr) {
-                            // Create club ticket after successful payment
-                            await createClubTicket(paymentStatus, orderIdParam);
+                        if (generatedTicketId) {
+                            setTicketId(generatedTicketId);
+                            setMessage('Ticket generated successfully!');
+                        } else {
+                            setMessage('Payment successful! Ticket will be available in your account.');
                         }
 
-                    } else if (paymentStatus.order_status === 'EXPIRED') {
+                        // Clear session storage
+                        sessionStorage.removeItem('pendingEventBooking');
+                        sessionStorage.removeItem('bookingData');
+                    } else if (generateResponse.message?.includes('failed') ||
+                        generateResponse.message?.includes('FAILED')) {
+                        // Payment failed
                         setStatus('failed');
-                        setMessage('Payment session expired. Please try again.');
+                        setMessage('Payment verification failed. Please try again.');
                     } else {
-                        setStatus('pending');
-                        setMessage('Payment is still being processed...');
+                        setMessage('Payment successful! Check your tickets in your account.');
                     }
-
-                } catch (pollError) {
-                    console.error('Polling error:', pollError);
-                    setStatus('pending');
-                    setMessage('Unable to verify payment status. Please check your booking history.');
+                } catch (ticketError: any) {
+                    console.error('Generate ticket error:', ticketError);
+                    // Don't fail the whole flow if ticket generation fails
+                    setMessage('Payment successful! Your ticket will be available shortly.');
+                } finally {
+                    setIsCreatingTicket(false);
                 }
+
+                // STEP 4: Mark order as processed to prevent replay attacks
+                PaymentGatewayService.markOrderAsProcessed(orderIdParam);
+                console.log('🔒 Step 4: Order marked as processed');
 
             } catch (error: any) {
                 console.error('Payment verification error:', error);
@@ -209,33 +252,7 @@ function NotifyPaymentContent() {
         verifyPayment();
     }, [searchParams]);
 
-    const handlePaymentNotification = async (notification: any) => {
-        console.log('Processing payment notification:', notification);
-
-        setPaymentDetails(notification);
-
-        if (notification.payment_status === 'SUCCESS') {
-            setStatus('success');
-            setMessage('Payment completed successfully!');
-
-            // Clear notification
-            if (orderId) {
-                PaymentGatewayService.clearNotification(orderId);
-                localStorage.removeItem('current_payment_order');
-            }
-
-            // Create club ticket
-            await createClubTicket(notification, orderId || notification.order_id);
-
-        } else if (notification.payment_status === 'FAILED') {
-            setStatus('failed');
-            setMessage(notification.payment_message || 'Payment failed');
-
-        } else {
-            setStatus('pending');
-            setMessage('Payment is being processed...');
-        }
-    };
+    // Removed handlePaymentNotification - now using internal verification method
 
     const handleContinue = () => {
         if (status === 'success') {
