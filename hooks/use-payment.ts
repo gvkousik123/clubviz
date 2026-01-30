@@ -82,7 +82,7 @@ export function usePayment() {
                             // Create event ticket with orderId
                             const eventBooking = JSON.parse(eventBookingStr);
 
-                            await TicketService.createEventTicketWithOrder({
+                            const ticketResponse = await TicketService.createEventTicketWithOrder({
                                 eventId: eventBooking.eventId,
                                 clubId: eventBooking.clubId,
                                 userId: eventBooking.userId,
@@ -100,12 +100,16 @@ export function usePayment() {
                                 floorPreference: eventBooking.floorPreference || 'Main Floor'
                             });
 
+                            if (!ticketResponse.success) {
+                                throw new Error('Failed to create event ticket. Please try again.');
+                            }
+
                             console.log('✅ Event ticket created with orderId:', order_id);
                         } else if (clubBookingStr) {
                             // Create club ticket with orderId
                             const clubBooking = JSON.parse(clubBookingStr);
 
-                            await TicketService.createClubTicketWithOrder({
+                            const ticketResponse = await TicketService.createClubTicketWithOrder({
                                 clubId: clubBooking.clubId,
                                 userId: clubBooking.userId,
                                 userEmail: clubBooking.email || paymentData.customer_email,
@@ -120,12 +124,24 @@ export function usePayment() {
                                 floorPreference: clubBooking.floorPreference || 'Main Floor'
                             });
 
+                            if (!ticketResponse.success) {
+                                throw new Error('Failed to create club ticket. Please try again.');
+                            }
+
                             console.log('✅ Club ticket created with orderId:', order_id);
                         }
                     } catch (ticketError: any) {
-                        console.error('⚠️ Ticket creation failed (will retry after payment):', ticketError);
-                        // Don't fail the payment flow if ticket creation fails
-                        // The generate ticket API will handle it after payment
+                        console.error('❌ Ticket creation failed:', ticketError);
+                        setLoading(false);
+
+                        toast({
+                            title: 'Booking Failed',
+                            description: ticketError.message || 'Failed to create booking. Please try again.',
+                            variant: 'destructive'
+                        });
+
+                        // STOP - Don't proceed to Cashfree if ticket creation fails
+                        return false;
                     }
                 }
 

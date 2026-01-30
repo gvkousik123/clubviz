@@ -16,128 +16,6 @@ function NotifyPaymentContent() {
     const [ticketId, setTicketId] = useState<string | null>(null);
     const [isCreatingTicket, setIsCreatingTicket] = useState(false);
 
-    const createEventTicket = async (paymentData: any, orderId: string) => {
-        setIsCreatingTicket(true);
-        setMessage('Creating your event ticket...');
-
-        try {
-            // Get event booking data from sessionStorage
-            const eventBookingStr = sessionStorage.getItem('pendingEventBooking');
-
-            if (!eventBookingStr) {
-                console.error('No event booking data found');
-                setMessage('Payment successful! Your booking has been confirmed.');
-                return;
-            }
-
-            const eventBooking = JSON.parse(eventBookingStr);
-            console.log('🎫 Creating event ticket with orderId:', orderId);
-
-            // STEP 2: Persist ticket info + orderId with ticketing API
-            // This creates the ticket record in the database with the orderId
-            // linking the payment to the ticket for tracking and verification
-            const ticketResponse = await TicketService.createEventTicket({
-                eventId: eventBooking.eventId,
-                userId: eventBooking.userId,
-                userEmail: eventBooking.email,
-                userName: eventBooking.maleName || eventBooking.stagName || 'Guest',
-                userPhone: eventBooking.phone,
-                ticketType: eventBooking.ticketType,
-                maleStag: eventBooking.maleStag,
-                femaleStag: eventBooking.femaleStag,
-                couple: eventBooking.couple,
-                totalAmount: eventBooking.totalAmount,
-                orderId: orderId, // Link ticket to payment order
-                currency: 'INR'
-            });
-
-            if (ticketResponse.success && ticketResponse.data) {
-                setTicketId(ticketResponse.data.ticketId || ticketResponse.data.id);
-                setMessage('Event ticket created successfully!');
-
-                // Clear booking data from sessionStorage
-                sessionStorage.removeItem('pendingEventBooking');
-            }
-        } catch (error: any) {
-            console.error('Failed to create event ticket:', error);
-            // Don't fail the whole flow, just log the error
-            setMessage('Payment successful! You can view your booking in your account.');
-        } finally {
-            setIsCreatingTicket(false);
-        }
-    };
-
-    const createClubTicket = async (paymentData: any, orderId: string) => {
-        setIsCreatingTicket(true);
-        setMessage('Creating your ticket...');
-
-        try {
-            // Get booking data from sessionStorage
-            const bookingDataStr = sessionStorage.getItem('bookingData');
-            const tableDataStr = sessionStorage.getItem('tableSelection');
-            const customerDataStr = sessionStorage.getItem('customerDetails');
-
-            if (!bookingDataStr) {
-                console.error('No booking data found');
-                return;
-            }
-
-            const bookingData = JSON.parse(bookingDataStr);
-            const tableData = tableDataStr ? JSON.parse(tableDataStr) : {};
-            const customerData = customerDataStr ? JSON.parse(customerDataStr) : {};
-
-            console.log('🎫 Creating club ticket with orderId:', orderId);
-
-            // Parse arrival time to match new API format
-            const [timeStr, period] = (bookingData.selectedTime || '18:00 PM').split(' ');
-            const [hourStr, minuteStr] = timeStr.split(':');
-            let hour = parseInt(hourStr);
-            if (period === 'PM' && hour !== 12) hour += 12;
-            if (period === 'AM' && hour === 12) hour = 0;
-
-            // STEP 2: Persist ticket info + orderId with ticketing API
-            // This creates the ticket record in the database with the orderId
-            // linking the payment to the ticket for tracking and verification
-            const ticketResponse = await TicketService.createClubTicket({
-                clubId: bookingData.clubId,
-                clubName: bookingData.clubName || 'Club',
-                userId: customerData.userId || 'guest',
-                userEmail: customerData.email || '',
-                userName: customerData.name || customerData.username || 'Guest',
-                userPhone: customerData.phone || customerData.mobile || '',
-                bookingDate: bookingData.selectedDate,
-                arrivalTime: {
-                    hour: hour,
-                    minute: parseInt(minuteStr || '0'),
-                    second: 0,
-                    nano: 0
-                },
-                guestCount: bookingData.guestCount,
-                offerId: bookingData.selectedOffer?.offerId,
-                occasion: tableData.notes || customerData.occasion,
-                floorPreference: tableData.floorNumber,
-                orderId: orderId, // Link ticket to payment order
-                currency: 'INR'
-            });
-
-            if (ticketResponse.success && ticketResponse.data) {
-                setTicketId(ticketResponse.data.ticketId);
-                setMessage('Ticket created successfully!');
-
-                // Clear booking data from sessionStorage
-                sessionStorage.removeItem('bookingData');
-                sessionStorage.removeItem('tableSelection');
-                // Keep customerDetails for future bookings
-            }
-        } catch (error: any) {
-            console.error('Failed to create ticket:', error);
-            // Don't fail the whole flow, just log the error
-            setMessage('Payment successful! You can view your booking in your account.');
-        } finally {
-            setIsCreatingTicket(false);
-        }
-    };
-
     useEffect(() => {
         const verifyPayment = async () => {
             try {
@@ -255,16 +133,17 @@ function NotifyPaymentContent() {
     // Removed handlePaymentNotification - now using internal verification method
 
     const handleContinue = () => {
+        // User manually clicks to view tickets
         if (status === 'success') {
-            // Redirect to review-pre-booking success page with ticket ID
+            // Navigate to tickets/bookings page
             if (ticketId) {
-                router.push(`/booking/review-pre-booking?ticketId=${ticketId}`);
+                router.push(`/account/bookings?highlight=${ticketId}`); \n
             } else {
-                router.push('/booking/review-pre-booking');
+                router.push('/account/bookings');
             }
         } else if (status === 'failed') {
-            // Go back to review booking page
-            router.push('/booking/review-booking');
+            // Go back to home
+            router.push('/');
         } else {
             // For pending, go to booking history
             router.push('/account/bookings');
