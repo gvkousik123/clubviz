@@ -95,33 +95,55 @@ function ReviewBookingPageContent() {
     const handlePayment = async () => {
         const totalAmount = calculateTotalAmount();
 
-        // Get additional data from localStorage
+        // Get user data from localStorage - user object contains id and username
         const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-        const userId = typeof window !== 'undefined' ? localStorage.getItem('user-id') : null;
-        let clubData = { clubId: '', clubName: '' };
+        let userId = 'ANONYMOUS';
+        let userNameFromStorage = '';
 
         if (userStr) {
             try {
                 const user = JSON.parse(userStr);
-                clubData = {
-                    clubId: user.clubId || eventData?.clubId || 'CLUB001',
-                    clubName: user.clubName || eventData?.clubName || 'Event Venue'
-                };
+                userId = user.id || user.userId || 'ANONYMOUS';
+                userNameFromStorage = user.username || user.userName || '';
+                console.log('✅ User data from localStorage:', { userId, userNameFromStorage });
             } catch (e) {
                 console.error('Error parsing user data:', e);
             }
         }
 
+        // Extract club data from event's club object or fallback to user data
+        let clubData = { clubId: '', clubName: '' };
+
+        // First try to get from event's club object
+        if (eventData?.club) {
+            clubData = {
+                clubId: eventData.club.id || eventData.club.clubId || '',
+                clubName: eventData.club.name || eventData.club.clubName || ''
+            };
+        }
+
+        // If still empty, try event data direct properties
+        if (!clubData.clubId) {
+            clubData = {
+                clubId: eventData?.clubId || 'CLUB001',
+                clubName: eventData?.clubName || eventData?.venue || 'Event Venue'
+            };
+        }
+
         // Get booking date and time from event data
-        const bookingDate = eventData?.date ? new Date(eventData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-        const arrivalTime = eventData?.time || '18:00:00';
+        const bookingDate = eventData?.startDateTime ? new Date(eventData.startDateTime).toISOString().split('T')[0] :
+            eventData?.date ? new Date(eventData.date).toISOString().split('T')[0] :
+                new Date().toISOString().split('T')[0];
+
+        const arrivalTime = eventData?.startDateTime ? new Date(eventData.startDateTime).toISOString().split('T')[1].substring(0, 8) :
+            eventData?.time || '18:00:00';
 
         // Store booking data for after payment with ALL required fields
         const ticketBookingData = {
             eventId,
             clubId: clubData.clubId,
             clubName: clubData.clubName,
-            userId: userId || 'ANONYMOUS',
+            userId: userId,
             ticketType,
             maleStag,
             femaleStag,
@@ -134,6 +156,7 @@ function ReviewBookingPageContent() {
             stagName,
             phone,
             email,
+            userName: userNameFromStorage || maleName || stagName || 'Guest',
             bookingDate,
             arrivalTime,
             guestCount: maleStag + femaleStag + (couple * 2),
@@ -144,6 +167,8 @@ function ReviewBookingPageContent() {
             totalAmount,
             eventData
         };
+
+        console.log('🔵 Storing ticket booking data in sessionStorage:', ticketBookingData);
         sessionStorage.setItem('pendingEventBooking', JSON.stringify(ticketBookingData));
 
         // Format mobile number - remove country code and special characters

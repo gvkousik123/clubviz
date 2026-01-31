@@ -66,7 +66,11 @@ export function usePayment() {
                         amount: paymentData.amount,
                         timestamp: new Date().toISOString()
                     }));
+                    // CRITICAL: Store orderId in both sessionStorage and localStorage
+                    // localStorage persists after page redirect from payment gateway
                     sessionStorage.setItem('paymentOrderId', order_id);
+                    localStorage.setItem('paymentOrderId', order_id);
+                    localStorage.setItem('latestOrderId', order_id); // Additional backup
                 }
 
                 // NEW FLOW: Create ticket BEFORE redirecting to Cashfree
@@ -81,8 +85,9 @@ export function usePayment() {
                         if (eventBookingStr) {
                             // Create event ticket with orderId
                             const eventBooking = JSON.parse(eventBookingStr);
+                            console.log('📦 Event booking data from sessionStorage:', eventBooking);
 
-                            const ticketResponse = await TicketService.createEventTicketWithOrder({
+                            const ticketPayload = {
                                 eventId: eventBooking.eventId,
                                 clubId: eventBooking.clubId,
                                 clubName: eventBooking.clubName,
@@ -92,17 +97,20 @@ export function usePayment() {
                                 userPhone: eventBooking.phone || paymentData.customer_mobile,
                                 bookingDate: eventBooking.bookingDate,
                                 arrivalTime: eventBooking.arrivalTime,
-                                guestCount: (eventBooking.maleCount || eventBooking.maleStag || 0) + (eventBooking.femaleCount || eventBooking.femaleStag || 0) + (eventBooking.coupleCount || eventBooking.couple || 0) * 2,
+                                guestCount: eventBooking.guestCount || (eventBooking.maleCount || eventBooking.maleStag || 0) + (eventBooking.femaleCount || eventBooking.femaleStag || 0) + (eventBooking.coupleCount || eventBooking.couple || 0) * 2,
                                 maleCount: eventBooking.maleCount || eventBooking.maleStag || 0,
                                 femaleCount: eventBooking.femaleCount || eventBooking.femaleStag || 0,
                                 coupleCount: eventBooking.coupleCount || eventBooking.couple || 0,
                                 ticketDescription: eventBooking.ticketDescription || 'Event ticket booking',
                                 currency: eventBooking.currency || 'INR',
-                                orderId: order_id, // Link ticket to payment order
+                                orderId: order_id,
                                 offerId: eventBooking.offerId || null,
                                 occasion: eventBooking.occasion || 'Event',
                                 floorPreference: eventBooking.floorPreference || 'Main Floor'
-                            });
+                            };
+                            console.log('📤 Ticket payload being sent to API:', JSON.stringify(ticketPayload, null, 2));
+
+                            const ticketResponse = await TicketService.createEventTicketWithOrder(ticketPayload);
 
                             if (!ticketResponse.success) {
                                 throw new Error('Failed to create event ticket. Please try again.');
