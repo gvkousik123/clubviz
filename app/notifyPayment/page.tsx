@@ -137,7 +137,7 @@ function NotifyPaymentContent() {
         if (status === 'success') {
             // Navigate to tickets/bookings page
             if (ticketId) {
-                router.push(`/account/bookings?highlight=${ticketId}`); \n
+                router.push(`/account/bookings?highlight=${ticketId}`);
             } else {
                 router.push('/account/bookings');
             }
