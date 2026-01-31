@@ -162,19 +162,48 @@ function TicketsPageContent() {
             return;
         }
 
-        // Store event data in sessionStorage to avoid API call
-        sessionStorage.setItem('currentEventData', JSON.stringify(eventData));
+        // Get user contact info from localStorage
+        const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+        let contactInfo = {
+            maleName: 'Guest',
+            phone: '',
+            email: ''
+        };
 
-        // Pass event data and ticket selections to contact info page
-        const params = new URLSearchParams({
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                contactInfo = {
+                    maleName: user.username || 'Guest',
+                    phone: user.phoneNumber || user.mobile || '',
+                    email: user.email || ''
+                };
+            } catch (e) {
+                console.error('Error parsing user data:', e);
+            }
+        }
+
+        // Store booking data directly with contact info from localStorage
+        const bookingData = {
             eventId: eventId,
             ticketType: activeTab,
-            maleStag: tickets.maleStag.toString(),
-            femaleStag: tickets.femaleStag.toString(),
-            couple: tickets.couple.toString(),
-        });
+            maleStag: tickets.maleStag,
+            femaleStag: tickets.femaleStag,
+            couple: tickets.couple,
+            maleName: contactInfo.maleName,
+            femaleName: 'Sammy Simon',
+            stagName: contactInfo.maleName,
+            phone: contactInfo.phone,
+            email: contactInfo.email,
+            eventData: eventData
+        };
 
-        router.push(`/event/contact-info?${params.toString()}`);
+        // Store in sessionStorage for review page
+        sessionStorage.setItem('eventBookingData', JSON.stringify(bookingData));
+        sessionStorage.setItem('currentEventData', JSON.stringify(eventData));
+
+        // Go directly to review booking page
+        router.push(`/event/review-booking`);
     };
 
     if (loading) {

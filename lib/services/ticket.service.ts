@@ -667,12 +667,20 @@ export class TicketService {
             console.log('🔵 Creating event ticket with orderId (pre-payment):', ticketData.orderId);
             console.log('🔵 Complete ticket data being sent:', JSON.stringify(completeTicketData, null, 2));
 
-            const response = await api.post<ApiResponse<any>>(
+            const response = await api.post<any>(
                 '/ticket/club-tickets/event',
                 completeTicketData
             );
             console.log('✅ Event ticket created (pending payment):', response.data);
-            return handleApiResponse(response);
+
+            // API returns { status: "success", message: "...", timestamp: "..." }
+            // Convert to standard ApiResponse format
+            const result = response.data;
+            return {
+                success: result.status === 'success',
+                data: result,
+                message: result.message || 'Ticket created successfully'
+            };
         } catch (error) {
             console.error('❌ Event ticket creation error:', error);
             throw new Error(handleApiError(error));
@@ -707,12 +715,20 @@ export class TicketService {
     ): Promise<ApiResponse<any>> {
         try {
             console.log('🔵 Creating club ticket with orderId (pre-payment):', ticketData.orderId);
-            const response = await api.post<ApiResponse<any>>(
+            const response = await api.post<any>(
                 '/ticket/club-tickets/no-event',
                 ticketData
             );
             console.log('✅ Club ticket created (pending payment):', response.data);
-            return handleApiResponse(response);
+
+            // API returns { status: "success", message: "...", timestamp: "..." }
+            // Convert to standard ApiResponse format
+            const result = response.data;
+            return {
+                success: result.status === 'success',
+                data: result,
+                message: result.message || 'Ticket created successfully'
+            };
         } catch (error) {
             console.error('❌ Club ticket creation error:', error);
             throw new Error(handleApiError(error));
