@@ -614,22 +614,26 @@ export class TicketService {
      * This is called BEFORE payment, with orderId from payment order creation.
      * The ticket is created in pending state and will be activated after payment.
      * 
-     * @param ticketData - Event ticket data with orderId
+     * @param ticketData - Event ticket data with orderId (some fields optional with defaults)
      * @returns Created ticket response
      */
     static async createEventTicketWithOrder(
         ticketData: {
             eventId: string;
-            clubId: string;
-            userId: string;
+            clubId?: string;
+            clubName?: string;
+            userId?: string;
             userEmail: string;
             userName: string;
             userPhone: string;
-            bookingDate: string;
-            arrivalTime: string;
+            bookingDate?: string;
+            arrivalTime?: string;
+            guestCount?: number;
             maleCount: number;
             femaleCount: number;
             coupleCount: number;
+            ticketDescription?: string;
+            currency?: string;
             orderId: string; // REQUIRED - links to payment order
             offerId?: string | null;
             occasion?: string;
@@ -637,10 +641,35 @@ export class TicketService {
         }
     ): Promise<ApiResponse<any>> {
         try {
+            // Build complete ticket data with defaults for missing fields
+            const completeTicketData = {
+                eventId: ticketData.eventId,
+                clubId: ticketData.clubId || 'UNKNOWN',
+                clubName: ticketData.clubName || 'Club',
+                userId: ticketData.userId || 'ANONYMOUS',
+                userEmail: ticketData.userEmail,
+                userName: ticketData.userName,
+                userPhone: ticketData.userPhone,
+                bookingDate: ticketData.bookingDate || new Date().toISOString().split('T')[0],
+                arrivalTime: ticketData.arrivalTime || '18:00:00',
+                guestCount: ticketData.guestCount !== undefined ? ticketData.guestCount : (ticketData.maleCount + ticketData.femaleCount + (ticketData.coupleCount * 2)),
+                maleCount: ticketData.maleCount,
+                femaleCount: ticketData.femaleCount,
+                coupleCount: ticketData.coupleCount,
+                ticketDescription: ticketData.ticketDescription || 'Event ticket booking',
+                currency: ticketData.currency || 'INR',
+                orderId: ticketData.orderId,
+                offerId: ticketData.offerId || null,
+                occasion: ticketData.occasion || 'Event',
+                floorPreference: ticketData.floorPreference || 'Main Floor'
+            };
+
             console.log('🔵 Creating event ticket with orderId (pre-payment):', ticketData.orderId);
+            console.log('🔵 Complete ticket data being sent:', JSON.stringify(completeTicketData, null, 2));
+
             const response = await api.post<ApiResponse<any>>(
                 '/ticket/club-tickets/event',
-                ticketData
+                completeTicketData
             );
             console.log('✅ Event ticket created (pending payment):', response.data);
             return handleApiResponse(response);

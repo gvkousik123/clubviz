@@ -95,18 +95,52 @@ function ReviewBookingPageContent() {
     const handlePayment = async () => {
         const totalAmount = calculateTotalAmount();
 
-        // Store booking data for after payment
+        // Get additional data from localStorage
+        const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+        const userId = typeof window !== 'undefined' ? localStorage.getItem('user-id') : null;
+        let clubData = { clubId: '', clubName: '' };
+
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                clubData = {
+                    clubId: user.clubId || eventData?.clubId || 'CLUB001',
+                    clubName: user.clubName || eventData?.clubName || 'Event Venue'
+                };
+            } catch (e) {
+                console.error('Error parsing user data:', e);
+            }
+        }
+
+        // Get booking date and time from event data
+        const bookingDate = eventData?.date ? new Date(eventData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+        const arrivalTime = eventData?.time || '18:00:00';
+
+        // Store booking data for after payment with ALL required fields
         const ticketBookingData = {
             eventId,
+            clubId: clubData.clubId,
+            clubName: clubData.clubName,
+            userId: userId || 'ANONYMOUS',
             ticketType,
             maleStag,
             femaleStag,
             couple,
+            maleCount: maleStag,
+            femaleCount: femaleStag,
+            coupleCount: couple,
             maleName,
             femaleName,
             stagName,
             phone,
             email,
+            bookingDate,
+            arrivalTime,
+            guestCount: maleStag + femaleStag + (couple * 2),
+            ticketDescription: 'Event ticket booking',
+            currency: 'INR',
+            occasion: 'Event',
+            floorPreference: 'Main Floor',
             totalAmount,
             eventData
         };
