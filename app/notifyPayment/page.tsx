@@ -10,124 +10,82 @@ function NotifyPaymentContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [status, setStatus] = useState<'checking' | 'success' | 'failed' | 'pending'>('checking');
-    const [message, setMessage] = useState('Verifying payment status...');
-    const [paymentDetails, setPaymentDetails] = useState<any>(null);
+    const [message, setMessage] = useState('Generating your ticket...');
     const [orderId, setOrderId] = useState<string | null>(null);
     const [ticketId, setTicketId] = useState<string | null>(null);
     const [isCreatingTicket, setIsCreatingTicket] = useState(false);
 
     useEffect(() => {
-        const verifyPayment = async () => {
+        const generateTicket = async () => {
             try {
-                // Get order_id from URL
-                const orderIdParam = searchParams.get('order_id');
+                // Get order_id from URL or localStorage
+                let orderIdParam = searchParams.get('order_id');
+
+                if (!orderIdParam) {
+                    // Try to get from localStorage as backup
+                    orderIdParam = localStorage.getItem('paymentOrderId') ||
+                        localStorage.getItem('latestOrderId');
+                }
 
                 if (!orderIdParam) {
                     setStatus('failed');
-                    setMessage('No order ID provided');
+                    setMessage('No order ID found. Please try booking again.');
                     return;
                 }
 
                 setOrderId(orderIdParam);
-                setMessage('Checking payment status...');
-
-                // STEP 1: Call internal verification method to prevent replay attacks
-                console.log('🔐 Step 1: Verifying order status internally...');
-                const verification = await PaymentGatewayService.verifyOrderStatusInternal(orderIdParam);
-
-                if (!verification.isValid) {
-                    if (verification.alreadyProcessed) {
-                        console.log('⚠️ Order already processed, skipping ticket generation');
-                        setStatus('success');
-                        setMessage('Payment already processed. Check your tickets.');
-                        setPaymentDetails(verification.orderData);
-                        return;
-                    }
-
-                    if (verification.status === 'EXPIRED') {
-                        setStatus('failed');
-                        setMessage('Payment session expired. Please try again.');
-                        return;
-                    }
-
-                    if (verification.status === 'ACTIVE') {
-                        setStatus('pending');
-                        setMessage('Payment is still being processed...');
-                        return;
-                    }
-
-                    setStatus('failed');
-                    setMessage('Payment verification failed.');
-                    return;
-                }
-
-                // STEP 2: Order is PAID and not processed yet - safe to generate tickets
-                console.log('✅ Step 2: Order verified as PAID and not processed yet');
-                setPaymentDetails(verification.orderData);
-                setStatus('success');
-                setMessage('Payment completed successfully!');
-
-                // Clear localStorage
-                PaymentGatewayService.clearNotification(orderIdParam);
-                localStorage.removeItem('current_payment_order');
-
-                // STEP 3: Call generate ticket API
-                // This API checks payment status and generates ticket if payment is successful
-                console.log('🎫 Step 3: Calling generate ticket API with orderId:', orderIdParam);
-                setIsCreatingTicket(true);
                 setMessage('Generating your ticket...');
+                setIsCreatingTicket(true);
 
-                try {
-                    const generateResponse = await PaymentGatewayService.generateTicket({
-                        orderId: orderIdParam
-                    });
+                console.log('🎫 Calling generate ticket API with orderId:', orderIdParam);
 
-                    console.log('✅ Generate ticket response:', generateResponse);
+                // DIRECTLY call generate ticket API - it will handle payment verification internally
+                const generateResponse = await PaymentGatewayService.generateTicket({
+                    orderId: orderIdParam
+                });
 
-                    if (generateResponse.success && generateResponse.data) {
-                        // Extract ticket ID from response
-                        const generatedTicketId = generateResponse.data.ticketId ||
-                            generateResponse.data.id ||
-                            generateResponse.data.ticket?.ticketId;
+                console.log('✅ Generate ticket response:', generateResponse);
 
-                        if (generatedTicketId) {
-                            setTicketId(generatedTicketId);
-                            setMessage('Ticket generated successfully!');
-                        } else {
-                            setMessage('Payment successful! Ticket will be available in your account.');
-                        }
+                if (generateResponse.success && generateResponse.data) {
+                    setStatus('success');
 
-                        // Clear session storage
-                        sessionStorage.removeItem('pendingEventBooking');
-                        sessionStorage.removeItem('bookingData');
-                    } else if (generateResponse.message?.includes('failed') ||
-                        generateResponse.message?.includes('FAILED')) {
-                        // Payment failed
-                        setStatus('failed');
-                        setMessage('Payment verification failed. Please try again.');
+                    // Extract ticket ID from response
+                    const generatedTicketId = generateResponse.data.ticketId ||
+                        generateResponse.data.id ||
+                        generateResponse.data.ticket?.ticketId;
+
+                    if (generatedTicketId) {
+                        setTicketId(generatedTicketId);
+                        setMessage('Ticket generated successfully!');
                     } else {
-                        setMessage('Payment successful! Check your tickets in your account.');
+                        setMessage('Payment successful! Ticket created.');
                     }
-                } catch (ticketError: any) {
-                    console.error('Generate ticket error:', ticketError);
-                    // Don't fail the whole flow if ticket generation fails
-                    setMessage('Payment successful! Your ticket will be available shortly.');
-                } finally {
-                    setIsCreatingTicket(false);
-                }
 
-                // STEP 4: Mark order as processed to prevent replay attacks
-                PaymentGatewayService.markOrderAsProcessed(orderIdParam);
-                console.log('🔒 Step 4: Order marked as processed');
+                    // Clear session and local storage
+                    sessionStorage.removeItem('pendingEventBooking');
+                    sessionStorage.removeItem('bookingData');
+                    localStorage.removeItem('current_payment_order');
+
+                } else if (generateResponse.message?.includes('failed') ||
+                    generateResponse.message?.includes('FAILED')) {
+                    // Payment failed
+                    setStatus('failed');
+                    setMessage('Payment verification failed. Please try again.');
+                } else {
+                    setStatus('success');
+                    setMessage('Payment successful! Check your tickets in your account.');
+                }
 
             } catch (error: any) {
-                console.error('Payment verification error:', error);
+                console.error('Ticket generation error:', error);
                 setStatus('failed');
-                setMessage(error.message || 'Failed to verify payment');
+                setMessage(error.message || 'Failed to generate ticket. Please contact support.');
+            } finally {
+                setIsCreatingTicket(false);
             }
         };
 
-        verifyPayment();
+        generateTicket();
     }, [searchParams]);
 
     // Removed handlePaymentNotification - now using internal verification method
