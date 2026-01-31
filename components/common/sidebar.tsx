@@ -144,7 +144,7 @@ export default function Sidebar({
                         </Link>
                         <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
                         <Link
-                            href="/favorites/events"
+                            href="/favourites/events"
                             onClick={onClose}
                             className="text-white text-sm font-['Manrope'] font-medium leading-tight tracking-wide hover:text-[#14FFEC] transition-colors text-center cursor-pointer"
                         >
@@ -152,7 +152,7 @@ export default function Sidebar({
                         </Link>
                         <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
                         <Link
-                            href="/favorites/clubs"
+                            href="/favourites/clubs"
                             onClick={onClose}
                             className="text-white text-sm font-['Manrope'] font-medium leading-tight tracking-wide hover:text-[#14FFEC] transition-colors text-center cursor-pointer"
                         >

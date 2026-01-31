@@ -8,6 +8,7 @@ import type { Club } from '@/components/clubs';
 import { useToast } from '@/hooks/use-toast';
 import { ClubCard } from '@/components/clubs/club-card';
 import { ClubListCard } from '@/components/clubs/club-list-card';
+import Sidebar from '@/components/common/sidebar';
 
 import { PublicClubService } from '@/lib/services/public.service';
 import { usePublicClubs } from '@/hooks/use-public-clubs';
@@ -69,8 +70,13 @@ export default function ClubsListPage() {
     const [favorites, setFavorites] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Sidebar state
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    // Active filter tab state
+    const [activeFilterTab, setActiveFilterTab] = useState<string>('all');
+
     // Filter states
-    const [showFilters, setShowFilters] = useState(false);
     const [categories, setCategories] = useState<string[]>([]);
     const [locations, setLocations] = useState<string[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -282,25 +288,41 @@ export default function ClubsListPage() {
         <div className="min-h-screen bg-[#031313] text-white">
             <div className="relative mx-auto max-w-[430px]">
                 {/* Fixed Header with Gradient Background */}
-                <header className="fixed top-0 left-0 w-full max-w-[430px] mx-auto h-[16vh] bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-6 pt-4 z-50 flex flex-col justify-between">
-                    {/* Header with Back Arrow and Profile */}
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <button
-                                onClick={handleGoBack}
-                                className="p-2 hover:bg-white/10 rounded-full transition-all duration-300"
+                <header className="fixed top-0 left-0 w-full max-w-[430px] mx-auto h-[185px] bg-gradient-to-b from-[#222831] to-[#11b9ab] rounded-br-[30px] rounded-bl-[30px] border z-50 flex flex-col">
+                    {/* Top Section - Back Button and User Icon */}
+                    <div className="flex items-start justify-between pt-[61px] pl-4 pr-4">
+                        {/* Back Button */}
+                        <button
+                            onClick={handleGoBack}
+                            className="w-[35px] h-[35px] bg-white/20 rounded-[18px] flex items-center justify-center hover:bg-white/30 transition-colors"
+                        >
+                            <svg 
+                                className="w-2 h-4" 
+                                viewBox="0 0 8 16" 
+                                fill="none" 
+                                xmlns="http://www.w3.org/2000/svg"
                             >
-                                <ArrowLeft size={24} className="text-white" />
-                            </button>
-                            <h1 className="text-white text-base font-bold tracking-wide">
-                                ALL CLUBS
-                            </h1>
-                        </div>
+                                <path 
+                                    d="M7 1L1 8L7 15" 
+                                    stroke="#FFFFFF" 
+                                    strokeWidth="2" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                        </button>
 
+                        {/* User Icon */}
+                        <Link
+                            href="/account"
+                            className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center hover:bg-white/30 transition-colors"
+                        >
+                            <User className="w-5 h-5 text-white" />
+                        </Link>
                     </div>
 
-                    {/* Search Bar */}
-                    <div className="flex items-center gap-2 w-full">
+                    {/* Search Bar Section */}
+                    <div className="flex items-center gap-[13px] pl-4 pr-4 pt-[13px] pb-[89px]">
                         <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2 min-w-0">
                             <button
                                 onClick={handleSearch}
@@ -315,7 +337,7 @@ export default function ClubsListPage() {
                             </button>
                             <input
                                 type="text"
-                                placeholder="Search clubs..."
+                                placeholder="Search"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyPress={(e) => {
@@ -323,27 +345,24 @@ export default function ClubsListPage() {
                                         handleSearch();
                                     }
                                 }}
-                                className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white outline-none min-w-0"
+                                className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white/70 outline-none min-w-0"
                                 disabled={loading}
                             />
                         </div>
+
+                        {/* Hamburger Menu Button */}
                         <button
-                            onClick={() => setShowFilters(!showFilters)}
-                            className={`w-10 h-10 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center flex-shrink-0 transition-colors ${showFilters || selectedCategory || selectedLocation
-                                ? 'bg-[#14FFEC]'
-                                : 'bg-white/20'
-                                }`}
-                            title="Filter clubs"
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                            className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex flex-col items-center justify-center gap-[3px] hover:bg-white/30 transition-colors flex-shrink-0"
                         >
-                            <SlidersHorizontal className={`w-[21px] h-[21px] ${showFilters || selectedCategory || selectedLocation
-                                ? 'text-black'
-                                : 'text-white'
-                                }`} />
+                            <div className="w-[15px] h-[2px] bg-white rounded-[2px]"></div>
+                            <div className="w-[19px] h-[2px] bg-white rounded-[6px]"></div>
+                            <div className="w-[15px] h-[2px] bg-white rounded-[2px]"></div>
                         </button>
                     </div>
 
-                    {/* Filter Panel */}
-                    {showFilters && (
+                    {/* Filter Panel - Keeping for potential future use */}
+                    {false && (
                         <div className="mt-3 bg-white/10 backdrop-blur-md rounded-2xl p-4 space-y-3">
                             {/* Category Filter */}
                             <div>
@@ -404,10 +423,67 @@ export default function ClubsListPage() {
                     )}
                 </header>
 
+                {/* Main Content Container */}
+                <div className="w-full flex flex-col items-center pt-[206px] relative">
+                    {/* Filter Tabs Section */}
+                    <div className="sticky top-[185px] left-0 w-full max-w-[430px] z-40 bg-[#031313] pt-[21px] pb-[21px]">
+                        <div className="flex items-center">
+                            {/* Fixed Filters Tab */}
+                            <div className="flex-shrink-0 pl-4">
+                                <button
+                                    onClick={() => {
+                                        console.log('Filters tab clicked');
+                                        setActiveFilterTab('filters');
+                                    }}
+                                    className={`w-[99px] h-10 flex justify-center items-center gap-2 px-3.5 py-2 rounded-[23px] border border-solid border-[#14ffec] transition-colors ${
+                                        activeFilterTab === 'filters' ? 'bg-[#14ffec]' : 'bg-[#004342]'
+                                    }`}
+                                >
+                                    <Filter className={`w-4 h-4 ${
+                                        activeFilterTab === 'filters' ? 'text-[#031313]' : 'text-white'
+                                    }`} />
+                                    <span className={`font-extrabold text-[14px] leading-[16px] whitespace-nowrap ${
+                                        activeFilterTab === 'filters' ? 'text-[#031313]' : 'text-white'
+                                    }`}>
+                                        Filters
+                                    </span>
+                                </button>
+                            </div>
 
+                            {/* Scrollable Tabs Container */}
+                            <div className="flex-1 overflow-x-auto scrollbar-hide">
+                                <div className="flex items-center gap-[10px] pl-4 pr-4">
+                                    {[
+                                        { id: 'today', label: 'Events Today' },
+                                        { id: 'week', label: 'Events This Week' },
+                                        { id: 'distance', label: 'Distance' },
+                                        { id: 'visited', label: 'Previously Visited' },
+                                        { id: 'popularity', label: 'Popularity' }
+                                    ].map((tab, index, arr) => (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => {
+                                                console.log(`${tab.label} tab clicked`);
+                                                setActiveFilterTab(tab.id);
+                                            }}
+                                            className={`flex-shrink-0 h-10 flex justify-center items-center gap-2 px-3.5 py-2 rounded-[23px] border border-solid border-[#14ffec] transition-colors ${
+                                                activeFilterTab === tab.id ? 'bg-[#14ffec]' : 'bg-[#004342]'
+                                            }`}
+                                        >
+                                            <span className={`font-extrabold text-[14px] leading-[16px] whitespace-nowrap ${
+                                                activeFilterTab === tab.id ? 'text-[#031313]' : 'text-white'
+                                            }`}>
+                                                {tab.label}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                {/* Main Content */}
-                <div className="w-full flex flex-col items-center space-y-6 pt-[18vh] px-0">
+                    {/* Content Section */}
+                    <div className="w-full flex flex-col items-center space-y-6 px-0 relative z-10">
                     {/* Active Filters Display */}
                     {(selectedCategory || selectedLocation) && (
                         <div className="w-full max-w-[430px] px-5">
@@ -522,10 +598,15 @@ export default function ClubsListPage() {
                             )}
                         </div>
                     </section>
+                    </div>
                 </div>
             </div>
 
-
+            {/* Sidebar */}
+            <Sidebar
+                isOpen={isSidebarOpen}
+                onClose={() => setIsSidebarOpen(false)}
+            />
         </div>
     );
 }

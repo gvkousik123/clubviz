@@ -303,27 +303,27 @@ export default function MobileVerificationScreen() {
                         {/* Login with Password Option */}
                         <div className="text-center py-2">
                             <p className="text-[#6A6A6A] text-[0.875rem] mb-2">
-                                Already have an account?
-                            </p>
+                                Already have an account?{' '}
                             <Link
                                 href="/auth/login"
                                 className="text-[#0D7377] font-semibold text-[0.9375rem] hover:underline"
                             >
                                 Login with Password
                             </Link>
+                            </p>
                         </div>
 
                         {/* Sign Up Option */}
                         <div className="text-center py-2">
-                            <p className="text-[#6A6A6A] text-[0.875rem] mb-2">
-                                Don't have an account?
-                            </p>
+                            <p className="text-[#6A6A6A] text-[0.875rem]">
+                                Don&apos;t have an account?{' '}
                             <Link
                                 href="/auth/signup"
                                 className="text-[#0D7377] font-semibold text-[0.9375rem] hover:underline"
                             >
                                 Sign Up
                             </Link>
+                            </p>
                         </div>
 
                         {/* Forgot Password Link */}

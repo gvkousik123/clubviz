@@ -425,15 +425,13 @@ const HomePage = () => {
                     console.log('API Events Response Content:', eventData.content);
                     console.log('Total events received:', eventData.content.length);
 
-                    // Map API events with proper length limits and use fallback images for null imageUrl
+                    // Map API events with full text (UI clamps handle truncation) and use fallback images for null imageUrl
                     const mappedEvents = eventData.content.map((event: any, index: number) => ({
                         id: event.id || '',
-                        title: event.title ? (event.title.length > 20 ? event.title.substring(0, 20) + '...' : event.title) : '',
+                        title: event.title || '',
                         shortDescription: event.shortDescription || event.clubName || '',
                         imageUrl: event.imageUrl || eventFallback[index % eventFallback.length]?.image || '/event list/Rectangle 1.jpg',
-                        location: event.location && event.location.length > 25 ?
-                            event.location.substring(0, 25) + '...' :
-                            (event.location || event.clubName || 'TBD'),
+                        location: event.location || event.clubName || 'TBD',
                         startDateTime: event.startDateTime || '',
                         endDateTime: event.endDateTime || '',
                         formattedDate: event.formattedDate || '',
@@ -446,7 +444,7 @@ const HomePage = () => {
                         canRegister: event.canRegister !== undefined ? event.canRegister : true,
                         isFull: event.isFull || false,
                         clubId: event.clubId || '',
-                        clubName: event.clubName ? (event.clubName.length > 15 ? event.clubName.substring(0, 15) + '...' : event.clubName) : '',
+                        clubName: event.clubName || '',
                         clubLogo: event.clubLogo || '',
                         organizerName: event.organizerName || '',
                         status: event.status || 'UPCOMING',
@@ -457,7 +455,8 @@ const HomePage = () => {
                         pastEvent: event.pastEvent || false,
                         upcoming: event.upcoming !== undefined ? event.upcoming : true,
                         ongoing: event.ongoing || false,
-                        capacityPercentage: event.capacityPercentage || 0
+                        capacityPercentage: event.capacityPercentage || 0,
+                        genre: event.genre || event.category || ''
                     }));
                     console.log('Mapped Events:', mappedEvents);
                     setEvents(mappedEvents);
@@ -868,7 +867,7 @@ const HomePage = () => {
                 </header>
 
                 {/* Guest Mode Banner */}
-                {isGuestMode() && (
+                {isHydrated && isGuestMode() && (
                     <div className="fixed top-[16vh] left-0 w-full max-w-[430px] mx-auto z-40">
                         <div className="mx-4 mt-2 mb-2 p-3 bg-gradient-to-r from-teal-600 to-cyan-600 rounded-lg shadow-lg border border-teal-400/30">
                             <div className="flex items-center justify-between">
@@ -892,7 +891,7 @@ const HomePage = () => {
                 )}
 
                 {/* Main Content */}
-                <main className={`${isGuestMode() ? 'pt-[20vh]' : 'pt-[16vh]'} px-0 space-y-6`}>
+                <main className={`${isHydrated && isGuestMode() ? 'pt-[20vh]' : 'pt-[16vh]'} px-0 space-y-6`}>
 
 
                     {/* Search Results or Normal Content */}
@@ -1127,13 +1126,15 @@ const HomePage = () => {
                                             </button>
                                         </div>
 
-                                        {/* Sponsor badge with exact styling */}
-                                        <div className="w-[90px] h-[28px] absolute left-[15px] top-[45px]">
-                                            <div className="w-full h-full absolute left-0 top-0 bg-[rgba(212.01,212.01,212.01,0.10)] rounded-[6px] border border-[rgba(255,255,255,0.50)] backdrop-blur-[17.50px]"></div>
-                                            <div className="absolute inset-0 flex items-center justify-center text-white text-[10px] font-bold font-['Manrope'] leading-[15px] break-words">
-                                                {heroSlides[currentSlide].sponsor}
+                                        {/* Sponsor badge with exact styling - Only show on first slide */}
+                                        {currentSlide === 0 && (
+                                            <div className="w-[90px] h-[28px] absolute left-[15px] top-[45px]">
+                                                <div className="w-full h-full absolute left-0 top-0 bg-[rgba(212.01,212.01,212.01,0.10)] rounded-[6px] border border-[rgba(255,255,255,0.50)] backdrop-blur-[17.50px]"></div>
+                                                <div className="absolute inset-0 flex items-center justify-center text-white text-[10px] font-bold font-['Manrope'] leading-[15px] break-words">
+                                                    {heroSlides[currentSlide].sponsor}
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
 
                                         <div className="w-[90px] h-[19px] absolute left-[170px] top-[225px] p-[8px] bg-[rgba(255,255,255,0.10)] rounded-[28px] backdrop-blur-[5px] inline-flex justify-center items-center gap-[5px]" style={{ outline: '1px solid white', outlineOffset: '-1px' }}>
                                             {heroSlides.slice(0, 5).map((_, index) => (
@@ -1147,7 +1148,7 @@ const HomePage = () => {
                             </section>
 
                             {/* Vibe Meter / Stories */}
-                            {!isGuestMode() && (storiesLoading || stories.length > 0) && (
+                            {isHydrated && !isGuestMode() && (storiesLoading || stories.length > 0) && (
                                 <section className="pt-2 mb-2">
                                     {storiesLoading ? (
                                         <div>
@@ -1189,7 +1190,7 @@ const HomePage = () => {
                                 </section>
                             )}
 
-                            {!isGuestMode() && !storiesLoading && stories.length === 0 && (
+                            {isHydrated && !isGuestMode() && !storiesLoading && stories.length === 0 && (
                                 <section className="px-5 pt-2">
                                     <div className="flex items-center justify-between mb-4">
                                         <h2 className="text-white text-lg font-medium">Vibe Meter</h2>
@@ -1207,7 +1208,7 @@ const HomePage = () => {
                             {/* All Clubs */}
                             <section>
                                 <div className="flex items-center gap-4 mb-6 px-5">
-                                    <h2 className="text-white text-base font-semibold whitespace-nowrap">All Clubs</h2>
+                                    <h2 className="text-white text-base font-semibold whitespace-nowrap">Clubs</h2>
                                     <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
                                     <Link href="/clubs" className="text-[#14FFEC] text-base font-medium">View All</Link>
                                 </div>
@@ -1248,7 +1249,7 @@ const HomePage = () => {
                             {/* Event List */}
                             <section>
                                 <div className="flex items-center gap-4 mb-6 px-5">
-                                    <h2 className="text-white text-base font-semibold whitespace-nowrap">Event List</h2>
+                                    <h2 className="text-white text-base font-semibold whitespace-nowrap">Events</h2>
                                     <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
                                     <Link href="/events" className="text-[#14FFEC] text-base font-medium">View All</Link>
                                 </div>
@@ -1266,51 +1267,63 @@ const HomePage = () => {
 
                                             return (
                                                 <Link key={event.id} href={`/event/${event.id}`}>
-                                                    <div className="w-[222px] h-[305px] flex-shrink-0 relative rounded-[20px] overflow-hidden cursor-pointer hover:opacity-80 transition-opacity" style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}>
-                                                        {/* Image */}
-                                                        <div className="relative">
-                                                            <img
-                                                                src={event.imageUrl && isValidImageUrl(event.imageUrl) ? event.imageUrl : fallbackImage}
-                                                                alt={event.title}
-                                                                className="w-full h-[180px] object-contain bg-gray-900"
-                                                                style={{
-                                                                    borderWidth: '1.5px',
-                                                                    borderStyle: 'solid',
-                                                                    borderColor: '#28D2DB',
-                                                                    borderBottomRightRadius: '0',
-                                                                    borderTopLeftRadius: '20px',
-                                                                    borderTopRightRadius: '20px',
-                                                                    borderBottomLeftRadius: '20px',
-                                                                }}
-                                                            />
-                                                        </div>
-
-                                                        {/* Date Badge - positioned on the right */}
-                                                        <div className="absolute right-4 top-0 w-[36px] h-[45px] px-[2px] py-[10px] bg-gradient-to-b from-black to-[#00C0CA] rounded-b-[28px] border-l border-r border-b border-[#CDCDCD] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex flex-col justify-center items-center">
-                                                            <div className="w-[31px] text-center text-white text-[14px] font-semibold font-['Manrope'] leading-4">{monthShort}<br />{day}</div>
-                                                        </div>
-
-                                                        {/* Content - positioned in the dark area below image */}
-                                                        <div className="absolute left-[18px] right-[18px] top-[188px] flex items-center justify-between">
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="text-white text-[13px] font-bold font-['Manrope'] leading-[18px] mb-1 truncate">
-                                                                    {event.title}
-                                                                </div>
-                                                                <div className="text-[#C6C6C6] text-[11px] font-semibold font-['Manrope'] leading-[15px] tracking-[0.01em] truncate">
-                                                                    {event.clubName || event.location}
-                                                                </div>
+                                                        <div className="w-[222px] h-[305px] flex-shrink-0 relative rounded-[20px] overflow-hidden cursor-pointer hover:opacity-80 transition-opacity" style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}>
+                                                            {/* Image with blurred padding */}
+                                                            <div className="relative">
+                                                                {/* Glass morphism backdrop layer */}
+                                                                <div className="absolute inset-0 w-full h-[180px]"
+                                                                    style={{
+                                                                        backgroundImage: event.imageUrl && isValidImageUrl(event.imageUrl) ? `url(${event.imageUrl})` : `url(${fallbackImage})`,
+                                                                        backgroundSize: 'cover',
+                                                                        backgroundPosition: 'center',
+                                                                        filter: 'blur(8px)',
+                                                                        opacity: '0.85',
+                                                                        borderTopLeftRadius: '20px',
+                                                                        borderTopRightRadius: '20px',
+                                                                        borderBottomLeftRadius: '20px'
+                                                                    }}
+                                                                />
+                                                                {/* Actual Image */}
+                                                                <img
+                                                                    src={event.imageUrl && isValidImageUrl(event.imageUrl) ? event.imageUrl : fallbackImage}
+                                                                    alt={event.title}
+                                                                    className="relative w-full h-[180px] object-cover"
+                                                                    style={{
+                                                                        borderWidth: '1.5px',
+                                                                        borderStyle: 'solid',
+                                                                        borderColor: '#28D2DB',
+                                                                        borderBottomRightRadius: '0',
+                                                                        borderTopLeftRadius: '20px',
+                                                                        borderTopRightRadius: '20px',
+                                                                        borderBottomLeftRadius: '20px'
+                                                                    }}
+                                                                />
                                                             </div>
-                                                            <button className="w-[34px] h-[34px] p-[5px] bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] flex justify-center items-center">
-                                                                <Bookmark className="w-5 h-5 text-[#14FFEC]" />
-                                                            </button>
-                                                        </div>
 
-                                                        <div className="absolute left-[18px] right-[18px] top-[249px]">
-                                                            <div className="w-full h-px bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
-                                                        </div>
+                                                            {/* Date Badge - positioned on the right */}
+                                                            <div className="absolute right-4 top-0 w-[36px] h-[45px] px-[2px] py-[10px] bg-gradient-to-b from-black to-[#00C0CA] rounded-b-[28px] border-l border-r border-[#00C0CA] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex flex-col justify-center items-center" style={{ borderBottom: 'none' }}>
+                                                                <div className="w-[31px] text-center text-white text-[14px] font-semibold font-['Manrope'] leading-4">{monthShort}<br />{day}</div>
+                                                            </div>
 
-                                                        <div className="absolute left-[18px] right-[18px] top-[262px] text-white text-[11px] font-bold font-['Manrope'] leading-[15px] tracking-[0.01em] truncate">
-                                                            {event.shortDescription || event.formattedDate}
+                                                            {/* Content - positioned in the dark area below image */}
+                                                            <div className="absolute left-[18px] right-[60px] top-[192px] h-[68px] w-36 flex flex-col gap-[3px]">
+                                                                <span className="font-bold text-[16px] leading-[22px] text-[#e6e6e6] line-clamp-2">
+                                                                    {event.title}
+                                                                </span>
+                                                                <span className="font-bold text-[12px] leading-[17px] text-[#c3c3c3] line-clamp-1">
+                                                                    {event.location || event.clubName || 'TBD'}
+                                                                </span>
+                                                            </div>
+
+                                                        <button className="absolute top-[226px] right-[18px] flex justify-center items-center">
+                                                            <Heart className="w-[27px] h-[23px] text-[#14FFEC]" />
+                                                        </button>
+
+                                                        {/* Genre section at bottom */}
+                                                        <div className="absolute bottom-0 left-0 w-[222px] h-[34px] rounded-br-[20px] rounded-bl-[20px] border-t border-solid border-[#005F57] bg-[#005F57] flex items-center justify-center">
+                                                            <span className="font-bold text-[14px] leading-[17px] text-white truncate px-2">
+                                                                {event.genre || 'Techno & Bollytech'}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </Link>
@@ -1328,12 +1341,11 @@ const HomePage = () => {
                             {/* Footer */}
                             <div className="mt-8">
                                 <div className="w-full h-full pt-6 pb-2 bg-gradient-to-t from-[#01413B] to-[#021313] overflow-hidden flex flex-col justify-end items-center gap-4">
-                                    <div className="mt-8 flex items-center justify-center gap-1">
-                                        <img src="/logo/logo.png" alt="Glass Logo" className="w-16 h-auto" />
-                                        <img src="/logo/CLUBWIZ.png" alt="ClubWiz Logo" className="w-40 h-auto" />
+                                    <div className="mt-[20px] px-[101px] mb-[20px]">
+                                        <span className="font-normal text-[48px] leading-[36px] text-center bg-gradient-to-b from-[#14ffec] to-[#030c24] bg-clip-text text-transparent" style={{ fontFamily: 'Zen Tokyo Zoo', letterSpacing: '9px' }}>CLUBWIZ</span>
                                     </div>
                                     <div className="w-[368px] h-[59px] text-center text-white text-base font-normal leading-5 tracking-[0.5px] break-words">
-                                        Dive into the ultimate party scene discover lit club nights, epic events, and non-stop vibes all in one place!
+                                        Dive into the ultimate party scene. Discover lit club nights, epic events, and non-stop vibes all in one place!
                                     </div>
                                     <div className="w-[175px] h-[21px] flex justify-between items-center">
                                         <img src="/footer-logos/x-logo-fill.svg" alt="X" className="w-6 h-6" />

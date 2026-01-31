@@ -40,7 +40,7 @@ export const ClubCard: React.FC<ClubCardProps> = ({
     const imageUrl = club.image || fallbackImage || '/venue/Screenshot 2024-12-10 195651.png';
 
     return (
-        <Link href="/club/dabo" className={`block ${className} cursor-pointer`}>
+        <Link href={href} className={`block ${className} cursor-pointer`}>
             <div className="w-[336px] h-[201px] relative flex-shrink-0 mr-1">
                 {/* Main image container with rounded top */}
                 <div className="w-[336px] h-[169px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[15px] border-[#14FFEC] overflow-hidden">
@@ -81,19 +81,14 @@ export const ClubCard: React.FC<ClubCardProps> = ({
                 </div>
 
                 {/* Text content */}
-                <div className="w-32 h-[42px] left-[33px] top-[147px] absolute justify-start items-center gap-[29px] inline-flex">
+                <div className="w-52 left-[33px] top-[146.5px] absolute justify-start items-start gap-1 inline-flex">
                     <div className="w-52 flex-col justify-center items-start gap-1 inline-flex">
-                        <div className="self-stretch h-4 text-[#14FFEC] text-base font-black font-['Manrope'] leading-4 tracking-[0.02em] truncate">
+                        <div className="self-stretch text-[#14FFEC] text-xl font-extrabold font-['Manrope'] leading-6 tracking-[0.02em] line-clamp-2 break-words">
                             {club.name}
                         </div>
                         <div className="self-stretch h-3.5 text-white text-xs font-semibold font-['Manrope'] leading-3.5 tracking-[0.01em] truncate">
                             {club.openTime}
                         </div>
-                        {club.address && (
-                            <div className="self-stretch text-[#C3C3C3] text-[10px] font-medium font-['Manrope'] leading-3 tracking-[0.1px] truncate">
-                                {club.address}
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
