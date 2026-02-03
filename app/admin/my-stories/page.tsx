@@ -6,6 +6,7 @@ import { ChevronLeft, Trash2, Edit, Loader2 } from 'lucide-react';
 import { StoryService, StoryStats } from '@/lib/services/story.service';
 import { Story } from '@/lib/api-types';
 import { useToast } from '@/hooks/use-toast';
+import { StoriesSectionSkeleton } from '@/components/ui/skeleton-loaders';
 import {
     Dialog,
     DialogContent,
@@ -181,9 +182,7 @@ export default function MyStoriesPage() {
                 <div className="w-full bg-[#021313] rounded-t-[40px] flex flex-col">
                     <div className="px-6 py-6">
                         {loading ? (
-                            <div className="flex items-center justify-center py-20">
-                                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
-                            </div>
+                            <StoriesSectionSkeleton count={4} />
                         ) : (
                             <>
                                 {/* Analytics Stats */}

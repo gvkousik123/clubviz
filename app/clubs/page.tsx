@@ -8,6 +8,7 @@ import type { Club } from '@/components/clubs';
 import { useToast } from '@/hooks/use-toast';
 import { ClubCard } from '@/components/clubs/club-card';
 import { ClubListCard } from '@/components/clubs/club-list-card';
+import { ClubsListSkeleton } from '@/components/ui/skeleton-loaders';
 
 import { PublicClubService } from '@/lib/services/public.service';
 import { usePublicClubs } from '@/hooks/use-public-clubs';
@@ -436,9 +437,7 @@ export default function ClubsListPage() {
                         </div>
                         <div className="flex flex-col gap-4 pb-6 px-5">
                             {loading ? (
-                                <div className="flex items-center justify-center w-full py-8">
-                                    <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
-                                </div>
+                                <ClubsListSkeleton count={6} />
                             ) : clubs.length === 0 ? (
                                 <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full mr-5">
                                     We couldn't find any clubs right now. Check back soon!

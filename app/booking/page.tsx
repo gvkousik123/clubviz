@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { TicketService } from '@/lib/services/ticket.service';
 import { STORAGE_KEYS } from '@/lib/constants/storage';
 import { Loader2 } from 'lucide-react';
+import { EventsListSkeleton } from '@/components/ui/skeleton-loaders';
 
 interface BookingItem {
     id: string;
@@ -155,9 +156,8 @@ export default function BookingPage() {
             {/* Bookings List */}
             <div className="px-4">
                 {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
-                        <span className="ml-3 text-white">Loading your bookings...</span>
+                    <div className="py-6">
+                        <EventsListSkeleton count={3} />
                     </div>
                 ) : currentBookings.length === 0 ? (
                     <div className="flex items-center justify-center py-12">

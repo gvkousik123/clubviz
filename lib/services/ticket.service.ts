@@ -292,7 +292,7 @@ export class TicketService {
     }>>> {
         try {
             const response = await api.get<ApiResponse<any>>(
-                `/club-tickets/user/${userId}`
+                `${this.TICKET_BASE}/club-tickets/user/${userId}`
             );
             return handleApiResponse(response);
         } catch (error) {
@@ -320,7 +320,7 @@ export class TicketService {
     }>> {
         try {
             const response = await api.get<ApiResponse<any>>(
-                `/ticket/club-tickets/clubs/${clubId}/time-slots?date=${date}`
+                `${this.TICKET_BASE}/club-tickets/clubs/${clubId}/time-slots?date=${date}`
             );
             return handleApiResponse(response);
         } catch (error) {
@@ -447,7 +447,7 @@ export class TicketService {
             const { ...payload } = bookingData;
 
             const response = await api.post<ApiResponse<any>>(
-                '/ticket/club-tickets/event',
+                `${this.TICKET_BASE}/club-tickets/event`,
                 payload
             );
 
@@ -512,7 +512,7 @@ export class TicketService {
             console.log('🔵 Club Ticket Payload:', JSON.stringify(payload, null, 2));
 
             const response = await api.post<ApiResponse<any>>(
-                '/ticket/club-tickets',
+                `${this.TICKET_BASE}/club-tickets`,
                 payload
             );
 
@@ -605,7 +605,7 @@ export class TicketService {
             console.log('🔵 Calling endpoint: /ticket/club-tickets/event');
 
             const response = await api.post<ApiResponse<any>>(
-                '/ticket/club-tickets/event',
+                `${this.TICKET_BASE}/club-tickets/event`,
                 payload
             );
 
@@ -666,7 +666,7 @@ export class TicketService {
             console.log('🔵 Calling endpoint: /ticket/club-tickets/event');
 
             const response = await api.post<any>(
-                '/ticket/club-tickets/event',
+                `${this.TICKET_BASE}/club-tickets/event`,
                 payload
             );
             console.log('✅ Event ticket created successfully:', response.data);
@@ -730,7 +730,7 @@ export class TicketService {
             console.log('🔵 Calling endpoint: /ticket/club-tickets/no-event');
 
             const response = await api.post<any>(
-                '/ticket/club-tickets/no-event',
+                `${this.TICKET_BASE}/club-tickets/no-event`,
                 payload
             );
             console.log('✅ Club ticket created successfully:', response.data);

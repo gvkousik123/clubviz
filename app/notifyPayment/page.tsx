@@ -84,9 +84,9 @@ function NotifyPaymentContent() {
     const handleViewTickets = () => {
         // Navigate to bookings page
         if (ticketId) {
-            router.push(`/account/bookings?highlight=${ticketId}`);
+            router.push(`/booking?highlight=${ticketId}`);
         } else {
-            router.push('/account/bookings');
+            router.push('/booking');
         }
     };
 

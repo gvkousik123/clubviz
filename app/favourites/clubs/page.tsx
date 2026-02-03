@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Bookmark, Loader2 } from 'lucide-react';
 import PageHeader from '@/components/common/page-header';
 import { toast } from '@/hooks/use-toast';
+import { ClubsListSkeleton } from '@/components/ui/skeleton-loaders';
 
 // Dummy favorite clubs data for display
 const favoriteClubsData = [
@@ -73,9 +74,7 @@ export default function FavoriteClubsPage() {
             {/* Club Cards */}
             <div className="px-6 space-y-4 pt-[20vh]">
                 {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
-                    </div>
+                    <ClubsListSkeleton count={4} />
                 ) : favoriteClubs.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 text-center">
                         <Bookmark className="w-12 h-12 text-gray-400 mb-4" />

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Loader2, Heart, ChevronRight } from 'lucide-react';
 import type { EventListItem } from '@/lib/services/event.service';
 import { useToast } from '@/hooks/use-toast';
+import { EventsListSkeleton } from '@/components/ui/skeleton-loaders';
 
 import { PublicEventService } from '@/lib/services/public.service';
 import { usePublicEvents } from '@/hooks/use-public-events';
@@ -316,10 +317,8 @@ export default function EventsListPage() {
                             <h2 className="text-white text-base font-semibold">My Registered Events</h2>
                         </div>
                         {loadingMyEvents ? (
-                            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
-                                <div className="flex items-center justify-center w-full py-8 text-white/50">
-                                    <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading...
-                                </div>
+                            <div className="px-5">
+                                <EventsListSkeleton count={3} />
                             </div>
                         ) : myRegisteredEvents.length > 0 ? (
                             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
@@ -386,8 +385,8 @@ export default function EventsListPage() {
                         </div>
                         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
                             {loading ? (
-                                <div className="flex items-center justify-center w-full py-8 text-white/50">
-                                    <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading...
+                                <div className="px-5 w-full">
+                                    <EventsListSkeleton count={3} />
                                 </div>
                             ) : events.filter(e => {
                                 const d = new Date(e.startDateTime);
@@ -469,8 +468,8 @@ export default function EventsListPage() {
                         </div>
                         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
                             {loading ? (
-                                <div className="flex items-center justify-center min-w-[200px] py-8 text-white/50">
-                                    <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                                <div className="px-5 w-full">
+                                    <EventsListSkeleton count={2} />
                                 </div>
                             ) : events.filter(e => {
                                 const d = new Date(e.startDateTime);
@@ -535,9 +534,7 @@ export default function EventsListPage() {
                         </div>
                         <div className="space-y-4">
                             {loading ? (
-                                <div className="flex items-center justify-center w-full py-8 text-white/50">
-                                    <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
-                                </div>
+                                <EventsListSkeleton count={5} />
                             ) : events.length === 0 ? (
                                 <div className="text-white/60 text-sm text-center py-8">
                                     No events available
