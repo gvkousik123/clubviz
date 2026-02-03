@@ -233,23 +233,21 @@ export default function EventsListPage() {
                         </div>
                     </section>
 
-                    {/* Events for Selected Date */}
+                    {/* All Events Section */}
                     <section className="w-full px-5">
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-white text-base font-semibold">
-                                {isToday(selectedDate) ? 'Today\'s Events' : 'Events'}
-                            </h2>
+                            <h2 className="text-white text-base font-semibold">All Events</h2>
                         </div>
 
                         <div className="space-y-4">
                             {loading ? (
                                 <EventsListSkeleton count={3} />
-                            ) : filteredEvents.length === 0 ? (
+                            ) : events.length === 0 ? (
                                 <div className="text-white/60 text-sm text-center py-12 bg-[#0D1F1F] rounded-lg border border-white/10">
-                                    No events scheduled for this date
+                                    No events available
                                 </div>
                             ) : (
-                                filteredEvents.map((event, index) => (
+                                events.map((event, index) => (
                                     <div
                                         key={event.id}
                                         onClick={() => handleEventClick(event.id)}
@@ -298,8 +296,67 @@ export default function EventsListPage() {
                             )}
                         </div>
                     </section>
+
+                    {/* Events on Selected Date Section */}
+                    {filteredEvents.length > 0 && (
+                        <section className="w-full px-5 border-t border-[#14FFEC]/20 pt-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-white text-base font-semibold">
+                                    {isToday(selectedDate) ? 'Today\'s Events' : `Events on ${selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+                                </h2>
+                            </div>
+
+                            <div className="space-y-4">
+                                {filteredEvents.map((event, index) => (
+                                    <div
+                                        key={event.id}
+                                        onClick={() => handleEventClick(event.id)}
+                                        className="w-full bg-[#14FFEC]/10 rounded-[20px] overflow-hidden flex cursor-pointer border border-[#14FFEC]/30 h-[120px] hover:border-[#14FFEC] transition-all"
+                                    >
+                                        {/* Image */}
+                                        <div className="w-[120px] h-full relative flex-shrink-0">
+                                            <img
+                                                src={event.imageUrl || getEventFallbackImage(index)}
+                                                alt={event.title}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className="flex-1 p-3 flex flex-col justify-between">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1">
+                                                    <span className="text-xs text-[#14FFEC] font-bold uppercase mb-1 block">
+                                                        {new Date(event.startDateTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                                    </span>
+                                                    <h3 className="text-white text-sm font-bold leading-tight line-clamp-2 mb-1">
+                                                        {event.title}
+                                                    </h3>
+                                                    <p className="text-white/50 text-xs truncate flex items-center gap-1">
+                                                        <MapPin className="w-3 h-3" />
+                                                        {event.location || event.clubName}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        toggleFavorite(event.id);
+                                                    }}
+                                                    className={`flex-shrink-0 ml-2 transition-colors ${favorites.includes(event.id)
+                                                        ? 'text-[#14FFEC]'
+                                                        : 'text-white/30 hover:text-[#14FFEC]'
+                                                        }`}
+                                                >
+                                                    <Heart className="w-4 h-4" fill={favorites.includes(event.id) ? 'currentColor' : 'none'} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
                 </div>
             </div>
-        </div>
-    );
+            );
 }
