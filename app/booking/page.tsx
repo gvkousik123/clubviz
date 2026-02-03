@@ -19,10 +19,13 @@ interface BookingItem {
     image: string;
     status: 'ACTIVE' | 'CANCELLED';
     ticketNumber?: string;
+    eventId?: string;
+    hasEvent?: boolean;
 }
 
 export default function BookingPage() {
     const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+    const [activeEventFilter, setActiveEventFilter] = useState<string | 'all'>('all');
     const [tickets, setTickets] = useState<BookingItem[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -86,7 +89,9 @@ export default function BookingPage() {
                         price: `₹ ${Math.round(ticket.totalAmount || 0)}`,
                         image: ticket.eventImage || '/dabo ambience main dabo page/Media.jpg',
                         status: ticket.status,
-                        ticketNumber: ticket.ticketNumber
+                        ticketNumber: ticket.ticketNumber,
+                        eventId: ticket.eventId,
+                        hasEvent: ticket.hasEvent || false
                     };
                 });
 
@@ -123,6 +128,19 @@ export default function BookingPage() {
         }
     });
 
+    // Get event tickets from current bookings
+    const eventTickets = currentBookings.filter(t => t.hasEvent && t.eventId);
+
+    // Get unique event IDs
+    const uniqueEvents = Array.from(new Map(
+        eventTickets.map(ticket => [ticket.eventId, ticket.title])
+    ).entries());
+
+    // Filter tickets based on selected event
+    const filteredTickets = activeEventFilter === 'all'
+        ? currentBookings
+        : currentBookings.filter(t => t.eventId === activeEventFilter);
+
     return (
         <div className="min-h-screen w-full bg-[#021313] overflow-hidden">
             <PageHeader title="MY BOOKINGS" />
@@ -153,19 +171,57 @@ export default function BookingPage() {
                 </div>
             </div>
 
+            {/* Event Filter Tabs - Only show if there are event tickets */}
+            {eventTickets.length > 0 && (
+                <div className="px-4 py-4">
+                    <div className="space-y-2">
+                        <p className="text-white/60 text-xs font-semibold px-2">EVENT TICKETS</p>
+                        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                            {/* All Events Tab */}
+                            <button
+                                onClick={() => setActiveEventFilter('all')}
+                                className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all flex-shrink-0 ${activeEventFilter === 'all'
+                                        ? 'bg-[#14FFEC] text-black'
+                                        : 'bg-[#0D1F1F] text-white/70 border border-[#14FFEC]/30 hover:border-[#14FFEC]'
+                                    }`}
+                            >
+                                All Events ({eventTickets.length})
+                            </button>
+
+                            {/* Individual Event Tabs */}
+                            {uniqueEvents.map(([eventId, eventTitle]) => {
+                                const eventTicketCount = eventTickets.filter(t => t.eventId === eventId).length;
+                                return (
+                                    <button
+                                        key={eventId}
+                                        onClick={() => setActiveEventFilter(eventId as string)}
+                                        className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all flex-shrink-0 ${activeEventFilter === eventId
+                                                ? 'bg-[#14FFEC] text-black'
+                                                : 'bg-[#0D1F1F] text-white/70 border border-[#14FFEC]/30 hover:border-[#14FFEC]'
+                                            }`}
+                                    >
+                                        {eventTitle} ({eventTicketCount})
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Bookings List */}
             <div className="px-4">
                 {loading ? (
                     <div className="py-6">
                         <EventsListSkeleton count={3} />
                     </div>
-                ) : currentBookings.length === 0 ? (
+                ) : filteredTickets.length === 0 ? (
                     <div className="flex items-center justify-center py-12">
                         <p className="text-gray-400 text-sm">No {activeTab} bookings found</p>
                     </div>
                 ) : (
                     <div className="flex flex-col justify-start items-end gap-1 max-h-[30.875rem] overflow-y-auto">
-                        {currentBookings.map((booking) => (
+                        {filteredTickets.map((booking) => (
                             <div key={booking.id} className="w-full relative mb-4">
                                 {/* Main ticket container with cutouts */}
                                 <div

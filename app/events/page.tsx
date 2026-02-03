@@ -124,17 +124,17 @@ export default function EventsListPage() {
     // Filter events by date range
     const getEventsForDateRange = () => {
         if (!startDate && !endDate) return [];
-        
+
         return events.filter(event => {
             const eventDate = new Date(event.startDateTime);
             eventDate.setHours(0, 0, 0, 0);
-            
+
             const start = startDate ? new Date(startDate) : null;
             const end = endDate ? new Date(endDate) : null;
-            
+
             if (start) start.setHours(0, 0, 0, 0);
             if (end) end.setHours(23, 59, 59, 999);
-            
+
             if (start && end) {
                 return eventDate >= start && eventDate <= end;
             } else if (start) {
