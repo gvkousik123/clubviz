@@ -163,7 +163,7 @@ function TicketsPageContent() {
         }
 
         // Get user contact info from localStorage
-        const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+        const userStr = typeof window !== 'undefined' ? localStorage.getItem('clubviz-user') : null;
         let contactInfo = {
             maleName: 'Guest',
             phone: '',
@@ -174,8 +174,8 @@ function TicketsPageContent() {
             try {
                 const user = JSON.parse(userStr);
                 contactInfo = {
-                    maleName: user.username || 'Guest',
-                    phone: user.phoneNumber || user.mobile || '',
+                    maleName: user.username || user.name || user.fullName || 'Guest',
+                    phone: user.phoneNumber || user.mobileNumber || user.mobile || '',
                     email: user.email || ''
                 };
             } catch (e) {

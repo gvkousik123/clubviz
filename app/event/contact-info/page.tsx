@@ -58,11 +58,12 @@ function ContactInfoPageContent() {
             if (userStr) {
                 try {
                     const user = JSON.parse(userStr);
+                    console.log('📱 User data from localStorage:', user);
                     return {
-                        maleName: user.username || 'David Simon',
+                        maleName: user.username || user.name || user.fullName || 'David Simon',
                         femaleName: 'Sammy Simon',
-                        stagName: user.username || 'Mukul Mehta',
-                        phone: user.mobile || '+91 9876543210',
+                        stagName: user.username || user.name || user.fullName || 'Mukul Mehta',
+                        phone: user.phoneNumber || user.mobileNumber || user.mobile || '+91 9876543210',
                         email: user.email || 'DavidSimon@test.com'
                     };
                 } catch (e) {
@@ -90,6 +91,19 @@ function ContactInfoPageContent() {
             return;
         }
 
+        // Store contact info in localStorage for persistence
+        if (typeof window !== 'undefined') {
+            const contactDetails = {
+                maleName: contactInfo.maleName,
+                femaleName: contactInfo.femaleName,
+                stagName: contactInfo.stagName,
+                phone: contactInfo.phone,
+                email: contactInfo.email
+            };
+            localStorage.setItem('eventContactDetails', JSON.stringify(contactDetails));
+            console.log('📦 Stored contact details in localStorage:', contactDetails);
+        }
+
         // Store booking data in sessionStorage
         const bookingData = {
             eventId,
@@ -105,6 +119,7 @@ function ContactInfoPageContent() {
             eventData: eventData // Pass event data along
         };
         sessionStorage.setItem('eventBookingData', JSON.stringify(bookingData));
+        console.log('📦 Stored booking data in sessionStorage:', bookingData);
 
         router.push(`/event/review-booking`);
     };

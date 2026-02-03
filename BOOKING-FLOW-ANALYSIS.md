@@ -193,6 +193,7 @@ POST /club-tickets
 | **8** | **Create Ticket** | ❌ **MISSING** | ❌ **Need `POST /club-tickets`** |
 | **9** | Show QR code | ✅ `/booking/confirmation` | ⚠️ **Need ticket data from API** |
 
+
 ### API Call Sequence:
 ```
 1. GET /clubs/{clubId} → Club details

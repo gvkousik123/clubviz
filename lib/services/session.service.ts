@@ -106,7 +106,7 @@ export class SessionService {
     if (typeof window === 'undefined') return null;
 
     try {
-      const userData = localStorage.getItem('user');
+      const userData = localStorage.getItem('clubviz-user');
       if (!userData) return null;
 
       const user = JSON.parse(userData);
@@ -145,8 +145,8 @@ export class SessionService {
   static isAuthenticated(): boolean {
     if (typeof window === 'undefined') return false;
 
-    const token = localStorage.getItem('accessToken');
-    const user = localStorage.getItem('user');
+    const token = localStorage.getItem('clubviz-accessToken');
+    const user = localStorage.getItem('clubviz-user');
 
     return !!(token && user);
   }

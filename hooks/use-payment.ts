@@ -87,28 +87,26 @@ export function usePayment() {
                             const eventBooking = JSON.parse(eventBookingStr);
                             console.log('📦 Event booking data from sessionStorage:', eventBooking);
 
+                            // Calculate guestCount from counts
+                            const maleCount = eventBooking.maleCount || eventBooking.maleStag || 0;
+                            const femaleCount = eventBooking.femaleCount || eventBooking.femaleStag || 0;
+                            const coupleCount = eventBooking.coupleCount || eventBooking.couple || 0;
+                            const guestCount = maleCount + femaleCount + (coupleCount * 2);
+
+                            // Build payload with ONLY required fields per API spec
                             const ticketPayload = {
-                                eventId: eventBooking.eventId,
-                                clubId: eventBooking.clubId,
-                                clubName: eventBooking.clubName,
                                 userId: eventBooking.userId,
-                                userEmail: eventBooking.email || paymentData.customer_email,
-                                userName: eventBooking.userName || eventBooking.maleName || eventBooking.stagName || paymentData.customer_username,
-                                userPhone: eventBooking.phone || paymentData.customer_mobile,
+                                eventId: eventBooking.eventId,
                                 bookingDate: eventBooking.bookingDate,
                                 arrivalTime: eventBooking.arrivalTime,
-                                guestCount: eventBooking.guestCount || (eventBooking.maleCount || eventBooking.maleStag || 0) + (eventBooking.femaleCount || eventBooking.femaleStag || 0) + (eventBooking.coupleCount || eventBooking.couple || 0) * 2,
-                                maleCount: eventBooking.maleCount || eventBooking.maleStag || 0,
-                                femaleCount: eventBooking.femaleCount || eventBooking.femaleStag || 0,
-                                coupleCount: eventBooking.coupleCount || eventBooking.couple || 0,
-                                ticketDescription: eventBooking.ticketDescription || 'Event ticket booking',
+                                guestCount: guestCount,
+                                maleCount: maleCount,
+                                femaleCount: femaleCount,
+                                coupleCount: coupleCount,
                                 currency: eventBooking.currency || 'INR',
-                                orderId: order_id,
-                                offerId: eventBooking.offerId || null,
-                                occasion: eventBooking.occasion || 'Event',
-                                floorPreference: eventBooking.floorPreference || 'Main Floor'
+                                orderId: order_id
                             };
-                            console.log('📤 Ticket payload being sent to API:', JSON.stringify(ticketPayload, null, 2));
+                            console.log('📤 Event Ticket payload (REQUIRED fields only):', JSON.stringify(ticketPayload, null, 2));
 
                             const ticketResponse = await TicketService.createEventTicketWithOrder(ticketPayload);
 
@@ -120,21 +118,21 @@ export function usePayment() {
                         } else if (clubBookingStr) {
                             // Create club ticket with orderId
                             const clubBooking = JSON.parse(clubBookingStr);
+                            console.log('📦 Club booking data from sessionStorage:', clubBooking);
 
-                            const ticketResponse = await TicketService.createClubTicketWithOrder({
+                            // Build payload with ONLY required fields per API spec
+                            const ticketPayload = {
                                 clubId: clubBooking.clubId,
                                 userId: clubBooking.userId,
-                                userEmail: clubBooking.email || paymentData.customer_email,
-                                userName: clubBooking.userName || paymentData.customer_username,
-                                userPhone: clubBooking.phone || paymentData.customer_mobile,
                                 bookingDate: clubBooking.bookingDate || clubBooking.selectedDate,
-                                arrivalTime: clubBooking.arrivalTime || clubBooking.selectedTime || '18:00:00',
+                                arrivalTime: clubBooking.arrivalTime || clubBooking.selectedTime || '20:00:00',
                                 guestCount: clubBooking.guestCount || 2,
-                                orderId: order_id, // Link ticket to payment order
-                                offerId: clubBooking.offerId || null,
-                                occasion: clubBooking.occasion || 'Casual Dining',
-                                floorPreference: clubBooking.floorPreference || 'Main Floor'
-                            });
+                                currency: clubBooking.currency || 'INR',
+                                orderId: order_id
+                            };
+                            console.log('📤 Club Ticket payload (REQUIRED fields only):', JSON.stringify(ticketPayload, null, 2));
+
+                            const ticketResponse = await TicketService.createClubTicketWithOrder(ticketPayload);
 
                             if (!ticketResponse.success) {
                                 throw new Error('Failed to create club ticket. Please try again.');
@@ -165,9 +163,15 @@ export function usePayment() {
                         mode: "sandbox"
                     });
 
-                    cashfree.checkout({
-                        paymentSessionId: payment_session_id
-                    });
+                    const checkoutOptions = {
+                        paymentSessionId: payment_session_id,
+                        returnUrl: `${window.location.origin}/notifyPayment?order_id=${order_id}`,
+                        redirectTarget: "_self" // Redirect in same window
+                    };
+
+                    console.log('💳 Cashfree checkout options:', checkoutOptions);
+
+                    cashfree.checkout(checkoutOptions);
                 } else {
                     throw new Error('Cashfree SDK not loaded');
                 }

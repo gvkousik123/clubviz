@@ -44,6 +44,7 @@ export const DirectLoginWrapper = ({ children }: { children: ReactNode }) => {
             '/home',
             '/location',
             '/payment',
+            '/notifyPayment',
             '/review',
             '/story',
             '/ticket',
@@ -54,6 +55,7 @@ export const DirectLoginWrapper = ({ children }: { children: ReactNode }) => {
 
         // Skip redirect logic for user pages - they handle their own auth
         if (isUserPage) {
+            console.log("✅ DirectLoginWrapper: On user page, skipping redirect:", pathname);
             return;
         }
 
@@ -88,6 +90,15 @@ export const DirectLoginWrapper = ({ children }: { children: ReactNode }) => {
                 }, 200);
             }
         } else {
+            // User not authenticated
+            // Only redirect to auth if they're on a protected admin page
+            // DO NOT redirect from user pages - they might have guest access or handle auth themselves
+            if (isAdminPage || isSuperAdminPage) {
+                console.log('🔒 DirectLoginWrapper: Not authenticated on admin page, redirecting to intro');
+                setTimeout(() => {
+                    router.push('/auth/intro');
+                }, 200);
+            }
         }
     }, [pathname, router]);
 

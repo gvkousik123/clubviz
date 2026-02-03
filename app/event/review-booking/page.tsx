@@ -96,7 +96,7 @@ function ReviewBookingPageContent() {
         const totalAmount = calculateTotalAmount();
 
         // Get user data from localStorage - user object contains id and username
-        const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+        const userStr = typeof window !== 'undefined' ? localStorage.getItem('clubviz-user') : null;
         let userId = 'ANONYMOUS';
         let userNameFromStorage = '';
 
@@ -104,11 +104,25 @@ function ReviewBookingPageContent() {
             try {
                 const user = JSON.parse(userStr);
                 userId = user.id || user.userId || 'ANONYMOUS';
-                userNameFromStorage = user.username || user.userName || '';
-                console.log('✅ User data from localStorage:', { userId, userNameFromStorage });
+                userNameFromStorage = user.username || user.userName || user.name || '';
+                console.log('✅ User data from localStorage:', { userId, userNameFromStorage, user });
             } catch (e) {
                 console.error('Error parsing user data:', e);
             }
+        }
+
+        // Store contact details in localStorage for persistence across redirects
+        if (typeof window !== 'undefined') {
+            const contactDetails = {
+                email,
+                phone,
+                maleName,
+                femaleName,
+                stagName,
+                userId
+            };
+            localStorage.setItem('bookingContactDetails', JSON.stringify(contactDetails));
+            console.log('💾 Stored contact details in localStorage:', contactDetails);
         }
 
         // Extract club data from event's club object or fallback to user data
@@ -364,8 +378,46 @@ function ReviewBookingPageContent() {
 export default function ReviewBookingPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen w-full bg-[#021313] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+            <div className="min-h-screen w-full bg-[#021313] relative">
+                <PageHeader title="REVIEW EVENT BOOKING" />
+
+                {/* Skeleton Loading */}
+                <div className="pt-[20vh] pb-24 px-4">
+                    <div className="animate-pulse space-y-6">
+                        {/* Event Details Skeleton */}
+                        <div className="space-y-4">
+                            <div className="h-4 bg-gray-700/30 rounded w-1/3"></div>
+                            <div className="bg-[#0D1F1F] rounded-xl p-5 space-y-4">
+                                <div className="h-6 bg-gray-700/30 rounded w-2/3"></div>
+                                <div className="h-4 bg-gray-700/30 rounded w-3/4"></div>
+                                <div className="h-4 bg-gray-700/30 rounded w-1/2"></div>
+                            </div>
+                        </div>
+
+                        {/* Contact Details Skeleton */}
+                        <div className="space-y-4">
+                            <div className="h-4 bg-gray-700/30 rounded w-1/3"></div>
+                            <div className="bg-[#0D1F1F] rounded-xl p-5 space-y-3">
+                                <div className="h-4 bg-gray-700/30 rounded w-full"></div>
+                                <div className="h-4 bg-gray-700/30 rounded w-3/4"></div>
+                            </div>
+                        </div>
+
+                        {/* Tickets Skeleton */}
+                        <div className="space-y-4">
+                            <div className="h-4 bg-gray-700/30 rounded w-1/3"></div>
+                            <div className="space-y-3">
+                                <div className="h-16 bg-[#0D1F1F] rounded-xl"></div>
+                                <div className="h-16 bg-[#0D1F1F] rounded-xl"></div>
+                            </div>
+                        </div>
+
+                        {/* Payment Section Skeleton */}
+                        <div className="fixed bottom-0 left-0 right-0 bg-[#021313] border-t border-[#14FFEC]/30 p-4">
+                            <div className="h-16 bg-gray-700/30 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         }>
             <ReviewBookingPageContent />

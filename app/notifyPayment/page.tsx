@@ -13,18 +13,18 @@ function NotifyPaymentContent() {
     const [message, setMessage] = useState('Generating your ticket...');
     const [orderId, setOrderId] = useState<string | null>(null);
     const [ticketId, setTicketId] = useState<string | null>(null);
-    const [isCreatingTicket, setIsCreatingTicket] = useState(false);
 
     useEffect(() => {
         const generateTicket = async () => {
             try {
-                // Get order_id from URL or localStorage
-                let orderIdParam = searchParams.get('order_id');
+                // FIRST: Try to get from sessionStorage (where we store it before payment)
+                let orderIdParam = sessionStorage.getItem('paymentOrderId') ||
+                    localStorage.getItem('paymentOrderId') ||
+                    localStorage.getItem('latestOrderId');
 
+                // Fallback: Try URL param if not in storage
                 if (!orderIdParam) {
-                    // Try to get from localStorage as backup
-                    orderIdParam = localStorage.getItem('paymentOrderId') ||
-                        localStorage.getItem('latestOrderId');
+                    orderIdParam = searchParams.get('order_id');
                 }
 
                 if (!orderIdParam) {
@@ -35,11 +35,10 @@ function NotifyPaymentContent() {
 
                 setOrderId(orderIdParam);
                 setMessage('Generating your ticket...');
-                setIsCreatingTicket(true);
 
                 console.log('🎫 Calling generate ticket API with orderId:', orderIdParam);
 
-                // DIRECTLY call generate ticket API - it will handle payment verification internally
+                // Call generate ticket API - it handles payment verification internally
                 const generateResponse = await PaymentGatewayService.generateTicket({
                     orderId: orderIdParam
                 });
@@ -61,67 +60,53 @@ function NotifyPaymentContent() {
                         setMessage('Payment successful! Ticket created.');
                     }
 
-                    // Clear session and local storage
-                    sessionStorage.removeItem('pendingEventBooking');
-                    sessionStorage.removeItem('bookingData');
-                    localStorage.removeItem('current_payment_order');
-
                 } else if (generateResponse.message?.includes('failed') ||
                     generateResponse.message?.includes('FAILED')) {
-                    // Payment failed
+                    // Payment failed - STAY on this page
                     setStatus('failed');
-                    setMessage('Payment verification failed. Please try again.');
+                    setMessage(generateResponse.message || 'Payment verification failed. Please try again.');
                 } else {
                     setStatus('success');
                     setMessage('Payment successful! Check your tickets in your account.');
                 }
 
             } catch (error: any) {
-                console.error('Ticket generation error:', error);
+                console.error('❌ Ticket generation error:', error);
+                // STAY on this page even if API fails
                 setStatus('failed');
-                setMessage(error.message || 'Failed to generate ticket. Please contact support.');
-            } finally {
-                setIsCreatingTicket(false);
+                setMessage(error.response?.data?.message || error.message || 'Failed to generate ticket. Please contact support with order ID: ' + orderId);
             }
         };
 
         generateTicket();
     }, [searchParams]);
 
-    // Removed handlePaymentNotification - now using internal verification method
-
-    const handleContinue = () => {
-        // User manually clicks to view tickets
-        if (status === 'success') {
-            // Navigate to tickets/bookings page
-            if (ticketId) {
-                router.push(`/account/bookings?highlight=${ticketId}`);
-            } else {
-                router.push('/account/bookings');
-            }
-        } else if (status === 'failed') {
-            // Go back to home
-            router.push('/');
+    const handleViewTickets = () => {
+        // Navigate to bookings page
+        if (ticketId) {
+            router.push(`/account/bookings?highlight=${ticketId}`);
         } else {
-            // For pending, go to booking history
             router.push('/account/bookings');
         }
+    };
+
+    const handleBackToBooking = () => {
+        // Go back to booking/events page
+        router.push('/events');
     };
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#021313] to-[#0D1F1F] flex items-center justify-center p-6">
             <div className="max-w-md w-full bg-[#0D1F1F] border border-[#14FFEC]/30 rounded-3xl p-8 text-center">
-                {status === 'checking' || isCreatingTicket ? (
+                {status === 'checking' ? (
                     <>
                         <div className="flex justify-center mb-6">
                             <Loader2 className="w-16 h-16 text-[#14FFEC] animate-spin" />
                         </div>
-                        <h1 className="text-2xl font-bold text-white mb-4">
-                            {isCreatingTicket ? 'Creating Ticket' : 'Verifying Payment'}
-                        </h1>
+                        <h1 className="text-2xl font-bold text-white mb-4">Verifying Payment</h1>
                         <p className="text-gray-400 mb-6">{message}</p>
                         <div className="text-sm text-gray-500">
-                            Please wait while we {isCreatingTicket ? 'create your ticket' : 'confirm your payment'}...
+                            Please wait while we confirm your payment...
                         </div>
                     </>
                 ) : status === 'success' ? (
@@ -135,35 +120,30 @@ function NotifyPaymentContent() {
                         <h1 className="text-3xl font-bold text-white mb-4">Payment Successful!</h1>
                         <p className="text-gray-400 mb-6">{message}</p>
 
-                        {paymentDetails && (
+                        {orderId && (
                             <div className="bg-black/30 rounded-xl p-4 mb-6 text-left">
                                 <div className="flex justify-between mb-2">
                                     <span className="text-gray-400 text-sm">Order ID</span>
-                                    <span className="text-white text-sm font-mono">{paymentDetails.order_id || orderId}</span>
+                                    <span className="text-white text-sm font-mono">{orderId}</span>
                                 </div>
-                                {paymentDetails.order_amount && (
-                                    <div className="flex justify-between mb-2">
-                                        <span className="text-gray-400 text-sm">Amount Paid</span>
-                                        <span className="text-[#14FFEC] text-sm font-bold">
-                                            ₹{paymentDetails.order_amount}
-                                        </span>
-                                    </div>
-                                )}
-                                {paymentDetails.cf_order_id && (
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-400 text-sm">Transaction ID</span>
-                                        <span className="text-white text-sm font-mono">{paymentDetails.cf_order_id}</span>
-                                    </div>
-                                )}
                             </div>
                         )}
 
-                        <button
-                            onClick={handleContinue}
-                            className="w-full bg-[#14FFEC] text-black font-bold py-4 rounded-full hover:bg-[#14FFEC]/80 transition-all shadow-lg shadow-[#14FFEC]/20"
-                        >
-                            View Your Tickets
-                        </button>
+                        <div className="space-y-3">
+                            <button
+                                onClick={handleViewTickets}
+                                className="w-full bg-[#14FFEC] text-black font-bold py-4 rounded-full hover:bg-[#14FFEC]/80 transition-all shadow-lg shadow-[#14FFEC]/20"
+                            >
+                                View Your Tickets
+                            </button>
+
+                            <button
+                                onClick={handleBackToBooking}
+                                className="w-full bg-transparent border-2 border-[#14FFEC]/30 text-[#14FFEC] font-bold py-4 rounded-full hover:border-[#14FFEC] transition-all"
+                            >
+                                Back to Events
+                            </button>
+                        </div>
 
                         <p className="text-xs text-gray-500 mt-4">
                             A confirmation email has been sent to your registered email address
@@ -177,27 +157,23 @@ function NotifyPaymentContent() {
                         <h1 className="text-3xl font-bold text-white mb-4">Payment Failed</h1>
                         <p className="text-gray-400 mb-6">{message}</p>
 
-                        {paymentDetails && (
+                        {orderId && (
                             <div className="bg-black/30 rounded-xl p-4 mb-6 text-left">
                                 <div className="flex justify-between mb-2">
                                     <span className="text-gray-400 text-sm">Order ID</span>
-                                    <span className="text-white text-sm font-mono">{paymentDetails.order_id || orderId}</span>
+                                    <span className="text-white text-sm font-mono">{orderId}</span>
                                 </div>
-                                {paymentDetails.payment_message && (
-                                    <div className="mt-2">
-                                        <span className="text-gray-400 text-sm block mb-1">Error Message</span>
-                                        <span className="text-red-400 text-sm">{paymentDetails.payment_message}</span>
-                                    </div>
-                                )}
                             </div>
                         )}
 
-                        <button
-                            onClick={handleContinue}
-                            className="w-full bg-red-500 text-white font-bold py-4 rounded-full hover:bg-red-600 transition-all"
-                        >
-                            Try Again
-                        </button>
+                        <div className="space-y-3">
+                            <button
+                                onClick={handleBackToBooking}
+                                className="w-full bg-red-500 text-white font-bold py-4 rounded-full hover:bg-red-600 transition-all"
+                            >
+                                Try Again
+                            </button>
+                        </div>
                     </>
                 ) : (
                     <>
@@ -207,12 +183,21 @@ function NotifyPaymentContent() {
                         <h1 className="text-3xl font-bold text-white mb-4">Payment Pending</h1>
                         <p className="text-gray-400 mb-6">{message}</p>
 
-                        <button
-                            onClick={handleContinue}
-                            className="w-full bg-yellow-500 text-black font-bold py-4 rounded-full hover:bg-yellow-600 transition-all"
-                        >
-                            Check Booking History
-                        </button>
+                        <div className="space-y-3">
+                            <button
+                                onClick={handleViewTickets}
+                                className="w-full bg-yellow-500 text-black font-bold py-4 rounded-full hover:bg-yellow-600 transition-all"
+                            >
+                                Check Booking History
+                            </button>
+
+                            <button
+                                onClick={handleBackToBooking}
+                                className="w-full bg-transparent border-2 border-yellow-500/30 text-yellow-500 font-bold py-4 rounded-full hover:border-yellow-500 transition-all"
+                            >
+                                Back to Events
+                            </button>
+                        </div>
                     </>
                 )}
             </div>
@@ -223,8 +208,19 @@ function NotifyPaymentContent() {
 export default function NotifyPaymentPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-gradient-to-b from-[#021313] to-[#0D1F1F] flex items-center justify-center">
-                <Loader2 className="w-12 h-12 text-[#14FFEC] animate-spin" />
+            <div className="min-h-screen bg-gradient-to-b from-[#021313] to-[#0D1F1F] flex items-center justify-center p-6">
+                <div className="max-w-md w-full bg-[#0D1F1F] border border-[#14FFEC]/30 rounded-3xl p-8">
+                    {/* Skeleton Loading */}
+                    <div className="flex justify-center mb-6">
+                        <Loader2 className="w-16 h-16 text-[#14FFEC] animate-spin" />
+                    </div>
+                    <div className="space-y-4 animate-pulse">
+                        <div className="h-8 bg-gray-700/30 rounded-lg w-3/4 mx-auto"></div>
+                        <div className="h-4 bg-gray-700/30 rounded-lg w-full"></div>
+                        <div className="h-4 bg-gray-700/30 rounded-lg w-5/6 mx-auto"></div>
+                        <div className="h-20 bg-gray-700/30 rounded-lg w-full mt-6"></div>
+                    </div>
+                </div>
             </div>
         }>
             <NotifyPaymentContent />

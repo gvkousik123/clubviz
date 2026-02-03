@@ -180,7 +180,7 @@ export class TicketService {
     static async getTicketDetails(ticketId: string): Promise<ApiResponse<TicketDetails>> {
         try {
             const response = await api.get<ApiResponse<TicketDetails>>(
-                `/ticket/club-tickets/${ticketId}`
+                `/club-tickets/${ticketId}`
             );
             return handleApiResponse(response);
         } catch (error) {
@@ -208,7 +208,7 @@ export class TicketService {
     }>> {
         try {
             const response = await api.get<ApiResponse<any>>(
-                `/ticket/club-tickets/by-number/${ticketNumber}`
+                `/club-tickets/by-number/${ticketNumber}`
             );
             return handleApiResponse(response);
         } catch (error) {
@@ -235,7 +235,7 @@ export class TicketService {
     }>> {
         try {
             const response = await api.post<ApiResponse<any>>(
-                `/ticket/club-tickets/${ticketId}/validate?validatedBy=${validatedBy}`,
+                `/club-tickets/${ticketId}/validate?validatedBy=${validatedBy}`,
                 {}
             );
             return handleApiResponse(response);
@@ -265,7 +265,7 @@ export class TicketService {
     }>> {
         try {
             const response = await api.post<ApiResponse<any>>(
-                `/ticket/club-tickets/${ticketId}/cancel`,
+                `/club-tickets/${ticketId}/cancel`,
                 cancelData
             );
             return handleApiResponse(response);
@@ -292,7 +292,7 @@ export class TicketService {
     }>>> {
         try {
             const response = await api.get<ApiResponse<any>>(
-                `/ticket/club-tickets/user/${userId}`
+                `/club-tickets/user/${userId}`
             );
             return handleApiResponse(response);
         } catch (error) {
@@ -440,14 +440,14 @@ export class TicketService {
         cancelledAt: string | null;
     }>> {
         try {
-            console.log('🔵 TicketService: Sending POST request to /ticket/club-tickets/no-event');
+            console.log('🔵 TicketService: Sending POST request to /club-tickets (no-event)');
             console.log('🔵 Request data:', JSON.stringify(bookingData, null, 2));
 
             // Remove eventId if present for no-event tickets
             const { ...payload } = bookingData;
 
             const response = await api.post<ApiResponse<any>>(
-                '/ticket/club-tickets/no-event',
+                '/ticket/club-tickets/event',
                 payload
             );
 
@@ -481,24 +481,12 @@ export class TicketService {
     static async createClubTicket(
         bookingData: {
             clubId: string;
-            clubName: string;
             userId: string;
-            userEmail: string;
-            userName: string;
-            userPhone: string;
-            bookingDate: string; // YYYY-MM-DD
-            arrivalTime: {
-                hour: number;
-                minute: number;
-                second: number;
-                nano: number;
-            };
+            bookingDate: string;
+            arrivalTime: string;
             guestCount: number;
-            offerId?: string;
-            occasion?: string;
-            floorPreference?: string;
-            orderId?: string; // Payment order ID for linking
             currency: string;
+            orderId: string;
         }
     ): Promise<ApiResponse<{
         ticketId: string;
@@ -508,12 +496,30 @@ export class TicketService {
         currency: string;
     }>> {
         try {
+            console.log('🔵 TicketService: Creating CLUB ticket (no event)');
+
+            // Build payload with ONLY the fields specified in API docs
+            const payload = {
+                clubId: bookingData.clubId,
+                userId: bookingData.userId,
+                bookingDate: bookingData.bookingDate,
+                arrivalTime: bookingData.arrivalTime,
+                guestCount: bookingData.guestCount,
+                currency: bookingData.currency,
+                orderId: bookingData.orderId
+            };
+
+            console.log('🔵 Club Ticket Payload:', JSON.stringify(payload, null, 2));
+
             const response = await api.post<ApiResponse<any>>(
                 '/ticket/club-tickets',
-                bookingData
+                payload
             );
+
+            console.log('🟢 TicketService: Club ticket created successfully:', response.data);
             return handleApiResponse(response);
         } catch (error) {
+            console.error('🔴 TicketService: Club ticket creation error:', error);
             throw new Error(handleApiError(error));
         }
     }
@@ -535,23 +541,16 @@ export class TicketService {
      */
     static async createEventTicket(
         ticketData: {
-            eventId: string; // REQUIRED for event tickets
-            clubId: string;
-            clubName: string;
             userId: string;
-            userEmail: string;
-            userName: string;
-            userPhone: string;
-            bookingDate: string; // YYYY-MM-DD
-            arrivalTime: string; // HH:mm:ss (24-hour format)
-            maleCount: number; // Required for event tickets
-            femaleCount: number; // Required for event tickets
-            coupleCount: number; // Required for event tickets
-            ticketDescription?: string;
-            offerId?: string | null;
-            occasion?: string;
-            floorPreference?: string;
-            orderId?: string; // Payment order ID for linking
+            eventId: string;
+            bookingDate: string;
+            arrivalTime: string;
+            guestCount: number;
+            maleCount: number;
+            femaleCount: number;
+            coupleCount: number;
+            currency: string;
+            orderId: string;
         }
     ): Promise<ApiResponse<{
         ticketId: string;
@@ -587,11 +586,27 @@ export class TicketService {
     }>> {
         try {
             console.log('🔵 TicketService: Creating EVENT ticket with eventId:', ticketData.eventId);
-            console.log('🔵 Request data:', JSON.stringify(ticketData, null, 2));
+
+            // Build payload with ONLY the fields specified in API docs
+            const payload = {
+                userId: ticketData.userId,
+                eventId: ticketData.eventId,
+                bookingDate: ticketData.bookingDate,
+                arrivalTime: ticketData.arrivalTime,
+                guestCount: ticketData.guestCount,
+                maleCount: ticketData.maleCount,
+                femaleCount: ticketData.femaleCount,
+                coupleCount: ticketData.coupleCount,
+                currency: ticketData.currency,
+                orderId: ticketData.orderId
+            };
+
+            console.log('🔵 Event Ticket Payload:', JSON.stringify(payload, null, 2));
+            console.log('🔵 Calling endpoint: /ticket/club-tickets/event');
 
             const response = await api.post<ApiResponse<any>>(
-                '/ticket/club-tickets',
-                ticketData
+                '/ticket/club-tickets/event',
+                payload
             );
 
             console.log('🟢 TicketService: Event ticket created successfully:', response.data);
@@ -619,59 +634,42 @@ export class TicketService {
      */
     static async createEventTicketWithOrder(
         ticketData: {
+            userId: string;
             eventId: string;
-            clubId?: string;
-            clubName?: string;
-            userId?: string;
-            userEmail: string;
-            userName: string;
-            userPhone: string;
-            bookingDate?: string;
-            arrivalTime?: string;
-            guestCount?: number;
+            bookingDate: string;
+            arrivalTime: string;
+            guestCount: number;
             maleCount: number;
             femaleCount: number;
             coupleCount: number;
-            ticketDescription?: string;
-            currency?: string;
-            orderId: string; // REQUIRED - links to payment order
-            offerId?: string | null;
-            occasion?: string;
-            floorPreference?: string;
+            currency: string;
+            orderId: string;
         }
     ): Promise<ApiResponse<any>> {
         try {
-            // Build complete ticket data with defaults for missing fields
-            const completeTicketData = {
+            // Build payload with ONLY the required fields per API spec
+            const payload = {
+                userId: ticketData.userId,
                 eventId: ticketData.eventId,
-                clubId: ticketData.clubId || 'UNKNOWN',
-                clubName: ticketData.clubName || 'Club',
-                userId: ticketData.userId || 'ANONYMOUS',
-                userEmail: ticketData.userEmail,
-                userName: ticketData.userName,
-                userPhone: ticketData.userPhone,
-                bookingDate: ticketData.bookingDate || new Date().toISOString().split('T')[0],
-                arrivalTime: ticketData.arrivalTime || '18:00:00',
-                guestCount: ticketData.guestCount !== undefined ? ticketData.guestCount : (ticketData.maleCount + ticketData.femaleCount + (ticketData.coupleCount * 2)),
+                bookingDate: ticketData.bookingDate,
+                arrivalTime: ticketData.arrivalTime,
+                guestCount: ticketData.guestCount,
                 maleCount: ticketData.maleCount,
                 femaleCount: ticketData.femaleCount,
                 coupleCount: ticketData.coupleCount,
-                ticketDescription: ticketData.ticketDescription || 'Event ticket booking',
-                currency: ticketData.currency || 'INR',
-                orderId: ticketData.orderId,
-                offerId: ticketData.offerId || null,
-                occasion: ticketData.occasion || 'Event',
-                floorPreference: ticketData.floorPreference || 'Main Floor'
+                currency: ticketData.currency,
+                orderId: ticketData.orderId
             };
 
-            console.log('🔵 Creating event ticket with orderId (pre-payment):', ticketData.orderId);
-            console.log('🔵 Complete ticket data being sent:', JSON.stringify(completeTicketData, null, 2));
+            console.log('🔵 Creating EVENT ticket with orderId:', ticketData.orderId);
+            console.log('📤 Event Ticket Payload:', JSON.stringify(payload, null, 2));
+            console.log('🔵 Calling endpoint: /ticket/club-tickets/event');
 
             const response = await api.post<any>(
                 '/ticket/club-tickets/event',
-                completeTicketData
+                payload
             );
-            console.log('✅ Event ticket created (pending payment):', response.data);
+            console.log('✅ Event ticket created successfully:', response.data);
 
             // API returns { status: "success", message: "...", timestamp: "..." }
             // Convert to standard ApiResponse format
@@ -679,11 +677,17 @@ export class TicketService {
             return {
                 success: result.status === 'success',
                 data: result,
-                message: result.message || 'Ticket created successfully'
+                message: result.message || 'Event ticket created successfully'
             };
-        } catch (error) {
-            console.error('❌ Event ticket creation error:', error);
-            throw new Error(handleApiError(error));
+        } catch (error: any) {
+            console.error('❌ Event ticket creation error:', {
+                message: error.message,
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                url: error.config?.url,
+                data: error.response?.data
+            });
+            throw error;
         }
     }
 
@@ -701,25 +705,35 @@ export class TicketService {
         ticketData: {
             clubId: string;
             userId: string;
-            userEmail: string;
-            userName: string;
-            userPhone: string;
             bookingDate: string;
             arrivalTime: string;
             guestCount: number;
-            orderId: string; // REQUIRED - links to payment order
-            offerId?: string | null;
-            occasion?: string;
-            floorPreference?: string;
+            currency: string;
+            orderId: string;
         }
     ): Promise<ApiResponse<any>> {
         try {
-            console.log('🔵 Creating club ticket with orderId (pre-payment):', ticketData.orderId);
+            console.log('🔵 Creating CLUB ticket (no event) with orderId:', ticketData.orderId);
+
+            // Build payload with ONLY the required fields per API spec
+            const payload = {
+                clubId: ticketData.clubId,
+                userId: ticketData.userId,
+                bookingDate: ticketData.bookingDate,
+                arrivalTime: ticketData.arrivalTime,
+                guestCount: ticketData.guestCount,
+                currency: ticketData.currency,
+                orderId: ticketData.orderId
+            };
+
+            console.log('📤 Club Ticket Payload:', JSON.stringify(payload, null, 2));
+            console.log('🔵 Calling endpoint: /ticket/club-tickets/no-event');
+
             const response = await api.post<any>(
                 '/ticket/club-tickets/no-event',
-                ticketData
+                payload
             );
-            console.log('✅ Club ticket created (pending payment):', response.data);
+            console.log('✅ Club ticket created successfully:', response.data);
 
             // API returns { status: "success", message: "...", timestamp: "..." }
             // Convert to standard ApiResponse format
@@ -727,7 +741,7 @@ export class TicketService {
             return {
                 success: result.status === 'success',
                 data: result,
-                message: result.message || 'Ticket created successfully'
+                message: result.message || 'Club ticket created successfully'
             };
         } catch (error) {
             console.error('❌ Club ticket creation error:', error);
