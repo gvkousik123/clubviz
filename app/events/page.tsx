@@ -15,7 +15,8 @@ export default function EventsListPage() {
     const [loading, setLoading] = useState(true);
     const [favorites, setFavorites] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [startDate, setStartDate] = useState<Date | null>(null);
+    const [endDate, setEndDate] = useState<Date | null>(null);
 
     const fetchEvents = async () => {
         setLoading(true);
@@ -101,32 +102,6 @@ export default function EventsListPage() {
         loadFavorites();
     }, []);
 
-    // Filter events by selected date
-    const getEventsForSelectedDate = () => {
-        return events.filter(event => {
-            const eventDate = new Date(event.startDateTime);
-            return eventDate.getDate() === selectedDate.getDate() &&
-                eventDate.getMonth() === selectedDate.getMonth() &&
-                eventDate.getFullYear() === selectedDate.getFullYear();
-        });
-    };
-
-    const filteredEvents = getEventsForSelectedDate();
-
-    // Generate date range for calendar (today + 7 days)
-    const getDateRange = () => {
-        const dates = [];
-        const today = new Date();
-        for (let i = 0; i < 7; i++) {
-            const date = new Date(today);
-            date.setDate(today.getDate() + i);
-            dates.push(date);
-        }
-        return dates;
-    };
-
-    const dateRange = getDateRange();
-
     const getEventFallbackImage = (index: number) => {
         const eventImages = [
             '/event list/Rectangle 1.jpg',
@@ -145,6 +120,34 @@ export default function EventsListPage() {
             date.getMonth() === today.getMonth() &&
             date.getFullYear() === today.getFullYear();
     };
+
+    // Filter events by date range
+    const getEventsForDateRange = () => {
+        if (!startDate && !endDate) return [];
+        
+        return events.filter(event => {
+            const eventDate = new Date(event.startDateTime);
+            eventDate.setHours(0, 0, 0, 0);
+            
+            const start = startDate ? new Date(startDate) : null;
+            const end = endDate ? new Date(endDate) : null;
+            
+            if (start) start.setHours(0, 0, 0, 0);
+            if (end) end.setHours(23, 59, 59, 999);
+            
+            if (start && end) {
+                return eventDate >= start && eventDate <= end;
+            } else if (start) {
+                return eventDate >= start;
+            } else if (end) {
+                return eventDate <= end;
+            }
+            return false;
+        });
+    };
+
+    const rangeFilteredEvents = getEventsForDateRange();
+    const hasDateSelection = startDate !== null || endDate !== null;
 
     return (
         <div className="min-h-screen bg-[#031313] text-white">
@@ -201,35 +204,46 @@ export default function EventsListPage() {
 
                 {/* Main Content */}
                 <div className="w-full space-y-6 pt-[18vh] pb-8">
-                    {/* Calendar Picker */}
+                    {/* Calendar Date Range Picker */}
                     <section className="w-full px-5">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-white text-base font-semibold">Select Date</h2>
+                            <h2 className="text-white text-base font-semibold">Filter by Date Range</h2>
                         </div>
-                        <div className="overflow-x-auto scrollbar-hide">
-                            <div className="flex gap-3 pb-2">
-                                {dateRange.map((date, index) => {
-                                    const isSelected = selectedDate.getDate() === date.getDate() &&
-                                        selectedDate.getMonth() === date.getMonth() &&
-                                        selectedDate.getFullYear() === date.getFullYear();
-                                    const day = date.getDate();
-                                    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-
-                                    return (
-                                        <button
-                                            key={index}
-                                            onClick={() => setSelectedDate(new Date(date))}
-                                            className={`flex flex-col items-center justify-center gap-1 py-3 px-4 rounded-xl transition-all flex-shrink-0 border ${isSelected
-                                                ? 'bg-[#14FFEC] border-[#14FFEC] text-black'
-                                                : 'bg-[#0D1F1F] border-[#14FFEC]/30 text-white hover:border-[#14FFEC]'
-                                                }`}
-                                        >
-                                            <span className="text-xs font-semibold uppercase">{dayName}</span>
-                                            <span className="text-lg font-bold">{day}</span>
-                                        </button>
-                                    );
-                                })}
+                        <div className="space-y-3">
+                            {/* Start Date */}
+                            <div>
+                                <label className="text-white/70 text-xs font-semibold mb-2 block">START DATE</label>
+                                <input
+                                    type="date"
+                                    value={startDate ? startDate.toISOString().split('T')[0] : ''}
+                                    onChange={(e) => setStartDate(e.target.value ? new Date(e.target.value) : null)}
+                                    className="w-full bg-[#0D1F1F] border border-[#14FFEC]/30 text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[#14FFEC]"
+                                />
                             </div>
+
+                            {/* End Date */}
+                            <div>
+                                <label className="text-white/70 text-xs font-semibold mb-2 block">END DATE</label>
+                                <input
+                                    type="date"
+                                    value={endDate ? endDate.toISOString().split('T')[0] : ''}
+                                    onChange={(e) => setEndDate(e.target.value ? new Date(e.target.value) : null)}
+                                    className="w-full bg-[#0D1F1F] border border-[#14FFEC]/30 text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[#14FFEC]"
+                                />
+                            </div>
+
+                            {/* Clear Button */}
+                            {hasDateSelection && (
+                                <button
+                                    onClick={() => {
+                                        setStartDate(null);
+                                        setEndDate(null);
+                                    }}
+                                    className="w-full bg-white/10 hover:bg-white/20 text-white text-sm rounded-lg px-4 py-2 transition-colors"
+                                >
+                                    Clear Selection
+                                </button>
+                            )}
                         </div>
                     </section>
 
@@ -247,116 +261,129 @@ export default function EventsListPage() {
                                     No events available
                                 </div>
                             ) : (
-                                events.map((event, index) => (
-                                    <div
-                                        key={event.id}
-                                        onClick={() => handleEventClick(event.id)}
-                                        className="w-full bg-[#021A1A] rounded-[20px] overflow-hidden flex cursor-pointer border border-white/5 h-[120px] hover:border-[#14FFEC]/50 transition-all"
-                                    >
-                                        {/* Image */}
-                                        <div className="w-[120px] h-full relative flex-shrink-0">
-                                            <img
-                                                src={event.imageUrl || getEventFallbackImage(index)}
-                                                alt={event.title}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
+                                events.map((event, index) => {
+                                    const eventDate = new Date(event.startDateTime);
+                                    const dateStr = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
+                                    const timeStr = eventDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
-                                        {/* Content */}
-                                        <div className="flex-1 p-3 flex flex-col justify-between">
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex-1">
-                                                    <span className="text-xs text-[#14FFEC] font-bold uppercase mb-1 block">
-                                                        {new Date(event.startDateTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                                                    </span>
-                                                    <h3 className="text-white text-sm font-bold leading-tight line-clamp-2 mb-1">
-                                                        {event.title}
-                                                    </h3>
-                                                    <p className="text-white/50 text-xs truncate flex items-center gap-1">
-                                                        <MapPin className="w-3 h-3" />
-                                                        {event.location || event.clubName}
-                                                    </p>
+                                    return (
+                                        <div
+                                            key={event.id}
+                                            onClick={() => handleEventClick(event.id)}
+                                            className="w-full bg-[#021A1A] rounded-[20px] overflow-hidden flex cursor-pointer border border-white/5 h-[120px] hover:border-[#14FFEC]/50 transition-all"
+                                        >
+                                            {/* Image */}
+                                            <div className="w-[120px] h-full relative flex-shrink-0">
+                                                <img
+                                                    src={event.imageUrl || getEventFallbackImage(index)}
+                                                    alt={event.title}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+
+                                            {/* Content */}
+                                            <div className="flex-1 p-3 flex flex-col justify-between">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex-1">
+                                                        <span className="text-xs text-[#14FFEC] font-bold uppercase mb-1 block">
+                                                            {dateStr} • {timeStr}
+                                                        </span>
+                                                        <h3 className="text-white text-sm font-bold leading-tight line-clamp-2 mb-1">
+                                                            {event.title}
+                                                        </h3>
+                                                        <p className="text-white/50 text-xs truncate flex items-center gap-1">
+                                                            <MapPin className="w-3 h-3" />
+                                                            {event.location || event.clubName}
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleFavorite(event.id);
+                                                        }}
+                                                        className={`flex-shrink-0 ml-2 transition-colors ${favorites.includes(event.id)
+                                                            ? 'text-[#14FFEC]'
+                                                            : 'text-white/30 hover:text-[#14FFEC]'
+                                                            }`}
+                                                    >
+                                                        <Heart className="w-4 h-4" fill={favorites.includes(event.id) ? 'currentColor' : 'none'} />
+                                                    </button>
                                                 </div>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        toggleFavorite(event.id);
-                                                    }}
-                                                    className={`flex-shrink-0 ml-2 transition-colors ${favorites.includes(event.id)
-                                                        ? 'text-[#14FFEC]'
-                                                        : 'text-white/30 hover:text-[#14FFEC]'
-                                                        }`}
-                                                >
-                                                    <Heart className="w-4 h-4" fill={favorites.includes(event.id) ? 'currentColor' : 'none'} />
-                                                </button>
                                             </div>
                                         </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                         </div>
                     </section>
 
-                    {/* Events on Selected Date Section */}
-                    {filteredEvents.length > 0 && (
+                    {/* Filtered Events Section */}
+                    {hasDateSelection && rangeFilteredEvents.length > 0 && (
                         <section className="w-full px-5 border-t border-[#14FFEC]/20 pt-6">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-white text-base font-semibold">
-                                    {isToday(selectedDate) ? 'Today\'s Events' : `Events on ${selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+                                    Events in Selected Range
                                 </h2>
                             </div>
 
                             <div className="space-y-4">
-                                {filteredEvents.map((event, index) => (
-                                    <div
-                                        key={event.id}
-                                        onClick={() => handleEventClick(event.id)}
-                                        className="w-full bg-[#14FFEC]/10 rounded-[20px] overflow-hidden flex cursor-pointer border border-[#14FFEC]/30 h-[120px] hover:border-[#14FFEC] transition-all"
-                                    >
-                                        {/* Image */}
-                                        <div className="w-[120px] h-full relative flex-shrink-0">
-                                            <img
-                                                src={event.imageUrl || getEventFallbackImage(index)}
-                                                alt={event.title}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
+                                {rangeFilteredEvents.map((event, index) => {
+                                    const eventDate = new Date(event.startDateTime);
+                                    const dateStr = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
+                                    const timeStr = eventDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
-                                        {/* Content */}
-                                        <div className="flex-1 p-3 flex flex-col justify-between">
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex-1">
-                                                    <span className="text-xs text-[#14FFEC] font-bold uppercase mb-1 block">
-                                                        {new Date(event.startDateTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                                                    </span>
-                                                    <h3 className="text-white text-sm font-bold leading-tight line-clamp-2 mb-1">
-                                                        {event.title}
-                                                    </h3>
-                                                    <p className="text-white/50 text-xs truncate flex items-center gap-1">
-                                                        <MapPin className="w-3 h-3" />
-                                                        {event.location || event.clubName}
-                                                    </p>
+                                    return (
+                                        <div
+                                            key={event.id}
+                                            onClick={() => handleEventClick(event.id)}
+                                            className="w-full bg-[#14FFEC]/10 rounded-[20px] overflow-hidden flex cursor-pointer border border-[#14FFEC]/30 h-[120px] hover:border-[#14FFEC] transition-all"
+                                        >
+                                            {/* Image */}
+                                            <div className="w-[120px] h-full relative flex-shrink-0">
+                                                <img
+                                                    src={event.imageUrl || getEventFallbackImage(index)}
+                                                    alt={event.title}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+
+                                            {/* Content */}
+                                            <div className="flex-1 p-3 flex flex-col justify-between">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex-1">
+                                                        <span className="text-xs text-[#14FFEC] font-bold uppercase mb-1 block">
+                                                            {dateStr} • {timeStr}
+                                                        </span>
+                                                        <h3 className="text-white text-sm font-bold leading-tight line-clamp-2 mb-1">
+                                                            {event.title}
+                                                        </h3>
+                                                        <p className="text-white/50 text-xs truncate flex items-center gap-1">
+                                                            <MapPin className="w-3 h-3" />
+                                                            {event.location || event.clubName}
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleFavorite(event.id);
+                                                        }}
+                                                        className={`flex-shrink-0 ml-2 transition-colors ${favorites.includes(event.id)
+                                                            ? 'text-[#14FFEC]'
+                                                            : 'text-white/30 hover:text-[#14FFEC]'
+                                                            }`}
+                                                    >
+                                                        <Heart className="w-4 h-4" fill={favorites.includes(event.id) ? 'currentColor' : 'none'} />
+                                                    </button>
                                                 </div>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        toggleFavorite(event.id);
-                                                    }}
-                                                    className={`flex-shrink-0 ml-2 transition-colors ${favorites.includes(event.id)
-                                                        ? 'text-[#14FFEC]'
-                                                        : 'text-white/30 hover:text-[#14FFEC]'
-                                                        }`}
-                                                >
-                                                    <Heart className="w-4 h-4" fill={favorites.includes(event.id) ? 'currentColor' : 'none'} />
-                                                </button>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </section>
                     )}
                 </div>
             </div>
-            );
+        </div>
+    );
 }
