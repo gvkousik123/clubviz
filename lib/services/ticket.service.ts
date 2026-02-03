@@ -29,6 +29,22 @@ export interface CancelTicketRequest {
 }
 
 /**
+ * Ticket confirmation email request
+ */
+export interface TicketConfirmationEmailRequest {
+    to: string;
+    ticketNumber: string;
+    clubName: string;
+    userName: string;
+    bookingDate: string;
+    arrivalTime: string;
+    guestCount: number;
+    totalAmount: number;
+    qrCode: string;
+    eventTitle: string;
+}
+
+/**
  * Validate QR code request
  */
 export interface ValidateQRRequest {
@@ -746,6 +762,35 @@ export class TicketService {
         } catch (error) {
             console.error('❌ Club ticket creation error:', error);
             throw new Error(handleApiError(error));
+        }
+    }
+
+    /**
+     * Send ticket confirmation email after successful ticket generation
+     * POST /ticket/email/ticket-confirmation
+     * 
+     * @param emailData - Ticket details for email confirmation
+     * @returns Success response confirming email sent
+     */
+    static async sendTicketConfirmationEmail(
+        emailData: TicketConfirmationEmailRequest
+    ): Promise<ApiResponse<{ message: string }>> {
+        try {
+            console.log('📧 Sending ticket confirmation email:', emailData.to);
+            const response = await api.post<ApiResponse<{ message: string }>>(
+                `${this.TICKET_BASE}/email/ticket-confirmation`,
+                emailData
+            );
+            console.log('✅ Confirmation email sent successfully');
+            return handleApiResponse(response);
+        } catch (error) {
+            console.error('❌ Error sending confirmation email:', error);
+            // Don't throw error - email failure shouldn't break ticket generation
+            return {
+                success: false,
+                data: null,
+                message: handleApiError(error)
+            };
         }
     }
 }

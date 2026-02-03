@@ -60,6 +60,27 @@ function NotifyPaymentContent() {
                         setMessage('Payment successful! Ticket created.');
                     }
 
+                    // Send ticket confirmation email after successful generation
+                    try {
+                        const ticketData = generateResponse.data;
+                        await TicketService.sendTicketConfirmationEmail({
+                            to: ticketData.userEmail,
+                            ticketNumber: ticketData.ticketNumber,
+                            clubName: ticketData.clubName,
+                            userName: ticketData.userName,
+                            bookingDate: ticketData.bookingDate,
+                            arrivalTime: ticketData.arrivalTime,
+                            guestCount: ticketData.guestCount || (ticketData.maleCount + ticketData.femaleCount + ticketData.coupleCount * 2),
+                            totalAmount: ticketData.totalAmount,
+                            qrCode: ticketData.qrCode,
+                            eventTitle: ticketData.eventTitle || 'Event Ticket'
+                        });
+                        console.log('✅ Confirmation email sent');
+                    } catch (emailError) {
+                        console.error('⚠️ Email sending failed (non-critical):', emailError);
+                        // Continue even if email fails
+                    }
+
                 } else if (generateResponse.message?.includes('failed') ||
                     generateResponse.message?.includes('FAILED')) {
                     // Payment failed - STAY on this page
