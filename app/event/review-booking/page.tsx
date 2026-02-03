@@ -27,6 +27,7 @@ function ReviewBookingPageContent() {
     // Get data from sessionStorage
     const [bookingData, setBookingData] = useState<any>(null);
     const [isCreatingTicket, setIsCreatingTicket] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const eventId = bookingData?.eventId || '';
     const ticketType = bookingData?.ticketType || 'early';
@@ -93,107 +94,117 @@ function ReviewBookingPageContent() {
     };
 
     const handlePayment = async () => {
-        const totalAmount = calculateTotalAmount();
+        try {
+            setErrorMessage(null);
+            const totalAmount = calculateTotalAmount();
 
-        // Get user data from localStorage - user object contains id and username
-        const userStr = typeof window !== 'undefined' ? localStorage.getItem('clubviz-user') : null;
-        let userId = 'ANONYMOUS';
-        let userNameFromStorage = '';
+            // Get user data from localStorage - user object contains id and username
+            const userStr = typeof window !== 'undefined' ? localStorage.getItem('clubviz-user') : null;
+            let userId = 'ANONYMOUS';
+            let userNameFromStorage = '';
 
-        if (userStr) {
-            try {
-                const user = JSON.parse(userStr);
-                userId = user.id || user.userId || 'ANONYMOUS';
-                userNameFromStorage = user.username || user.userName || user.name || '';
-                console.log('✅ User data from localStorage:', { userId, userNameFromStorage, user });
-            } catch (e) {
-                console.error('Error parsing user data:', e);
+            if (userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    userId = user.id || user.userId || 'ANONYMOUS';
+                    userNameFromStorage = user.username || user.userName || user.name || '';
+                    console.log('✅ User data from localStorage:', { userId, userNameFromStorage, user });
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                }
             }
-        }
 
-        // Store contact details in localStorage for persistence across redirects
-        if (typeof window !== 'undefined') {
-            const contactDetails = {
-                email,
-                phone,
+            // Store contact details in localStorage for persistence across redirects
+            if (typeof window !== 'undefined') {
+                const contactDetails = {
+                    email,
+                    phone,
+                    maleName,
+                    femaleName,
+                    stagName,
+                    userId
+                };
+                localStorage.setItem('bookingContactDetails', JSON.stringify(contactDetails));
+                console.log('💾 Stored contact details in localStorage:', contactDetails);
+            }
+
+            // Extract club data from event's club object or fallback to user data
+            let clubData = { clubId: '', clubName: '' };
+
+            // First try to get from event's club object
+            if (eventData?.club) {
+                clubData = {
+                    clubId: eventData.club.id || eventData.club.clubId || '',
+                    clubName: eventData.club.name || eventData.club.clubName || ''
+                };
+            }
+
+            // If still empty, try event data direct properties
+            if (!clubData.clubId) {
+                clubData = {
+                    clubId: eventData?.clubId || 'CLUB001',
+                    clubName: eventData?.clubName || eventData?.venue || 'Event Venue'
+                };
+            }
+
+            // Get booking date and time from event data
+            const bookingDate = eventData?.startDateTime ? new Date(eventData.startDateTime).toISOString().split('T')[0] :
+                eventData?.date ? new Date(eventData.date).toISOString().split('T')[0] :
+                    new Date().toISOString().split('T')[0];
+
+            const arrivalTime = eventData?.startDateTime ? new Date(eventData.startDateTime).toISOString().split('T')[1].substring(0, 8) :
+                eventData?.time || '18:00:00';
+
+            // Store booking data for after payment with ALL required fields
+            const ticketBookingData = {
+                eventId,
+                clubId: clubData.clubId,
+                clubName: clubData.clubName,
+                userId: userId,
+                ticketType,
+                maleStag,
+                femaleStag,
+                couple,
+                maleCount: maleStag,
+                femaleCount: femaleStag,
+                coupleCount: couple,
                 maleName,
                 femaleName,
                 stagName,
-                userId
+                phone,
+                email,
+                userName: userNameFromStorage || maleName || stagName || 'Guest',
+                bookingDate,
+                arrivalTime,
+                guestCount: maleStag + femaleStag + (couple * 2),
+                ticketDescription: 'Event ticket booking',
+                currency: 'INR',
+                occasion: 'Event',
+                floorPreference: 'Main Floor',
+                totalAmount,
+                eventData
             };
-            localStorage.setItem('bookingContactDetails', JSON.stringify(contactDetails));
-            console.log('💾 Stored contact details in localStorage:', contactDetails);
+
+            console.log('🔵 Storing ticket booking data in sessionStorage:', ticketBookingData);
+            sessionStorage.setItem('pendingEventBooking', JSON.stringify(ticketBookingData));
+
+            // Format mobile number - remove country code and special characters
+            const mobile = phone.replace(/[^0-9]/g, '').slice(-10); // Get last 10 digits
+
+            // Initiate payment with contact info (usePayment hook will get additional details from localStorage)
+            const paymentSuccess = await quickPay(totalAmount, {
+                username: maleName || stagName || 'Guest',
+                email: email,
+                mobile: mobile || '' // Will use fallback in usePayment hook if empty
+            });
+
+            if (!paymentSuccess) {
+                setErrorMessage('Failed to initiate payment. Please try again.');
+            }
+        } catch (error: any) {
+            console.error('Payment error:', error);
+            setErrorMessage(error.message || 'An error occurred. Please try again.');
         }
-
-        // Extract club data from event's club object or fallback to user data
-        let clubData = { clubId: '', clubName: '' };
-
-        // First try to get from event's club object
-        if (eventData?.club) {
-            clubData = {
-                clubId: eventData.club.id || eventData.club.clubId || '',
-                clubName: eventData.club.name || eventData.club.clubName || ''
-            };
-        }
-
-        // If still empty, try event data direct properties
-        if (!clubData.clubId) {
-            clubData = {
-                clubId: eventData?.clubId || 'CLUB001',
-                clubName: eventData?.clubName || eventData?.venue || 'Event Venue'
-            };
-        }
-
-        // Get booking date and time from event data
-        const bookingDate = eventData?.startDateTime ? new Date(eventData.startDateTime).toISOString().split('T')[0] :
-            eventData?.date ? new Date(eventData.date).toISOString().split('T')[0] :
-                new Date().toISOString().split('T')[0];
-
-        const arrivalTime = eventData?.startDateTime ? new Date(eventData.startDateTime).toISOString().split('T')[1].substring(0, 8) :
-            eventData?.time || '18:00:00';
-
-        // Store booking data for after payment with ALL required fields
-        const ticketBookingData = {
-            eventId,
-            clubId: clubData.clubId,
-            clubName: clubData.clubName,
-            userId: userId,
-            ticketType,
-            maleStag,
-            femaleStag,
-            couple,
-            maleCount: maleStag,
-            femaleCount: femaleStag,
-            coupleCount: couple,
-            maleName,
-            femaleName,
-            stagName,
-            phone,
-            email,
-            userName: userNameFromStorage || maleName || stagName || 'Guest',
-            bookingDate,
-            arrivalTime,
-            guestCount: maleStag + femaleStag + (couple * 2),
-            ticketDescription: 'Event ticket booking',
-            currency: 'INR',
-            occasion: 'Event',
-            floorPreference: 'Main Floor',
-            totalAmount,
-            eventData
-        };
-
-        console.log('🔵 Storing ticket booking data in sessionStorage:', ticketBookingData);
-        sessionStorage.setItem('pendingEventBooking', JSON.stringify(ticketBookingData));
-
-        // Format mobile number - remove country code and special characters
-        const mobile = phone.replace(/[^0-9]/g, '').slice(-10); // Get last 10 digits
-
-        // Initiate payment with contact info (usePayment hook will get additional details from localStorage)
-        await quickPay(totalAmount, {
-            username: maleName || stagName || 'Guest',
-            email: email,
-            mobile: mobile || '' // Will use fallback in usePayment hook if empty
-        });
     };
 
     if (!bookingData) {
@@ -215,6 +226,22 @@ function ReviewBookingPageContent() {
     return (
         <div className="min-h-screen w-full bg-[#021313] relative">
             <PageHeader title="REVIEW EVENT BOOKING" />
+
+            {/* Error Message Alert */}
+            {errorMessage && (
+                <div className="fixed top-20 left-4 right-4 z-50 bg-red-900/80 border border-red-400 text-red-100 px-4 py-3 rounded-lg shadow-lg flex items-start gap-3">
+                    <div className="flex-1">
+                        <p className="font-semibold">Booking Error</p>
+                        <p className="text-sm mt-1">{errorMessage}</p>
+                    </div>
+                    <button
+                        onClick={() => setErrorMessage(null)}
+                        className="text-red-300 hover:text-red-100 font-bold"
+                    >
+                        ✕
+                    </button>
+                </div>
+            )}
 
             {/* Main Content - Scrollable */}
             <div className="pt-[20vh] pb-24 h-screen overflow-y-auto scrollbar-hide">
