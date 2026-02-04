@@ -36,7 +36,7 @@ function ReviewEventBookingPageContent() {
 
     const handleViewTicket = () => {
         if (ticket?.ticketId) {
-            router.push(`/booking/confirmation?ticketId=${ticket.ticketId}`);
+            router.push(`/booking/ticket?ticketId=${ticket.ticketId}`);
         }
     };
 
