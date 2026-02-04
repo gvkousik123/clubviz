@@ -37,7 +37,7 @@ export const ClubCard: React.FC<ClubCardProps> = ({
         }
     };
 
-    const imageUrl = club.image || '';
+    const imageUrl = club.image || '/placeholder/image.png';
 
     return (
         <Link href={`/club/${club.id}`} className={`block ${className} cursor-pointer`}>
@@ -50,8 +50,8 @@ export const ClubCard: React.FC<ClubCardProps> = ({
                         className="w-full h-full object-cover absolute inset-0"
                         onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            if (target.src !== (fallbackImage || '/venue/Screenshot 2024-12-10 195651.png')) {
-                                target.src = fallbackImage || '/venue/Screenshot 2024-12-10 195651.png';
+                            if (target.src !== '/placeholder/image.png') {
+                                target.src = '/placeholder/image.png';
                             }
                         }}
                     />

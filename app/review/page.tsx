@@ -109,9 +109,12 @@ export default function ReviewPage() {
                         <div key={review.id} className="bg-[rgba(40,60,61,0.30)] rounded-2xl p-4">
                             <div className="flex items-center gap-3">
                                 <img
-                                    src={review.avatar}
+                                    src={review.avatar || '/placeholder/image.png'}
                                     alt={review.name}
                                     className="w-12 h-12 rounded-full object-cover"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = '/placeholder/image.png';
+                                    }}
                                 />
                                 <div>
                                     <h3 className="text-white font-medium">{review.name}</h3>
