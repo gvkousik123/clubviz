@@ -79,10 +79,10 @@ export const useProfile = (): UseProfileReturn => {
   const loadProfile = useCallback(async () => {
     setIsProfileLoading(true);
     try {
-      // Disabled: Profile API call causes CORS errors
-      // const profileData = await ProfileService.getProfile();
-      // setProfile(profileData);
-      setCurrentUser(ProfileService.getCurrentUser());
+      // Load profile from localStorage only - no API calls
+      const userData = ProfileService.getCurrentUser();
+      setCurrentUser(userData);
+      setProfile(userData as UserProfile);
     } catch (error) {
       // Silently fail - don't show toast for profile load errors
       // console.error('Profile load error:', error);
@@ -110,15 +110,20 @@ export const useProfile = (): UseProfileReturn => {
   const loadStats = useCallback(async () => {
     setIsStatsLoading(true);
     try {
-      const statsData = await ProfileService.getProfileStats();
-      setStats(statsData);
+      // Load stats from localStorage only - no API calls
+      // Return empty/default stats since we're not calling API
+      setStats({
+        clubsJoined: 0,
+        eventsAttended: 0,
+        eventsOrganized: 0,
+        totalClubOwned: 0,
+      });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load statistics';
-      showErrorToast('Failed to Load Statistics', errorMessage);
+      // Silently fail
     } finally {
       setIsStatsLoading(false);
     }
-  }, [showErrorToast]);
+  }, []);
 
   // ============================================================================
   // ADMIN OPERATIONS
