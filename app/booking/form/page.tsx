@@ -14,7 +14,7 @@ export default function BookingFormPage() {
     });
 
     const handleGoBack = () => {
-        router.back();
+        router.push('/home');
     };
 
     const handleNext = () => {
@@ -161,8 +161,8 @@ export default function BookingFormPage() {
                                     key={gender}
                                     onClick={() => handleGenderSelect(gender)}
                                     className={`py-3 px-4 rounded-2xl font-semibold transition-all duration-300 ${formData.gender === gender
-                                            ? 'bg-teal-400 text-black'
-                                            : 'bg-black/40 backdrop-blur-md border border-teal-400/40 text-teal-400 hover:bg-teal-400/10'
+                                        ? 'bg-teal-400 text-black'
+                                        : 'bg-black/40 backdrop-blur-md border border-teal-400/40 text-teal-400 hover:bg-teal-400/10'
                                         }`}
                                 >
                                     {gender === 'Male' && <span className="mr-2">♂</span>}

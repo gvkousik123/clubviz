@@ -13,7 +13,7 @@ export default function TableSelectionPage() {
     const [selectedTable, setSelectedTable] = useState('TG-04');
 
     const handleGoBack = () => {
-        router.back();
+        router.push('/home');
     };
 
     const handleFloorSelect = (floor: string) => {

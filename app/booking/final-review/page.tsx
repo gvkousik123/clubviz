@@ -17,7 +17,7 @@ export default function FinalBookingReviewPage() {
     };
 
     const handleGoBack = () => {
-        router.back();
+        router.push('/home');
     };
 
     const handleTicketChange = (type: string, change: number) => {

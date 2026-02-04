@@ -76,7 +76,7 @@ function BookingConfirmPageContent() {
     };
 
     const handleBack = () => {
-        router.push('/clubs'); // Go to clubs list
+        router.push('/home');
     };
 
     if (loading) {

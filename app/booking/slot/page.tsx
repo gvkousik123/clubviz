@@ -207,7 +207,7 @@ function SlotPageContent() {
     }, [selectedDate, selectedTime, timeSlots]);
 
     const handleGoBack = () => {
-        router.back();
+        router.push('/home');
     };
 
     const incrementGuest = () => {
