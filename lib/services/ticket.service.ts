@@ -788,7 +788,7 @@ export class TicketService {
             // Don't throw error - email failure shouldn't break ticket generation
             return {
                 success: false,
-                data: null,
+                data: { message: handleApiError(error) },
                 message: handleApiError(error)
             };
         }

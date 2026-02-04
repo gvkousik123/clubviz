@@ -93,6 +93,8 @@ export interface PublicClubListParams {
   location?: string;
   query?: string;
   hasSpace?: boolean;
+  latitude?: number;
+  longitude?: number;
 }
 
 // ============================================================================
@@ -188,6 +190,8 @@ export interface PublicEventListParams {
   status?: string;
   startDate?: string;
   endDate?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 // ============================================================================
@@ -272,6 +276,12 @@ export class PublicClubService {
     }
     if (params.hasSpace !== undefined) {
       queryParams.append('hasSpace', params.hasSpace.toString());
+    }
+
+    // Add location coordinates if available
+    if (params.latitude !== undefined && params.longitude !== undefined) {
+      queryParams.append('latitude', params.latitude.toString());
+      queryParams.append('longitude', params.longitude.toString());
     }
 
     // Get authorization token
@@ -470,6 +480,12 @@ export class PublicEventService {
     }
     if (params.endDate) {
       queryParams.append('endDate', params.endDate);
+    }
+
+    // Add location coordinates if available
+    if (params.latitude !== undefined && params.longitude !== undefined) {
+      queryParams.append('latitude', params.latitude.toString());
+      queryParams.append('longitude', params.longitude.toString());
     }
 
     // Get authorization token

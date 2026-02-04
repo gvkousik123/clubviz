@@ -21,6 +21,7 @@ interface BookingItem {
     ticketNumber?: string;
     eventId?: string;
     hasEvent?: boolean;
+    qrCode?: string | null;
 }
 
 export default function BookingPage() {
@@ -91,7 +92,8 @@ export default function BookingPage() {
                         status: ticket.status,
                         ticketNumber: ticket.ticketNumber,
                         eventId: ticket.eventId,
-                        hasEvent: ticket.hasEvent || false
+                        hasEvent: ticket.hasEvent || false,
+                        qrCode: ticket.qrCode || null
                     };
                 });
 
@@ -236,13 +238,18 @@ export default function BookingPage() {
                                             borderTopLeftRadius: 0,
                                             borderBottomLeftRadius: 0
                                         }}>
-                                            <Image
-                                                src="/booking/qr/Frame 1000001244.png"
-                                                alt="QR Code"
-                                                width={80}
-                                                height={224}
-                                                className="w-full h-[90%] object-contain"
-                                            />
+                                            {booking.qrCode ? (
+                                                <img
+                                                    src={`data:image/png;base64,${booking.qrCode}`}
+                                                    alt="QR Code"
+                                                    className="w-[70px] h-[70px] object-contain"
+                                                />
+                                            ) : (
+                                                <div className="flex flex-col items-center justify-center text-center p-2">
+                                                    <span className="text-[#074344] text-[8px] font-medium">Ticket</span>
+                                                    <span className="text-[#074344] text-[10px] font-bold">{booking.ticketNumber || 'N/A'}</span>
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Event Header */}

@@ -394,13 +394,20 @@ const HomePage = () => {
     useEffect(() => {
         const loadInitialData = async () => {
             const isGuest = isGuestMode();
+            let userCoords: { latitude: number; longitude: number } | undefined;
 
             // Load user's saved location (for authenticated users)
             if (!isGuest) {
                 try {
                     const locationResult = await UserLocationService.getUserLocation();
                     if (locationResult.success && locationResult.data) {
-                        // Location loaded successfully
+                        // Location loaded successfully - extract coordinates
+                        if (locationResult.data.latitude && locationResult.data.longitude) {
+                            userCoords = {
+                                latitude: locationResult.data.latitude,
+                                longitude: locationResult.data.longitude
+                            };
+                        }
                     }
                 } catch (error) {
                     // User hasn't saved a location yet
@@ -415,7 +422,8 @@ const HomePage = () => {
             // ==================== OPTIMIZED DATA LOADING ====================
             // Use centralized data store - data is cached and shared across pages
             // This prevents duplicate API calls when navigating between pages
-            await initializeData();
+            // Pass coordinates if available for location-based results
+            await initializeData(userCoords);
         };
 
         loadInitialData();

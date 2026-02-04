@@ -12,7 +12,7 @@ function BookingConfirmPageContent() {
     const { toast } = useToast();
     const ticketId = searchParams.get('ticketId');
 
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [ticketData, setTicketData] = useState<any>(null);
 
     useEffect(() => {
@@ -39,13 +39,21 @@ function BookingConfirmPageContent() {
         }
     };
 
-    const handleBack = () => {
+    const handleGoHome = () => {
         router.push('/home');
+    };
+
+    const handleViewBookings = () => {
+        router.push('/booking');
     };
 
     const handleViewTicket = () => {
         // Navigate to ticket details or download
-        router.push(`/ticket?id=${ticketId}`);
+        if (ticketId) {
+            router.push(`/booking/ticket?ticketId=${ticketId}`);
+        } else {
+            router.push('/booking');
+        }
     };
 
     if (loading) {
@@ -58,28 +66,22 @@ function BookingConfirmPageContent() {
 
     return (
         <div className="w-full min-h-screen relative bg-[#021313]">
-            {/* Back button in top left */}
-            <button
-                onClick={handleBack}
-                className="absolute top-10 left-4 z-10 w-10 h-10 bg-[#FFFFFF33] rounded-full flex items-center justify-center"
-            >
-                <ChevronLeft size={24} className="text-white" />
-            </button>
+            {/* No back button on confirmation page - prevents going back to payment flow */}
 
             {/* Main Content */}
             <div className="flex flex-col items-center justify-center  h-screen px-4">
-                {/* Loading Circle Animation */}
+                {/* Success Check Animation */}
                 <div className="w-20 h-20 relative mb-10">
-                    <div className="w-20 h-20 rounded-full border-4 border-[#0D1F1F]"></div>
-                    <div className="absolute top-0 left-0 w-20 h-20 rounded-full border-4 border-r-transparent animate-spin border-[#14FFEC]"></div>
+                    <div className="w-20 h-20 rounded-full border-4 border-[#14FFEC] flex items-center justify-center">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 12L10 17L20 7" stroke="#14FFEC" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                    </div>
                 </div>
 
                 {/* Success Message */}
                 <h1 className="text-white text-2xl font-['Manrope'] font-semibold mb-2 text-center flex items-center justify-center gap-2">
                     <span>Booking Complete</span>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M5 12L10 17L20 7" stroke="#14FFEC" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
                 </h1>
 
                 {/* Subtitle */}
@@ -91,16 +93,6 @@ function BookingConfirmPageContent() {
             {/* Bottom Fixed Buttons */}
             <div className="fixed bottom-8 left-0 right-0">
                 <div className="w-full flex flex-col items-center space-y-4 px-8">
-                    {/* Share Ticket Button */}
-                    <button
-                        onClick={handleShareTicket}
-                        className="w-full max-w-md h-[55px] rounded-[30px] border border-[#14FFEC]  bg-[#0F6861] flex justify-center items-center"
-                    >
-                        <span className="text-white text-xl font-['Manrope'] font-medium">
-                            Share ticket
-                        </span>
-                    </button>
-
                     {/* View Ticket Button */}
                     <button
                         onClick={handleViewTicket}
@@ -108,6 +100,26 @@ function BookingConfirmPageContent() {
                     >
                         <span className="text-white text-xl font-['Manrope'] font-medium">
                             View ticket
+                        </span>
+                    </button>
+
+                    {/* View My Bookings Button */}
+                    <button
+                        onClick={handleViewBookings}
+                        className="w-full max-w-md h-[55px] rounded-[30px] border border-[#14FFEC] bg-[#0F6861] flex justify-center items-center"
+                    >
+                        <span className="text-white text-xl font-['Manrope'] font-medium">
+                            View My Bookings
+                        </span>
+                    </button>
+
+                    {/* Back to Home Button */}
+                    <button
+                        onClick={handleGoHome}
+                        className="w-full max-w-md h-[55px] rounded-[30px] border border-[#FFFFFF33] flex justify-center items-center"
+                    >
+                        <span className="text-white text-xl font-['Manrope'] font-medium">
+                            Back to Home
                         </span>
                     </button>
                 </div>

@@ -83,13 +83,61 @@ export function GoogleMapPicker({ center, currentLocation, selectedLocation, rad
             envVarName: 'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY'
         });
 
-        // Suppress Google Maps error dialogs globally
+        // Suppress Google Maps error dialogs and style autocomplete dropdown
         const style = document.createElement('style');
         style.id = 'gm-style-override';
         style.innerHTML = `
             .gm-err-container, .gm-err-content, .gm-err-title, .gm-err-message,
             .dismissButton, .gm-style-cc, div[role="dialog"],
             .gm-style > div > div > div > div > div[style*="z-index"][style*="position: absolute"] {
+                display: none !important;
+            }
+            
+            /* Google Places Autocomplete Dropdown Styling */
+            .pac-container {
+                background-color: #0a3a3a !important;
+                border: 1px solid #14FFEC50 !important;
+                border-radius: 12px !important;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+                font-family: 'Manrope', sans-serif !important;
+                margin-top: 5px !important;
+                z-index: 10000 !important;
+            }
+            .pac-item {
+                background-color: #0a3a3a !important;
+                border: none !important;
+                border-bottom: 1px solid #14FFEC20 !important;
+                padding: 12px 16px !important;
+                cursor: pointer !important;
+                color: white !important;
+            }
+            .pac-item:hover, .pac-item.pac-item-selected {
+                background-color: #14FFEC20 !important;
+            }
+            .pac-item:last-child {
+                border-bottom: none !important;
+            }
+            .pac-item-query {
+                color: #14FFEC !important;
+                font-size: 14px !important;
+                font-weight: 600 !important;
+            }
+            .pac-matched {
+                color: #14FFEC !important;
+                font-weight: 700 !important;
+            }
+            .pac-item > span:not(.pac-item-query) {
+                color: #ffffff99 !important;
+                font-size: 12px !important;
+            }
+            .pac-icon, .pac-icon-marker {
+                display: none !important;
+            }
+            .pac-logo::after {
+                display: none !important;
+            }
+            /* Hide powered by Google */
+            .pac-container::after {
                 display: none !important;
             }
         `;
@@ -260,9 +308,9 @@ export function GoogleMapPicker({ center, currentLocation, selectedLocation, rad
         if (!isLoaded || !searchInputRef.current || !window.google?.maps?.places) return;
 
         try {
-            // Create autocomplete instance
+            // Create autocomplete instance with address components for city/country
             const autocomplete = new window.google.maps.places.Autocomplete(searchInputRef.current, {
-                fields: ['geometry', 'name', 'formatted_address'],
+                fields: ['geometry', 'name', 'formatted_address', 'address_components'],
                 types: ['geocode', 'establishment'],
             });
 
@@ -274,10 +322,35 @@ export function GoogleMapPicker({ center, currentLocation, selectedLocation, rad
                     const lat = place.geometry.location.lat();
                     const lng = place.geometry.location.lng();
 
-                    // Update search display first
-                    setSearchValue(place.name || place.formatted_address || '');
+                    // Extract city, state, country from address components
+                    let city = '';
+                    let state = '';
+                    let country = '';
 
-                    // Trigger selection callback
+                    if (place.address_components) {
+                        for (const component of place.address_components) {
+                            if (component.types.includes('locality')) {
+                                city = component.long_name;
+                            } else if (component.types.includes('administrative_area_level_1')) {
+                                state = component.long_name;
+                            } else if (component.types.includes('country')) {
+                                country = component.long_name;
+                            }
+                        }
+                    }
+
+                    // Build display name with city and country
+                    let displayName = place.name || '';
+                    if (city && country) {
+                        displayName = city ? `${city}, ${country}` : place.formatted_address || '';
+                    } else if (place.formatted_address) {
+                        displayName = place.formatted_address;
+                    }
+
+                    // Update search display
+                    setSearchValue(displayName);
+
+                    // Trigger selection callback with coordinates
                     onSelect({ lat, lng });
 
                     // Update map center with a small delay to ensure map is ready
@@ -288,6 +361,8 @@ export function GoogleMapPicker({ center, currentLocation, selectedLocation, rad
                             mapRef.current.setZoom(15);
                         }
                     }, 100);
+
+                    console.log('📍 Location selected:', { lat, lng, city, state, country, displayName });
                 }
             });
 

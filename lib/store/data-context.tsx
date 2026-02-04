@@ -150,13 +150,13 @@ function dataReducer(state: DataState, action: DataAction): DataState {
 
 interface DataContextValue extends DataState {
     // Actions
-    fetchClubs: (force?: boolean) => Promise<void>;
-    fetchEvents: (force?: boolean) => Promise<void>;
+    fetchClubs: (force?: boolean, coords?: { latitude: number; longitude: number }) => Promise<void>;
+    fetchEvents: (force?: boolean, coords?: { latitude: number; longitude: number }) => Promise<void>;
     fetchStories: (force?: boolean) => Promise<void>;
     fetchClubById: (id: string, force?: boolean) => Promise<ClubData | null>;
     fetchEventById: (id: string, force?: boolean) => Promise<EventData | null>;
-    initializeData: () => Promise<void>;
-    refreshAll: () => Promise<void>;
+    initializeData: (coords?: { latitude: number; longitude: number }) => Promise<void>;
+    refreshAll: (coords?: { latitude: number; longitude: number }) => Promise<void>;
     clearCache: () => void;
 }
 
@@ -173,7 +173,7 @@ export function DataProvider({ children }: DataProviderProps) {
 
     // ==================== FETCH CLUBS ====================
 
-    const fetchClubs = useCallback(async (force = false) => {
+    const fetchClubs = useCallback(async (force = false, coords?: { latitude: number; longitude: number }) => {
         // Check cache first (unless forced)
         if (!force && dataStore.isValid(CACHE_KEYS.CLUBS_LIST) && state.clubs.length > 0) {
             console.log('📦 Using cached clubs data');
@@ -186,12 +186,18 @@ export function DataProvider({ children }: DataProviderProps) {
             const data: any = await dataStore.dedupedRequest(
                 CACHE_KEYS.CLUBS_LIST,
                 async () => {
-                    const response = await PublicClubService.getPublicClubsList({
+                    const params: any = {
                         page: 0,
                         size: 20,
                         sortBy: 'createdAt',
                         sortDirection: 'desc'
-                    });
+                    };
+                    // Include coordinates if available
+                    if (coords?.latitude && coords?.longitude) {
+                        params.latitude = coords.latitude;
+                        params.longitude = coords.longitude;
+                    }
+                    const response = await PublicClubService.getPublicClubsList(params);
                     return response;
                 },
                 CACHE_DURATION
@@ -222,7 +228,7 @@ export function DataProvider({ children }: DataProviderProps) {
 
     // ==================== FETCH EVENTS ====================
 
-    const fetchEvents = useCallback(async (force = false) => {
+    const fetchEvents = useCallback(async (force = false, coords?: { latitude: number; longitude: number }) => {
         if (!force && dataStore.isValid(CACHE_KEYS.EVENTS_LIST) && state.events.length > 0) {
             console.log('📦 Using cached events data');
             return;
@@ -234,12 +240,18 @@ export function DataProvider({ children }: DataProviderProps) {
             const data: any = await dataStore.dedupedRequest(
                 CACHE_KEYS.EVENTS_LIST,
                 async () => {
-                    const response = await PublicEventService.getPublicEvents({
+                    const params: any = {
                         page: 0,
                         size: 20,
                         sortBy: 'startDateTime',
                         sortOrder: 'asc'
-                    });
+                    };
+                    // Include coordinates if available
+                    if (coords?.latitude && coords?.longitude) {
+                        params.latitude = coords.latitude;
+                        params.longitude = coords.longitude;
+                    }
+                    const response = await PublicEventService.getPublicEvents(params);
                     return response;
                 },
                 CACHE_DURATION
@@ -384,18 +396,18 @@ export function DataProvider({ children }: DataProviderProps) {
 
     // ==================== INITIALIZE DATA ====================
 
-    const initializeData = useCallback(async () => {
+    const initializeData = useCallback(async (coords?: { latitude: number; longitude: number }) => {
         if (state.isInitialized) {
             console.log('📦 Data already initialized, using cache');
             return;
         }
 
-        console.log('🚀 Initializing app data...');
+        console.log('🚀 Initializing app data...', coords ? `with coords: ${coords.latitude}, ${coords.longitude}` : 'without coords');
 
         // Fetch all data in parallel
         await Promise.all([
-            fetchClubs(),
-            fetchEvents(),
+            fetchClubs(false, coords),
+            fetchEvents(false, coords),
             fetchStories(),
         ]);
 
@@ -405,14 +417,14 @@ export function DataProvider({ children }: DataProviderProps) {
 
     // ==================== REFRESH ALL ====================
 
-    const refreshAll = useCallback(async () => {
+    const refreshAll = useCallback(async (coords?: { latitude: number; longitude: number }) => {
         console.log('🔄 Refreshing all data...');
         dataStore.clear();
         dispatch({ type: 'RESET' });
 
         await Promise.all([
-            fetchClubs(true),
-            fetchEvents(true),
+            fetchClubs(true, coords),
+            fetchEvents(true, coords),
             fetchStories(true),
         ]);
 

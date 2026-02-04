@@ -137,28 +137,28 @@ apiClient.interceptors.response.use(
           originalRequest.headers['Authorization'] = 'Bearer ' + newToken;
           return apiClient(originalRequest);
         } else {
-          // Failed to refresh token, logout
+          // Failed to refresh token - just reject, don't force logout
+          // User will be prompted to login again on protected pages
           isRefreshing = false;
           processQueue(error, null);
-          handleForcedLogout();
           return Promise.reject(error);
         }
       } catch (refreshError) {
-        // Refresh token failed, logout
+        // Refresh token failed - just reject, don't force logout
         isRefreshing = false;
         processQueue(refreshError, null);
-        handleForcedLogout();
         return Promise.reject(refreshError);
       }
     }
 
-    // Handle 403 (Forbidden) - force logout
+    // Handle 403 (Forbidden) - just reject, don't force logout
+    // User may not have permission for this specific resource
     if (error.response?.status === 403) {
-      handleForcedLogout();
+      console.warn('403 Forbidden - User may not have permission for this resource');
       return Promise.reject(error);
     }
 
-    // Check for JWT token expiration in response
+    // Check for JWT token expiration in response - log it but don't force logout
     const errorMessage = error.response?.data?.error || error.response?.data?.message || '';
     if (
       errorMessage.toLowerCase().includes('jwt token is expired') ||
@@ -166,7 +166,9 @@ apiClient.interceptors.response.use(
       errorMessage.toLowerCase().includes('token is expired') ||
       errorMessage.toLowerCase().includes('invalid token')
     ) {
-      handleForcedLogout();
+      console.warn('JWT token issue detected:', errorMessage);
+      // Don't force logout - let the user continue browsing
+      // Protected pages will handle authentication as needed
       return Promise.reject(error);
     }
 

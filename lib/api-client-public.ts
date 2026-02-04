@@ -22,33 +22,25 @@ export const publicApi: AxiosInstance = axios.create({
   },
 });
 
-// Public API response interceptor (handle JWT expiration)
+// Public API response interceptor (handle errors without forcing logout)
 publicApi.interceptors.response.use(
   (response: AxiosResponse) => {
     return response;
   },
   (error) => {
-    // Check for JWT token expiration errors
+    // Check for JWT token expiration errors - log but don't force logout
     if (error.response?.status === 401 ||
       error.response?.data?.error?.includes('JWT token') ||
       error.response?.data?.error?.includes('token is expired')) {
 
-      console.error('🔐 JWT Token expired or invalid:', error.response?.data?.error);
-
-      // Clear token from localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem(STORAGE_KEYS.accessToken);
-        localStorage.removeItem(STORAGE_KEYS.refreshToken);
-        localStorage.removeItem(STORAGE_KEYS.user);
-
-        // Redirect to home page
-        window.location.href = '/';
-      }
+      console.warn('🔐 JWT Token issue detected:', error.response?.data?.error);
+      // Don't force logout - let the user continue browsing
+      // Protected pages will handle authentication as needed
 
       return Promise.reject({
         ...error,
         isTokenExpired: true,
-        message: 'JWT token is expired or invalid. Please login again.'
+        message: 'JWT token issue detected. Please try again.'
       });
     }
 

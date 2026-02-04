@@ -25,7 +25,9 @@ function BookingCompleteContent() {
     }, []);
 
     const handleGoBack = () => {
-        router.back();
+        // After booking completion, go to home instead of going back
+        // This prevents users from going back to payment/booking flow
+        router.push('/home');
     };
 
     const handleShareTicket = async () => {

@@ -43,7 +43,12 @@ function ConfirmationPageContent() {
 
     return (
         <div className="min-h-screen w-full bg-[#021313] overflow-hidden">
-            <PageHeader title="REVIEW EVENT BOOKING" />
+            {/* Custom Header without back button for confirmation page */}
+            <div className="fixed top-0 left-0 w-full h-[16vh] bg-gradient-to-t from-[#11B9AB] to-[#222831] rounded-b-[30px] z-40 flex flex-col justify-center">
+                <div className="text-center px-6">
+                    <div className="text-white text-xl font-['Manrope'] font-bold leading-6 tracking-[0.50px]">BOOKING CONFIRMED</div>
+                </div>
+            </div>
 
             {/* Loading State */}
             {loading && (
@@ -295,6 +300,26 @@ function ConfirmationPageContent() {
                         </p>
                     </div>
                 </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="px-4 py-6 space-y-3">
+                <button
+                    onClick={() => router.push('/booking')}
+                    className="w-full h-[50px] rounded-full bg-[#074344] border border-[#14FFEC] flex justify-center items-center"
+                >
+                    <span className="text-white text-lg font-['Manrope'] font-medium">
+                        View My Bookings
+                    </span>
+                </button>
+                <button
+                    onClick={() => router.push('/home')}
+                    className="w-full h-[50px] rounded-full bg-transparent border border-[#FFFFFF33] flex justify-center items-center"
+                >
+                    <span className="text-white text-lg font-['Manrope'] font-medium">
+                        Back to Home
+                    </span>
+                </button>
             </div>
         </div>
     );

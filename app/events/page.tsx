@@ -31,7 +31,16 @@ export default function EventsListPage() {
             });
 
             if (response && response.content) {
-                setEvents(response.content);
+                // Map the response to ensure all fields have proper defaults
+                const mappedEvents = response.content.map((event) => ({
+                    ...event,
+                    imageUrl: event.imageUrl || '/event list/Rectangle 1.jpg',
+                    clubId: event.clubId || '',
+                    clubName: event.clubName || '',
+                    clubLogo: event.clubLogo || '',
+                    organizerName: event.organizerName || ''
+                }));
+                setEvents(mappedEvents as any);
             } else {
                 setEvents([]);
             }
