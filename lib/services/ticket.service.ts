@@ -463,7 +463,7 @@ export class TicketService {
             const { ...payload } = bookingData;
 
             const response = await api.post<ApiResponse<any>>(
-                `${this.TICKET_BASE}/club-tickets/event`,
+                `${this.TICKET_BASE}/club-tickets/no-event`,
                 payload
             );
 

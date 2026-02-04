@@ -181,8 +181,8 @@ export default function BookingPage() {
                             <button
                                 onClick={() => setActiveEventFilter('all')}
                                 className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all flex-shrink-0 ${activeEventFilter === 'all'
-                                        ? 'bg-[#14FFEC] text-black'
-                                        : 'bg-[#0D1F1F] text-white/70 border border-[#14FFEC]/30 hover:border-[#14FFEC]'
+                                    ? 'bg-[#14FFEC] text-black'
+                                    : 'bg-[#0D1F1F] text-white/70 border border-[#14FFEC]/30 hover:border-[#14FFEC]'
                                     }`}
                             >
                                 All Events ({eventTickets.length})
@@ -196,8 +196,8 @@ export default function BookingPage() {
                                         key={eventId}
                                         onClick={() => setActiveEventFilter(eventId as string)}
                                         className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all flex-shrink-0 ${activeEventFilter === eventId
-                                                ? 'bg-[#14FFEC] text-black'
-                                                : 'bg-[#0D1F1F] text-white/70 border border-[#14FFEC]/30 hover:border-[#14FFEC]'
+                                            ? 'bg-[#14FFEC] text-black'
+                                            : 'bg-[#0D1F1F] text-white/70 border border-[#14FFEC]/30 hover:border-[#14FFEC]'
                                             }`}
                                     >
                                         {eventTitle} ({eventTicketCount})
