@@ -40,7 +40,7 @@ function BookingConfirmPageContent() {
     };
 
     const handleBack = () => {
-        router.push('/events'); // Go to events list
+        router.push('/home');
     };
 
     const handleViewTicket = () => {

@@ -57,6 +57,45 @@ const handleForcedLogout = () => {
   }
 };
 
+// Helper function to refresh the access token
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+const refreshAccessToken = async (): Promise<string | null> => {
+  const refreshToken = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.refreshToken) : null;
+
+  if (!refreshToken) {
+    return null;
+  }
+
+  try {
+    const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+      refreshToken
+    });
+
+    const { accessToken } = response.data;
+    if (accessToken) {
+      localStorage.setItem(STORAGE_KEYS.accessToken, accessToken);
+      return accessToken;
+    }
+    return null;
+  } catch (error) {
+    console.error('Failed to refresh token:', error);
+    return null;
+  }
+};
+
 // Response interceptor for handling common errors
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
@@ -67,17 +106,54 @@ apiClient.interceptors.response.use(
     // });
     return response;
   },
-  (error) => {
-    // Log all errors for debugging (disabled in production)
-    // console.error(`❌ API Error: ${error.response?.status} ${error.config?.url}`, {
-    //   status: error.response?.status,
-    //   data: error.response?.data,
-    //   message: error.message,
-    // });
+  async (error) => {
+    const originalRequest = error.config;
 
-    // Handle 401 (Unauthorized) and 403 (Forbidden) - force logout silently
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      // console.warn(`Authentication failed (${error.response.status}): Forcing logout...`);
+    // Handle 401 (Unauthorized) - try to refresh token first
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // If token is already being refreshed, queue this request
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers['Authorization'] = 'Bearer ' + token;
+            return apiClient(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const newToken = await refreshAccessToken();
+        if (newToken) {
+          // Token refreshed successfully, retry the original request
+          isRefreshing = false;
+          processQueue(null, newToken);
+          originalRequest.headers['Authorization'] = 'Bearer ' + newToken;
+          return apiClient(originalRequest);
+        } else {
+          // Failed to refresh token, logout
+          isRefreshing = false;
+          processQueue(error, null);
+          handleForcedLogout();
+          return Promise.reject(error);
+        }
+      } catch (refreshError) {
+        // Refresh token failed, logout
+        isRefreshing = false;
+        processQueue(refreshError, null);
+        handleForcedLogout();
+        return Promise.reject(refreshError);
+      }
+    }
+
+    // Handle 403 (Forbidden) - force logout
+    if (error.response?.status === 403) {
       handleForcedLogout();
       return Promise.reject(error);
     }

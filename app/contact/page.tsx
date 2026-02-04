@@ -35,15 +35,18 @@ export default function ContactUsPage() {
         message: ''
     });
 
-    // Get user email on mount
+    // Get user email and phone on mount
     useEffect(() => {
-        // Get user email from localStorage
+        // Get user data from localStorage
         try {
             const userStr = localStorage.getItem('clubviz-user');
             if (userStr) {
                 const user = JSON.parse(userStr);
                 if (user.email) {
                     setSupportForm(prev => ({ ...prev, email: user.email }));
+                }
+                if (user.phone || user.phoneNumber) {
+                    setFormData(prev => ({ ...prev, contactNumber: user.phone || user.phoneNumber }));
                 }
             }
         } catch (error) {

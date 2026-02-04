@@ -89,7 +89,7 @@ export default function EventDetailsPage() {
     };
 
     const handleBackClick = () => {
-        router.back();
+        router.push('/home');
     };
 
     // Show loading state with skeleton

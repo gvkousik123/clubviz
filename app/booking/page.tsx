@@ -257,7 +257,7 @@ export default function BookingPage() {
                                                     className="w-full h-full object-cover"
                                                 />
                                             </div>
-                                            <h3 className="text-white text-sm font-bold font-['Manrope'] leading-tight tracking-wide">
+                                            <h3 className="text-white text-sm font-bold font-['Manrope'] leading-tight tracking-wide truncate max-w-[200px]">
                                                 {booking.title}
                                             </h3>
                                             {booking.status === 'CANCELLED' && (

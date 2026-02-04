@@ -129,7 +129,7 @@ function TicketsPageContent() {
                 description: 'Event ID is missing',
                 variant: 'destructive',
             });
-            router.back();
+            router.push('/home');
         }
     }, [eventId]);
 
@@ -227,7 +227,7 @@ function TicketsPageContent() {
                 {/* Back Button */}
                 <div className="absolute top-4 left-4 z-20">
                     <button
-                        onClick={() => router.back()}
+                        onClick={() => router.push('/home')}
                         className="p-2 bg-[#005D5C]/60 backdrop-blur-sm rounded-full hover:bg-[#005D5C]/80 transition-all duration-300"
                     >
                         <ChevronLeft size={20} className="text-[#14FFEC]" />
