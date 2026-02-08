@@ -1340,13 +1340,22 @@ const HomePage = () => {
                         const mediaUrl = s.mediaUrl || s.mediaBase64 || '';
                         const clubName = s.club?.name || s.userFullName || 'User Story';
                         const title = s.title || s.caption || clubName || 'Story';
+                        const isVideo = s.mediaType === 'VIDEO';
 
                         return {
                             id: id,
                             image: mediaUrl,
                             title: title,
                             timestamp: s.createdAt ? new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-                            duration: s.duration || 5
+                            duration: isVideo ? undefined : (s.duration || 5),
+                            internalStories: [
+                                {
+                                    id: id,
+                                    image: mediaUrl,
+                                    duration: isVideo ? undefined : (s.duration || 5),
+                                    type: isVideo ? 'video' : 'image'
+                                }
+                            ]
                         };
                     })}
                     initialIndex={selectedStoryIndex}

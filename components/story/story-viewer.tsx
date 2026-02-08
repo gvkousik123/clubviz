@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, ChevronLeft } from 'lucide-react';
 import Image from 'next/image';
 import { StoryService } from '@/lib/services/story.service';
@@ -9,6 +9,7 @@ interface InternalStory {
     id: string;
     image: string;
     duration?: number; // in seconds, default 5
+    type?: 'image' | 'video'; // media type
 }
 
 interface Story {
@@ -40,11 +41,16 @@ export function StoryViewer({
     const [progress, setProgress] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
     const [viewedStoryIds, setViewedStoryIds] = useState<Set<string>>(new Set());
+    const [videoDuration, setVideoDuration] = useState<number | null>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
 
     const currentStory = stories[currentStoryIndex];
     const internalStories = currentStory?.internalStories || [{ id: currentStory?.id || '', image: currentStory?.image || '', duration: currentStory?.duration }];
     const currentInternalStory = internalStories[currentInternalIndex];
-    const storyDuration = (currentInternalStory?.duration || 5) * 1000; // Convert to milliseconds
+    const isVideo = currentInternalStory?.type === 'video';
+    // For videos, use the actual video duration if available, otherwise use specified duration or default 5s
+    // For images, use specified duration or default 5s
+    const storyDuration = isVideo && videoDuration ? videoDuration * 1000 : (currentInternalStory?.duration || 5) * 1000; // Convert to milliseconds
 
     // Call view API when story changes
     useEffect(() => {
@@ -98,10 +104,28 @@ export function StoryViewer({
         return () => clearInterval(interval);
     }, [currentStoryIndex, currentInternalIndex, isPaused, stories.length, internalStories.length, storyDuration, onClose, onNext]);
 
-    // Reset progress when story changes
+    // Reset progress and video duration when story changes
     useEffect(() => {
         setProgress(0);
-    }, [currentStoryIndex, currentInternalIndex]);
+        setVideoDuration(null);
+        // If it's a video, play it
+        if (isVideo && videoRef.current) {
+            videoRef.current.currentTime = 0;
+            videoRef.current.play().catch(err => console.error('Video play failed:', err));
+        }
+    }, [currentStoryIndex, currentInternalIndex, isVideo]);
+
+    // Handle video metadata loaded to get actual duration
+    const handleVideoLoadedMetadata = () => {
+        if (videoRef.current) {
+            setVideoDuration(videoRef.current.duration);
+        }
+    };
+
+    // Handle video ended
+    const handleVideoEnded = () => {
+        handleNext();
+    };
 
     const handleNext = useCallback(() => {
         if (currentInternalIndex < internalStories.length - 1) {
@@ -172,7 +196,27 @@ export function StoryViewer({
 
     return (
         <div className="fixed inset-0 bg-black z-50">
-            <div className="w-full h-full relative overflow-hidden rounded-[20px]" style={{ backgroundImage: `url(${currentInternalStory.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+            <div className="w-full h-full relative overflow-hidden flex items-center justify-center">
+                {/* Background media - Video or Image */}
+                {isVideo ? (
+                    <video
+                        ref={videoRef}
+                        src={currentInternalStory.image}
+                        className="max-w-full max-h-full w-auto h-auto object-contain"
+                        onLoadedMetadata={handleVideoLoadedMetadata}
+                        onEnded={handleVideoEnded}
+                        playsInline
+                        muted={false}
+                        autoPlay
+                    />
+                ) : (
+                    <img
+                        src={currentInternalStory.image}
+                        alt="Story"
+                        className="max-w-full max-h-full w-auto h-auto object-contain"
+                    />
+                )}
+
 
                 {/* Close Button */}
                 <button
