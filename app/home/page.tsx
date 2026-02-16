@@ -35,7 +35,6 @@ import { AutocompleteSuggestion } from '@/lib/services/search.service';
 import { STORAGE_KEYS } from '@/lib/constants/storage';
 import { StoriesSection } from '@/components/story';
 import { StoryViewer } from '@/components/story/story-viewer';
-import { ClubCard } from '@/components/clubs/club-card';
 import { useUserLocation } from '@/hooks/use-user-location';
 // Use centralized data store for optimized API calls
 import { useData, useClubsData, useEventsData, useStoriesData } from '@/lib/store';
@@ -116,9 +115,15 @@ const HomePage = () => {
         isInitialized
     } = useData();
 
+    const resolveClubId = (club: any): string => {
+        const source = club?.club || club;
+        const resolvedId = source?.id || source?.clubId || source?._id || club?.id || club?.clubId || club?._id;
+        return resolvedId ? String(resolvedId) : '';
+    };
+
     // Helper function to map club data from API response
     const mapClubData = (club: any, index: number) => ({
-        id: club.id || '',
+        id: resolveClubId(club),
         name: club.name ? (club.name.length > 20 ? club.name.substring(0, 20) + '...' : club.name) : '',
         description: club.description ? (club.description.length > 50 ? club.description.substring(0, 50) + '...' : club.description) : '',
         location: club.location ? (club.location.length > 30 ? club.location.substring(0, 30) + '...' : club.location) : '',
@@ -138,7 +143,9 @@ const HomePage = () => {
     });
     // Derived state from cached data
     const allClubs = useMemo(() => {
-        return cachedClubs.map((club: any, index: number) => mapClubData(club, index));
+        return cachedClubs
+            .map((club: any, index: number) => mapClubData(club, index))
+            .filter((club: any) => !!club.id);
     }, [cachedClubs]);
 
     const venues = useMemo(() => {
@@ -229,6 +236,7 @@ const HomePage = () => {
     const searchInputWrapperRef = useRef<HTMLDivElement | null>(null);
     const searchDropdownRef = useRef<HTMLDivElement | null>(null);
     const prefetchedCoordsRef = useRef<{ lat: number; lng: number } | null>(null);
+    const homeRecoveryAttemptedRef = useRef(false);
 
     const [activeSuggestionId, setActiveSuggestionId] = useState<string | null>(null);
     const [suggestionLoadingId, setSuggestionLoadingId] = useState<string | null>(null);
@@ -428,6 +436,41 @@ const HomePage = () => {
 
         loadInitialData();
     }, [loadProfile, initializeData]);
+
+    useEffect(() => {
+        if (homeRecoveryAttemptedRef.current) {
+            return;
+        }
+
+        if (!isInitialized || isLoadingAllClubs || isLoadingEvents) {
+            return;
+        }
+
+        if (allClubs.length > 0 || events.length > 0) {
+            return;
+        }
+
+        homeRecoveryAttemptedRef.current = true;
+        const coords = currentLocation
+            ? { latitude: currentLocation.lat, longitude: currentLocation.lng }
+            : undefined;
+
+        Promise.all([
+            fetchClubs(true, coords),
+            fetchEvents(true, coords),
+        ]).catch((error) => {
+            console.error('Home recovery fetch failed:', error);
+        });
+    }, [
+        isInitialized,
+        isLoadingAllClubs,
+        isLoadingEvents,
+        allClubs.length,
+        events.length,
+        currentLocation,
+        fetchClubs,
+        fetchEvents,
+    ]);
 
     // Show guest mode notification
     useEffect(() => {
@@ -813,7 +856,7 @@ const HomePage = () => {
                 </header>
 
                 {/* Guest Mode Banner */}
-                {isGuestMode() && (
+                {isHydrated && isGuestMode() && (
                     <div className="fixed top-[16vh] left-0 w-full max-w-[430px] mx-auto z-40">
                         <div className="mx-4 mt-2 mb-2 p-3 bg-gradient-to-r from-teal-600 to-cyan-600 rounded-lg shadow-lg border border-teal-400/30">
                             <div className="flex items-center justify-between">
@@ -837,7 +880,7 @@ const HomePage = () => {
                 )}
 
                 {/* Main Content */}
-                <main className={`${isGuestMode() ? 'pt-[20vh]' : 'pt-[16vh]'} px-0 space-y-6`}>
+                <main className={`${isHydrated && isGuestMode() ? 'pt-[20vh]' : 'pt-[16vh]'} px-0 space-y-6`}>
 
 
                     {/* Search Results or Normal Content */}
@@ -1072,13 +1115,15 @@ const HomePage = () => {
                                             </button>
                                         </div>
 
-                                        {/* Sponsor badge with exact styling */}
-                                        <div className="w-[90px] h-[28px] absolute left-[15px] top-[45px]">
-                                            <div className="w-full h-full absolute left-0 top-0 bg-[rgba(212.01,212.01,212.01,0.10)] rounded-[6px] border border-[rgba(255,255,255,0.50)] backdrop-blur-[17.50px]"></div>
-                                            <div className="absolute inset-0 flex items-center justify-center text-white text-[10px] font-bold font-['Manrope'] leading-[15px] break-words">
-                                                {heroSlides[currentSlide].sponsor}
+                                        {/* Sponsor badge with exact styling - Only show on first slide */}
+                                        {currentSlide === 0 && (
+                                            <div className="w-[90px] h-[28px] absolute left-[15px] top-[45px]">
+                                                <div className="w-full h-full absolute left-0 top-0 bg-[rgba(212.01,212.01,212.01,0.10)] rounded-[6px] border border-[rgba(255,255,255,0.50)] backdrop-blur-[17.50px]"></div>
+                                                <div className="absolute inset-0 flex items-center justify-center text-white text-[10px] font-bold font-['Manrope'] leading-[15px] break-words">
+                                                    {heroSlides[currentSlide].sponsor}
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
 
                                         <div className="w-[90px] h-[19px] absolute left-[170px] top-[225px] p-[8px] bg-[rgba(255,255,255,0.10)] rounded-[28px] backdrop-blur-[5px] inline-flex justify-center items-center gap-[5px]" style={{ outline: '1px solid white', outlineOffset: '-1px' }}>
                                             {heroSlides.slice(0, 5).map((_, index) => (
@@ -1092,7 +1137,7 @@ const HomePage = () => {
                             </section>
 
                             {/* Vibe Meter / Stories */}
-                            {!isGuestMode() && (storiesLoading || stories.length > 0) && (
+                            {isHydrated && !isGuestMode() && (storiesLoading || stories.length > 0) && (
                                 <section className="pt-2 mb-2">
                                     {storiesLoading ? (
                                         <StoriesSectionSkeleton count={7} />
@@ -1125,7 +1170,7 @@ const HomePage = () => {
                                 </section>
                             )}
 
-                            {!isGuestMode() && !storiesLoading && stories.length === 0 && (
+                            {isHydrated && !isGuestMode() && !storiesLoading && stories.length === 0 && (
                                 <section className="px-5 pt-2">
                                     <div className="flex items-center justify-between mb-4">
                                         <h2 className="text-white text-lg font-medium">Vibe Meter</h2>
@@ -1143,7 +1188,7 @@ const HomePage = () => {
                             {/* All Clubs */}
                             <section>
                                 <div className="flex items-center gap-4 mb-6 px-5">
-                                    <h2 className="text-white text-base font-semibold whitespace-nowrap">All Clubs</h2>
+                                    <h2 className="text-white text-base font-semibold whitespace-nowrap">Clubs</h2>
                                     <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
                                     <Link href="/clubs" className="text-[#14FFEC] text-base font-medium">View All</Link>
                                 </div>
@@ -1160,19 +1205,55 @@ const HomePage = () => {
                                             const fallbackImage = venueFallback[index % venueFallback.length]?.image || '';
 
                                             return (
-                                                <ClubCard
-                                                    key={club.id}
-                                                    club={{
-                                                        id: club.id,
-                                                        name: club.name,
-                                                        openTime: 'N/A',
-                                                        rating: 4.0,
-                                                        image: club.imageUrl || fallbackImage,
-                                                        address: club.location || club.description,
-                                                        category: club.category || 'Club'
-                                                    }}
-                                                    href={`/club/${club.id}`}
-                                                />
+                                                <Link key={club.id} href={`/club/${club.id}`}>
+                                                    <div className="w-[336px] h-[201px] relative flex-shrink-0 cursor-pointer">
+                                                        <div className="w-[336px] h-[169px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[15px] border-[#14FFEC] overflow-hidden">
+                                                            <img
+                                                                src={club.imageUrl || fallbackImage}
+                                                                alt={club.name}
+                                                                className="w-full h-full object-cover absolute inset-0"
+                                                            />
+                                                            <div className="w-full h-full absolute inset-0 bg-white/10 mix-blend-overlay"></div>
+                                                            <div className="w-full h-[169px] px-4 pt-[17px] pb-[113px] left-0 top-0 absolute justify-end items-center inline-flex bg-gradient-to-b from-black via-black/50 to-black/0 rounded-[10px] overflow-hidden">
+                                                                <button
+                                                                    className="w-[39px] self-stretch bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] justify-center items-center inline-flex overflow-hidden"
+                                                                    aria-label="Bookmark club"
+                                                                >
+                                                                    <svg className="w-5 h-5 text-[#14FFEC]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="h-[85px] inset-x-2 top-[116px] absolute rounded-[15px] border border-white/25 bg-[rgba(9,32,39,0.78)] backdrop-blur-[30px] backdrop-saturate-150 z-10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.24),0_12px_26px_rgba(0,0,0,0.42)]"></div>
+                                                        <div className="h-[85px] inset-x-2 top-[116px] absolute rounded-[15px] bg-gradient-to-b from-white/[0.16] via-white/[0.06] to-black/25 z-[11] pointer-events-none"></div>
+
+                                                        <div className="w-[40px] h-[40px] right-[50px] top-[95px] absolute z-20 rounded-full bg-white/[0.02] backdrop-blur-[1px] p-[4px]">
+                                                            <div className="w-full h-full flex items-center justify-center bg-[#008378] rounded-full overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),inset_0_-1px_2px_rgba(255,255,255,0.1)]">
+                                                                <div className="text-white text-[13px] font-extrabold font-['Manrope'] leading-5 tracking-[0.01em]">
+                                                                    {club.capacityPercentage && club.capacityPercentage > 0 ? (club.capacityPercentage / 20).toFixed(1) : '4.0'}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="left-[32px] right-[86px] top-[133px] absolute z-20">
+                                                            <div className="w-full flex-col justify-center items-start gap-1 inline-flex">
+                                                                <div className="self-stretch text-[#14FFEC] text-[24px] font-black font-['Manrope'] leading-[26px] tracking-[0.02em] truncate overflow-hidden whitespace-nowrap">
+                                                                    {club.name}
+                                                                </div>
+                                                                <div className="self-stretch h-3.5 text-white text-xs font-semibold font-['Manrope'] leading-3.5 tracking-[0.01em] truncate overflow-hidden whitespace-nowrap">
+                                                                    Open now
+                                                                </div>
+                                                                {club.location && (
+                                                                    <div className="self-stretch text-[#C3C3C3] text-[10px] font-medium font-['Manrope'] leading-3 tracking-[0.1px] truncate overflow-hidden whitespace-nowrap">
+                                                                        {club.location}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </Link>
                                             );
                                         })
                                     ) : (
@@ -1186,7 +1267,7 @@ const HomePage = () => {
                             {/* Event List */}
                             <section>
                                 <div className="flex items-center gap-4 mb-6 px-5">
-                                    <h2 className="text-white text-base font-semibold whitespace-nowrap">Event List</h2>
+                                    <h2 className="text-white text-base font-semibold whitespace-nowrap">Events</h2>
                                     <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
                                     <Link href="/events" className="text-[#14FFEC] text-base font-medium">View All</Link>
                                 </div>
@@ -1210,51 +1291,63 @@ const HomePage = () => {
 
                                             return (
                                                 <Link key={event.id} href={`/event/${event.id}`}>
-                                                    <div className="w-[222px] h-[305px] flex-shrink-0 relative rounded-[20px] overflow-hidden cursor-pointer hover:opacity-80 transition-opacity" style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}>
-                                                        {/* Image */}
-                                                        <div className="relative">
-                                                            <img
-                                                                src={event.imageUrl && isValidImageUrl(event.imageUrl) ? event.imageUrl : fallbackImage}
-                                                                alt={event.title}
-                                                                className="w-full h-[180px] object-contain bg-gray-900"
-                                                                style={{
-                                                                    borderWidth: '1.5px',
-                                                                    borderStyle: 'solid',
-                                                                    borderColor: '#28D2DB',
-                                                                    borderBottomRightRadius: '0',
-                                                                    borderTopLeftRadius: '20px',
-                                                                    borderTopRightRadius: '20px',
-                                                                    borderBottomLeftRadius: '20px',
-                                                                }}
-                                                            />
-                                                        </div>
-
-                                                        {/* Date Badge - positioned on the right */}
-                                                        <div className="absolute right-4 top-0 w-[36px] h-[45px] px-[2px] py-[10px] bg-gradient-to-b from-black to-[#00C0CA] rounded-b-[28px] border-l border-r border-b border-[#CDCDCD] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex flex-col justify-center items-center">
-                                                            <div className="w-[31px] text-center text-white text-[14px] font-semibold font-['Manrope'] leading-4">{monthShort}<br />{day}</div>
-                                                        </div>
-
-                                                        {/* Content - positioned in the dark area below image */}
-                                                        <div className="absolute left-[18px] right-[18px] top-[188px] flex items-center justify-between">
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="text-white text-[13px] font-bold font-['Manrope'] leading-[18px] mb-1 truncate">
-                                                                    {event.title}
-                                                                </div>
-                                                                <div className="text-[#C6C6C6] text-[11px] font-semibold font-['Manrope'] leading-[15px] tracking-[0.01em] truncate">
-                                                                    {event.clubName || event.location}
-                                                                </div>
+                                                        <div className="w-[222px] h-[305px] flex-shrink-0 relative rounded-[20px] overflow-hidden cursor-pointer hover:opacity-80 transition-opacity" style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}>
+                                                            {/* Image with blurred padding */}
+                                                            <div className="relative">
+                                                                {/* Glass morphism backdrop layer */}
+                                                                <div className="absolute inset-0 w-full h-[180px]"
+                                                                    style={{
+                                                                        backgroundImage: event.imageUrl && isValidImageUrl(event.imageUrl) ? `url(${event.imageUrl})` : `url(${fallbackImage})`,
+                                                                        backgroundSize: 'cover',
+                                                                        backgroundPosition: 'center',
+                                                                        filter: 'blur(8px)',
+                                                                        opacity: '0.85',
+                                                                        borderTopLeftRadius: '20px',
+                                                                        borderTopRightRadius: '20px',
+                                                                        borderBottomLeftRadius: '20px'
+                                                                    }}
+                                                                />
+                                                                {/* Actual Image */}
+                                                                <img
+                                                                    src={event.imageUrl && isValidImageUrl(event.imageUrl) ? event.imageUrl : fallbackImage}
+                                                                    alt={event.title}
+                                                                    className="relative w-full h-[180px] object-cover"
+                                                                    style={{
+                                                                        borderWidth: '1.5px',
+                                                                        borderStyle: 'solid',
+                                                                        borderColor: '#28D2DB',
+                                                                        borderBottomRightRadius: '0',
+                                                                        borderTopLeftRadius: '20px',
+                                                                        borderTopRightRadius: '20px',
+                                                                        borderBottomLeftRadius: '20px'
+                                                                    }}
+                                                                />
                                                             </div>
-                                                            <button className="w-[34px] h-[34px] p-[5px] bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] flex justify-center items-center">
-                                                                <Bookmark className="w-5 h-5 text-[#14FFEC]" />
-                                                            </button>
-                                                        </div>
 
-                                                        <div className="absolute left-[18px] right-[18px] top-[249px]">
-                                                            <div className="w-full h-px bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
-                                                        </div>
+                                                            {/* Date Badge - positioned on the right */}
+                                                            <div className="absolute right-4 top-0 w-[36px] h-[45px] px-[2px] py-[10px] bg-gradient-to-b from-black to-[#00C0CA] rounded-b-[28px] border-l border-r border-[#00C0CA] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex flex-col justify-center items-center" style={{ borderBottom: 'none' }}>
+                                                                <div className="w-[31px] text-center text-white text-[14px] font-semibold font-['Manrope'] leading-4">{monthShort}<br />{day}</div>
+                                                            </div>
 
-                                                        <div className="absolute left-[18px] right-[18px] top-[262px] text-white text-[11px] font-bold font-['Manrope'] leading-[15px] tracking-[0.01em] truncate">
-                                                            {event.shortDescription || event.formattedDate}
+                                                            {/* Content - positioned in the dark area below image */}
+                                                            <div className="absolute left-[18px] right-[60px] top-[192px] h-[68px] w-36 flex flex-col gap-[3px]">
+                                                                <span className="font-bold text-[16px] leading-[22px] text-[#e6e6e6] line-clamp-2">
+                                                                    {event.title}
+                                                                </span>
+                                                                <span className="font-bold text-[12px] leading-[17px] text-[#c3c3c3] line-clamp-1">
+                                                                    {event.location || event.clubName || 'TBD'}
+                                                                </span>
+                                                            </div>
+
+                                                        <button className="absolute top-[226px] right-[18px] flex justify-center items-center">
+                                                            <Heart className="w-[27px] h-[23px] text-[#14FFEC]" />
+                                                        </button>
+
+                                                        {/* Genre section at bottom */}
+                                                        <div className="absolute bottom-0 left-0 w-[222px] h-[34px] rounded-br-[20px] rounded-bl-[20px] border-t border-solid border-[#005F57] bg-[#005F57] flex items-center justify-center">
+                                                            <span className="font-bold text-[14px] leading-[17px] text-white truncate px-2">
+                                                                {event.genre || 'Techno & Bollytech'}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </Link>
@@ -1272,12 +1365,11 @@ const HomePage = () => {
                             {/* Footer */}
                             <div className="mt-8">
                                 <div className="w-full h-full pt-6 pb-2 bg-gradient-to-t from-[#01413B] to-[#021313] overflow-hidden flex flex-col justify-end items-center gap-4">
-                                    <div className="mt-8 flex items-center justify-center gap-1">
-                                        <img src="/logo/logo.png" alt="Glass Logo" className="w-16 h-auto" />
-                                        <img src="/logo/CLUBWIZ.png" alt="ClubWiz Logo" className="w-40 h-auto" />
+                                    <div className="mt-[20px] px-[101px] mb-[20px]">
+                                        <span className="font-normal text-[48px] leading-[36px] text-center bg-gradient-to-b from-[#14ffec] to-[#030c24] bg-clip-text text-transparent" style={{ fontFamily: 'Zen Tokyo Zoo', letterSpacing: '9px' }}>CLUBWIZ</span>
                                     </div>
                                     <div className="w-[368px] h-[59px] text-center text-white text-base font-normal leading-5 tracking-[0.5px] break-words">
-                                        Dive into the ultimate party scene discover lit club nights, epic events, and non-stop vibes all in one place!
+                                        Dive into the ultimate party scene. Discover lit club nights, epic events, and non-stop vibes all in one place!
                                     </div>
                                     <div className="w-[175px] h-[21px] flex justify-between items-center">
                                         <img src="/footer-logos/x-logo-fill.svg" alt="X" className="w-6 h-6" />
