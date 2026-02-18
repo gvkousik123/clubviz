@@ -11,7 +11,9 @@ import { ClubListCard } from '@/components/clubs/club-list-card';
 import { ClubsListSkeleton } from '@/components/ui/skeleton-loaders';
 
 import { PublicClubService } from '@/lib/services/public.service';
+import { ClubService } from '@/lib/services/club.service';
 import { usePublicClubs } from '@/hooks/use-public-clubs';
+import { STORAGE_KEYS } from '@/lib/constants/storage';
 
 // Dummy clubs data for local development
 const DUMMY_CLUBS: Club[] = [
@@ -212,29 +214,51 @@ export default function ClubsListPage() {
         }
     };
 
-    const loadFavorites = () => {
+    const loadFavorites = async () => {
         try {
-            const saved = localStorage.getItem('favoriteClubs');
-            if (saved) {
-                setFavorites(JSON.parse(saved));
-            }
+            const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
+            if (!token) return;
+
+            const response: any = await ClubService.getUserFavoriteClubs({ page: 0, size: 100 });
+            const favClubs = response?.clubs || response?.content || response?.data?.clubs || [];
+            const favIds = favClubs.map((c: any) => c.id);
+            setFavorites(favIds);
         } catch (error) {
             console.error('Error loading favorites:', error);
+            // Fallback to localStorage
+            try {
+                const saved = localStorage.getItem('favoriteClubs');
+                if (saved) {
+                    setFavorites(JSON.parse(saved));
+                }
+            } catch {}
         }
     };
 
-    const toggleFavorite = (clubId: string) => {
+    const toggleFavorite = async (clubId: string) => {
         try {
-            const newFavorites = favorites.includes(clubId)
-                ? favorites.filter(id => id !== clubId)
-                : [...favorites, clubId];
+            const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
+            if (!token) {
+                toast({
+                    title: 'Login Required',
+                    description: 'Please login to add clubs to favorites.',
+                    variant: 'destructive',
+                });
+                return;
+            }
 
-            setFavorites(newFavorites);
-            localStorage.setItem('favoriteClubs', JSON.stringify(newFavorites));
+            const isFav = favorites.includes(clubId);
+            if (isFav) {
+                await ClubService.removeClubFromFavorites(clubId);
+                setFavorites(prev => prev.filter(id => id !== clubId));
+            } else {
+                await ClubService.addClubToFavorites(clubId);
+                setFavorites(prev => [...prev, clubId]);
+            }
 
             toast({
-                title: favorites.includes(clubId) ? 'Removed from favorites' : 'Added to favorites',
-                description: favorites.includes(clubId)
+                title: isFav ? 'Removed from favorites' : 'Added to favorites',
+                description: isFav
                     ? 'Club removed from your favorites'
                     : 'Club added to your favorites',
             });

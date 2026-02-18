@@ -203,7 +203,7 @@ export function DataProvider({ children }: DataProviderProps) {
                 CACHE_DURATION
             );
 
-            if (data?.content) {
+            if (data?.content && data.content.length > 0) {
                 dispatch({
                     type: 'SET_CLUBS',
                     payload: {
@@ -217,6 +217,40 @@ export function DataProvider({ children }: DataProviderProps) {
                         }
                     }
                 });
+            } else if (coords?.latitude && coords?.longitude) {
+                // Location-based search returned nothing — retry without coordinates to show all clubs
+                console.log('📍 No clubs found near location, falling back to all clubs...');
+                dataStore.invalidate(CACHE_KEYS.CLUBS_LIST);
+                const fallbackData: any = await dataStore.dedupedRequest(
+                    CACHE_KEYS.CLUBS_LIST,
+                    async () => {
+                        const fallbackParams: any = {
+                            page: 0,
+                            size: 20,
+                            sortBy: 'createdAt',
+                            sortDirection: 'desc'
+                        };
+                        const response = await PublicClubService.getPublicClubsList(fallbackParams);
+                        return response;
+                    },
+                    CACHE_DURATION
+                );
+
+                if (fallbackData?.content) {
+                    dispatch({
+                        type: 'SET_CLUBS',
+                        payload: {
+                            content: fallbackData.content as ClubData[],
+                            pagination: {
+                                page: fallbackData.currentPage || 0,
+                                totalPages: fallbackData.totalPages || 1,
+                                totalElements: fallbackData.totalElements || fallbackData.content.length,
+                                hasNext: fallbackData.hasNext || false,
+                                hasPrevious: fallbackData.hasPrevious || false,
+                            }
+                        }
+                    });
+                }
             }
         } catch (error: any) {
             console.error('Failed to fetch clubs:', error);
@@ -257,7 +291,7 @@ export function DataProvider({ children }: DataProviderProps) {
                 CACHE_DURATION
             );
 
-            if (data?.content) {
+            if (data?.content && data.content.length > 0) {
                 dispatch({
                     type: 'SET_EVENTS',
                     payload: {
@@ -271,6 +305,40 @@ export function DataProvider({ children }: DataProviderProps) {
                         }
                     }
                 });
+            } else if (coords?.latitude && coords?.longitude) {
+                // Location-based search returned nothing — retry without coordinates to show all events
+                console.log('📍 No events found near location, falling back to all events...');
+                dataStore.invalidate(CACHE_KEYS.EVENTS_LIST);
+                const fallbackData: any = await dataStore.dedupedRequest(
+                    CACHE_KEYS.EVENTS_LIST,
+                    async () => {
+                        const fallbackParams: any = {
+                            page: 0,
+                            size: 20,
+                            sortBy: 'startDateTime',
+                            sortOrder: 'asc'
+                        };
+                        const response = await PublicEventService.getPublicEvents(fallbackParams);
+                        return response;
+                    },
+                    CACHE_DURATION
+                );
+
+                if (fallbackData?.content) {
+                    dispatch({
+                        type: 'SET_EVENTS',
+                        payload: {
+                            content: fallbackData.content as EventData[],
+                            pagination: {
+                                page: fallbackData.currentPage || 0,
+                                totalPages: fallbackData.totalPages || 1,
+                                totalElements: fallbackData.totalElements || fallbackData.content.length,
+                                hasNext: fallbackData.hasNext || false,
+                                hasPrevious: fallbackData.hasPrevious || false,
+                            }
+                        }
+                    });
+                }
             }
         } catch (error: any) {
             console.error('Failed to fetch events:', error);

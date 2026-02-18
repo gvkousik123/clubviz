@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Heart } from 'lucide-react';
+import { EventService } from '@/lib/services/event.service';
 import type { EventListItem } from '@/lib/services/event.service';
 import { useToast } from '@/hooks/use-toast';
 import { EventsListSkeleton } from '@/components/ui/skeleton-loaders';
 import { PublicEventService } from '@/lib/services/public.service';
+import { STORAGE_KEYS } from '@/lib/constants/storage';
 
 export default function EventsListPage() {
     const router = useRouter();
@@ -58,39 +60,45 @@ export default function EventsListPage() {
     };
 
 
-    const loadFavorites = () => {
+    const loadFavorites = async () => {
         try {
-            const saved = localStorage.getItem('favoriteEvents');
-            if (saved) {
-                setFavorites(JSON.parse(saved));
-            }
+            const token = localStorage.getItem(STORAGE_KEYS.accessToken);
+            if (!token) return;
+            const response = await EventService.getFavoriteEvents({ page: 0, size: 100 });
+            const favEvents = response?.content || response?.events || [];
+            const ids = favEvents.map((e: any) => e.id || e.eventId).filter(Boolean);
+            setFavorites(ids);
         } catch (error) {
             console.error('Error loading favorites:', error);
+            // fallback to localStorage
+            try {
+                const saved = localStorage.getItem('favoriteEvents');
+                if (saved) setFavorites(JSON.parse(saved));
+            } catch (_) {}
         }
     };
 
-    const toggleFavorite = (eventId: string) => {
+    const toggleFavorite = async (eventId: string) => {
         try {
-            const newFavorites = favorites.includes(eventId)
-                ? favorites.filter(id => id !== eventId)
-                : [...favorites, eventId];
+            const token = localStorage.getItem(STORAGE_KEYS.accessToken);
+            if (!token) {
+                toast({ title: 'Login required', description: 'Please sign in to favorite events', variant: 'destructive' });
+                return;
+            }
 
-            setFavorites(newFavorites);
-            localStorage.setItem('favoriteEvents', JSON.stringify(newFavorites));
-
-            toast({
-                title: favorites.includes(eventId) ? 'Removed from favorites' : 'Added to favorites',
-                description: favorites.includes(eventId)
-                    ? 'Event removed from your favorites'
-                    : 'Event added to your favorites',
-            });
+            const isFav = favorites.includes(eventId);
+            if (isFav) {
+                await EventService.removeFromFavorites(eventId);
+                setFavorites(prev => prev.filter(id => id !== eventId));
+                toast({ title: 'Removed from favorites', description: 'Event removed from your favorites' });
+            } else {
+                await EventService.addToFavorites(eventId);
+                setFavorites(prev => [...prev, eventId]);
+                toast({ title: 'Added to favorites', description: 'Event added to your favorites' });
+            }
         } catch (error) {
             console.error('Error toggling favorite:', error);
-            toast({
-                title: 'Error',
-                description: 'Failed to update favorites',
-                variant: 'destructive',
-            });
+            toast({ title: 'Error', description: 'Failed to update favorites', variant: 'destructive' });
         }
     };
 

@@ -7,6 +7,7 @@ import { DirectLoginWrapper } from "@/components/auth/direct-login-wrapper"
 import { ToastProvider } from "@/components/ui/toast"
 import { Toaster } from "@/components/ui/toaster"
 import { DataProvider } from "@/lib/store"
+import { ForceLogoutListener } from "@/components/auth/force-logout-listener"
 
 export const metadata: Metadata = {
   title: "ClubViz - Ultimate Platform for Booking Clubs",
@@ -53,6 +54,7 @@ export default function RootLayout({
             </DataProvider>
           </ThemeProvider>
           <Toaster />
+          <ForceLogoutListener />
         </ToastProvider>
       </body>
     </html>
