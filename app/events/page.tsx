@@ -249,6 +249,11 @@ export default function EventsListPage() {
 
     return (
         <div className="min-h-screen bg-[#031313] text-white">
+            <LocationPickerModal
+                isOpen={showLocationPicker}
+                onClose={() => setShowLocationPicker(false)}
+                onSelectLocation={handleLocationSelected}
+            />
             <div className="relative mx-auto max-w-[430px]">
                 {/* Fixed Header with Gradient Background */}
                 <header className="fixed top-0 left-0 w-full max-w-[430px] mx-auto h-[16vh] bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-6 pt-4 z-50 flex flex-col justify-between">
@@ -275,14 +280,19 @@ export default function EventsListPage() {
                         <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2 min-w-0">
                             <button
                                 onClick={handleSearch}
-                                disabled={loading || !searchQuery.trim()}
+                                disabled={loading || searchingNearby || !searchQuery.trim()}
                                 className="disabled:opacity-50 flex-shrink-0"
+                                title="Search nearby events"
                             >
-                                <Search className="w-[21px] h-[21px] text-white" />
+                                {loading || searchingNearby ? (
+                                    <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
+                                ) : (
+                                    <MapPin className="w-[21px] h-[21px] text-[#14FFEC]" />
+                                )}
                             </button>
                             <input
                                 type="text"
-                                placeholder="Search events..."
+                                placeholder="Search nearby events..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyPress={(e) => {
@@ -291,7 +301,7 @@ export default function EventsListPage() {
                                     }
                                 }}
                                 className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white outline-none min-w-0"
-                                disabled={loading}
+                                disabled={loading || searchingNearby}
                             />
                         </div>
                         <button className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center flex-shrink-0">
@@ -302,6 +312,26 @@ export default function EventsListPage() {
 
                 {/* Main Content */}
                 <div className="w-full space-y-6 pt-[18vh] pb-8">
+                    {/* Current Search Location Display */}
+                    {currentSearchLocation && (
+                        <section className="w-full px-5">
+                            <div className="bg-[#14FFEC]/10 border border-[#14FFEC] rounded-xl p-3 flex items-center gap-3">
+                                <MapPin size={18} className="text-[#14FFEC] flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[#14FFEC] text-sm font-semibold">
+                                        Searching from: {currentSearchLocation.name}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setCurrentSearchLocation(null)}
+                                    className="text-[#14FFEC] hover:text-white transition-colors flex-shrink-0"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        </section>
+                    )}
+
                     {/* Calendar Date Range Picker */}
                     <section className="w-full px-5">
                         <div className="flex items-center justify-between mb-4">
