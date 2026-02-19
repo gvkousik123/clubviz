@@ -17,6 +17,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useOffers } from '@/hooks/use-offers';
 import { isGuestMode } from '@/lib/api-client-public';
+import { ClubService } from '@/lib/services/club.service';
 // Use centralized data store for cached club details
 import { useClubDetail } from '@/lib/store';
 import { ClubDetailSkeleton } from '@/components/ui/skeleton-loaders';
@@ -37,6 +38,8 @@ export default function ClubDetailPage() {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isLiked, setIsLiked] = useState(false);
     const [isJoinLoading, setIsJoinLoading] = useState(false);
+    const [isFavorited, setIsFavorited] = useState(false);
+    const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
 
     // Get club ID and initialize offers hook
     const clubId = params.id as string;
@@ -52,6 +55,37 @@ export default function ClubDetailPage() {
             setIsLiked(!!club.isJoined);
         }
     }, [club]);
+
+    // Load favorite status when club loads
+    useEffect(() => {
+        if (!clubId || isGuestMode()) return;
+        ClubService.isClubFavorited(clubId)
+            .then((res: any) => setIsFavorited(!!res?.favorited))
+            .catch(() => {});
+    }, [clubId]);
+
+    const handleToggleFavorite = async () => {
+        if (isGuestMode()) {
+            toast({ title: 'Sign in', description: 'Please sign in to favorite clubs.' });
+            return;
+        }
+        setIsFavoriteLoading(true);
+        try {
+            if (isFavorited) {
+                await ClubService.removeClubFromFavorites(clubId);
+                setIsFavorited(false);
+                toast({ title: 'Removed from favorites', description: 'Club removed from your favorites.' });
+            } else {
+                await ClubService.addClubToFavorites(clubId);
+                setIsFavorited(true);
+                toast({ title: 'Added to favorites', description: 'Club added to your favorites.' });
+            }
+        } catch (err: any) {
+            toast({ title: 'Error', description: err?.message || 'Failed to update favorites.', variant: 'destructive' });
+        } finally {
+            setIsFavoriteLoading(false);
+        }
+    };
 
     // Fetch offers when club is loaded
     useEffect(() => {
@@ -222,7 +256,7 @@ export default function ClubDetailPage() {
                 </button>
 
                 {/* Share and Like buttons */}
-                {/* <div className="absolute right-4 top-12 flex gap-2">
+                <div className="absolute right-4 top-12 flex gap-2">
                     <button
                         onClick={handleShare}
                         className="w-[35px] h-[35px] bg-white/20 rounded-[18px] flex items-center justify-center hover:bg-white/30 transition"
@@ -230,17 +264,17 @@ export default function ClubDetailPage() {
                         <Share2 className="h-5 w-5 text-white" />
                     </button>
                     <button
-                        onClick={handleToggleLike}
-                        disabled={isJoinLoading}
+                        onClick={handleToggleFavorite}
+                        disabled={isFavoriteLoading}
                         className="w-[35px] h-[35px] bg-white/20 rounded-[18px] flex items-center justify-center hover:bg-white/30 transition disabled:opacity-50"
                     >
-                        {isJoinLoading ? (
+                        {isFavoriteLoading ? (
                             <Loader2 className="h-5 w-5 text-[#14FFEC] animate-spin" />
                         ) : (
-                            <Heart className={`h-5 w-5 ${isLiked ? 'fill-[#FF3B3B] text-[#FF3B3B]' : 'text-white'}`} />
+                            <Heart className={`h-5 w-5 ${isFavorited ? 'fill-[#FF3B3B] text-[#FF3B3B]' : 'text-white'}`} />
                         )}
                     </button>
-                </div> */}
+                </div>
             </div>
 
             {/* Profile picture - centered */}

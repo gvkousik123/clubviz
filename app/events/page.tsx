@@ -2,13 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Heart } from 'lucide-react';
+import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Heart, Loader2, X } from 'lucide-react';
 import { EventService } from '@/lib/services/event.service';
 import type { EventListItem } from '@/lib/services/event.service';
 import { useToast } from '@/hooks/use-toast';
 import { EventsListSkeleton } from '@/components/ui/skeleton-loaders';
 import { PublicEventService } from '@/lib/services/public.service';
+import { SearchService, NearbySearchParamsV2, SearchEventV2 } from '@/lib/services/search.service';
+import { LocationPickerModal } from '@/components/common/location-picker-modal';
 import { STORAGE_KEYS } from '@/lib/constants/storage';
+import { getStoredLocation } from '@/lib/location';
 
 export default function EventsListPage() {
     const router = useRouter();
@@ -19,6 +22,9 @@ export default function EventsListPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [startDate, setStartDate] = useState<Date | null>(null);
     const [endDate, setEndDate] = useState<Date | null>(null);
+    const [showLocationPicker, setShowLocationPicker] = useState(false);
+    const [searchingNearby, setSearchingNearby] = useState(false);
+    const [currentSearchLocation, setCurrentSearchLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
 
     const fetchEvents = async () => {
         setLoading(true);
@@ -106,8 +112,83 @@ export default function EventsListPage() {
         router.back();
     };
 
-    const handleSearch = () => {
-        fetchEvents();
+    const handleSearch = async () => {
+        // Check if we have user coordinates (from stored location or browser)
+        const storedLocation = getStoredLocation();
+        
+        if (!storedLocation || !storedLocation.lat || !storedLocation.lng) {
+            // No location available - show location picker
+            setShowLocationPicker(true);
+            return;
+        }
+
+        // We have coordinates - perform nearby search
+        await performNearbySearch(storedLocation);
+    };
+
+    const performNearbySearch = async (location: { lat: number; lng: number; label?: string }) => {
+        setSearchingNearby(true);
+        try {
+            const nearbyParams: NearbySearchParamsV2 = {
+                lat: location.lat,
+                lng: location.lng,
+                page: 0,
+                size: 50,
+            };
+
+            const response = await SearchService.nearbySearch(nearbyParams);
+            
+            if (response && response.events && response.events.length > 0) {
+                const mappedEvents: EventListItem[] = response.events.map((event: SearchEventV2) => ({
+                    id: event.id,
+                    title: event.title,
+                    startDateTime: event.startDateTime,
+                    location: event.location,
+                    imageUrl: event.imageUrl || '/event list/Rectangle 1.jpg',
+                    clubId: event.id,
+                    clubName: '',
+                    clubLogo: '',
+                    organizerName: event.eventOrganizer || ''
+                }));
+                setEvents(mappedEvents);
+                setCurrentSearchLocation({
+                    lat: location.lat,
+                    lng: location.lng,
+                    name: location.label || 'Selected Location'
+                });
+                
+                toast({
+                    title: 'Search complete',
+                    description: `Found ${mappedEvents.length} events nearby`,
+                });
+            } else {
+                setEvents([]);
+                toast({
+                    title: 'No events found',
+                    description: 'No events found in this area. Try expanding your search radius.',
+                    variant: 'destructive',
+                });
+            }
+        } catch (error) {
+            console.error('💥 Error performing nearby search:', error);
+            toast({
+                title: 'Search failed',
+                description: 'Could not search nearby events. Please try again.',
+                variant: 'destructive',
+            });
+        } finally {
+            setSearchingNearby(false);
+        }
+    };
+
+    const handleLocationSelected = async (coords: { lat: number; lng: number }, locationName: string) => {
+        setShowLocationPicker(false);
+        setCurrentSearchLocation({
+            lat: coords.lat,
+            lng: coords.lng,
+            name: locationName
+        });
+        await performNearbySearch(coords);
     };
 
     const handleEventClick = (eventId: string) => {

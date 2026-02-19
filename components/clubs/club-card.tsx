@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Bookmark } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 export interface Club {
     id: string;
@@ -62,9 +62,8 @@ export const ClubCard: React.FC<ClubCardProps> = ({
                             onClick={handleFavoriteClick}
                             className="w-[39px] self-stretch bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] justify-center items-center inline-flex overflow-hidden hover:bg-neutral-300/20 transition-colors"
                         >
-                            <Bookmark
-                                className={`w-5 h-5 transition-colors ${isFavorite ? 'text-[#14FFEC] fill-[#14FFEC]' : 'text-[#14FFEC]'
-                                    }`}
+                            <Heart
+                                className={`w-5 h-5 transition-colors ${isFavorite ? 'fill-[#FF3B3B] text-[#FF3B3B]' : 'text-[#14FFEC]'}`}
                             />
                         </button>
                     </div>
