@@ -1,11 +1,14 @@
 ﻿'use client';
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Star, ThumbsUp, ThumbsDown, Share, Bookmark } from 'lucide-react';
+import { Star, ThumbsUp, ThumbsDown, Share, Bookmark, Filter } from 'lucide-react';
 
 export default function ReviewPage() {
     const router = useRouter();
+    const [filterRating, setFilterRating] = useState<number | null>(null);
+    const [sortBy, setSortBy] = useState<'recent' | 'highest' | 'lowest'>('recent');
+    const [searchTerm, setSearchTerm] = useState('');
 
     const handleWriteReview = () => {
         router.push('/review/write');
@@ -85,6 +88,44 @@ export default function ReviewPage() {
                             ))}
                         </div>
                         <span className="text-white/70 text-sm">30 Reviews</span>
+                        <span className="text-[#14FFEC] text-xs mt-1">Highest rated club in region</span>
+                    </div>
+                </div>
+
+                {/* Filter and Search Section */}
+                <div className="bg-[rgba(40,60,61,0.30)] rounded-2xl p-4 space-y-4">
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Search reviews..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-[#0d3838] text-white text-sm px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-[#14FFEC] placeholder-white/40"
+                        />
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                        {[null, 5, 4, 3].map((rating) => (
+                            <button
+                                key={rating}
+                                onClick={() => setFilterRating(filterRating === rating ? null : rating)}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                                    filterRating === rating
+                                        ? 'bg-[#14FFEC] text-black'
+                                        : 'bg-[#0d3838] text-white hover:bg-[#14567f]'
+                                }`}
+                            >
+                                {rating ? `${rating}★` : 'All'}
+                            </button>
+                        ))}
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value as 'recent' | 'highest' | 'lowest')}
+                            className="ml-auto px-3 py-1 rounded-full text-xs font-medium bg-[#0d3838] text-white outline-none focus:ring-2 focus:ring-[#14FFEC]"
+                        >
+                            <option value="recent">Newest First</option>
+                            <option value="highest">Highest Rated</option>
+                            <option value="lowest">Lowest Rated</option>
+                        </select>
                     </div>
                 </div>
 
@@ -105,7 +146,22 @@ export default function ReviewPage() {
 
                 {/* Reviews List */}
                 <div className="space-y-4 mt-4">
-                    {reviews.map((review) => (
+                    {useMemo(() => {
+                        let filtered = reviews.filter(review => {
+                            const matchesSearch = searchTerm === '' || 
+                                review.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                review.review.toLowerCase().includes(searchTerm.toLowerCase());
+                            const matchesRating = filterRating === null || Math.floor(review.rating) >= filterRating;
+                            return matchesSearch && matchesRating;
+                        });
+
+                        if (sortBy === 'highest') {
+                            filtered = filtered.sort((a, b) => b.rating - a.rating);
+                        } else if (sortBy === 'lowest') {
+                            filtered = filtered.sort((a, b) => a.rating - b.rating);
+                        }
+
+                        return filtered.length > 0 ? filtered.map((review) => (
                         <div key={review.id} className="bg-[rgba(40,60,61,0.30)] rounded-2xl p-4">
                             <div className="flex items-center gap-3">
                                 <img
