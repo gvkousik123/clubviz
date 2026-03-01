@@ -1,8 +1,8 @@
 ﻿'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Star, Loader2 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Star, Loader2, AlertCircle, Check, Upload } from 'lucide-react';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
 import { useContact } from '@/hooks/use-contact';
 import { useProfile } from '@/hooks/use-profile';
@@ -10,14 +10,32 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function WriteReviewPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { toast } = useToast();
     const { submitReview, loading } = useContact();
     const { profile } = useProfile();
+    const clubId = searchParams.get('clubId');
 
     const [rating, setRating] = useState(0);
     const [reviewText, setReviewText] = useState('');
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [formErrors, setFormErrors] = useState<string[]>([]);
+    const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
     const maxWords = 300;
+
+    const validateForm = (): boolean => {
+        const errors: string[] = [];
+        if (rating === 0) errors.push('Please select a rating');
+        if (reviewText.trim().length === 0) errors.push('Review text is required');
+        const wordCount = reviewText.trim().split(/\s+/).filter(w => w.length > 0).length;
+        if (wordCount > maxWords) errors.push(`Review exceeds ${maxWords} word limit`);
+        setFormErrors(errors);
+        return errors.length === 0;
+    };
+
+    const markFieldTouched = (field: string) => {
+        setTouchedFields(new Set([...touchedFields, field]));
+    };
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
@@ -36,8 +54,8 @@ export default function WriteReviewPage() {
     };
 
     const handleSubmit = async () => {
-        if (rating === 0) {
-            toast({ title: "Rating required", description: "Please select a rating", variant: "destructive" });
+        if (!validateForm()) {
+            toast({ title: "Form incomplete", description: formErrors[0], variant: "destructive" });
             return;
         }
 
