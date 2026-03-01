@@ -693,11 +693,21 @@ export class EventService {
   }
 
   /**
-   * Get user's favorite events
+   * Get user's favorite events (paginated)
+   * GET /event-management/events/user/favorites
    */
-  static async getFavoriteEvents(): Promise<ApiResponse<Event[]>> {
+  static async getFavoriteEvents(params?: {
+    page?: number;
+    size?: number;
+  }): Promise<ApiResponse<any>> {
     try {
-      const response = await api.get<ApiResponse<Event[]>>('/user/favorite-events');
+      const queryParams = new URLSearchParams();
+      if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+      if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+
+      const response = await api.get<ApiResponse<any>>(
+        `/event-management/events/user/favorites${queryParams.toString() ? '?' + queryParams.toString() : ''}`
+      );
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -706,11 +716,27 @@ export class EventService {
 
   /**
    * Check if event is in user's favorites
+   * GET /event-management/events/{eventId}/is-favorited
    */
-  static async isEventFavorite(eventId: string): Promise<ApiResponse<{ isFavorite: boolean }>> {
+  static async isEventFavorite(eventId: string): Promise<ApiResponse<{ message: string; eventId: string; favorited: boolean }>> {
     try {
-      const response = await api.get<ApiResponse<{ isFavorite: boolean }>>(
-        `/event-management/events/${eventId}/favorite/status`
+      const response = await api.get<ApiResponse<{ message: string; eventId: string; favorited: boolean }>>(
+        `/event-management/events/${eventId}/is-favorited`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Get favorite count for an event (Admin)
+   * GET /event-management/events/{eventId}/favorite-count
+   */
+  static async getEventFavoriteCount(eventId: string): Promise<ApiResponse<{ eventId: string; favoriteCount: number }>> {
+    try {
+      const response = await api.get<ApiResponse<{ eventId: string; favoriteCount: number }>>(
+        `/event-management/events/${eventId}/favorite-count`
       );
       return handleApiResponse(response);
     } catch (error) {

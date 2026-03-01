@@ -757,4 +757,90 @@ export class ClubService {
       throw new Error(handleApiError(error));
     }
   }
+
+  // ============================================================================
+  // USER FAVORITES OPERATIONS
+  // ============================================================================
+
+  /**
+   * Get user's favorite clubs (paginated)
+   * GET /clubs/user/favorites
+   */
+  static async getUserFavoriteClubs(params?: {
+    page?: number;
+    size?: number;
+  }): Promise<ApiResponse<any>> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+      if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+
+      const response = await api.get<ApiResponse<any>>(
+        `/clubs/user/favorites${queryParams.toString() ? '?' + queryParams.toString() : ''}`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Add a club to user's favorites
+   * POST /clubs/{clubId}/favorite
+   */
+  static async addClubToFavorites(clubId: string): Promise<ApiResponse<{ message: string; clubId: string; favorited: boolean }>> {
+    try {
+      const response = await api.post<ApiResponse<{ message: string; clubId: string; favorited: boolean }>>(
+        `/clubs/${clubId}/favorite`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Remove a club from user's favorites
+   * DELETE /clubs/{clubId}/favorite
+   */
+  static async removeClubFromFavorites(clubId: string): Promise<ApiResponse<{ message: string; clubId: string; favorited: boolean }>> {
+    try {
+      const response = await api.delete<ApiResponse<{ message: string; clubId: string; favorited: boolean }>>(
+        `/clubs/${clubId}/favorite`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Check if a club is in user's favorites
+   * GET /clubs/{clubId}/is-favorited
+   */
+  static async isClubFavorited(clubId: string): Promise<ApiResponse<{ message: string; clubId: string; favorited: boolean }>> {
+    try {
+      const response = await api.get<ApiResponse<{ message: string; clubId: string; favorited: boolean }>>(
+        `/clubs/${clubId}/is-favorited`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Get favorite count for a club (Admin)
+   * GET /clubs/{clubId}/favorite-count
+   */
+  static async getClubFavoriteCount(clubId: string): Promise<ApiResponse<{ clubId: string; favoriteCount: number }>> {
+    try {
+      const response = await api.get<ApiResponse<{ clubId: string; favoriteCount: number }>>(
+        `/clubs/${clubId}/favorite-count`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
 }

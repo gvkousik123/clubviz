@@ -234,8 +234,26 @@ export function useSearch(): UseSearchState & UseSearchActions {
     }, [currentLocation]);
 
     const universalSearch = useCallback(async (query: string) => {
-        await searchQuick(query);
-    }, [searchQuick]);
+        if (!query.trim()) return;
+        setIsSearching(true);
+        setError(null);
+        try {
+            const loc = currentLocation;
+            const response = await SearchService.advancedSearch({
+                query: query.trim(),
+                latitude: loc?.lat,
+                longitude: loc?.lng,
+                radiusKm: 50,
+                searchType: 'ALL'
+            });
+            setSearchResults(response);
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message);
+        } finally {
+            setIsSearching(false);
+        }
+    }, [currentLocation]);
 
     const clearResults = useCallback(() => {
         setSearchResults(null);

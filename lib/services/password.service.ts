@@ -22,6 +22,21 @@ export interface PasswordResetResponse {
   message: string;
 }
 
+export interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
+  email: string;
+  expiresIn: number;
+  timestamp: number;
+}
+
+export interface ResetPasswordWithOTPRequest {
+  email: string;
+  otp: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 // ============================================================================
 // PASSWORD SERVICE
 // ============================================================================
@@ -32,6 +47,50 @@ export interface PasswordResetResponse {
  * Based on API endpoints: /auth/password-reset/reset/mobile, /auth/password-reset/initiate/email, /auth/password-reset/initiate/mobile
  */
 export class PasswordService {
+
+  // ============================================================================
+  // NEW API: EMAIL-BASED OTP PASSWORD RESET FLOW
+  // ============================================================================
+
+  /**
+   * Send OTP to user's registered email to initiate password reset
+   * POST /users/auth/forgot-password
+   */
+  static async forgotPassword(email: string): Promise<ForgotPasswordResponse> {
+    try {
+      const response = await api.post<ForgotPasswordResponse>('/users/auth/forgot-password', {
+        email,
+      });
+      return response.data;
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Reset password using OTP received via email
+   * POST /users/auth/reset-password
+   */
+  static async resetPasswordWithOTP(
+    email: string,
+    otp: string,
+    newPassword: string,
+    confirmPassword: string,
+  ): Promise<PasswordResetResponse> {
+    try {
+      const response = await api.post<PasswordResetResponse>('/users/auth/reset-password', {
+        email,
+        otp,
+        newPassword,
+        confirmPassword,
+      });
+      return response.data;
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
+    }
+  }
 
   // ============================================================================
   // PASSWORD RESET OPERATIONS

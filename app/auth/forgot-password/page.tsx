@@ -1,72 +1,130 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Mail, Smartphone, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Mail, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { ClubVizLogo } from '@/components/auth/logo';
 import { usePassword } from '@/hooks/use-password';
 
-type Step = 'initiate' | 'reset' | 'success';
+type Step = 'email' | 'otp' | 'reset' | 'success';
 
 export default function ForgotPasswordPage() {
     const router = useRouter();
     const {
-        isLoading,
         isInitiatingReset,
         isResettingPassword,
-        initiatePasswordReset,
-        resetPasswordWithMobile,
+        forgotPassword,
+        resetPasswordWithOTP,
         validatePassword,
         getPasswordStrength,
         getPasswordStrengthColor,
-        getContactType,
     } = usePassword();
 
     // State
-    const [step, setStep] = useState<Step>('initiate');
-    const [contact, setContact] = useState('');
-    const [mobileNumber, setMobileNumber] = useState('');
+    const [step, setStep] = useState<Step>('email');
+    const [email, setEmail] = useState('');
+    const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [otpError, setOtpError] = useState<string | null>(null);
+    const [resendTimer, setResendTimer] = useState(60);
+    const [canResend, setCanResend] = useState(false);
+
+    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+    // Timer for OTP resend
+    useEffect(() => {
+        if (step !== 'otp') return;
+        setResendTimer(60);
+        setCanResend(false);
+        const interval = setInterval(() => {
+            setResendTimer((prev) => {
+                if (prev <= 1) {
+                    setCanResend(true);
+                    clearInterval(interval);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [step]);
 
     // Handle back navigation
     const handleGoBack = () => {
-        if (step === 'initiate') {
+        if (step === 'email') {
             router.back();
+        } else if (step === 'otp') {
+            setStep('email');
         } else if (step === 'reset') {
-            setStep('initiate');
+            setStep('otp');
         } else {
-            router.push('/auth/intro');
+            router.push('/auth/login');
         }
     };
 
-    // Handle password reset initiation
-    const handleInitiate = async (e: React.FormEvent) => {
+    // Step 1: Submit email → call forgot-password API
+    const handleEmailSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        const success = await initiatePasswordReset(contact);
+        const success = await forgotPassword(email);
         if (success) {
-            const contactType = getContactType(contact);
-            if (contactType === 'mobile') {
-                setMobileNumber(contact);
-                setStep('reset');
-            } else {
-                setStep('success');
+            setOtp(Array(6).fill(''));
+            setOtpError(null);
+            setStep('otp');
+        }
+    };
+
+    // Step 2: OTP input handlers
+    const handleOtpChange = (index: number, value: string) => {
+        if (value.length <= 1 && /^\d*$/.test(value)) {
+            const newOtp = [...otp];
+            newOtp[index] = value;
+            setOtp(newOtp);
+            if (otpError) setOtpError(null);
+            if (value && index < 5) {
+                inputRefs.current[index + 1]?.focus();
             }
         }
     };
 
-    // Handle password reset
-    const handleReset = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+        if (e.key === 'Backspace' && !otp[index] && index > 0) {
+            inputRefs.current[index - 1]?.focus();
+        }
+    };
 
-        if (newPassword !== confirmPassword) {
+    const handleOtpPaste = (e: React.ClipboardEvent) => {
+        const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+        if (pasted.length === 6) {
+            setOtp(pasted.split(''));
+            inputRefs.current[5]?.focus();
+        }
+    };
+
+    const handleOtpSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const otpValue = otp.join('');
+        if (otpValue.length !== 6) {
+            setOtpError('Please enter all 6 digits');
             return;
         }
+        setStep('reset');
+    };
 
-        const success = await resetPasswordWithMobile(mobileNumber, newPassword);
+    const handleResend = async () => {
+        if (!canResend) return;
+        await forgotPassword(email);
+        setOtp(Array(6).fill(''));
+        setOtpError(null);
+    };
+
+    // Step 3: Reset password → call reset-password API
+    const handleResetSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const otpValue = otp.join('');
+        const success = await resetPasswordWithOTP(email, otpValue, newPassword, confirmPassword);
         if (success) {
             setStep('success');
         }
@@ -88,52 +146,48 @@ export default function ForgotPasswordPage() {
                     <ArrowLeft className="w-5 h-5" />
                 </button>
                 <ClubVizLogo />
-                <div className="w-10 h-10" /> {/* Spacer */}
+                <div className="w-10 h-10" />
             </div>
 
             {/* Content */}
             <div className="flex-1 px-6 py-8">
-                {step === 'initiate' && (
+
+                {/* ── Step 1: Email ── */}
+                {step === 'email' && (
                     <div className="space-y-8">
                         <div className="text-center space-y-4">
                             <h1 className="text-2xl font-bold">Forgot Password?</h1>
                             <p className="text-gray-400">
-                                Enter your email or mobile number and we'll help you reset your password
+                                Enter your registered email and we&apos;ll send you an OTP to reset your password
                             </p>
                         </div>
 
-                        <form onSubmit={handleInitiate} className="space-y-6">
-                            <div className="space-y-4">
-                                <div className="relative">
-                                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                                        {getContactType(contact) === 'email' ? (
-                                            <Mail className="w-5 h-5 text-[#14FFEC]" />
-                                        ) : (
-                                            <Smartphone className="w-5 h-5 text-[#14FFEC]" />
-                                        )}
-                                    </div>
-                                    <input
-                                        type="text"
-                                        placeholder="Email or Mobile Number"
-                                        value={contact}
-                                        onChange={(e) => setContact(e.target.value)}
-                                        className="w-full pl-12 pr-4 py-4 bg-[#0D1F1F] border border-[#14FFEC]/30 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-[#14FFEC]"
-                                    />
+                        <form onSubmit={handleEmailSubmit} className="space-y-6">
+                            <div className="relative">
+                                <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                                    <Mail className="w-5 h-5 text-[#14FFEC]" />
                                 </div>
+                                <input
+                                    type="email"
+                                    placeholder="Email Address"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-4 bg-[#0D1F1F] border border-[#14FFEC]/30 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-[#14FFEC]"
+                                />
                             </div>
 
                             <button
                                 type="submit"
-                                disabled={isInitiatingReset || !contact.trim()}
+                                disabled={isInitiatingReset || !email.trim()}
                                 className="w-full bg-[#14FFEC] text-black font-bold py-4 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {isInitiatingReset ? 'Sending...' : 'Send Reset Instructions'}
+                                {isInitiatingReset ? 'Sending OTP...' : 'Send OTP'}
                             </button>
                         </form>
 
                         <div className="text-center">
                             <button
-                                onClick={() => router.push('/auth/intro')}
+                                onClick={() => router.push('/auth/login')}
                                 className="text-[#14FFEC] text-sm"
                             >
                                 Back to Login
@@ -142,16 +196,83 @@ export default function ForgotPasswordPage() {
                     </div>
                 )}
 
+                {/* ── Step 2: OTP ── */}
+                {step === 'otp' && (
+                    <div className="space-y-8">
+                        <div className="text-center space-y-4">
+                            <h1 className="text-2xl font-bold">Enter OTP</h1>
+                            <p className="text-gray-400">
+                                We sent a 6-digit code to
+                            </p>
+                            <p className="text-[#14FFEC] font-semibold">{email}</p>
+                        </div>
+
+                        <form onSubmit={handleOtpSubmit} className="space-y-6">
+                            {/* OTP boxes */}
+                            <div className="flex justify-center gap-3" onPaste={handleOtpPaste}>
+                                {otp.map((digit, index) => (
+                                    <input
+                                        key={index}
+                                        ref={(el) => { inputRefs.current[index] = el; }}
+                                        type="text"
+                                        inputMode="numeric"
+                                        maxLength={1}
+                                        value={digit}
+                                        onChange={(e) => handleOtpChange(index, e.target.value)}
+                                        onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                                        className={`w-12 h-14 text-center text-xl font-bold bg-[#0D1F1F] border rounded-xl text-white focus:outline-none transition-colors ${
+                                            digit
+                                                ? 'border-[#14FFEC]'
+                                                : 'border-[#14FFEC]/30 focus:border-[#14FFEC]'
+                                        }`}
+                                    />
+                                ))}
+                            </div>
+
+                            {otpError && (
+                                <p className="text-red-400 text-sm text-center">{otpError}</p>
+                            )}
+
+                            <button
+                                type="submit"
+                                disabled={otp.join('').length !== 6}
+                                className="w-full bg-[#14FFEC] text-black font-bold py-4 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Verify OTP
+                            </button>
+                        </form>
+
+                        {/* Resend */}
+                        <div className="text-center text-sm text-gray-400">
+                            {canResend ? (
+                                <button
+                                    onClick={handleResend}
+                                    disabled={isInitiatingReset}
+                                    className="text-[#14FFEC] font-semibold"
+                                >
+                                    {isInitiatingReset ? 'Sending...' : 'Resend OTP'}
+                                </button>
+                            ) : (
+                                <span>
+                                    Resend in{' '}
+                                    <span className="text-[#14FFEC] font-semibold">{resendTimer}s</span>
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Step 3: New Password ── */}
                 {step === 'reset' && (
                     <div className="space-y-8">
                         <div className="text-center space-y-4">
                             <h1 className="text-2xl font-bold">Reset Password</h1>
                             <p className="text-gray-400">
-                                Enter your new password for {mobileNumber}
+                                Set a new password for your account
                             </p>
                         </div>
 
-                        <form onSubmit={handleReset} className="space-y-6">
+                        <form onSubmit={handleResetSubmit} className="space-y-6">
                             <div className="space-y-4">
                                 {/* New Password */}
                                 <div className="relative">
@@ -175,7 +296,7 @@ export default function ForgotPasswordPage() {
                                     </button>
                                 </div>
 
-                                {/* Password Strength Indicator */}
+                                {/* Password Strength */}
                                 {newPassword && (
                                     <div className="space-y-2">
                                         <div className="flex justify-between text-sm">
@@ -186,18 +307,19 @@ export default function ForgotPasswordPage() {
                                         </div>
                                         <div className="w-full bg-gray-700 rounded-full h-2">
                                             <div
-                                                className={`h-2 rounded-full transition-all duration-300 ${passwordStrength === 'weak'
-                                                    ? 'bg-red-500 w-1/3'
-                                                    : passwordStrength === 'medium'
+                                                className={`h-2 rounded-full transition-all duration-300 ${
+                                                    passwordStrength === 'weak'
+                                                        ? 'bg-red-500 w-1/3'
+                                                        : passwordStrength === 'medium'
                                                         ? 'bg-yellow-500 w-2/3'
                                                         : 'bg-green-500 w-full'
-                                                    }`}
+                                                }`}
                                             />
                                         </div>
                                         {!passwordValidation.isValid && (
                                             <div className="text-red-400 text-xs space-y-1">
-                                                {passwordValidation.errors.map((error, index) => (
-                                                    <div key={index}>• {error}</div>
+                                                {passwordValidation.errors.map((err, i) => (
+                                                    <div key={i}>• {err}</div>
                                                 ))}
                                             </div>
                                         )}
@@ -226,11 +348,8 @@ export default function ForgotPasswordPage() {
                                     </button>
                                 </div>
 
-                                {/* Password Match Indicator */}
                                 {confirmPassword && newPassword !== confirmPassword && (
-                                    <div className="text-red-400 text-sm">
-                                        Passwords do not match
-                                    </div>
+                                    <p className="text-red-400 text-sm">Passwords do not match</p>
                                 )}
                             </div>
 
@@ -251,6 +370,7 @@ export default function ForgotPasswordPage() {
                     </div>
                 )}
 
+                {/* ── Step 4: Success ── */}
                 {step === 'success' && (
                     <div className="space-y-8 text-center">
                         <div className="space-y-4">
@@ -264,13 +384,14 @@ export default function ForgotPasswordPage() {
                         </div>
 
                         <button
-                            onClick={() => router.push('/auth/intro')}
+                            onClick={() => router.push('/auth/login')}
                             className="w-full bg-[#14FFEC] text-black font-bold py-4 rounded-2xl"
                         >
                             Continue to Login
                         </button>
                     </div>
                 )}
+
             </div>
         </div>
     );
