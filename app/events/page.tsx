@@ -2,11 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Heart } from 'lucide-react';
+import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Heart, Loader2, X } from 'lucide-react';
+import { EventService } from '@/lib/services/event.service';
 import type { EventListItem } from '@/lib/services/event.service';
 import { useToast } from '@/hooks/use-toast';
 import { EventsListSkeleton } from '@/components/ui/skeleton-loaders';
 import { PublicEventService } from '@/lib/services/public.service';
+import { SearchService, NearbySearchParamsV2, SearchEventV2 } from '@/lib/services/search.service';
+import { LocationPickerModal } from '@/components/common/location-picker-modal';
+import { STORAGE_KEYS } from '@/lib/constants/storage';
+import { getStoredLocation } from '@/lib/location';
 
 export default function EventsListPage() {
     const router = useRouter();
@@ -17,6 +22,9 @@ export default function EventsListPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [startDate, setStartDate] = useState<Date | null>(null);
     const [endDate, setEndDate] = useState<Date | null>(null);
+    const [showLocationPicker, setShowLocationPicker] = useState(false);
+    const [searchingNearby, setSearchingNearby] = useState(false);
+    const [currentSearchLocation, setCurrentSearchLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
 
     const fetchEvents = async () => {
         setLoading(true);
@@ -58,39 +66,45 @@ export default function EventsListPage() {
     };
 
 
-    const loadFavorites = () => {
+    const loadFavorites = async () => {
         try {
-            const saved = localStorage.getItem('favoriteEvents');
-            if (saved) {
-                setFavorites(JSON.parse(saved));
-            }
+            const token = localStorage.getItem(STORAGE_KEYS.accessToken);
+            if (!token) return;
+            const response = await EventService.getFavoriteEvents({ page: 0, size: 100 });
+            const favEvents = response?.content || response?.events || [];
+            const ids = favEvents.map((e: any) => e.id || e.eventId).filter(Boolean);
+            setFavorites(ids);
         } catch (error) {
             console.error('Error loading favorites:', error);
+            // fallback to localStorage
+            try {
+                const saved = localStorage.getItem('favoriteEvents');
+                if (saved) setFavorites(JSON.parse(saved));
+            } catch (_) {}
         }
     };
 
-    const toggleFavorite = (eventId: string) => {
+    const toggleFavorite = async (eventId: string) => {
         try {
-            const newFavorites = favorites.includes(eventId)
-                ? favorites.filter(id => id !== eventId)
-                : [...favorites, eventId];
+            const token = localStorage.getItem(STORAGE_KEYS.accessToken);
+            if (!token) {
+                toast({ title: 'Login required', description: 'Please sign in to favorite events', variant: 'destructive' });
+                return;
+            }
 
-            setFavorites(newFavorites);
-            localStorage.setItem('favoriteEvents', JSON.stringify(newFavorites));
-
-            toast({
-                title: favorites.includes(eventId) ? 'Removed from favorites' : 'Added to favorites',
-                description: favorites.includes(eventId)
-                    ? 'Event removed from your favorites'
-                    : 'Event added to your favorites',
-            });
+            const isFav = favorites.includes(eventId);
+            if (isFav) {
+                await EventService.removeFromFavorites(eventId);
+                setFavorites(prev => prev.filter(id => id !== eventId));
+                toast({ title: 'Removed from favorites', description: 'Event removed from your favorites' });
+            } else {
+                await EventService.addToFavorites(eventId);
+                setFavorites(prev => [...prev, eventId]);
+                toast({ title: 'Added to favorites', description: 'Event added to your favorites' });
+            }
         } catch (error) {
             console.error('Error toggling favorite:', error);
-            toast({
-                title: 'Error',
-                description: 'Failed to update favorites',
-                variant: 'destructive',
-            });
+            toast({ title: 'Error', description: 'Failed to update favorites', variant: 'destructive' });
         }
     };
 
@@ -98,8 +112,83 @@ export default function EventsListPage() {
         router.back();
     };
 
-    const handleSearch = () => {
-        fetchEvents();
+    const handleSearch = async () => {
+        // Check if we have user coordinates (from stored location or browser)
+        const storedLocation = getStoredLocation();
+        
+        if (!storedLocation || !storedLocation.lat || !storedLocation.lng) {
+            // No location available - show location picker
+            setShowLocationPicker(true);
+            return;
+        }
+
+        // We have coordinates - perform nearby search
+        await performNearbySearch(storedLocation);
+    };
+
+    const performNearbySearch = async (location: { lat: number; lng: number; label?: string }) => {
+        setSearchingNearby(true);
+        try {
+            const nearbyParams: NearbySearchParamsV2 = {
+                lat: location.lat,
+                lng: location.lng,
+                page: 0,
+                size: 50,
+            };
+
+            const response = await SearchService.nearbySearch(nearbyParams);
+            
+            if (response && response.events && response.events.length > 0) {
+                const mappedEvents: EventListItem[] = response.events.map((event: SearchEventV2) => ({
+                    id: event.id,
+                    title: event.title,
+                    startDateTime: event.startDateTime,
+                    location: event.location,
+                    imageUrl: event.imageUrl || '/event list/Rectangle 1.jpg',
+                    clubId: event.id,
+                    clubName: '',
+                    clubLogo: '',
+                    organizerName: event.eventOrganizer || ''
+                }));
+                setEvents(mappedEvents);
+                setCurrentSearchLocation({
+                    lat: location.lat,
+                    lng: location.lng,
+                    name: location.label || 'Selected Location'
+                });
+                
+                toast({
+                    title: 'Search complete',
+                    description: `Found ${mappedEvents.length} events nearby`,
+                });
+            } else {
+                setEvents([]);
+                toast({
+                    title: 'No events found',
+                    description: 'No events found in this area. Try expanding your search radius.',
+                    variant: 'destructive',
+                });
+            }
+        } catch (error) {
+            console.error('💥 Error performing nearby search:', error);
+            toast({
+                title: 'Search failed',
+                description: 'Could not search nearby events. Please try again.',
+                variant: 'destructive',
+            });
+        } finally {
+            setSearchingNearby(false);
+        }
+    };
+
+    const handleLocationSelected = async (coords: { lat: number; lng: number }, locationName: string) => {
+        setShowLocationPicker(false);
+        setCurrentSearchLocation({
+            lat: coords.lat,
+            lng: coords.lng,
+            name: locationName
+        });
+        await performNearbySearch(coords);
     };
 
     const handleEventClick = (eventId: string) => {
@@ -160,6 +249,11 @@ export default function EventsListPage() {
 
     return (
         <div className="min-h-screen bg-[#031313] text-white">
+            <LocationPickerModal
+                isOpen={showLocationPicker}
+                onClose={() => setShowLocationPicker(false)}
+                onSelectLocation={handleLocationSelected}
+            />
             <div className="relative mx-auto max-w-[430px]">
                 {/* Fixed Header with Gradient Background */}
                 <header className="fixed top-0 left-0 w-full max-w-[430px] mx-auto h-[16vh] bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-6 pt-4 z-50 flex flex-col justify-between">
@@ -186,14 +280,19 @@ export default function EventsListPage() {
                         <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2 min-w-0">
                             <button
                                 onClick={handleSearch}
-                                disabled={loading || !searchQuery.trim()}
+                                disabled={loading || searchingNearby || !searchQuery.trim()}
                                 className="disabled:opacity-50 flex-shrink-0"
+                                title="Search nearby events"
                             >
-                                <Search className="w-[21px] h-[21px] text-white" />
+                                {loading || searchingNearby ? (
+                                    <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
+                                ) : (
+                                    <MapPin className="w-[21px] h-[21px] text-[#14FFEC]" />
+                                )}
                             </button>
                             <input
                                 type="text"
-                                placeholder="Search events..."
+                                placeholder="Search nearby events..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyPress={(e) => {
@@ -202,7 +301,7 @@ export default function EventsListPage() {
                                     }
                                 }}
                                 className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white outline-none min-w-0"
-                                disabled={loading}
+                                disabled={loading || searchingNearby}
                             />
                         </div>
                         <button className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center flex-shrink-0">
@@ -213,6 +312,26 @@ export default function EventsListPage() {
 
                 {/* Main Content */}
                 <div className="w-full space-y-6 pt-[18vh] pb-8">
+                    {/* Current Search Location Display */}
+                    {currentSearchLocation && (
+                        <section className="w-full px-5">
+                            <div className="bg-[#14FFEC]/10 border border-[#14FFEC] rounded-xl p-3 flex items-center gap-3">
+                                <MapPin size={18} className="text-[#14FFEC] flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[#14FFEC] text-sm font-semibold">
+                                        Searching from: {currentSearchLocation.name}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setCurrentSearchLocation(null)}
+                                    className="text-[#14FFEC] hover:text-white transition-colors flex-shrink-0"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        </section>
+                    )}
+
                     {/* Calendar Date Range Picker */}
                     <section className="w-full px-5">
                         <div className="flex items-center justify-between mb-4">

@@ -30,18 +30,21 @@ export default function EventDetailsPage() {
 
     const eventId = params.id as string;
     const [isLiked, setIsLiked] = useState(false);
+    const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
     const [isActionLoading, setIsActionLoading] = useState(false);
 
     // ==================== OPTIMIZED: Use cached event data ====================
     // This prevents duplicate API calls when navigating back and forth
     const { event: eventData, loading: isLoading, error, refetch } = useEventDetail(eventId);
 
-    // Update liked state when event data changes
+    // Load favorite status from API when event data is available
     useEffect(() => {
-        if (eventData) {
-            setIsLiked(eventData.isRegistered || false);
+        if (eventData && !isGuestMode()) {
+            EventService.isEventFavorite(eventData.id)
+                .then((res: any) => setIsLiked(!!res?.favorited))
+                .catch(() => {});
         }
-    }, [eventData]);
+    }, [eventData?.id]);
 
     const handleShare = async () => {
         try {
@@ -65,16 +68,22 @@ export default function EventDetailsPage() {
             toast({ title: 'Sign in', description: 'Please sign in to favorite events.' });
             return;
         }
-
+        setIsFavoriteLoading(true);
+        const prev = isLiked;
+        setIsLiked(!prev);
         try {
-            setIsLiked(!isLiked);
-            if (!isLiked) {
+            if (!prev) {
                 await EventService.addToFavorites(eventData.id);
+                toast({ title: 'Added to favorites', description: 'Event added to your favorites.' });
             } else {
                 await EventService.removeFromFavorites(eventData.id);
+                toast({ title: 'Removed from favorites', description: 'Event removed from your favorites.' });
             }
-        } catch (error) {
-            setIsLiked(!isLiked);
+        } catch (error: any) {
+            setIsLiked(prev);
+            toast({ title: 'Error', description: error?.message || 'Failed to update favorites.', variant: 'destructive' });
+        } finally {
+            setIsFavoriteLoading(false);
         }
     };
 
@@ -164,12 +173,17 @@ export default function EventDetailsPage() {
 
                         <button
                             onClick={handleToggleLike}
-                            className="w-[39px] h-[39px] bg-[#005D5C] rounded-full flex justify-center items-center active:scale-95 transition hover:bg-[#006B67]"
+                            disabled={isFavoriteLoading}
+                            className="w-[39px] h-[39px] bg-[#005D5C] rounded-full flex justify-center items-center active:scale-95 transition hover:bg-[#006B67] disabled:opacity-50"
                         >
-                            <Heart
-                                size={24}
-                                className={isLiked ? "text-[#FF3B3B] fill-[#FF3B3B]" : "text-[#14FFEC]"}
-                            />
+                            {isFavoriteLoading ? (
+                                <Loader2 size={20} className="text-[#14FFEC] animate-spin" />
+                            ) : (
+                                <Heart
+                                    size={24}
+                                    className={isLiked ? "text-[#FF3B3B] fill-[#FF3B3B]" : "text-[#14FFEC]"}
+                                />
+                            )}
                         </button>
                     </div>
 

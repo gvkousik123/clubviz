@@ -44,16 +44,31 @@ apiClient.interceptors.request.use(
 );
 
 // Helper function to handle JWT token expiration or unauthorized/forbidden access
-const handleForcedLogout = () => {
+const handleForcedLogout = (showToast = true) => {
   if (typeof window !== 'undefined') {
     // Clear all auth-related localStorage
     localStorage.removeItem(STORAGE_KEYS.accessToken);
     localStorage.removeItem(STORAGE_KEYS.refreshToken);
     localStorage.removeItem(STORAGE_KEYS.userDetails);
-    localStorage.removeItem('userRoles'); // Clear user roles
+    localStorage.removeItem(STORAGE_KEYS.user);
+    localStorage.removeItem('userRoles');
 
-    // Silently redirect to login - NO TOAST
-    window.location.href = '/auth/login';
+    // Clear all clubviz- and user- prefixed keys
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('clubviz-') || key.startsWith('user-')) {
+        localStorage.removeItem(key);
+      }
+    });
+
+    if (showToast) {
+      // Show toast via a custom event (picked up by the app)
+      window.dispatchEvent(new CustomEvent('clubviz-force-logout', {
+        detail: { message: 'Session expired. Please login again.' }
+      }));
+    }
+
+    // Redirect to login
+    window.location.href = '/auth/mobile';
   }
 };
 
@@ -80,13 +95,18 @@ const refreshAccessToken = async (): Promise<string | null> => {
   }
 
   try {
-    const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+    // Users service refresh endpoint
+    const response = await axios.post(`${API_BASE_URL}/users/auth/refresh`, {
       refreshToken
     });
 
     const { accessToken } = response.data;
     if (accessToken) {
       localStorage.setItem(STORAGE_KEYS.accessToken, accessToken);
+      // Also store new refresh token if returned
+      if (response.data.refreshToken) {
+        localStorage.setItem(STORAGE_KEYS.refreshToken, response.data.refreshToken);
+      }
       return accessToken;
     }
     return null;
@@ -137,25 +157,45 @@ apiClient.interceptors.response.use(
           originalRequest.headers['Authorization'] = 'Bearer ' + newToken;
           return apiClient(originalRequest);
         } else {
-          // Failed to refresh token - just reject, don't force logout
-          // User will be prompted to login again on protected pages
+          // Failed to refresh token - force logout with toast
           isRefreshing = false;
           processQueue(error, null);
+          handleForcedLogout(true);
           return Promise.reject(error);
         }
       } catch (refreshError) {
-        // Refresh token failed - just reject, don't force logout
+        // Refresh token failed - force logout with toast
         isRefreshing = false;
         processQueue(refreshError, null);
+        handleForcedLogout(true);
         return Promise.reject(refreshError);
       }
     }
 
-    // Handle 403 (Forbidden) - just reject, don't force logout
-    // User may not have permission for this specific resource
-    if (error.response?.status === 403) {
-      console.warn('403 Forbidden - User may not have permission for this resource');
-      return Promise.reject(error);
+    // Handle 403 (Forbidden) - try refresh first, then logout if still failing
+    if (error.response?.status === 403 && !originalRequest._retryFor403) {
+      const refreshToken = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.refreshToken) : null;
+      if (refreshToken) {
+        originalRequest._retryFor403 = true;
+        try {
+          const newToken = await refreshAccessToken();
+          if (newToken) {
+            originalRequest.headers['Authorization'] = 'Bearer ' + newToken;
+            return apiClient(originalRequest);
+          } else {
+            // Refresh token exists but refresh failed - force logout with toast
+            handleForcedLogout(true);
+            return Promise.reject(error);
+          }
+        } catch (refreshError) {
+          // Refresh failed - force logout with toast
+          handleForcedLogout(true);
+          return Promise.reject(refreshError);
+        }
+      } else {
+        console.warn('403 Forbidden - No refresh token available');
+        return Promise.reject(error);
+      }
     }
 
     // Check for JWT token expiration in response - log it but don't force logout

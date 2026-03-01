@@ -3,15 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Loader2, X, Filter } from 'lucide-react';
+import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Loader2, X, Filter, Heart } from 'lucide-react';
 import type { Club } from '@/components/clubs';
 import { useToast } from '@/hooks/use-toast';
 import { ClubCard } from '@/components/clubs/club-card';
 import { ClubListCard } from '@/components/clubs/club-list-card';
 import { ClubsListSkeleton } from '@/components/ui/skeleton-loaders';
+import { LocationPickerModal } from '@/components/common/location-picker-modal';
 
 import { PublicClubService } from '@/lib/services/public.service';
+import { ClubService } from '@/lib/services/club.service';
+import { SearchService, NearbySearchParamsV2, SearchClubV2 } from '@/lib/services/search.service';
 import { usePublicClubs } from '@/hooks/use-public-clubs';
+import { STORAGE_KEYS } from '@/lib/constants/storage';
+import { getStoredLocation } from '@/lib/location';
 
 // Dummy clubs data for local development
 const DUMMY_CLUBS: Club[] = [
@@ -69,6 +74,9 @@ export default function ClubsListPage() {
     const [loading, setLoading] = useState(true);
     const [favorites, setFavorites] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [showLocationPicker, setShowLocationPicker] = useState(false);
+    const [searchingNearby, setSearchingNearby] = useState(false);
+    const [currentSearchLocation, setCurrentSearchLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
 
     // Filter states
     const [showFilters, setShowFilters] = useState(false);
@@ -102,8 +110,81 @@ export default function ClubsListPage() {
     };
 
     const handleSearch = async () => {
-        // Use public API for search
-        loadClubs(true);
+        // Check if we have user coordinates (from stored location or browser)
+        const storedLocation = getStoredLocation();
+        
+        if (!storedLocation || !storedLocation.lat || !storedLocation.lng) {
+            // No location available - show location picker
+            setShowLocationPicker(true);
+            return;
+        }
+
+        // We have coordinates - perform nearby search
+        await performNearbySearch(storedLocation);
+    };
+
+    const performNearbySearch = async (location: { lat: number; lng: number; label?: string }) => {
+        setSearchingNearby(true);
+        try {
+            const nearbyParams: NearbySearchParamsV2 = {
+                lat: location.lat,
+                lng: location.lng,
+                page: 0,
+                size: 20,
+            };
+
+            const response = await SearchService.nearbySearch(nearbyParams);
+            
+            if (response && response.clubs && response.clubs.length > 0) {
+                const mappedClubs: Club[] = response.clubs.map((club: SearchClubV2, index: number) => ({
+                    id: club.id,
+                    name: club.name || '',
+                    openTime: club.openingHours || 'Hours not available',
+                    rating: club.rating || 0,
+                    image: club.logoUrl || getClubFallbackImage(index),
+                    address: club.address || '',
+                    category: club.priceRange || 'Club'
+                }));
+                setClubs(mappedClubs);
+                setTotalPages(response.totalPages || 1);
+                setCurrentSearchLocation({
+                    lat: location.lat,
+                    lng: location.lng,
+                    name: location.label || 'Selected Location'
+                });
+                
+                toast({
+                    title: 'Search complete',
+                    description: `Found ${mappedClubs.length} clubs nearby`,
+                });
+            } else {
+                setClubs([]);
+                toast({
+                    title: 'No clubs found',
+                    description: 'No clubs found in this area. Try expanding your search radius.',
+                    variant: 'destructive',
+                });
+            }
+        } catch (error) {
+            console.error('💥 Error performing nearby search:', error);
+            toast({
+                title: 'Search failed',
+                description: 'Could not search nearby clubs. Please try again.',
+                variant: 'destructive',
+            });
+        } finally {
+            setSearchingNearby(false);
+        }
+    };
+
+    const handleLocationSelected = async (coords: { lat: number; lng: number }, locationName: string) => {
+        setShowLocationPicker(false);
+        setCurrentSearchLocation({
+            lat: coords.lat,
+            lng: coords.lng,
+            name: locationName
+        });
+        await performNearbySearch(coords);
     };
 
 
@@ -212,29 +293,51 @@ export default function ClubsListPage() {
         }
     };
 
-    const loadFavorites = () => {
+    const loadFavorites = async () => {
         try {
-            const saved = localStorage.getItem('favoriteClubs');
-            if (saved) {
-                setFavorites(JSON.parse(saved));
-            }
+            const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
+            if (!token) return;
+
+            const response: any = await ClubService.getUserFavoriteClubs({ page: 0, size: 100 });
+            const favClubs = response?.clubs || response?.content || response?.data?.clubs || [];
+            const favIds = favClubs.map((c: any) => c.id);
+            setFavorites(favIds);
         } catch (error) {
             console.error('Error loading favorites:', error);
+            // Fallback to localStorage
+            try {
+                const saved = localStorage.getItem('favoriteClubs');
+                if (saved) {
+                    setFavorites(JSON.parse(saved));
+                }
+            } catch {}
         }
     };
 
-    const toggleFavorite = (clubId: string) => {
+    const toggleFavorite = async (clubId: string) => {
         try {
-            const newFavorites = favorites.includes(clubId)
-                ? favorites.filter(id => id !== clubId)
-                : [...favorites, clubId];
+            const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
+            if (!token) {
+                toast({
+                    title: 'Login Required',
+                    description: 'Please login to add clubs to favorites.',
+                    variant: 'destructive',
+                });
+                return;
+            }
 
-            setFavorites(newFavorites);
-            localStorage.setItem('favoriteClubs', JSON.stringify(newFavorites));
+            const isFav = favorites.includes(clubId);
+            if (isFav) {
+                await ClubService.removeClubFromFavorites(clubId);
+                setFavorites(prev => prev.filter(id => id !== clubId));
+            } else {
+                await ClubService.addClubToFavorites(clubId);
+                setFavorites(prev => [...prev, clubId]);
+            }
 
             toast({
-                title: favorites.includes(clubId) ? 'Removed from favorites' : 'Added to favorites',
-                description: favorites.includes(clubId)
+                title: isFav ? 'Removed from favorites' : 'Added to favorites',
+                description: isFav
                     ? 'Club removed from your favorites'
                     : 'Club added to your favorites',
             });
@@ -269,6 +372,11 @@ export default function ClubsListPage() {
 
     return (
         <div className="min-h-screen bg-[#031313] text-white">
+            <LocationPickerModal
+                isOpen={showLocationPicker}
+                onClose={() => setShowLocationPicker(false)}
+                onSelectLocation={handleLocationSelected}
+            />
             <div className="relative mx-auto max-w-[430px]">
                 {/* Fixed Header with Gradient Background */}
                 <header className="fixed top-0 left-0 w-full max-w-[430px] mx-auto h-[16vh] bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-6 pt-4 z-50 flex flex-col justify-between">
@@ -293,18 +401,19 @@ export default function ClubsListPage() {
                         <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2 min-w-0">
                             <button
                                 onClick={handleSearch}
-                                disabled={loading || !searchQuery.trim()}
+                                disabled={loading || searchingNearby || !searchQuery.trim()}
                                 className="disabled:opacity-50 flex-shrink-0"
+                                title="Search nearby clubs"
                             >
-                                {loading ? (
+                                {loading || searchingNearby ? (
                                     <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
                                 ) : (
-                                    <Search className="w-[21px] h-[21px] text-white" />
+                                    <MapPin className="w-[21px] h-[21px] text-[#14FFEC]" />
                                 )}
                             </button>
                             <input
                                 type="text"
-                                placeholder="Search clubs..."
+                                placeholder="Search nearby..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyPress={(e) => {
@@ -313,7 +422,7 @@ export default function ClubsListPage() {
                                     }
                                 }}
                                 className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white outline-none min-w-0"
-                                disabled={loading}
+                                disabled={loading || searchingNearby}
                             />
                         </div>
                         <button
@@ -397,9 +506,17 @@ export default function ClubsListPage() {
                 {/* Main Content */}
                 <div className="w-full flex flex-col items-center space-y-6 pt-[18vh] px-0">
                     {/* Active Filters Display */}
-                    {(selectedCategory || selectedLocation) && (
+                    {(selectedCategory || selectedLocation || currentSearchLocation) && (
                         <div className="w-full max-w-[430px] px-5">
                             <div className="flex flex-wrap gap-2">
+                                {currentSearchLocation && (
+                                    <div className="bg-[#14FFEC]/20 border border-[#14FFEC] rounded-full px-3 py-1 flex items-center gap-2">
+                                        <MapPin size={14} className="text-[#14FFEC] flex-shrink-0" />
+                                        <span className="text-[#14FFEC] text-xs font-semibold">
+                                            {currentSearchLocation.name}
+                                        </span>
+                                    </div>
+                                )}
                                 {selectedCategory && (
                                     <div className="bg-[#14FFEC]/20 border border-[#14FFEC] rounded-full px-3 py-1 flex items-center gap-2">
                                         <span className="text-[#14FFEC] text-xs font-semibold">
@@ -469,9 +586,7 @@ export default function ClubsListPage() {
                                                         }}
                                                         className="w-[39px] self-stretch bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] justify-center items-center inline-flex overflow-hidden"
                                                     >
-                                                        <svg className="w-5 h-5 text-[#14FFEC]" fill={favorites.includes(club.id) ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                                                        </svg>
+                                                        <Heart className="w-5 h-5 text-[#14FFEC]" fill={favorites.includes(club.id) ? "currentColor" : "none"} />
                                                     </button>
                                                 </div>
                                             </div>

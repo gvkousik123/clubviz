@@ -17,7 +17,6 @@ import {
     SlidersHorizontal,
     ChevronLeft,
     ChevronRight,
-    Bookmark,
     Loader2,
     X
 } from 'lucide-react';
@@ -25,6 +24,8 @@ import Sidebar from '@/components/common/sidebar';
 import { useSearch } from '@/hooks/use-search';
 import { UserLocationService } from '@/lib/services/user-location.service';
 import { isGuestMode } from '@/lib/api-client-public';
+import { ClubService } from '@/lib/services/club.service';
+import { EventService } from '@/lib/services/event.service';
 import { LocationSuggestionList } from '@/components/common/location-suggestion-list';
 import { NearbyDetailCard } from '@/components/common/nearby-detail-card';
 import { POPULAR_LOCATIONS, selectLocationFromOption, persistCustomLocation } from '@/lib/location';
@@ -88,6 +89,8 @@ const HomePage = () => {
     const [isDragging, setIsDragging] = useState(false);
     const [startX, setStartX] = useState(0);
     const [dragThreshold] = useState(50);
+    const [clubFavorites, setClubFavorites] = useState<string[]>([]);
+    const [eventFavorites, setEventFavorites] = useState<string[]>([]);
 
     const router = useRouter();
 
@@ -97,8 +100,56 @@ const HomePage = () => {
         if (!token) {
             // No token found, redirect to mobile login
             router.replace('/auth/mobile');
+            return;
         }
+        // Load favorites from API
+        ClubService.getUserFavoriteClubs({ page: 0, size: 100 })
+            .then((res: any) => {
+                const list = res?.clubs || res?.content || [];
+                setClubFavorites(list.map((c: any) => c.id || c.clubId).filter(Boolean));
+            })
+            .catch(() => {});
+        EventService.getFavoriteEvents({ page: 0, size: 100 })
+            .then((res: any) => {
+                const list = res?.content || res?.events || [];
+                setEventFavorites(list.map((e: any) => e.id || e.eventId).filter(Boolean));
+            })
+            .catch(() => {});
     }, [router]);
+
+    const handleToggleClubFavorite = async (clubId: string) => {
+        if (isGuestMode()) { toast({ title: 'Sign in', description: 'Please sign in to favorite clubs.' }); return; }
+        const isFav = clubFavorites.includes(clubId);
+        try {
+            if (isFav) {
+                await ClubService.removeClubFromFavorites(clubId);
+                setClubFavorites(prev => prev.filter(id => id !== clubId));
+                toast({ title: 'Removed from favorites', description: 'Club removed from your favorites.' });
+            } else {
+                await ClubService.addClubToFavorites(clubId);
+                setClubFavorites(prev => [...prev, clubId]);
+                toast({ title: 'Added to favorites', description: 'Club added to your favorites.' });
+            }
+        } catch { toast({ title: 'Error', description: 'Failed to update club favorites.', variant: 'destructive' }); }
+    };
+
+    const handleToggleEventFavorite = async (e: React.MouseEvent, eventId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (isGuestMode()) { toast({ title: 'Sign in', description: 'Please sign in to favorite events.' }); return; }
+        const isFav = eventFavorites.includes(eventId);
+        try {
+            if (isFav) {
+                await EventService.removeFromFavorites(eventId);
+                setEventFavorites(prev => prev.filter(id => id !== eventId));
+                toast({ title: 'Removed from favorites', description: 'Event removed from your favorites.' });
+            } else {
+                await EventService.addToFavorites(eventId);
+                setEventFavorites(prev => [...prev, eventId]);
+                toast({ title: 'Added to favorites', description: 'Event added to your favorites.' });
+            }
+        } catch { toast({ title: 'Error', description: 'Failed to update event favorites.', variant: 'destructive' }); }
+    };
 
     // ==================== CENTRALIZED DATA STORE ====================
     // Use centralized data context for optimized API calls with caching
@@ -928,9 +979,12 @@ const HomePage = () => {
                                                         {/* White overlay effect */}
                                                         <div className="w-full h-full absolute inset-0 bg-white/10 mix-blend-overlay"></div>
                                                         <div className="w-[336px] h-[169px] pl-[281px] pr-4 pt-[17px] pb-[113px] left-0 top-0 absolute justify-end items-center inline-flex bg-gradient-to-b from-black via-black/50 to-black/0 rounded-[10px] overflow-hidden">
-                                                            <div className="w-[39px] self-stretch bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] justify-center items-center inline-flex overflow-hidden">
-                                                                <Bookmark className="w-5 h-5 text-[#14FFEC]" />
-                                                            </div>
+                                                            <button
+                                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleToggleClubFavorite(club.id); }}
+                                                                className="w-[39px] self-stretch bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] justify-center items-center inline-flex overflow-hidden hover:bg-neutral-300/20 transition-colors"
+                                                            >
+                                                                <Heart className={`w-5 h-5 transition-colors ${clubFavorites.includes(club.id) ? 'fill-[#FF3B3B] text-[#FF3B3B]' : 'text-[#14FFEC]'}`} />
+                                                            </button>
                                                         </div>
                                                     </div>
 
@@ -981,9 +1035,12 @@ const HomePage = () => {
                                                         {/* White overlay effect */}
                                                         <div className="w-full h-full absolute inset-0 bg-white/10 mix-blend-overlay"></div>
                                                         <div className="w-[336px] h-[169px] pl-[281px] pr-4 pt-[17px] pb-[113px] left-0 top-0 absolute justify-end items-center inline-flex bg-gradient-to-b from-black via-black/50 to-black/0 rounded-[10px] overflow-hidden">
-                                                            <div className="w-[39px] self-stretch bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] justify-center items-center inline-flex overflow-hidden">
-                                                                <Bookmark className="w-5 h-5 text-[#14FFEC]" />
-                                                            </div>
+                                                            <button
+                                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleToggleClubFavorite(venue.id); }}
+                                                                className="w-[39px] self-stretch bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] justify-center items-center inline-flex overflow-hidden hover:bg-neutral-300/20 transition-colors"
+                                                            >
+                                                                <Heart className={`w-5 h-5 transition-colors ${clubFavorites.includes(venue.id) ? 'fill-[#FF3B3B] text-[#FF3B3B]' : 'text-[#14FFEC]'}`} />
+                                                            </button>
                                                         </div>
                                                     </div>
 
@@ -1172,6 +1229,8 @@ const HomePage = () => {
                                                         category: club.category || 'Club'
                                                     }}
                                                     href={`/club/${club.id}`}
+                                                    isFavorite={clubFavorites.includes(club.id)}
+                                                    onToggleFavorite={handleToggleClubFavorite}
                                                 />
                                             );
                                         })
@@ -1244,8 +1303,11 @@ const HomePage = () => {
                                                                     {event.clubName || event.location}
                                                                 </div>
                                                             </div>
-                                                            <button className="w-[34px] h-[34px] p-[5px] bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] flex justify-center items-center">
-                                                                <Bookmark className="w-5 h-5 text-[#14FFEC]" />
+                                                            <button
+                                                                onClick={(e) => handleToggleEventFavorite(e, event.id)}
+                                                                className="w-[34px] h-[34px] p-[5px] bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] flex justify-center items-center hover:bg-neutral-300/20 transition-colors"
+                                                            >
+                                                                <Heart className={`w-5 h-5 transition-colors ${eventFavorites.includes(event.id) ? 'fill-[#FF3B3B] text-[#FF3B3B]' : 'text-[#14FFEC]'}`} />
                                                             </button>
                                                         </div>
 

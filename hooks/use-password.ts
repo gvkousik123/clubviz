@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { PasswordService, PasswordResetResponse } from '@/lib/services/password.service';
+import { PasswordService, PasswordResetResponse, ForgotPasswordResponse } from '@/lib/services/password.service';
 import { useToast } from '@/hooks/use-toast';
 
 // ============================================================================
@@ -11,8 +11,12 @@ interface UsePasswordReturn {
   isLoading: boolean;
   isInitiatingReset: boolean;
   isResettingPassword: boolean;
-  
-  // Password reset operations
+
+  // New OTP-based email flow
+  forgotPassword: (email: string) => Promise<boolean>;
+  resetPasswordWithOTP: (email: string, otp: string, newPassword: string, confirmPassword: string) => Promise<boolean>;
+
+  // Legacy password reset operations
   initiatePasswordReset: (contact: string) => Promise<boolean>;
   resetPasswordWithMobile: (mobileNumber: string, newPassword: string) => Promise<boolean>;
   
@@ -56,6 +60,80 @@ export const usePassword = (): UsePasswordReturn => {
       variant: "destructive",
     });
   }, [toast]);
+
+  // ============================================================================
+  // NEW OTP-BASED EMAIL FLOW
+  // ============================================================================
+
+  const forgotPassword = useCallback(async (email: string): Promise<boolean> => {
+    if (!email.trim()) {
+      showErrorToast('Invalid Input', 'Please enter your email address');
+      return false;
+    }
+
+    if (!PasswordService.isValidEmail(email.trim())) {
+      showErrorToast('Invalid Email', 'Please enter a valid email address');
+      return false;
+    }
+
+    setIsInitiatingReset(true);
+    setIsLoading(true);
+
+    try {
+      await PasswordService.forgotPassword(email.trim());
+      showSuccessToast('OTP Sent', 'An OTP has been sent to your registered email address');
+      return true;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send OTP';
+      showErrorToast('Failed to Send OTP', errorMessage);
+      return false;
+    } finally {
+      setIsInitiatingReset(false);
+      setIsLoading(false);
+    }
+  }, [showSuccessToast, showErrorToast]);
+
+  const resetPasswordWithOTP = useCallback(async (
+    email: string,
+    otp: string,
+    newPassword: string,
+    confirmPassword: string,
+  ): Promise<boolean> => {
+    if (!email.trim() || !otp.trim() || !newPassword || !confirmPassword) {
+      showErrorToast('Invalid Input', 'Please fill in all fields');
+      return false;
+    }
+
+    if (newPassword !== confirmPassword) {
+      showErrorToast('Password Mismatch', 'Passwords do not match');
+      return false;
+    }
+
+    const passwordValidation = PasswordService.validatePasswordStrength(newPassword);
+    if (!passwordValidation.isValid) {
+      showErrorToast('Weak Password', passwordValidation.errors.join('. '));
+      return false;
+    }
+
+    setIsResettingPassword(true);
+    setIsLoading(true);
+
+    try {
+      await PasswordService.resetPasswordWithOTP(email.trim(), otp.trim(), newPassword, confirmPassword);
+      showSuccessToast(
+        'Password Reset Successful',
+        'Your password has been reset. You can now log in with your new password.',
+      );
+      return true;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to reset password';
+      showErrorToast('Reset Failed', errorMessage);
+      return false;
+    } finally {
+      setIsResettingPassword(false);
+      setIsLoading(false);
+    }
+  }, [showSuccessToast, showErrorToast]);
 
   // ============================================================================
   // PASSWORD RESET OPERATIONS
@@ -182,8 +260,12 @@ export const usePassword = (): UsePasswordReturn => {
     isLoading,
     isInitiatingReset,
     isResettingPassword,
-    
-    // Password reset operations
+
+    // New OTP-based email flow
+    forgotPassword,
+    resetPasswordWithOTP,
+
+    // Legacy password reset operations
     initiatePasswordReset,
     resetPasswordWithMobile,
     
