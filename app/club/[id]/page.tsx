@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
     ArrowLeft,
+    ArrowRight,
     ChevronLeft,
     ChevronRight,
     Heart,
@@ -1306,6 +1307,19 @@ export default function ClubDetailPage() {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '16px' }}>
+                    <div className="w-full max-w-[398px] h-12 relative flex items-center bg-[#283c3d] px-4 rounded-2xl">
+                        <span className="font-medium text-[16px] leading-[21px] text-white whitespace-nowrap">Leave a review</span>
+                        <Link
+                            href={`/review/write?clubId=${encodeURIComponent(clubId)}`}
+                            className="absolute right-[14.25px] w-6 h-6 rounded-full bg-[#14ffec] flex items-center justify-center"
+                            aria-label="Write a review"
+                        >
+                            <ArrowRight className="w-[19.500003814697266px] h-[19.500003814697266px] text-black" />
+                        </Link>
                     </div>
                 </div>
             </div>
