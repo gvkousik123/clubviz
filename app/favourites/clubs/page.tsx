@@ -6,67 +6,67 @@ import { Bookmark, Loader2 } from 'lucide-react';
 import PageHeader from '@/components/common/page-header';
 import { toast } from '@/hooks/use-toast';
 import { ClubsListSkeleton } from '@/components/ui/skeleton-loaders';
-
-// Dummy favorite clubs data for display
-const favoriteClubsData = [
-    {
-        id: 'venue-1',
-        name: 'DABO',
-        openTime: 'Open until 1:30 am',
-        rating: 4.2,
-        image: '/venue/Screenshot 2024-12-10 195651.png',
-        event: 'Timeless Tuesdays Ft. DJ Xpensive',
-        offer: null
-    },
-    {
-        id: 'venue-2',
-        name: 'LORD OF  DRINKS',
-        address: 'Ground floor, Poonam mall VIP road',
-        openTime: 'Open until 1:30 am',
-        rating: 4.2,
-        image: '/venue/Screenshot 2024-12-10 195852.png',
-        event: 'Typical Tuesdays Ft. DJ Xeroo',
-        offer: 'Buy 1 get 1 on IFML Drinks'
-    },
-    {
-        id: 'venue-3',
-        name: 'Escape',
-        openTime: 'Open until 12:30 am',
-        rating: 4.3,
-        image: '/venue/Screenshot 2024-12-10 200154.png',
-        event: 'Weekend Vibes Ft. DJ Shadow',
-        offer: null
-    }
-];
+import { ClubService } from '@/lib/services/club.service';
 
 export default function FavoriteClubsPage() {
     const router = useRouter();
     const [favoriteClubs, setFavoriteClubs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        // For now, show empty state as requested
-        // TODO: Implement API call when favorite clubs API is available
-        // const loadFavoriteClubs = async () => {
-        //     try {
-        //         const response = await ClubService.getFavoriteClubs();
-        //         setFavoriteClubs(response.data);
-        //     } catch (error) {
-        //         console.error('Error loading favorite clubs:', error);
-        //     }
-        // };
-        // loadFavoriteClubs();
+    const clubImages = [
+        '/venue/Screenshot 2024-12-10 195651.png',
+        '/venue/Screenshot 2024-12-10 195852.png',
+        '/venue/Screenshot 2024-12-10 200154.png'
+    ];
 
-        setLoading(false);
-        setFavoriteClubs([]); // Show empty for now
+    const getClubFallbackImage = (index: number) => {
+        return clubImages[index % clubImages.length];
+    };
+
+    const loadFavoriteClubs = async () => {
+        setLoading(true);
+        try {
+            const response: any = await ClubService.getUserFavoriteClubs({ page: 0, size: 50 });
+            // Handle response - may be wrapped or direct
+            const clubs = response?.clubs || response?.content || response?.data?.clubs || response?.data?.content || [];
+            setFavoriteClubs(clubs);
+        } catch (error: any) {
+            console.error('Error loading favorite clubs:', error);
+            setFavoriteClubs([]);
+            if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+                toast({
+                    title: 'Login Required',
+                    description: 'Please login to see your favorite clubs.',
+                    variant: 'destructive',
+                });
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadFavoriteClubs();
     }, []);
 
-    const handleBookmark = (clubId: string) => {
-        toast({
-            title: "Removed from favorites",
-            description: "Club removed from your favorites.",
-        });
+    const handleRemoveFavorite = async (clubId: string) => {
+        try {
+            await ClubService.removeClubFromFavorites(clubId);
+            setFavoriteClubs(prev => prev.filter(c => c.id !== clubId));
+            toast({
+                title: "Removed from favorites",
+                description: "Club removed from your favorites.",
+            });
+        } catch (error: any) {
+            console.error('Error removing favorite:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to remove from favorites.',
+                variant: 'destructive',
+            });
+        }
     };
+
     return (
         <div className="min-h-screen w-full bg-[#031414] overflow-hidden">
             <PageHeader title="FAVOURITE CLUBS" />
@@ -81,8 +81,8 @@ export default function FavoriteClubsPage() {
                         <h3 className="text-white text-lg font-semibold mb-2">No Favorite Clubs</h3>
                         <p className="text-gray-400 text-sm">Start adding clubs to your favorites to see them here.</p>
                     </div>
-                ) : favoriteClubs.map((club) => (
-                    <div key={club.id} className="w-full">
+                ) : favoriteClubs.map((club, index) => (
+                    <div key={club.id} className="w-full" onClick={() => router.push(`/club/${club.id}`)}>
                         {/* Main club card structure */}
                         <div className="relative">
                             {/* Main club card */}
@@ -90,7 +90,7 @@ export default function FavoriteClubsPage() {
                                 {/* Main image container with border on all sides */}
                                 <div className="w-full h-[169px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[15px] overflow-hidden border-[1.2px] border-[#14FFEC]">
                                     <img
-                                        src={club.image}
+                                        src={club.logo || club.logoUrl || club.image || getClubFallbackImage(index)}
                                         alt={club.name}
                                         className="w-full h-full object-cover absolute inset-0 rounded-[15px]"
                                     />
@@ -98,7 +98,10 @@ export default function FavoriteClubsPage() {
                                     <div className="w-full h-full absolute inset-0 bg-white/10 mix-blend-overlay"></div>
                                     <div className="w-full h-[169px] pl-[281px] pr-4 pt-[17px] pb-[113px] left-0 top-0 absolute justify-end items-center inline-flex bg-gradient-to-b from-black via-black/50 to-black/0 rounded-[10px] overflow-hidden">
                                         <button
-                                            onClick={() => handleBookmark(club.id)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRemoveFavorite(club.id);
+                                            }}
                                             className="w-[39px] self-stretch bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] justify-center items-center inline-flex overflow-hidden hover:bg-neutral-300/20 transition-colors"
                                         >
                                             <Bookmark className="w-5 h-5 text-[#14FFEC] fill-[#14FFEC]" />
@@ -112,7 +115,7 @@ export default function FavoriteClubsPage() {
                                 {/* Rating badge */}
                                 <div className="w-[30px] h-[30px] pl-1 pr-[5px] py-[5px] right-[24px] top-[110px] absolute justify-center items-center inline-flex bg-[#008378] rounded-[17px] overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),inset_0_-1px_2px_rgba(255,255,255,0.1)] z-20">
                                     <div className="text-white text-[13px] font-extrabold font-['Manrope'] leading-5 tracking-[0.01em]">
-                                        {club.rating}
+                                        {club.rating || '4.0'}
                                     </div>
                                 </div>
 
@@ -123,34 +126,14 @@ export default function FavoriteClubsPage() {
                                             {club.name}
                                         </div>
                                         <div className="self-stretch h-5 text-white text-[13px] font-semibold font-['Manrope'] leading-5 tracking-[0.01em] whitespace-nowrap overflow-hidden text-ellipsis">
-                                            {club.address || club.openTime}
+                                            {club.location || club.locationText?.fullAddress || club.description || ''}
                                         </div>
-                                        {club.address && (
-                                            <div className="self-stretch h-5 text-white text-[13px] font-semibold font-['Manrope'] leading-5 tracking-[0.01em] whitespace-nowrap overflow-hidden text-ellipsis">
-                                                {club.openTime}
-                                            </div>
-                                        )}
+                                        <div className="self-stretch h-5 text-white text-[13px] font-semibold font-['Manrope'] leading-5 tracking-[0.01em] whitespace-nowrap overflow-hidden text-ellipsis">
+                                            {club.category || ''}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Event title section - below the card */}
-                            {club.event && (
-                                <div className="w-[calc(100%-16px)] mx-auto bg-[#008479] rounded-b-[15px] px-4 py-3">
-                                    <span className="text-white text-[12px] font-['Manrope'] font-normal leading-[16px] tracking-[0.12px] whitespace-nowrap overflow-hidden text-ellipsis block">
-                                        {club.event}
-                                    </span>
-                                </div>
-                            )}
-
-                            {/* Offer section - below event title (if available) */}
-                            {club.offer && (
-                                <div className="w-[calc(100%-16px)] mx-auto bg-[#004342] rounded-b-[15px] px-4 py-3">
-                                    <span className="text-white text-[11px] font-['Manrope'] font-extrabold leading-[14px] tracking-[0.44px] whitespace-nowrap overflow-hidden text-ellipsis block">
-                                        {club.offer}
-                                    </span>
-                                </div>
-                            )}
                         </div>
                     </div>
                 ))}
