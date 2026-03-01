@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Loader2, X, Filter } from 'lucide-react';
+import { SealPercent } from '@phosphor-icons/react';
 import type { Club } from '@/components/clubs';
 import { useToast } from '@/hooks/use-toast';
 import { ClubCard } from '@/components/clubs/club-card';
@@ -64,7 +65,7 @@ const DUMMY_CLUBS: Club[] = [
 
 export default function ClubsListPage() {
     const router = useRouter();
-    const { toast } = useToast();
+    const { toast } = useToast() ;
     const [clubs, setClubs] = useState<Club[]>([]);
     const [loading, setLoading] = useState(true);
     const [favorites, setFavorites] = useState<string[]>([]);
@@ -288,7 +289,7 @@ export default function ClubsListPage() {
         <div className="min-h-screen bg-[#031313] text-white">
             <div className="relative mx-auto max-w-[430px]">
                 {/* Fixed Header with Gradient Background */}
-                <header className="fixed top-0 left-0 w-full max-w-[430px] mx-auto h-[185px] bg-gradient-to-b from-[#222831] to-[#11b9ab] rounded-br-[30px] rounded-bl-[30px] border z-50 flex flex-col">
+                <header className="fixed top-0 left-0 w-full max-w-[430px] mx-auto h-[185px] bg-gradient-to-b from-[#222831] to-[#11b9ab] rounded-br-[30px] rounded-bl-[30px] border z-50 flex flex-col overflow-hidden">
                     {/* Top Section - Back Button and User Icon */}
                     <div className="flex items-start justify-between pt-[61px] pl-4 pr-4">
                         {/* Back Button */}
@@ -426,7 +427,7 @@ export default function ClubsListPage() {
                 {/* Main Content Container */}
                 <div className="w-full flex flex-col items-center pt-[206px] relative">
                     {/* Filter Tabs Section */}
-                    <div className="sticky top-[185px] left-0 w-full max-w-[430px] z-40 bg-[#031313] pt-[21px] pb-[21px]">
+                    <div className="w-full max-w-[430px] bg-[#031313] pt-0 pb-[21px] relative z-0 pointer-events-auto">
                         <div className="flex items-center">
                             {/* Fixed Filters Tab */}
                             <div className="flex-shrink-0 pl-4">
@@ -451,7 +452,7 @@ export default function ClubsListPage() {
                             </div>
 
                             {/* Scrollable Tabs Container */}
-                            <div className="flex-1 overflow-x-auto scrollbar-hide">
+                            <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide">
                                 <div className="flex items-center gap-[10px] pl-4 pr-4">
                                     {[
                                         { id: 'today', label: 'Events Today' },
@@ -520,16 +521,16 @@ export default function ClubsListPage() {
 
                     {/* All Clubs Section */}
                     <section className="w-full max-w-[430px]">
-                        <div className="flex items-center justify-between mb-4 px-5">
+                        <div className="flex items-center justify-between mb-4 px-4">
                             <h2 className="text-white text-sm font-semibold truncate">All Clubs</h2>
                         </div>
-                        <div className="flex flex-col gap-4 pb-6 px-5">
+                        <div className="flex flex-col items-center gap-4 pb-6 px-4">
                             {loading ? (
                                 <div className="flex items-center justify-center w-full py-8">
                                     <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
                                 </div>
                             ) : clubs.length === 0 ? (
-                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full mr-5">
+                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full">
                                     We couldn't find any clubs right now. Check back soon!
                                 </div>
                             ) : (
@@ -538,11 +539,11 @@ export default function ClubsListPage() {
                                     return (
                                         <div
                                             key={club.id}
-                                            className="w-[336px] h-[201px] relative flex-shrink-0 mr-1 cursor-pointer"
+                                            className={`w-full ${index === 0 ? 'h-[247px]' : index === 1 ? 'h-[308px]' : 'h-[214px]'} relative flex-shrink-0 cursor-pointer`}
                                             onClick={() => handleClubClick(club.id)}
                                         >
                                             {/* Main image container with rounded top */}
-                                            <div className="w-[336px] h-[169px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[15px] border-[#14FFEC] overflow-hidden">
+                                            <div className="w-full h-[169px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[15px] border-[#14FFEC] overflow-hidden">
                                                 <img
                                                     src={fallbackImage}
                                                     alt={club.name}
@@ -550,7 +551,7 @@ export default function ClubsListPage() {
                                                 />
                                                 {/* White overlay effect */}
                                                 <div className="w-full h-full absolute inset-0 bg-white/10 mix-blend-overlay"></div>
-                                                <div className="w-[336px] h-[169px] pl-[281px] pr-4 pt-[17px] pb-[113px] left-0 top-0 absolute justify-end items-center inline-flex bg-gradient-to-b from-black via-black/50 to-black/0 rounded-[10px] overflow-hidden">
+                                                <div className="w-full h-[169px] px-4 pt-[17px] pb-[113px] left-0 top-0 absolute justify-end items-center inline-flex bg-gradient-to-b from-black via-black/50 to-black/0 rounded-[10px] overflow-hidden">
                                                     <button
                                                         onClick={(e) => {
                                                             e.preventDefault();
@@ -567,19 +568,22 @@ export default function ClubsListPage() {
                                             </div>
 
                                             {/* Glassmorphism bottom section */}
-                                            <div className="w-[320px] h-[85px] left-[8px] top-[125px] absolute bg-[rgba(212.01,212.01,212.01,0.10)] rounded-[15px] border backdrop-blur-[17.50px]"></div>
+                                            <div className="h-[85px] inset-x-2 top-[125px] absolute rounded-[15px] border border-white/25 bg-[rgba(9,32,39,0.78)] backdrop-blur-[30px] backdrop-saturate-150 z-10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.24),0_12px_26px_rgba(0,0,0,0.42)]"></div>
+                                            <div className="h-[85px] inset-x-2 top-[125px] absolute rounded-[15px] bg-gradient-to-b from-white/[0.16] via-white/[0.06] to-black/25 z-[11] pointer-events-none"></div>
 
                                             {/* Rating badge */}
-                                            <div className="w-[30px] h-[30px] pl-1 pr-[5px] py-[5px] left-[250px] top-[110px] absolute justify-center items-center inline-flex bg-[#008378] rounded-[17px] overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),inset_0_-1px_2px_rgba(255,255,255,0.1)]">
-                                                <div className="text-white text-[13px] font-extrabold font-['Manrope'] leading-5 tracking-[0.01em]">
-                                                    {club.rating}
+                                            <div className="w-[40px] h-[40px] right-[50px] top-[104px] absolute z-20 rounded-full bg-white/[0.02] backdrop-blur-[1px] p-[4px]">
+                                                <div className="w-full h-full flex items-center justify-center bg-[#008378] rounded-full overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),inset_0_-1px_2px_rgba(255,255,255,0.1)]">
+                                                    <div className="text-white text-[13px] font-extrabold font-['Manrope'] leading-5 tracking-[0.01em]">
+                                                        {club.rating}
+                                                    </div>
                                                 </div>
                                             </div>
 
                                             {/* Text content */}
-                                            <div className="w-32 h-[42px] left-[33px] top-[147px] absolute justify-start items-center gap-[29px] inline-flex">
-                                                <div className="w-52 flex-col justify-center items-start gap-1 inline-flex">
-                                                    <div className="self-stretch h-4 text-[#14FFEC] text-base font-black font-['Manrope'] leading-4 tracking-[0.02em] truncate overflow-hidden whitespace-nowrap">
+                                            <div className="left-[32px] right-[86px] top-[142px] absolute z-20">
+                                                <div className="w-full flex-col justify-center items-start gap-1 inline-flex">
+                                                    <div className="self-stretch text-[#14FFEC] text-[24px] font-black font-['Manrope'] leading-[26px] tracking-[0.02em] truncate overflow-hidden whitespace-nowrap">
                                                         {club.name}
                                                     </div>
                                                     <div className="self-stretch h-3.5 text-white text-xs font-semibold font-['Manrope'] leading-3.5 tracking-[0.01em] truncate overflow-hidden whitespace-nowrap">
@@ -592,6 +596,43 @@ export default function ClubsListPage() {
                                                     )}
                                                 </div>
                                             </div>
+
+                                            {index === 0 && (
+                                                <div className="absolute inset-x-[10px] top-[168px] h-[83px] bg-[#008378] rounded-[20px] z-0 shadow-[inset_0_20px_22px_rgba(0,0,0,0.52)]">
+                                                    <div className="absolute inset-x-0 top-0 h-[76px] bg-gradient-to-b from-black/70 via-black/42 to-transparent rounded-t-[20px] pointer-events-none"></div>
+                                                    <div className="absolute inset-x-0 bottom-0 h-[42px] flex items-center pl-[29px] pr-6">
+                                                        <span className="font-normal text-[14px] leading-[21px] text-center text-white truncate">
+                                                            Timeless Tuesdays Ft. DJ Xpensive
+                                                        </span>
+                                                        <span className="ml-3 inline-block h-2 w-2 rounded-full bg-red-500" aria-hidden="true"></span>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {index === 1 && (
+                                                <>
+                                                    <div className="absolute inset-x-[10px] top-[168px] h-[83px] bg-[#008378] rounded-[20px] z-[1] shadow-[inset_0_20px_22px_rgba(0,0,0,0.52)]">
+                                                        <div className="absolute inset-x-0 top-0 h-[76px] bg-gradient-to-b from-black/70 via-black/42 to-transparent rounded-t-[20px] pointer-events-none"></div>
+                                                        <div className="absolute inset-x-0 bottom-0 h-[42px] flex items-center pl-[29px] pr-6">
+                                                            <span className="font-normal text-[14px] leading-[21px] text-center text-white truncate">
+                                                                Typical Tuesdays Ft. DJ Xeroo
+                                                            </span>
+                                                            <span className="ml-3 inline-block h-2 w-2 rounded-full bg-red-500" aria-hidden="true"></span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="absolute inset-x-[10px] top-[213px] h-[83px] bg-[rgba(0,131,120,0.62)] rounded-[20px] overflow-hidden z-0 shadow-[inset_0_8px_10px_rgba(0,0,0,0.38)]">
+                                                        <div className="absolute inset-x-0 bottom-0 h-[45px] flex items-center pl-[29px] pr-0 overflow-hidden">
+                                                            <span className="font-extrabold text-[13px] leading-[16px] text-white truncate pr-16">Buy 1 get 1 on IFML Drinks</span>
+                                                            <SealPercent
+                                                                className="w-[86.73780059814453px] h-[86.49639892578125px] text-[#1b726b] shrink-0 absolute right-[-6px]"
+                                                                weight="fill"
+                                                            />
+                                                        </div>
+                                                        <div className="absolute inset-x-0 top-0 h-[62px] bg-gradient-to-b from-black/55 via-black/28 to-transparent rounded-t-[20px] pointer-events-none"></div>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                     );
                                 })

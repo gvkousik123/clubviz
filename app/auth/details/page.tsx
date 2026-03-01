@@ -26,7 +26,6 @@ export default function DetailsPage() {
 
         // If no temporary data, redirect back to mobile auth
         if (!phoneNumber || !firebaseToken) {
-            console.log("⚠️ No registration session found, redirecting to mobile auth");
             router.push('/auth/mobile');
         }
     }, [router]);
@@ -68,7 +67,6 @@ export default function DetailsPage() {
                 throw new Error('This operation requires client-side rendering');
             }
 
-            console.log("🔄 Starting registration flow...");
 
             // Get stored data from Firebase verification
             const phoneNumber = localStorage.getItem('tempPhoneNumber');
@@ -83,11 +81,9 @@ export default function DetailsPage() {
             // ========== NEW FLOW: VERIFY FIREBASE TOKEN FIRST ==========
 
             // Step 1: Verify Firebase Token (Check if user already exists)
-            console.log("🔐 Step 1: Calling verify-firebase-token API to check user status...");
             let tokenVerificationResult;
             try {
                 tokenVerificationResult = await MobileAuthService.verifyFirebaseToken(firebaseToken);
-                console.log("✅ Step 1 Response:", tokenVerificationResult);
             } catch (error: any) {
                 console.error("❌ Step 1 Error:", error.message);
                 throw new Error(`Token verification failed: ${error.message}`);
@@ -95,42 +91,35 @@ export default function DetailsPage() {
 
             // Check if user already exists
             const isExistingUser = tokenVerificationResult?.data?.existingUser === true;
-            console.log("👤 User status:", isExistingUser ? "EXISTING USER" : "NEW USER");
 
             let registrationResult = null;
 
             // Step 2: If NEW USER, call complete registration API
             if (!isExistingUser) {
-                console.log("📝 Step 2: Calling complete-registration API for new user...");
                 try {
                     registrationResult = await MobileAuthService.completeRegistration({
                         mobileNumber: phoneNumber,
                         fullName: fullName.trim(),
                         email: email.trim()
                     });
-                    console.log("✅ Step 2 Response:", registrationResult);
                 } catch (error: any) {
                     console.error("❌ Step 2 Error:", error.message);
                     throw new Error(`Registration failed: ${error.message}`);
                 }
             } else {
-                console.log("✨ User already registered, skipping complete-registration step");
             }
 
             // Step 3: Store authentication data
-            console.log("💾 Step 3: Storing authentication data...");
 
             // Extract tokens - prefer from complete-registration (new users), fallback to verify-token (existing users)
             let finalTokens: any = null;
 
             if (registrationResult?.data?.accessToken) {
-                console.log("✅ Using tokens from Step 2 (complete-registration)");
                 finalTokens = {
                     accessToken: registrationResult.data.accessToken,
                     refreshToken: registrationResult.data.refreshToken
                 };
             } else if (tokenVerificationResult?.data?.accessToken) {
-                console.log("✅ Using tokens from Step 1 (verify-firebase-token)");
                 finalTokens = {
                     accessToken: tokenVerificationResult.data.accessToken,
                     refreshToken: tokenVerificationResult.data.refreshToken
@@ -138,10 +127,6 @@ export default function DetailsPage() {
             }
 
             if (!finalTokens?.accessToken) {
-                console.error("❌ No tokens found in responses");
-                console.log("Registration result:", registrationResult);
-                console.log("Verification result:", tokenVerificationResult);
-                throw new Error('No authentication token received from server');
             }
 
             // Store tokens
@@ -165,7 +150,6 @@ export default function DetailsPage() {
             }
 
             if (userData) {
-                console.log("📝 Storing user data:", userData);
                 localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(userData));
             } else {
                 console.warn("⚠️ No user data found in responses");
@@ -176,8 +160,6 @@ export default function DetailsPage() {
             localStorage.removeItem('tempPhoneNumber');
             localStorage.removeItem('verificationResult');
 
-            console.log("✅ All steps completed successfully!");
-            console.log("📊 Stored tokens and user data");
 
             toast({
                 title: isExistingUser ? "Welcome back!" : "Registration completed!",
@@ -196,15 +178,11 @@ export default function DetailsPage() {
 
                     if (userRoles.includes('ROLE_SUPERADMIN')) {
                         redirectRoute = '/superadmin';
-                        console.log("🔑 Redirecting SUPERADMIN to /superadmin");
                     } else if (userRoles.includes('ROLE_ADMIN')) {
                         redirectRoute = '/admin';
-                        console.log("🔑 Redirecting ADMIN to /admin");
                     } else if (userRoles.includes('ROLE_USER')) {
                         redirectRoute = '/home';
-                        console.log("🔑 Redirecting USER to /home");
                     } else {
-                        console.log("ℹ️ No specific role found, defaulting to /home");
                     }
                 }
             } catch (error) {

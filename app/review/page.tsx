@@ -1,19 +1,73 @@
 ﻿'use client';
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Star, ThumbsUp, ThumbsDown, Share, Bookmark } from 'lucide-react';
+import { useClubDetail } from '@/lib/store';
+
+type ReviewItem = {
+    id: number;
+    clubId?: string;
+    clubName?: string;
+    name: string;
+    avatar: string;
+    rating: number;
+    date: string;
+    review: string;
+    daysAgo: string;
+    verified: boolean;
+};
+
+const REVIEWS_STORAGE_KEY = 'clubviz_reviews';
+
+const normalizeClubName = (value?: string) => (value || '').trim().toLowerCase();
+
+const parseReviewDate = (value: string) => {
+    if (!value) return null;
+
+    const ddMmYyyyMatch = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (ddMmYyyyMatch) {
+        const [, day, month, year] = ddMmYyyyMatch;
+        const parsed = new Date(Number(year), Number(month) - 1, Number(day));
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const getDaysAgoLabel = (value: string) => {
+    const parsedDate = parseReviewDate(value);
+    if (!parsedDate) return 'Recently';
+
+    const reviewDate = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate());
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const diffMs = todayStart.getTime() - reviewDate.getTime();
+    const diffDays = Math.max(Math.floor(diffMs / (1000 * 60 * 60 * 24)), 0);
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return '1 Day ago';
+    return `${diffDays} Days ago`;
+};
 
 export default function ReviewPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const clubId = searchParams.get('clubId') || '';
+    const clubNameFromQuery = searchParams.get('clubName');
+    const { club } = useClubDetail(clubId || null);
+    const [localReviews, setLocalReviews] = useState<ReviewItem[]>([]);
 
     const handleWriteReview = () => {
-        router.push('/review/write');
+        const href = `/review/write?clubId=${encodeURIComponent(clubId)}&clubName=${encodeURIComponent(clubName)}`;
+        router.push(href);
     };
 
-    const reviews = [
+    const defaultReviews: ReviewItem[] = [
         {
             id: 1,
+            clubName: 'DABO CLUB & KITCHEN',
             name: 'Anjali Sharma',
             avatar: '/vibemeter/Screenshot_2025-05-16_192139-removebg-preview.png',
             rating: 4.5,
@@ -24,6 +78,7 @@ export default function ReviewPage() {
         },
         {
             id: 2,
+            clubName: 'DABO CLUB & KITCHEN',
             name: 'Ankit Trivedi',
             avatar: '/vibemeter/Screenshot_2025-05-16_193232-removebg-preview.png',
             rating: 4.5,
@@ -34,6 +89,7 @@ export default function ReviewPage() {
         },
         {
             id: 3,
+            clubName: 'DABO CLUB & KITCHEN',
             name: 'Nikhil Jadhav',
             avatar: '/vibemeter/Screenshot_2025-05-23_223510-removebg-preview.png',
             rating: 4.0,
@@ -44,53 +100,114 @@ export default function ReviewPage() {
         }
     ];
 
+    useEffect(() => {
+        try {
+            const storedRaw = localStorage.getItem(REVIEWS_STORAGE_KEY);
+            const parsed = storedRaw ? JSON.parse(storedRaw) : [];
+            if (!Array.isArray(parsed)) {
+                setLocalReviews([]);
+                return;
+            }
+
+            const parsedReviews = parsed.filter((item: any) => {
+                if (!clubId) return true;
+                return item?.clubId === clubId;
+            });
+
+            setLocalReviews(parsedReviews);
+        } catch (error) {
+            console.error('Failed to read local reviews:', error);
+            setLocalReviews([]);
+        }
+    }, [clubId]);
+
+    const clubName = clubNameFromQuery || club?.name || 'DABO CLUB & KITCHEN';
+
+    const reviews = useMemo(() => {
+        const selectedClubName = normalizeClubName(clubName);
+        const filteredDefaultReviews = defaultReviews.filter((item) => {
+            if (clubId && item.clubId === clubId) return true;
+            if (!item.clubId && normalizeClubName(item.clubName) === selectedClubName) return true;
+            return false;
+        });
+
+        return [...localReviews, ...filteredDefaultReviews];
+    }, [clubId, clubName, localReviews]);
+
+    const averageRating = useMemo(() => {
+        if (!reviews.length) return 0;
+        const total = reviews.reduce((sum, item) => sum + Number(item.rating || 0), 0);
+        return Number((total / reviews.length).toFixed(1));
+    }, [reviews]);
+
     return (
         <div className="min-h-screen bg-[#021313] text-white">
-            {/* Custom Header */}
-            <div className="h-[200px] bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] relative">
-                {/* Back Arrow */}
-                <button
-                    onClick={() => router.back()}
-                    className="absolute top-12 left-6 p-2 hover:bg-white/10 rounded-full transition-all duration-300"
-                >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M19 12H5M12 19L5 12L12 5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                </button>
-
-                {/* Review Title */}
-                <div className="absolute top-12 left-1/2 transform -translate-x-1/2">
-                    <h1 className="text-white text-xl font-bold">Review</h1>
+            <div className="w-full max-w-[430px] h-[144px] mx-auto bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] relative flex flex-col justify-between">
+                <div className="flex items-center justify-between px-6 pt-4">
+                    <button
+                        onClick={() => router.back()}
+                        className="w-[35px] h-[35px] bg-white/20 overflow-hidden rounded-[18px] flex items-center justify-center"
+                    >
+                        <span className="text-white text-lg font-bold">&lt;</span>
+                    </button>
                 </div>
-
-                {/* Club Name - positioned inside the header */}
-                <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center">
-                    <h2 className="text-white text-2xl font-extrabold">DABO CLUB & KITCHEN</h2>
+                <div className="text-center px-6 flex-1 flex items-center justify-center">
+                    <h2
+                        className="font-extrabold text-[22px] leading-[20px] text-center text-white"
+                        style={{
+                            fontFamily: 'Anton, Anton SC, sans-serif',
+                            fontWeight: 400,
+                            fontSize: '24px',
+                            letterSpacing: '0.0625em',
+                            lineHeight: '32px',
+                            textAlign: 'center',
+                            color: '#ffffff'
+                        }}
+                    >
+                        Reviews
+                    </h2>
                 </div>
             </div>
 
+                <div className="px-6 pt-4 pb-[7px] text-center">
+                <h2
+                    className="font-extrabold text-[22px] leading-[20px] text-center text-white"
+                    style={{
+                        fontFamily: 'Anton, Anton SC, sans-serif',
+                        fontWeight: 400,
+                        fontSize: '24px',
+                        letterSpacing: '0.0625em',
+                        lineHeight: '32px',
+                        textAlign: 'center',
+                        color: '#ffffff'
+                    }}
+                >
+                    {clubName}
+                </h2>
+            </div>
+
             {/* Main Content */}
-            <div className="px-6 pb-6 space-y-6 pt-4">
+            <div className="px-6 pb-6 space-y-6 pt-0">
                 {/* Club Rating Info */}
-                <div className="text-center space-y-2 mt-6">
+                <div className="text-center space-y-2 mt-0">
                     <div className="flex flex-col items-center">
-                        <div className="text-4xl font-bold mb-2">4.2</div>
+                        <div className="text-4xl font-bold mb-2">{averageRating.toFixed(1)}</div>
                         <div className="flex items-center gap-1 mb-1">
                             {Array.from({ length: 5 }, (_, index) => (
                                 <Star
                                     key={index}
                                     size={24}
-                                    className={`${index < 4 ? 'text-teal-400 fill-teal-400' : index === 4 ? 'text-teal-400' : 'text-gray-400'}`}
+                                    className={`${index < Math.floor(averageRating) ? 'text-teal-400 fill-teal-400' : index === Math.floor(averageRating) && averageRating % 1 !== 0 ? 'text-teal-400' : 'text-gray-400'}`}
                                 />
                             ))}
                         </div>
-                        <span className="text-white/70 text-sm">30 Reviews</span>
+                        <span className="text-white/70 text-sm">{reviews.length} Reviews</span>
                     </div>
                 </div>
 
                 {/* Rating Distribution */}
                 <div className="bg-[rgba(40,60,61,0.30)] p-4 rounded-2xl space-y-3">
-                    {['Excellent', 'Good', 'Average', 'Below Average', 'Rate'].map((label, index) => (
+                    {['Excellent', 'Good', 'Average', 'Below Average', 'Not Good'].map((label, index) => (
                         <div key={index} className="flex items-center gap-3">
                             <div className="w-28 text-sm">{label}</div>
                             <div className="h-2 bg-[#333] flex-1 rounded-full overflow-hidden">
@@ -108,11 +225,19 @@ export default function ReviewPage() {
                     {reviews.map((review) => (
                         <div key={review.id} className="bg-[rgba(40,60,61,0.30)] rounded-2xl p-4">
                             <div className="flex items-center gap-3">
-                                <img
-                                    src={review.avatar}
-                                    alt={review.name}
-                                    className="w-12 h-12 rounded-full object-cover"
-                                />
+                                <div className="relative w-[44px] h-[44px] flex-shrink-0">
+                                    <img
+                                        src={review.avatar || '/placeholder/image.png'}
+                                        alt={review.name}
+                                        className="w-[44px] h-[44px] rounded-full object-cover"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = '/placeholder/image.png';
+                                        }}
+                                    />
+                                    <div className="absolute -right-[4px] -bottom-[4px] w-5 h-[19px] bg-[#005d5c] rounded-full flex items-center justify-center">
+                                        <span className="font-bold text-[10px] leading-[20px] text-white">{Number(review.rating || 0).toFixed(1)}</span>
+                                    </div>
+                                </div>
                                 <div>
                                     <h3 className="text-white font-medium">{review.name}</h3>
                                     <div className="flex items-center gap-1">
@@ -147,7 +272,7 @@ export default function ReviewPage() {
 
                             {/* Days Ago */}
                             <div className="text-right">
-                                <span className="text-white/50 text-xs">{review.daysAgo}</span>
+                                <span className="text-white/50 text-xs">{getDaysAgoLabel(review.date)}</span>
                             </div>
                         </div>
                     ))}

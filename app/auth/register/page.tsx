@@ -76,7 +76,6 @@ export default function RegisterPage() {
         setIsLoading(true);
 
         try {
-            console.log("📝 Submitting registration from OTP flow");
 
             // Extract 10 digits
             let cleanMobile = mobileNumber.replace(/[^0-9]/g, "");

@@ -35,15 +35,18 @@ export default function ContactUsPage() {
         message: ''
     });
 
-    // Get user email on mount
+    // Get user email and phone on mount
     useEffect(() => {
-        // Get user email from localStorage
+        // Get user data from localStorage
         try {
             const userStr = localStorage.getItem('clubviz-user');
             if (userStr) {
                 const user = JSON.parse(userStr);
                 if (user.email) {
                     setSupportForm(prev => ({ ...prev, email: user.email }));
+                }
+                if (user.phone || user.phoneNumber) {
+                    setFormData(prev => ({ ...prev, contactNumber: user.phone || user.phoneNumber }));
                 }
             }
         } catch (error) {
@@ -96,7 +99,6 @@ export default function ContactUsPage() {
         e.preventDefault();
 
         const success = await submitSupportRequest(supportForm);
-        console.log('Support request submission success:', success);
         if (success) {
             toast({
                 title: '✓ Support Request Submitted',
@@ -150,7 +152,6 @@ export default function ContactUsPage() {
             let username = JSON.parse(localStorage.getItem('clubviz-user') || '{}').username || 'User';
             username = username.replace(/[^a-zA-Z\s]/g, '').trim() || 'User';
 
-            console.log('Submitting feedback with data:', { username, ...feedbackForm });
             const success = await submitReview({
                 username: username,
                 rating: feedbackForm.rating,

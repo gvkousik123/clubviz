@@ -1,16 +1,30 @@
 ﻿'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+
+interface GalleryItem {
+    id: number;
+    image: string;
+    category: string;
+    alt: string;
+}
 
 export default function GalleryPage() {
     const router = useRouter();
     const [activeCategory, setActiveCategory] = useState('All');
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalItems, setModalItems] = useState<GalleryItem[]>([]);
+    const [modalCategory, setModalCategory] = useState('All');
+    const headerRef = useRef<HTMLDivElement | null>(null);
+    const filterRef = useRef<HTMLDivElement | null>(null);
+    const [topOffset, setTopOffset] = useState<number>(0);
 
-    const categories = ['All', 'Food', 'Drinks', 'Ambience'];
+
+
+    const categories = ['All', 'Ambience', 'Food', 'Drinks'];
 
     // Gallery data using actual Frame images
     const galleryItems = [
@@ -94,6 +108,8 @@ export default function GalleryPage() {
         }
     ];
 
+
+
     // Filter gallery items based on active category
     const filteredItems = activeCategory === 'All'
         ? galleryItems
@@ -101,26 +117,32 @@ export default function GalleryPage() {
 
     // Modal functions
     const openModal = (index: number) => {
+        setModalItems(filteredItems);
+        setModalCategory(activeCategory);
         setSelectedImageIndex(index);
         setIsModalOpen(true);
         document.body.style.overflow = 'hidden'; // Prevent background scrolling
     };
 
+
+
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedImageIndex(null);
+        setModalItems([]);
+        setModalCategory('All');
         document.body.style.overflow = 'unset'; // Restore scrolling
     };
 
     const nextImage = () => {
-        if (selectedImageIndex !== null) {
-            setSelectedImageIndex((selectedImageIndex + 1) % filteredItems.length);
+        if (selectedImageIndex !== null && modalItems.length > 0) {
+            setSelectedImageIndex((selectedImageIndex + 1) % modalItems.length);
         }
     };
 
     const prevImage = () => {
-        if (selectedImageIndex !== null) {
-            setSelectedImageIndex((selectedImageIndex - 1 + filteredItems.length) % filteredItems.length);
+        if (selectedImageIndex !== null && modalItems.length > 0) {
+            setSelectedImageIndex((selectedImageIndex - 1 + modalItems.length) % modalItems.length);
         }
     };
 
@@ -140,12 +162,26 @@ export default function GalleryPage() {
 
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [isModalOpen, selectedImageIndex, filteredItems.length]);
+    }, [isModalOpen, selectedImageIndex, modalItems.length]);
+
+    // Measure header + filter heights and set padding for the gallery grid
+    useEffect(() => {
+        const calcTopOffset = () => {
+            const h = headerRef.current?.getBoundingClientRect().height ?? 0;
+            const f = filterRef.current?.getBoundingClientRect().height ?? 0;
+            setTopOffset(Math.round(h + f));
+        };
+
+        calcTopOffset();
+        window.addEventListener('resize', calcTopOffset);
+        return () => window.removeEventListener('resize', calcTopOffset);
+    }, []);
+
 
     return (
         <div className="min-h-screen w-full bg-[#031414] relative">
             {/* Fixed Header with Photos section */}
-            <div className="fixed top-0 left-0 w-full h-[16vh] bg-gradient-to-t from-[#11B9AB] to-[#222831] rounded-b-[30px] z-40 flex flex-col justify-between">
+            <div ref={headerRef} className="fixed top-0 left-0 w-full h-[16vh] bg-gradient-to-t from-[#11B9AB] to-[#222831] rounded-b-[30px] z-40 flex flex-col justify-between">
                 {/* Header Content */}
                 <div className="flex items-center justify-between px-6 pt-4">
                     <button
@@ -155,14 +191,26 @@ export default function GalleryPage() {
                         <span className="text-white text-lg font-bold">&lt;</span>
                     </button>
                 </div>
-                <div className="text-center px-6 flex-1 flex flex-col justify-center">
-                    <div className="text-white text-xl font-['Manrope'] font-bold leading-6 tracking-[0.50px] break-words -mt-2">DABO CLUB & KITCHEN</div>
-                    <h2 className="text-white text-lg font-['Manrope'] font-semibold leading-6 tracking-[0.50px] mt-4">Photos</h2>
+                <div className="text-center px-6 flex-1 flex items-center justify-center">
+                    <h2
+                        className="font-extrabold text-[22px] leading-[20px] text-center text-white"
+                        style={{
+                            fontFamily: 'Anton, Anton SC, sans-serif',
+                            fontWeight: 400,
+                            fontSize: '24px',
+                            letterSpacing: '0.0625em',
+                            lineHeight: '32px',
+                            textAlign: 'center',
+                            color: '#ffffff'
+                        }}
+                    >
+                        PHOTOS
+                    </h2>
                 </div>
             </div>
 
             {/* Fixed Filter Section - positioned right below header */}
-            <div className="fixed top-[16vh] left-0 w-full h-[6vh] px-6 bg-[#031414] z-30 flex items-center">
+            <div ref={filterRef} className="fixed top-[16vh] left-0 w-full h-[6vh] px-6 bg-[#031414] z-30 flex items-center">
                 <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
                     {categories.map((category) => (
                         <button
@@ -180,7 +228,8 @@ export default function GalleryPage() {
             </div>
 
             {/* Gallery Grid starting right below fixed sections */}
-            <div className="pt-[22vh] px-6 pb-6">
+            <div className="px-4 pb-6" style={{ paddingTop: topOffset }}>
+
                 <div className="grid grid-cols-2 gap-4">
                     {filteredItems.map((item, index) => {
                         // Pattern: full (0), half (1,2), half (3,4), full (5), half (6,7), half (8,9), full (10), etc.
@@ -220,7 +269,7 @@ export default function GalleryPage() {
             </div>
 
             {/* Image Viewer Modal */}
-            {isModalOpen && selectedImageIndex !== null && (
+            {isModalOpen && selectedImageIndex !== null && modalItems.length > 0 && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center"
                     style={{ backgroundColor: 'rgba(13, 31, 31, 0.8)' }}
@@ -229,7 +278,7 @@ export default function GalleryPage() {
                     <div className="relative w-[90vw] max-w-[400px] h-[55vh] bg-[#0D1F1F] rounded-[20px] overflow-hidden flex flex-col shadow-[0_0_20px_rgba(20,255,236,0.3)]">
                         {/* Modal Header */}
                         <div className="flex justify-between items-center p-4 bg-gradient-to-b from-black/20 to-transparent">
-                            <h2 className="text-white text-lg font-semibold">All Photos</h2>
+                            <h2 className="text-white text-lg font-semibold">{modalCategory}</h2>
                             <button
                                 onClick={closeModal}
                                 className="w-10 h-10 flex items-center justify-center hover:opacity-80 transition-opacity"
@@ -257,8 +306,8 @@ export default function GalleryPage() {
 
                             {/* Main Image */}
                             <img
-                                src={filteredItems[selectedImageIndex].image}
-                                alt={filteredItems[selectedImageIndex].alt}
+                                src={modalItems[selectedImageIndex].image}
+                                alt={modalItems[selectedImageIndex].alt}
                                 className="max-w-full max-h-full object-contain rounded-lg"
                             />
                         </div>

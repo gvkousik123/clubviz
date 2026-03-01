@@ -1,21 +1,49 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CircleF, GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-import { Loader2, MapPin } from 'lucide-react';
+import { Loader2, MapPin, Maximize2, Minimize2, Search, X } from 'lucide-react';
 
 // Static libraries array to prevent LoadScript reload warning
-const GOOGLE_LIBRARIES: Array<'marker'> = ['marker'];
+const GOOGLE_LIBRARIES: ('marker' | 'places')[] = ['marker', 'places'];
 
 // Google Maps API Key - from environment variable (NEXT_PUBLIC_ prefix required for browser access)
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
+// Dark theme map styles - comprehensive styling for dark mode
+const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
+    { elementType: 'geometry', stylers: [{ color: '#1a2e35' }] },
+    { elementType: 'labels.text.fill', stylers: [{ color: '#8ec3b9' }] },
+    { elementType: 'labels.text.stroke', stylers: [{ color: '#1a2e35' }, { weight: 2 }] },
+    { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#2d4a4a' }] },
+    { featureType: 'administrative.land_parcel', elementType: 'labels.text.fill', stylers: [{ color: '#64a89a' }] },
+    { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#14FFEC' }] },
+    { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#243f3f' }] },
+    { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#6b9a8d' }] },
+    { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#1e3d34' }] },
+    { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#4a8b6e' }] },
+    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2d4a4a' }] },
+    { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#1a3535' }] },
+    { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9ca5ab' }] },
+    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#3a5858' }] },
+    { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#2d4545' }] },
+    { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#b0d5cc' }] },
+    { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#344f4f' }] },
+    { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#2d4545' }] },
+    { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#14FFEC' }] },
+    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0e2628' }] },
+    { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#4a7a7a' }] },
+];
+
 interface GoogleMapPickerProps {
     center: { lat: number; lng: number };
+    currentLocation?: { lat: number; lng: number } | null; // Blue pin - user's saved location
+    selectedLocation?: { lat: number; lng: number } | null; // Purple pin - tapped location
     radius?: number;
     onSelect: (coords: { lat: number; lng: number }) => void;
     apiKey?: string;
     height?: number | string;
+    showFullscreenButton?: boolean;
 }
 
 const baseContainerStyle: React.CSSProperties = {
@@ -28,13 +56,23 @@ const resolveHeight = (height?: number | string): string => {
     if (typeof height === 'number') {
         return `${height}px`;
     }
-    return height || '420px';
+    return height || '450px';
 };
 
-export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, height }: GoogleMapPickerProps) {
+export function GoogleMapPicker({ center, currentLocation, selectedLocation, radius = 5000, onSelect, apiKey, height, showFullscreenButton = true }: GoogleMapPickerProps) {
     const mapRef = useRef<google.maps.Map | null>(null);
-    const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
-    const legacyMarkerRef = useRef<google.maps.Marker | null>(null);
+    const searchInputRef = useRef<HTMLInputElement | null>(null);
+    const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+    // Current location marker (blue)
+    const currentMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+    const currentLegacyMarkerRef = useRef<google.maps.Marker | null>(null);
+    // Selected location marker (purple)
+    const selectedMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+    const selectedLegacyMarkerRef = useRef<google.maps.Marker | null>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [searchValue, setSearchValue] = useState('');
+    const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
 
     // Debug: Log environment variable
     useEffect(() => {
@@ -44,7 +82,98 @@ export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, heigh
             keyPreview: key ? `${key.substring(0, 10)}...${key.substring(key.length - 10)}` : 'MISSING',
             envVarName: 'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY'
         });
+
+        // Suppress Google Maps error dialogs and style autocomplete dropdown
+        const style = document.createElement('style');
+        style.id = 'gm-style-override';
+        style.innerHTML = `
+            .gm-err-container, .gm-err-content, .gm-err-title, .gm-err-message,
+            .dismissButton, .gm-style-cc, div[role="dialog"],
+            .gm-style > div > div > div > div > div[style*="z-index"][style*="position: absolute"] {
+                display: none !important;
+            }
+            
+            /* Google Places Autocomplete Dropdown Styling */
+            .pac-container {
+                background-color: #0a3a3a !important;
+                border: 1px solid #14FFEC50 !important;
+                border-radius: 12px !important;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+                font-family: 'Manrope', sans-serif !important;
+                margin-top: 5px !important;
+                z-index: 10000 !important;
+            }
+            .pac-item {
+                background-color: #0a3a3a !important;
+                border: none !important;
+                border-bottom: 1px solid #14FFEC20 !important;
+                padding: 12px 16px !important;
+                cursor: pointer !important;
+                color: white !important;
+            }
+            .pac-item:hover, .pac-item.pac-item-selected {
+                background-color: #14FFEC20 !important;
+            }
+            .pac-item:last-child {
+                border-bottom: none !important;
+            }
+            .pac-item-query {
+                color: #14FFEC !important;
+                font-size: 14px !important;
+                font-weight: 600 !important;
+            }
+            .pac-matched {
+                color: #14FFEC !important;
+                font-weight: 700 !important;
+            }
+            .pac-item > span:not(.pac-item-query) {
+                color: #ffffff99 !important;
+                font-size: 12px !important;
+            }
+            .pac-icon, .pac-icon-marker {
+                display: none !important;
+            }
+            .pac-logo::after {
+                display: none !important;
+            }
+            /* Hide powered by Google */
+            .pac-container::after {
+                display: none !important;
+            }
+        `;
+        if (!document.getElementById('gm-style-override')) {
+            document.head.appendChild(style);
+        }
+
+        return () => {
+            const existingStyle = document.getElementById('gm-style-override');
+            if (existingStyle) {
+                existingStyle.remove();
+            }
+        };
     }, []);
+
+    // Handle fullscreen changes
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, []);
+
+    const toggleFullscreen = async () => {
+        if (!containerRef.current) return;
+        try {
+            if (!document.fullscreenElement) {
+                await containerRef.current.requestFullscreen();
+            } else {
+                await document.exitFullscreen();
+            }
+        } catch (err) {
+            console.log('Fullscreen not supported:', err);
+        }
+    };
 
     // Use hardcoded key or fallback to prop, then to env var
     const finalApiKey = apiKey || GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
@@ -62,64 +191,212 @@ export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, heigh
         preventGoogleFontsLoading: true,
     });
 
-    // Setup advanced marker when map loads (hook must run every render to satisfy React rules)
+    // Setup current location marker (blue)
     useEffect(() => {
-        if (!isLoaded || !mapRef.current) return;
-        if (!center || typeof center.lat !== 'number' || typeof center.lng !== 'number') return;
-
-        // Remove old marker if it exists
-        try {
-            if (markerRef.current) {
-                markerRef.current.map = null;
-                markerRef.current = null;
-            }
-
-            if (legacyMarkerRef.current) {
-                legacyMarkerRef.current.setMap(null);
-                legacyMarkerRef.current = null;
-            }
-        } catch (error) {
-            console.log('Error removing old markers:', error);
+        if (!isLoaded || !mapRef.current || !currentLocation) {
+            // Clear current marker if no location
+            try {
+                if (currentMarkerRef.current) {
+                    currentMarkerRef.current.map = null;
+                    currentMarkerRef.current = null;
+                }
+                if (currentLegacyMarkerRef.current) {
+                    currentLegacyMarkerRef.current.setMap(null);
+                    currentLegacyMarkerRef.current = null;
+                }
+            } catch (error) { }
+            return;
         }
 
         const mapInstance = mapRef.current;
-        if (!mapInstance) return;
 
-        // Create new advanced marker when supported, fallback to default Marker otherwise
         try {
-            if (window.google?.maps?.marker?.AdvancedMarkerElement) {
-                const marker = new window.google.maps.marker.AdvancedMarkerElement({
+            // Remove old marker
+            if (currentMarkerRef.current) {
+                currentMarkerRef.current.map = null;
+                currentMarkerRef.current = null;
+            }
+            if (currentLegacyMarkerRef.current) {
+                currentLegacyMarkerRef.current.setMap(null);
+                currentLegacyMarkerRef.current = null;
+            }
+
+            // Create blue pin for current location
+            if (window.google?.maps?.Marker) {
+                const marker = new window.google.maps.Marker({
                     map: mapInstance,
-                    position: center,
-                    title: 'Current Location',
+                    position: currentLocation,
+                    title: 'Your Saved Location',
+                    icon: {
+                        path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
+                        fillColor: '#3B82F6',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 2,
+                        scale: 1.5,
+                        anchor: new window.google.maps.Point(12, 22),
+                    },
+                    zIndex: 100,
                 });
-                markerRef.current = marker;
-            } else if (window.google?.maps?.Marker) {
-                const classicMarker = new window.google.maps.Marker({
-                    map: mapInstance,
-                    position: center,
-                    title: 'Current Location',
-                });
-                legacyMarkerRef.current = classicMarker;
+                currentLegacyMarkerRef.current = marker;
             }
         } catch (error) {
-            console.log('Error creating marker:', error);
+            console.log('Error creating current location marker:', error);
         }
-    }, [isLoaded, center]);
+    }, [isLoaded, currentLocation]);
+
+    // Setup selected location marker (purple)
+    useEffect(() => {
+        if (!isLoaded || !mapRef.current || !selectedLocation) {
+            // Clear selected marker if no location
+            try {
+                if (selectedMarkerRef.current) {
+                    selectedMarkerRef.current.map = null;
+                    selectedMarkerRef.current = null;
+                }
+                if (selectedLegacyMarkerRef.current) {
+                    selectedLegacyMarkerRef.current.setMap(null);
+                    selectedLegacyMarkerRef.current = null;
+                }
+            } catch (error) { }
+            return;
+        }
+
+        const mapInstance = mapRef.current;
+
+        try {
+            // Remove old marker
+            if (selectedMarkerRef.current) {
+                selectedMarkerRef.current.map = null;
+                selectedMarkerRef.current = null;
+            }
+            if (selectedLegacyMarkerRef.current) {
+                selectedLegacyMarkerRef.current.setMap(null);
+                selectedLegacyMarkerRef.current = null;
+            }
+
+            // Create purple/magenta pin for selected location
+            if (window.google?.maps?.Marker) {
+                const marker = new window.google.maps.Marker({
+                    map: mapInstance,
+                    position: selectedLocation,
+                    title: 'Selected Location',
+                    icon: {
+                        path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
+                        fillColor: '#A855F7',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 2.5,
+                        scale: 2,
+                        anchor: new window.google.maps.Point(12, 22),
+                    },
+                    zIndex: 200,
+                });
+                selectedLegacyMarkerRef.current = marker;
+            }
+        } catch (error) {
+            console.log('Error creating selected location marker:', error);
+        }
+    }, [isLoaded, selectedLocation]);
 
     const handleMapLoad = useCallback((map: google.maps.Map) => {
         mapRef.current = map;
     }, []);
 
+    // Setup Google Places Autocomplete
+    useEffect(() => {
+        if (!isLoaded || !searchInputRef.current || !window.google?.maps?.places) return;
+
+        try {
+            // Create autocomplete instance with address components for city/country
+            const autocomplete = new window.google.maps.places.Autocomplete(searchInputRef.current, {
+                fields: ['geometry', 'name', 'formatted_address', 'address_components'],
+                types: ['geocode', 'establishment'],
+            });
+
+            // When place is selected
+            autocomplete.addListener('place_changed', () => {
+                const place = autocomplete.getPlace();
+
+                if (place.geometry?.location) {
+                    const lat = place.geometry.location.lat();
+                    const lng = place.geometry.location.lng();
+
+                    // Extract city, state, country from address components
+                    let city = '';
+                    let state = '';
+                    let country = '';
+
+                    if (place.address_components) {
+                        for (const component of place.address_components) {
+                            if (component.types.includes('locality')) {
+                                city = component.long_name;
+                            } else if (component.types.includes('administrative_area_level_1')) {
+                                state = component.long_name;
+                            } else if (component.types.includes('country')) {
+                                country = component.long_name;
+                            }
+                        }
+                    }
+
+                    // Build display name with city and country
+                    let displayName = place.name || '';
+                    if (city && country) {
+                        displayName = city ? `${city}, ${country}` : place.formatted_address || '';
+                    } else if (place.formatted_address) {
+                        displayName = place.formatted_address;
+                    }
+
+                    // Update search display
+                    setSearchValue(displayName);
+
+                    // Trigger selection callback with coordinates
+                    onSelect({ lat, lng });
+
+                    // Update map center with a small delay to ensure map is ready
+                    setTimeout(() => {
+                        if (mapRef.current) {
+                            mapRef.current.setCenter({ lat, lng });
+                            mapRef.current.panTo({ lat, lng });
+                            mapRef.current.setZoom(15);
+                        }
+                    }, 100);
+
+                    console.log('📍 Location selected:', { lat, lng, city, state, country, displayName });
+                }
+            });
+
+            autocompleteRef.current = autocomplete;
+        } catch (error) {
+            console.log('Error setting up autocomplete:', error);
+        }
+
+        return () => {
+            if (autocompleteRef.current) {
+                window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
+            }
+        };
+    }, [isLoaded, onSelect]);
+
     const handleMapUnmount = useCallback(() => {
         mapRef.current = null;
-        if (markerRef.current) {
-            markerRef.current.map = null;
-            markerRef.current = null;
+        // Clean up current location marker
+        if (currentMarkerRef.current) {
+            currentMarkerRef.current.map = null;
+            currentMarkerRef.current = null;
         }
-        if (legacyMarkerRef.current) {
-            legacyMarkerRef.current.setMap(null);
-            legacyMarkerRef.current = null;
+        if (currentLegacyMarkerRef.current) {
+            currentLegacyMarkerRef.current.setMap(null);
+            currentLegacyMarkerRef.current = null;
+        }
+        // Clean up selected location marker
+        if (selectedMarkerRef.current) {
+            selectedMarkerRef.current.map = null;
+            selectedMarkerRef.current = null;
+        }
+        if (selectedLegacyMarkerRef.current) {
+            selectedLegacyMarkerRef.current.setMap(null);
+            selectedLegacyMarkerRef.current = null;
         }
     }, []);
 
@@ -176,32 +453,57 @@ export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, heigh
     }
 
     return (
-        <div style={mapContainerStyle}>
+        <div
+            ref={containerRef}
+            style={isFullscreen ? { width: '100%', height: '100vh', borderRadius: 0 } : mapContainerStyle}
+            className="relative"
+        >
+            {/* Search Box - Hidden in fullscreen */}
+            {!isFullscreen && (
+                <div className="absolute top-3 left-3 right-14 z-10">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#14FFEC]" />
+                        <input
+                            ref={searchInputRef}
+                            type="text"
+                            placeholder="Search for a place..."
+                            value={searchValue}
+                            onChange={(e) => setSearchValue(e.target.value)}
+                            className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-[#0a3a3a]/95 border border-[#14FFEC]/30 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-[#14FFEC] focus:ring-1 focus:ring-[#14FFEC] shadow-lg"
+                        />
+                        {searchValue && (
+                            <button
+                                onClick={() => {
+                                    setSearchValue('');
+                                    if (searchInputRef.current) {
+                                        searchInputRef.current.value = '';
+                                    }
+                                }}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+
             <GoogleMap
                 onLoad={handleMapLoad}
                 onUnmount={handleMapUnmount}
-                center={center}
+                center={mapCenter || center}
                 zoom={13}
-                mapContainerStyle={{ width: '100%', height: '100%' }}
+                mapContainerStyle={{ width: '100%', height: isFullscreen ? '100%' : `calc(100% - 40px)` }}
                 options={{
                     disableDefaultUI: true,
                     zoomControl: true,
-                    suppressInfoWindows: true,
+                    fullscreenControl: false,
+                    mapTypeControl: false,
+                    streetViewControl: false,
                     gestureHandling: 'greedy',
-                    styles: [
-                        {
-                            elementType: 'geometry',
-                            stylers: [{ color: '#0b2526' }],
-                        },
-                        {
-                            elementType: 'labels.text.fill',
-                            stylers: [{ color: '#f0fdfa' }],
-                        },
-                    ],
-                }}
-                onError={(error) => {
-                    // Suppress error messages from showing
-                    console.log('Map event:', error);
+                    styles: DARK_MAP_STYLES,
+                    backgroundColor: '#1a2e35',
+                    clickableIcons: false,
                 }}
                 onClick={(event) => {
                     try {
@@ -209,7 +511,18 @@ export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, heigh
                         const lat = event.latLng.lat();
                         const lng = event.latLng.lng();
                         if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
+                            // Update internal map center state to stay at this location
+                            setMapCenter({ lat, lng });
+
+                            // Trigger selection
                             onSelect({ lat, lng });
+
+                            // Navigate map to selected location
+                            if (mapRef.current) {
+                                mapRef.current.setCenter({ lat, lng });
+                                mapRef.current.panTo({ lat, lng });
+                                mapRef.current.setZoom(15);
+                            }
                         }
                     } catch (error) {
                         console.log('Error handling map click:', error);
@@ -227,10 +540,35 @@ export function GoogleMapPicker({ center, radius = 5000, onSelect, apiKey, heigh
                     }}
                 />
             </GoogleMap>
-            <div className="flex items-center justify-between bg-[#021010]/80 px-4 py-2 text-xs text-white/70">
-                <span className="flex items-center gap-2 font-semibold uppercase tracking-wide">
-                    <MapPin className="h-3.5 w-3.5" /> Tap anywhere to pin
-                </span>
+
+            {/* Fullscreen toggle button */}
+            {showFullscreenButton && (
+                <button
+                    onClick={toggleFullscreen}
+                    className="absolute top-3 right-3 z-10 p-2 rounded-lg bg-[#0a3a3a]/90 border border-[#14FFEC]/30 text-[#14FFEC] hover:bg-[#0a4a4a] transition-colors shadow-lg"
+                    title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+                >
+                    {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+                </button>
+            )}
+
+            <div className="flex items-center justify-between bg-[#021010]/90 px-4 py-2.5 text-xs text-white/70">
+                <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-blue-500 border border-white"></div>
+                        <span className="text-[10px]">Saved</span>
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                        <div className="w-3 h-3 rounded-full bg-purple-500 border-2 border-white"></div>
+                        <span className="text-[10px]">Selected</span>
+                    </span>
+                    <span className="flex items-center gap-1 font-semibold">
+                        <MapPin className="h-3 w-3 text-[#14FFEC]" /> Tap to pin
+                    </span>
+                </div>
+                {isFullscreen && (
+                    <span className="text-[#14FFEC] font-medium">ESC to exit</span>
+                )}
             </div>
         </div>
     );

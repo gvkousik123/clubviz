@@ -17,7 +17,6 @@ export default function MobileVerificationScreen() {
     // Initialize with exactly 10 placeholder X's: +91 XXXXXXXXXX
     const [phoneNumber, setPhoneNumber] = useState(() => {
         const initialPhone = "+91 XXXXXXXXXX";
-        console.log("Initial phone state:", initialPhone, "Length:", initialPhone.length);
         return initialPhone;
     });
     const [email, setEmail] = useState('');
@@ -46,10 +45,8 @@ export default function MobileVerificationScreen() {
     // No client-side reCAPTCHA when using backend OTP endpoints
 
     const handleNumberPress = (num: string) => {
-        console.log("Number pressed:", num, "Current phone:", phoneNumber, "Has X?", phoneNumber.includes('X'));
         if (phoneNumber.includes('X')) {
             const newPhone = phoneNumber.replace('X', num);
-            console.log("New phone after replace:", newPhone);
             setPhoneNumber(newPhone);
         }
     };
@@ -71,9 +68,7 @@ export default function MobileVerificationScreen() {
     };
 
     const handleSubmit = async () => {
-        console.log("=== Mobile Login: handleSubmit called ===");
-        console.log("Current phone number:", phoneNumber);
-        console.log("Current email:", email);
+
 
         setIsLoading(true);
         setError(null);
@@ -107,7 +102,6 @@ export default function MobileVerificationScreen() {
                 return;
             }
 
-            console.log("Cleaned 10-digit phone for API:", cleanPhone);
 
             // Send OTP using backend endpoint with both email and mobile
             const sendResult = await MobileAuthService.sendOtp(email.trim(), cleanPhone);

@@ -41,7 +41,7 @@ export default function Sidebar({
         (currentUser?.phoneNumber ?
             (currentUser.phoneNumber.startsWith('+91') ? 'INDIA' : 'LOCATION') :
             'LOCATION'); // Remove hardcoded NAGPUR
-    const profilePicture = profile?.profilePicture || currentUser?.profilePicture;
+    const profilePicture = profile?.profilePicture || currentUser?.profilePicture || '/placeholder/image.png';
 
     const handleLogout = async () => {
         try {
@@ -111,14 +111,21 @@ export default function Sidebar({
                     {/* Profile Picture with Border */}
                     <div className="relative mb-6">
                         <div className="w-[120px] h-[120px] rounded-full border-2 border-[#14FFEC] flex items-center justify-center mb-4">
-                            {profilePicture ? (
+                            {profilePicture && profilePicture !== '/placeholder/image.png' ? (
                                 <img
                                     src={profilePicture}
                                     alt="Profile"
                                     className="w-[110px] h-[110px] rounded-full object-cover"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = '/placeholder/image.png';
+                                    }}
                                 />
                             ) : (
-                                <User className="w-12 h-12 text-gray-400" />
+                                <img
+                                    src="/placeholder/image.png"
+                                    alt="Profile Placeholder"
+                                    className="w-[110px] h-[110px] rounded-full object-cover"
+                                />
                             )}
                         </div>
                     </div>
@@ -140,7 +147,15 @@ export default function Sidebar({
                             onClick={onClose}
                             className="text-white text-sm font-['Manrope'] font-medium leading-tight tracking-wide hover:text-[#14FFEC] transition-colors text-center cursor-pointer"
                         >
-                            MY ACCOUNT
+                            MY PROFILE
+                        </Link>
+                        <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
+                        <Link
+                            href="/booking"
+                            onClick={onClose}
+                            className="text-white text-sm font-['Manrope'] font-medium leading-tight tracking-wide hover:text-[#14FFEC] transition-colors text-center cursor-pointer"
+                        >
+                            MY BOOKINGS
                         </Link>
                         <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
                         <Link

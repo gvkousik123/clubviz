@@ -24,12 +24,12 @@ function StoryContent() {
         image: story.mediaUrl || '',
         title: story.caption || 'Story',
         timestamp: formatTimestamp(story.createdAt),
-        duration: 5,
+        duration: story.mediaType === 'VIDEO' ? undefined : 5, // Let video use its actual duration
         internalStories: [
             {
                 id: story.id,
                 image: story.mediaUrl || '',
-                duration: 5,
+                duration: story.mediaType === 'VIDEO' ? undefined : 5, // Let video use its actual duration
                 type: story.mediaType === 'VIDEO' ? 'video' : 'image'
             }
         ],

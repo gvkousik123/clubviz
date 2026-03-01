@@ -10,7 +10,7 @@ export default function CancelTicketPage() {
     const [customReason, setCustomReason] = useState('');
 
     const handleGoBack = () => {
-        router.back();
+        router.push('/home');
     };
 
     const handleReasonSelect = (reason: string) => {

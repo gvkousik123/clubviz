@@ -12,8 +12,8 @@ interface DisplayStory {
     title: string;
     timestamp: string;
     clubName?: string;
-    duration: number;
-    internalStories: { id: string; image: string; duration: number }[];
+    duration?: number;
+    internalStories: { id: string; image: string; duration?: number; type?: 'image' | 'video' }[];
 }
 
 export default function StoryPage() {
@@ -45,15 +45,21 @@ export default function StoryPage() {
                     // Transform API stories to display format
                     const displayStories: DisplayStory[] = content.map((story: Story) => {
                         const mediaUrl = story.mediaUrl || story.mediaUrl1 || story.mediaUrl2 || story.mediaBase64 || '';
+                        const isVideo = story.mediaType === 'VIDEO';
                         return {
                             id: story.id,
                             image: mediaUrl,
                             title: story.title || story.caption || story.club?.name || 'Story',
                             timestamp: new Date(story.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                             clubName: story.club?.name || story.userFullName || 'Story',
-                            duration: story.duration || 5,
+                            duration: isVideo ? undefined : (story.duration || 5),
                             internalStories: [
-                                { id: story.id, image: mediaUrl, duration: story.duration || 5 }
+                                {
+                                    id: story.id,
+                                    image: mediaUrl,
+                                    duration: isVideo ? undefined : (story.duration || 5),
+                                    type: isVideo ? 'video' : 'image'
+                                }
                             ]
                         };
                     });

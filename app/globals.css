@@ -169,6 +169,15 @@
     height: 100%;
   }
 
+  /* Alias 'Anton SC' to the loaded 'Anton' font so usages of 'Anton SC' render correctly */
+  @font-face {
+    font-family: 'Anton SC';
+    src: local('Anton');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
   /* Hide scrollbar globally while keeping scroll functionality */
   html::-webkit-scrollbar,
   body::-webkit-scrollbar {

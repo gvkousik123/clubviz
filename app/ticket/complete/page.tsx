@@ -25,7 +25,9 @@ function BookingCompleteContent() {
     }, []);
 
     const handleGoBack = () => {
-        router.back();
+        // After booking completion, go to home instead of going back
+        // This prevents users from going back to payment/booking flow
+        router.push('/home');
     };
 
     const handleShareTicket = async () => {
@@ -49,7 +51,6 @@ function BookingCompleteContent() {
                     url: `${window.location.origin}/ticket/view?ticketId=${ticketId}`,
                 });
             } catch (err) {
-                console.log('Share cancelled or failed');
             }
         } else {
             // Fallback to sharing via API

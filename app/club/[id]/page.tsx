@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
     ArrowLeft,
+    ArrowRight,
     ChevronLeft,
     ChevronRight,
     Heart,
@@ -55,8 +56,11 @@ import {
 } from '@phosphor-icons/react';
 import { useToast } from '@/hooks/use-toast';
 import { useOffers } from '@/hooks/use-offers';
-import { PublicClubService, PublicEventService, PublicClubDetails } from '@/lib/services/public.service';
+import { PublicEventService } from '@/lib/services/public.service';
 import { isGuestMode } from '@/lib/api-client-public';
+// Use centralized data store for cached club details
+import { useClubDetail } from '@/lib/store';
+import { ClubDetailSkeleton } from '@/components/ui/skeleton-loaders';
 
 // Tag Component for reusability
 const TagComponent = ({ icon, label, iconPath }: { icon?: React.ReactNode, label: string, iconPath?: string }) => (
@@ -71,9 +75,6 @@ export default function ClubDetailPage() {
     const router = useRouter();
     const params = useParams();
     const { toast } = useToast();
-    const [club, setClub] = useState<any>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isLiked, setIsLiked] = useState(false);
     const [isBookmarked, setIsBookmarked] = useState(false);
@@ -85,45 +86,16 @@ export default function ClubDetailPage() {
     // Get club ID and initialize offers hook
     const clubId = params.id as string;
     const { offers, loading: offersLoading, fetchOffers } = useOffers(clubId);
+    // ==================== OPTIMIZED: Use cached club data ====================
+    // This prevents duplicate API calls when navigating back and forth
+    const { club, loading: isLoading, error, refetch } = useClubDetail(clubId);
 
-    // Fetch club details
-    const fetchClubDetails = async () => {
-        if (!params.id) return;
-
-        setIsLoading(true);
-        try {
-            const clubId = params.id as string;
-            console.log('🔍 Fetching club from /clubs/public/{id}:', clubId);
-            console.log('📍 Full params:', params);
-
-            // Always use public endpoint for club details (works for both guest and authenticated users)
-            let clubData = await PublicClubService.getPublicClubById(clubId);
-            console.log('✅ Club data received:');
-            console.log('   - Club ID:', clubData?.id);
-            console.log('   - Club Name:', clubData?.name);
-            console.log('   - Club images array:', clubData?.images);
-            console.log('   - Club logo:', clubData?.logo);
-            console.log('   - Club logoUrl:', clubData?.logoUrl);
-            console.log('   - Full club data:', clubData);
-
-            if (clubData) {
-                setClub(clubData);
-                setIsLiked(!!clubData.isJoined);
-                setError(null);
-            } else {
-                setError('Club not found');
-            }
-        } catch (err: any) {
-            console.error("💥 Error fetching club details:", err);
-            setError(err.message || 'Failed to load club details');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
+    // Update liked state when club data changes
     useEffect(() => {
-        fetchClubDetails();
-    }, [params.id]);
+        if (club) {
+            setIsLiked(!!club.isJoined);
+        }
+    }, [club]);
 
     // Fetch offers when club is loaded
     useEffect(() => {
@@ -158,7 +130,6 @@ export default function ClubDetailPage() {
     }, [clubId]);
 
     const handleGoBack = () => {
-        console.log('Going back from club page...');
         router.back();
     };
 
@@ -207,12 +178,13 @@ export default function ClubDetailPage() {
 
     const nextImage = () => {
         if (!club?.images?.length) return;
-        setCurrentImageIndex((prev) => (prev + 1) % club.images.length);
+        setCurrentImageIndex((prev) => (prev + 1) % (club.images?.length || 1));
     };
 
     const prevImage = () => {
         if (!club?.images?.length) return;
-        setCurrentImageIndex((prev) => (prev - 1 + club.images.length) % club.images.length);
+        const len = club.images?.length || 1;
+        setCurrentImageIndex((prev) => (prev - 1 + len) % len);
     };
 
     const isValidImageUrl = (url: string): boolean => {
@@ -278,34 +250,48 @@ export default function ClubDetailPage() {
     };
 
     if (isLoading) {
-        return (
-            <div className="min-h-screen bg-[#021313] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
-            </div>
-        );
+        // Use skeleton loading for better UX
+        return <ClubDetailSkeleton />;
     }
 
     if (error || !club) {
         return (
             <div className="min-h-screen bg-[#021313] flex flex-col items-center justify-center p-4">
-                <p className="text-white mb-4">{error || 'Club not found'}</p>
-                <button onClick={handleGoBack} className="text-[#14FFEC] flex items-center gap-2 hover:opacity-80">
-                    <ArrowLeft className="w-4 h-4" /> Go Back
-                </button>
+                <div className="text-center">
+                    <div className="w-16 h-16 bg-[#0D1F1F] rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-3xl">😕</span>
+                    </div>
+                    <p className="text-white mb-2 text-lg font-semibold">{error || 'Club not found'}</p>
+                    <p className="text-[#B6B6B6] mb-6 text-sm">Unable to load club details. Please try again.</p>
+                    <div className="flex gap-3 justify-center">
+                        <button
+                            onClick={() => refetch()}
+                            className="bg-[#14FFEC] text-black px-6 py-2 rounded-full font-medium hover:brightness-90 transition"
+                        >
+                            Try Again
+                        </button>
+                        <button
+                            onClick={handleGoBack}
+                            className="bg-[#0D1F1F] text-[#14FFEC] px-6 py-2 rounded-full font-medium hover:brightness-110 transition flex items-center gap-2"
+                        >
+                            <ArrowLeft className="w-4 h-4" /> Go Back
+                        </button>
+                    </div>
+                </div>
             </div>
         );
     }
 
     // Get images - Match home page logic
     let heroImages: string[] = [];
-    
+
     // First try to get from images array
     if (club.images?.length > 0) {
         heroImages = club.images
             .map((img: any) => (typeof img === 'string' ? img : img?.url))
             .filter(Boolean);
     }
-    
+
     // If no images array, try logo/logoUrl (same as home page uses club.logo)
     if (heroImages.length === 0) {
         const logoImage = club.logo || club.logoUrl;
@@ -313,12 +299,12 @@ export default function ClubDetailPage() {
             heroImages = [logoImage];
         }
     }
-    
+
     // Final fallback
     if (heroImages.length === 0) {
         heroImages = ['/venue/Screenshot 2024-12-10 195651.png'];
     }
-    
+
     console.log('🎨 Final heroImages:', heroImages);
 
     // Format address
@@ -342,14 +328,16 @@ export default function ClubDetailPage() {
     const mapsHref = locationLat && locationLng
         ? `https://www.google.com/maps?q=${locationLat},${locationLng}`
         : `https://www.google.com/maps/search/?api=1&query=${locationQuery}`;
+    const mapFallbackSrc = '/location/location-icon.png';
     const staticMapUrl = locationLat && locationLng
         ? `https://staticmap.openstreetmap.de/staticmap.php?center=${locationLat},${locationLng}&zoom=16&size=600x240&markers=${locationLat},${locationLng},red-pushpin`
-        : `/location/location-map-placeholder.svg`;
+        : mapFallbackSrc;
+    const galleryHref = `/gallery?clubId=${encodeURIComponent(clubId || '')}`;
 
     return (
         <div className="min-h-screen bg-[#021313] relative w-full max-w-[430px] mx-auto">
             {/* Hero Image Carousel */}
-            <div className="relative w-[430px] h-[391px] bg-gray-900 overflow-hidden flex justify-center items-center mx-auto">
+            <div className="relative w-full max-w-[430px] h-[391px] bg-gray-900 overflow-hidden flex justify-center items-center mx-auto">
                 <div className="absolute inset-0 flex">
                     {heroImages.map((image, index) => (
                         <img
@@ -410,25 +398,28 @@ export default function ClubDetailPage() {
                     }}
                 >
                     <img
-                        src={club.logo || club.logoUrl || heroImages[0]}
+                        src={club.logo || ''}
                         alt={club.name}
                         className="w-16 h-16 object-cover rounded-[45px]"
                         onError={(e) => (e.currentTarget.src = heroImages[0])}
                     />
                 </div>
-
                 {/* Rating Circle - Below the logo */}
-                <div 
-                    className="absolute w-[38px] h-[38px] bg-[#005d5c] rounded-[30px] flex items-center justify-center"
+                <div
+                    className="absolute"
                     style={{
-                        top: '24px',
+                        top: '22px',
                         left: '50%',
                         transform: 'translateX(-50%)'
                     }}
                 >
-                    <span className="font-bold text-[16px] leading-[21px] text-center text-[#fff4f4]">
-                        {club.rating || 4.0}
-                    </span>
+                    <div className="w-[44px] h-[44px] rounded-full bg-[rgba(8,35,35,0.9)] flex items-center justify-center">
+                        <div className="w-[38px] h-[38px] rounded-full bg-[#008378] flex items-center justify-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),inset_0_-1px_2px_rgba(255,255,255,0.1)]">
+                            <span className="font-bold text-[16px] leading-[21px] text-center text-[#fff4f4]">
+                                {club.rating || 4.0}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Club Name */}
@@ -436,11 +427,20 @@ export default function ClubDetailPage() {
                     className="px-[29px] text-center"
                     style={{ paddingTop: '79px' }}
                 >
-                    <span className="font-extrabold text-[36px] leading-[20px] text-center text-white" style={{ fontFamily: "'Anton SC', sans-serif" }}>
+                    <span className="text-center text-white"
+                        style={{
+                            fontFamily: 'Anton, Anton SC, sans-serif',
+                            fontWeight: 400,
+                            fontSize: '36px',
+                            letterSpacing: '0.0625em',
+                            lineHeight: '20px',
+                            textAlign: 'center',
+                            color: '#ffffff'
+                        }}
+                    >
                         {club.name}
                     </span>
                 </div>
-
                 {/* Share and Save Buttons */}
                 <div 
                     className="flex justify-center items-center gap-3 w-full"
@@ -454,7 +454,7 @@ export default function ClubDetailPage() {
                         <ShareNetwork size={20} className="text-[#14ffec]" weight="fill" />
                     </button>
 
-                    {/* Save Button */}
+                    {/* Save Button (heart icon) */}
                     <button
                         onClick={() => {
                             setIsBookmarked(!isBookmarked);
@@ -465,11 +465,7 @@ export default function ClubDetailPage() {
                         }}
                         className="w-10 h-10 flex justify-center items-center rounded-full bg-[rgba(20,255,236,0.15)] hover:bg-[rgba(20,255,236,0.25)] transition"
                     >
-                        <BookmarkSimple 
-                            size={20} 
-                            className="text-[#14ffec]" 
-                            weight={isBookmarked ? "fill" : "regular"} 
-                        />
+                        <Heart size={20} className={isBookmarked ? 'text-[#FF3B3B] fill-[#FF3B3B]' : 'text-[#14ffec]'} />
                     </button>
                 </div>
 
@@ -719,29 +715,37 @@ export default function ClubDetailPage() {
                         <div className="w-full max-w-[398px] mx-auto bg-[rgba(40,60,61,0.3)] p-4 rounded-[15px]">
                             <div className="flex flex-col gap-3 w-full">
                                 <div className="flex justify-center items-center gap-3">
-                                    <img
-                                        className="w-[calc((100%-12px)/2)] aspect-square object-cover rounded-[15px]"
-                                        src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80"
-                                        alt="Club photo 1"
-                                    />
-                                    <img
-                                        className="w-[calc((100%-12px)/2)] aspect-square object-cover rounded-[15px]"
-                                        src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=600&q=80"
-                                        alt="Club photo 2"
-                                    />
+                                    <Link href={`${galleryHref}&photo=1`} className="w-[calc((100%-12px)/2)]">
+                                        <img
+                                            className="w-full aspect-square object-cover rounded-[15px] cursor-pointer"
+                                            src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80"
+                                            alt="Club photo 1"
+                                        />
+                                    </Link>
+                                    <Link href={`${galleryHref}&photo=2`} className="w-[calc((100%-12px)/2)]">
+                                        <img
+                                            className="w-full aspect-square object-cover rounded-[15px] cursor-pointer"
+                                            src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=600&q=80"
+                                            alt="Club photo 2"
+                                        />
+                                    </Link>
                                 </div>
                                 <div className="flex justify-center items-center gap-3">
-                                    <img
-                                        className="w-[calc((100%-24px)/3)] aspect-square object-cover rounded-[15px]"
-                                        src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=400&q=80"
-                                        alt="Club photo 3"
-                                    />
-                                    <img
-                                        className="w-[calc((100%-24px)/3)] aspect-square object-cover rounded-[15px]"
-                                        src="https://images.unsplash.com/photo-1481833761820-0509d3217039?auto=format&fit=crop&w=400&q=80"
-                                        alt="Club photo 4"
-                                    />
-                                    <div className="relative w-[calc((100%-24px)/3)] aspect-square rounded-[15px] overflow-hidden">
+                                    <Link href={`${galleryHref}&photo=3`} className="w-[calc((100%-24px)/3)]">
+                                        <img
+                                            className="w-full aspect-square object-cover rounded-[15px] cursor-pointer"
+                                            src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=400&q=80"
+                                            alt="Club photo 3"
+                                        />
+                                    </Link>
+                                    <Link href={`${galleryHref}&photo=4`} className="w-[calc((100%-24px)/3)]">
+                                        <img
+                                            className="w-full aspect-square object-cover rounded-[15px] cursor-pointer"
+                                            src="https://images.unsplash.com/photo-1481833761820-0509d3217039?auto=format&fit=crop&w=400&q=80"
+                                            alt="Club photo 4"
+                                        />
+                                    </Link>
+                                    <Link href={`${galleryHref}&photo=5`} className="relative w-[calc((100%-24px)/3)] aspect-square rounded-[15px] overflow-hidden cursor-pointer">
                                         <img
                                             className="w-full h-full object-cover rounded-[15px] opacity-[0.43]"
                                             src="https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=400&q=80"
@@ -752,7 +756,7 @@ export default function ClubDetailPage() {
                                                 <span className="font-extrabold text-[20px] leading-[21px] text-white">+7</span>
                                             </div>
                                         </div>
-                                    </div>
+                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -782,7 +786,9 @@ export default function ClubDetailPage() {
                                         src={staticMapUrl}
                                         alt="Club location map"
                                         onError={(e) => {
-                                            e.currentTarget.src = '/location/location-map-placeholder.svg';
+                                            if (!e.currentTarget.src.endsWith(mapFallbackSrc)) {
+                                                e.currentTarget.src = mapFallbackSrc;
+                                            }
                                         }}
                                     />
                                 </a>
@@ -1140,7 +1146,9 @@ export default function ClubDetailPage() {
                     <div className="flex flex-col items-center self-stretch">
                         <div className="flex items-center justify-between self-stretch mb-[16px]">
                             <span className="font-semibold text-[16px] leading-[16px] text-[#fffeff]">Reviews</span>
-                            <span className="font-medium text-[16px] leading-[16px] text-[#14ffec]">View All</span>
+                            <Link href={`/review?clubId=${encodeURIComponent(clubId)}`} className="font-medium text-[16px] leading-[16px] text-[#14ffec]">
+                                View All
+                            </Link>
                         </div>
 
                         <div className="flex gap-4 overflow-x-auto scrollbar-hide w-full pb-2">
@@ -1203,6 +1211,19 @@ export default function ClubDetailPage() {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '16px' }}>
+                    <div className="w-full max-w-[398px] h-12 relative flex items-center bg-[#283c3d] px-4 rounded-2xl">
+                        <span className="font-medium text-[16px] leading-[21px] text-white whitespace-nowrap">Leave a review</span>
+                        <Link
+                            href={`/review/write?clubId=${encodeURIComponent(clubId)}`}
+                            className="absolute right-[14.25px] w-6 h-6 rounded-full bg-[#14ffec] flex items-center justify-center"
+                            aria-label="Write a review"
+                        >
+                            <ArrowRight className="w-[19.500003814697266px] h-[19.500003814697266px] text-black" />
+                        </Link>
                     </div>
                 </div>
             </div>

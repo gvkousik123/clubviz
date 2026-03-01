@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/auth/auth-provider"
 import { DirectLoginWrapper } from "@/components/auth/direct-login-wrapper"
 import { ToastProvider } from "@/components/ui/toast"
 import { Toaster } from "@/components/ui/toaster"
+import { DataProvider } from "@/lib/store"
 
 export const metadata: Metadata = {
   title: "ClubViz - Ultimate Platform for Booking Clubs",
@@ -35,17 +36,21 @@ export default function RootLayout({
         <link rel="icon" href="/favicon/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/logo/logo.png" />
         <meta name="theme-color" content="#021313" />
+        {/* Cashfree SDK for payment gateway integration */}
+        <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
       </head>
       <body className="antialiased bg-background-primary text-text-primary dark">
         <ToastProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
-            <AuthProvider>
-              <DirectLoginWrapper>
-                <main className="min-h-screen max-w-md mx-auto relative overflow-hidden">
-                  {children}
-                </main>
-              </DirectLoginWrapper>
-            </AuthProvider>
+            <DataProvider>
+              <AuthProvider>
+                <DirectLoginWrapper>
+                  <main className="min-h-screen max-w-md mx-auto relative overflow-hidden">
+                    {children}
+                  </main>
+                </DirectLoginWrapper>
+              </AuthProvider>
+            </DataProvider>
           </ThemeProvider>
           <Toaster />
         </ToastProvider>

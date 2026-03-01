@@ -28,18 +28,15 @@ export default function MyAccountPage() {
         router.back();
     };
 
-    const handleEditProfile = () => {
-        router.push('/account/edit');
-    };
-
     const handleEditPreferences = (type: string) => {
-        console.log('Edit preferences:', type);
         router.push('/account/edit');
     };
 
-    // Use real user data from profile or current user
-    const displayName = profile?.fullName || currentUser?.fullName || 'User';
-    const displayEmail = profile?.email || currentUser?.email || 'No email';
+    // Use real user data from localStorage
+    const displayName = currentUser?.username || 'User';
+    const displayEmail = currentUser?.email || 'No email';
+    const displayPhone = currentUser?.phoneNumber || 'Not provided';
+    const displayPicture = currentUser?.profilePicture || '/placeholder/image.png';
 
     return (
         <div className="min-h-screen bg-[#021313] text-white">
@@ -65,33 +62,30 @@ export default function MyAccountPage() {
                         <div className="flex flex-col items-center gap-8">
                             <div className="flex flex-col items-center gap-2">
                                 <div className="text-white text-base font-manrope font-medium tracking-[0.50px]">
-                                    {`Hi, ${currentUser?.fullName}`}
+                                    {displayName || 'User'}
                                 </div>
                                 <div className="text-[#C3C2C2] text-[13px] font-manrope font-medium tracking-[0.50px]">
-                                    {currentUser?.email}
+                                    {displayPhone && displayPhone !== 'Not provided' ? displayPhone : displayEmail}
                                 </div>
                             </div>
-                            <button
-                                onClick={handleEditProfile}
-                                className="px-4 py-2 bg-white/20 shadow-[0px_4px_4px_rgba(0,0,0,0.25)] rounded-[30px] backdrop-blur-sm"
-                            >
-                                <span className="text-white text-base font-manrope font-medium tracking-[0.50px]">
-                                    Edit Profile
-                                </span>
-                            </button>
                         </div>
                         <div className="relative">
                             <div className="w-[125px] h-[125px] rounded-full border-2 border-[#14FFEC]"></div>
-                            {(profile?.profilePicture || currentUser?.profilePicture) ? (
+                            {displayPicture && displayPicture !== '/placeholder/image.png' ? (
                                 <img
                                     className="absolute top-[11px] left-[11px] w-[103px] h-[103px] bg-[#D9D9D9] rounded-full object-cover"
-                                    src={profile?.profilePicture || currentUser?.profilePicture}
+                                    src={displayPicture}
                                     alt="Profile"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = '/placeholder/image.png';
+                                    }}
                                 />
                             ) : (
-                                <div className="absolute top-[11px] left-[11px] w-[103px] h-[103px] bg-[#D9D9D9] rounded-full flex items-center justify-center">
-                                    <User className="w-12 h-12 text-gray-400" />
-                                </div>
+                                <img
+                                    className="absolute top-[11px] left-[11px] w-[103px] h-[103px] bg-[#D9D9D9] rounded-full object-cover"
+                                    src="/placeholder/image.png"
+                                    alt="Profile Placeholder"
+                                />
                             )}
                         </div>
                     </div>

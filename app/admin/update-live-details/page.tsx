@@ -194,7 +194,6 @@ function UpdateLiveDetailsPageContent() {
 
     const handleSave = async () => {
         if (!validateForm()) {
-            console.log('Validation errors:', validationErrors);
             return;
         }
 
@@ -215,7 +214,6 @@ function UpdateLiveDetailsPageContent() {
                     requiresApproval: formData.requiresApproval
                 };
 
-                console.log('📡 Sending update API with:', updateData);
                 const response = await EventService.updateEvent(eventId, updateData);
 
                 if (response.success) {
@@ -239,7 +237,6 @@ function UpdateLiveDetailsPageContent() {
                 }
             } else {
                 // Save live details (original functionality)
-                console.log('Saving live details:', formData);
                 router.back();
             }
         } catch (err: any) {

@@ -34,21 +34,77 @@ export default function LocationSelectPage() {
         ? { lat: userLocation.latitude, lng: userLocation.longitude }
         : { lat: 19.0760, lng: 72.8777 }; // Mumbai default
 
-    // Suppress Google Maps iframe errors
+    // Suppress Google Maps errors and hide error dialogs
     useEffect(() => {
+        // Handle JavaScript errors
         const handleError = (event: ErrorEvent) => {
             if (event.message?.includes('Cannot read property') ||
                 event.filename?.includes('maps') ||
-                event.message?.includes('iframe')) {
+                event.message?.includes('iframe') ||
+                event.message?.includes('Google Maps') ||
+                event.message?.includes('gm_')) {
                 event.preventDefault();
+                event.stopPropagation();
                 return false;
             }
         };
 
+        // Handle unhandled promise rejections from Maps API
+        const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+            const reason = event.reason?.toString?.() || '';
+            if (reason.includes('Google') || reason.includes('maps') || reason.includes('gm')) {
+                event.preventDefault();
+            }
+        };
+
         window.addEventListener('error', handleError, true);
+        window.addEventListener('unhandledrejection', handleUnhandledRejection, true);
+
+        // Hide Google Maps error dialogs via CSS
+        const style = document.createElement('style');
+        style.id = 'gm-error-hide';
+        style.innerHTML = `
+            .gm-err-container, .gm-err-content, .gm-err-title, .gm-err-message,
+            .dismissButton, div[role="dialog"][class*="gm"],
+            div[style*="z-index: 2147483647"], div.gm-style-iw,
+            .gm-style > div > div > a[href*="support.google.com"],
+            div[style*="background-color: white"][style*="padding"] {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
+        `;
+        if (!document.getElementById('gm-error-hide')) {
+            document.head.appendChild(style);
+        }
+
+        // Also set up a MutationObserver to remove error dialogs as they appear
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node instanceof HTMLElement) {
+                        // Check for Google Maps error dialog
+                        if (node.textContent?.includes("can't load Google Maps") ||
+                            node.textContent?.includes('Do you own this website') ||
+                            node.className?.includes('gm-err') ||
+                            (node.getAttribute('role') === 'dialog' && node.textContent?.includes('Error'))) {
+                            node.style.display = 'none';
+                            node.remove();
+                        }
+                    }
+                });
+            });
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
 
         return () => {
             window.removeEventListener('error', handleError, true);
+            window.removeEventListener('unhandledrejection', handleUnhandledRejection, true);
+            observer.disconnect();
+            const existingStyle = document.getElementById('gm-error-hide');
+            if (existingStyle) existingStyle.remove();
         };
     }, []);
 
@@ -309,9 +365,12 @@ export default function LocationSelectPage() {
                     <div className="rounded-3xl overflow-hidden shadow-2xl border border-[#14FFEC]/20">
                         <GoogleMapPicker
                             center={mapCenter}
+                            currentLocation={hasLocation && userLocation ? { lat: userLocation.latitude, lng: userLocation.longitude } : null}
+                            selectedLocation={selectedCoords}
                             radius={5000}
                             onSelect={handleMapSelect}
-                            height="350px"
+                            height="450px"
+                            showFullscreenButton={true}
                         />
                     </div>
                 </div>

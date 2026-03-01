@@ -35,7 +35,6 @@ function TicketViewContent() {
                     url: window.location.href,
                 });
             } catch (err) {
-                console.log('Share cancelled or failed');
             }
         } else {
             // Fallback to copying link

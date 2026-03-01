@@ -44,7 +44,6 @@ export default function EditClubPage() {
         const loadClubData = async () => {
             try {
                 setIsLoading(true);
-                console.log('📡 Fetching club data for ID:', clubId);
                 const response = await ClubService.getClubById(clubId);
 
                 if (response.success && response.data) {
@@ -81,7 +80,7 @@ export default function EditClubPage() {
                         music: club.music?.join(', ') || '',
                         barOptions: club.barOptions?.join(', ') || '',
                         // Images
-                        logo: club.logo || club.logoUrl || '',
+                        logo: club.logo || '',
                     });
 
                     // Update hero images if available
@@ -89,7 +88,6 @@ export default function EditClubPage() {
                         setHeroImages(club.images);
                     }
 
-                    console.log('✅ Club data loaded:', club);
                 } else {
                     throw new Error(response.message || 'Failed to load club data');
                 }
@@ -191,7 +189,6 @@ export default function EditClubPage() {
                 barOptions: typeof editData.barOptions === 'string' ? editData.barOptions.split(',').map(s => s.trim()).filter(Boolean) : [],
             };
 
-            console.log('📡 Updating club with data:', updateData);
             const response = await ClubService.updateClub(clubId, updateData);
 
             if (response.success && response.data) {

@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ChevronLeft, Phone, Mail, Edit3, X, Check } from 'lucide-react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ChevronLeft, Phone, Mail, Edit3, X, Check, Loader2 } from 'lucide-react';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
+import { useToast } from '@/hooks/use-toast';
+import { STORAGE_KEYS } from '@/lib/constants/storage';
 
 // Add custom CSS for hiding scrollbar while keeping functionality
 const scrollbarHideStyle = `
@@ -16,15 +18,32 @@ const scrollbarHideStyle = `
   }
 `;
 
-export default function ContactInfoPage() {
+function ContactInfoPageContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const { toast } = useToast();
+
+    // Get params from URL
+    const eventId = searchParams.get('eventId') || '';
+    const ticketType = searchParams.get('ticketType') || 'early';
+    const maleStag = parseInt(searchParams.get('maleStag') || '0');
+    const femaleStag = parseInt(searchParams.get('femaleStag') || '0');
+    const couple = parseInt(searchParams.get('couple') || '0');
+
+    const [eventData, setEventData] = useState<any>(null);
 
     // Apply the scrollbar-hide style
-    React.useEffect(() => {
+    useEffect(() => {
         // Create style element and append to head
         const style = document.createElement('style');
         style.innerHTML = scrollbarHideStyle;
         document.head.appendChild(style);
+
+        // Load event data from sessionStorage
+        const storedEventData = sessionStorage.getItem('currentEventData');
+        if (storedEventData) {
+            setEventData(JSON.parse(storedEventData));
+        }
 
         // Cleanup on unmount
         return () => {
@@ -32,24 +51,77 @@ export default function ContactInfoPage() {
         };
     }, []);
 
-    // State for form inputs
-    const [contactInfo, setContactInfo] = useState({
-        maleName: 'David Simon',
-        femaleName: 'Sammy Simon',
-        stagName: 'Mukul Mehta',
-        phone: '+91 9XXXX9XXXXX',
-        email: 'DavidSimon@test.com'
-    });
-
-    // State for selected tickets
-    const [selectedTickets, setSelectedTickets] = useState({
-        maleStag: 1,
-        couple: 1,
-        female: 0
+    // State for form inputs - get from localStorage with fallback
+    const [contactInfo, setContactInfo] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const userStr = localStorage.getItem(STORAGE_KEYS.user);
+            if (userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    console.log('📱 User data from localStorage:', user);
+                    return {
+                        maleName: user.username || user.name || user.fullName || 'David Simon',
+                        femaleName: 'Sammy Simon',
+                        stagName: user.username || user.name || user.fullName || 'Mukul Mehta',
+                        phone: user.phoneNumber || user.mobileNumber || user.mobile || '+91 9876543210',
+                        email: user.email || 'DavidSimon@test.com'
+                    };
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                }
+            }
+        }
+        return {
+            maleName: 'David Simon',
+            femaleName: 'Sammy Simon',
+            stagName: 'Mukul Mehta',
+            phone: '+91 9876543210',
+            email: 'DavidSimon@test.com'
+        };
     });
 
     const handleNext = () => {
-        router.push('/event/mobile'); // Adjust this route as needed
+        // Validate that we have contact info
+        if (!contactInfo.phone || !contactInfo.email) {
+            toast({
+                title: 'Error',
+                description: 'Please provide contact information',
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        // Store contact info in localStorage for persistence
+        if (typeof window !== 'undefined') {
+            const contactDetails = {
+                maleName: contactInfo.maleName,
+                femaleName: contactInfo.femaleName,
+                stagName: contactInfo.stagName,
+                phone: contactInfo.phone,
+                email: contactInfo.email
+            };
+            localStorage.setItem('eventContactDetails', JSON.stringify(contactDetails));
+            console.log('📦 Stored contact details in localStorage:', contactDetails);
+        }
+
+        // Store booking data in sessionStorage
+        const bookingData = {
+            eventId,
+            ticketType,
+            maleStag,
+            femaleStag,
+            couple,
+            maleName: contactInfo.maleName,
+            femaleName: contactInfo.femaleName,
+            stagName: contactInfo.stagName,
+            phone: contactInfo.phone,
+            email: contactInfo.email,
+            eventData: eventData // Pass event data along
+        };
+        sessionStorage.setItem('eventBookingData', JSON.stringify(bookingData));
+        console.log('📦 Stored booking data in sessionStorage:', bookingData);
+
+        router.push(`/event/review-booking`);
     };
 
     return (
@@ -57,15 +129,15 @@ export default function ContactInfoPage() {
             {/* Hero Section with Event Image */}
             <div className="relative w-full bg-gray-900 flex justify-center items-center min-h-[200px] max-h-[400px]">
                 <img
-                    src="/event list/Rectangle 1.jpg"
-                    alt="Event Banner"
+                    src={eventData?.imageUrl || eventData?.image || "/event list/Rectangle 1.jpg"}
+                    alt={eventData?.title || "Event Banner"}
                     className="w-auto h-auto max-w-full max-h-[400px] object-contain"
                 />
 
                 {/* Back Button */}
                 <div className="absolute top-4 left-4 z-20">
                     <button
-                        onClick={() => router.back()}
+                        onClick={() => router.push('/home')}
                         className="p-2 bg-[#005D5C]/60 backdrop-blur-sm rounded-full hover:bg-[#005D5C]/80 transition-all duration-300"
                     >
                         <ChevronLeft size={20} className="text-[#14FFEC]" />
@@ -87,7 +159,7 @@ export default function ContactInfoPage() {
             {/* Event Info Card */}
             <div className="w-full bg-gradient-to-b from-[#0D696D] to-[#000000] rounded-t-[40px] -mt-20 relative z-10 pt-4 pb-16">
                 <h1 className="text-center text-white text-2xl font-['Anton'] tracking-[2.4px] leading-8">
-                    Timeless Tuesdays Ft. DJ Xpensive
+                    {eventData?.title || "Event"}
                 </h1>
 
                 {/* Separator Line */}
@@ -102,7 +174,7 @@ export default function ContactInfoPage() {
                             <path d="M12 12.75C13.6569 12.75 15 11.4069 15 9.75C15 8.09315 13.6569 6.75 12 6.75C10.3431 6.75 9 8.09315 9 9.75C9 11.4069 10.3431 12.75 12 12.75Z" stroke="#14FFEC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             <path d="M19.5 9.75C19.5 16.5 12 21.75 12 21.75C12 21.75 4.5 16.5 4.5 9.75C4.5 7.76088 5.29018 5.85322 6.6967 4.4467C8.10322 3.04018 10.0109 2.25 12 2.25C13.9891 2.25 15.8968 3.04018 17.3033 4.4467C18.7098 5.85322 19.5 7.76088 19.5 9.75V9.75Z" stroke="#14FFEC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        <p className="text-white font-['Manrope'] font-bold">Dabo club & kitchen, Nagpur</p>
+                        <p className="text-white font-['Manrope'] font-bold">{eventData?.venue || 'Venue'}</p>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -113,7 +185,7 @@ export default function ContactInfoPage() {
                             <rect x="3" y="4" width="18" height="18" rx="2" stroke="#14FFEC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                         <div className="bg-[#0D4444] border border-[#14FFEC]/40 px-6 py-2 rounded-full">
-                            <p className="text-white font-['Manrope'] font-bold">24 Dec | 7:00 pm</p>
+                            <p className="text-white font-['Manrope'] font-bold">{eventData?.date || 'Date'} | {eventData?.time || 'Time'}</p>
                         </div>
                     </div>
                 </div>
@@ -121,8 +193,8 @@ export default function ContactInfoPage() {
             </div>
 
             {/* Contact Info Section */}
-            <div className="w-full absolute bottom-0 rounded-t-[60px] bg-gradient-to-b from-[#021313] to-black border-t border-[#0C898B] min-h-[42%] z-20">
-                <div className="px-6 pt-10 overflow-y-auto h-[calc(100vh-460px)] pb-24 scrollbar-hide">
+            <div className="w-full absolute bottom-0 rounded-t-[60px] bg-gradient-to-b from-[#021313] to-black border-t border-[#0C898B] min-h-[42%] max-h-[42%] z-20 flex flex-col">
+                <div className="px-6 pt-10 overflow-y-auto flex-1 scrollbar-hide">
                     <h2 className="text-white text-center text-base font-['Anton'] font-normal tracking-wide mb-8">
                         # TICKET INFORMATION
                     </h2>
@@ -131,37 +203,39 @@ export default function ContactInfoPage() {
                     <div className="mb-5">
                         <div className="flex justify-between items-center mb-2">
                             <div className="text-white font-['Manrope'] font-semibold">No. of ticket</div>
-                            <div className="flex gap-3">
-                                {selectedTickets.maleStag > 0 && (
+                            <div className="flex flex-wrap gap-3 justify-end">
+                                {maleStag > 0 && (
                                     <div className="flex items-center gap-2">
-                                        <div className="text-white font-['Manrope']">1 x</div>
+                                        <div className="text-white font-['Manrope']">{maleStag} x</div>
                                         <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-full px-3 py-1 flex items-center">
                                             <div className="w-3 h-3 rounded-full bg-[#14FFEC] mr-2"></div>
                                             <span className="text-white text-sm">Male stag Entry</span>
-                                            <div className="bg-[#0D1F1F] rounded-full p-1 ml-2">
-                                                <X size={14} className="text-white" />
-                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                {femaleStag > 0 && (
+                                    <div className="flex items-center gap-2">
+                                        <div className="text-white font-['Manrope']">{femaleStag} x</div>
+                                        <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-full px-3 py-1 flex items-center">
+                                            <div className="w-3 h-3 rounded-full bg-[#14FFEC] mr-2"></div>
+                                            <span className="text-white text-sm">Female stag Entry</span>
+                                        </div>
+                                    </div>
+                                )}
+                                {couple > 0 && (
+                                    <div className="flex items-center gap-2">
+                                        <div className="text-white font-['Manrope']">{couple} x</div>
+                                        <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-full px-3 py-1 flex items-center">
+                                            <div className="w-3 h-3 rounded-full bg-[#14FFEC] mr-2"></div>
+                                            <span className="text-white text-sm">Couple Entry</span>
                                         </div>
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        <div className="flex justify-end mb-4">
-                            <div className="flex gap-2">
-                                <div className="text-white font-['Manrope']">1 x</div>
-                                <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-full px-3 py-1 flex items-center">
-                                    <div className="w-3 h-3 rounded-full bg-[#14FFEC] mr-2"></div>
-                                    <span className="text-white text-sm">Couple Entry</span>
-                                    <div className="bg-[#0D1F1F] rounded-full p-1 ml-2">
-                                        <X size={14} className="text-white" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         {/* Divider */}
-                        <div className="h-[1px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent opacity-40 mb-5"></div>
+                        <div className="h-[1px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent opacity-40 mb-5 mt-4"></div>
                     </div>
 
                     {/* Couple Ticket Info */}
@@ -245,5 +319,17 @@ export default function ContactInfoPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function ContactInfoPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen w-full bg-[#021313] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+            </div>
+        }>
+            <ContactInfoPageContent />
+        </Suspense>
     );
 }

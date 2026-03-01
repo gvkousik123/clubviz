@@ -26,7 +26,6 @@ export default function MusicGenresPage() {
                 if (savedGenres) {
                     const genres = JSON.parse(savedGenres);
                     setSelectedGenres(genres);
-                    console.log('📱 Loaded Selected Music Genres:', genres);
                 }
             } catch (error) {
                 console.error('Failed to load selected music genres:', error);
@@ -45,7 +44,6 @@ export default function MusicGenresPage() {
                 if (response.success && response.data) {
                     setMusicGenres(response.data);
                 } else {
-                    console.log('No music genres from API, using predefined list');
                     setMusicGenres([]);
                 }
             } catch (error) {
@@ -73,7 +71,7 @@ export default function MusicGenresPage() {
         // Save to localStorage
         try {
             localStorage.setItem('clubviz-selected-music-genres', JSON.stringify(genres));
-            console.log('💾 Saved Selected Music Genres:', genres);
+            ('💾 Saved Selected Music Genres:', genres);
         } catch (error) {
             console.error('Failed to save selected music genres:', error);
         }

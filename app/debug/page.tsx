@@ -33,7 +33,6 @@ export default function DebugPage() {
                     allLocalStorageKeys: Object.keys(localStorage).filter(key => key.startsWith('clubviz')),
                 };
                 setAuthState(state);
-                console.log('🐛 Debug Auth State:', state);
             } catch (error: any) {
                 setAuthState({ error: error?.message || 'Unknown error' });
             }
@@ -54,7 +53,6 @@ export default function DebugPage() {
             redirectRoute = '/admin';
         }
 
-        console.log('🚀 Testing redirect to:', redirectRoute);
         router.replace(redirectRoute);
     };
 
@@ -62,7 +60,6 @@ export default function DebugPage() {
         localStorage.removeItem(STORAGE_KEYS.accessToken);
         localStorage.removeItem(STORAGE_KEYS.refreshToken);
         localStorage.removeItem(STORAGE_KEYS.user);
-        console.log('🧹 Cleared auth data');
     };
 
     return (

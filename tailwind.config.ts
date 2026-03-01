@@ -12,7 +12,7 @@ const config: Config = {
         sans: ['Manrope', 'system-ui', '-apple-system', 'sans-serif'],
         primary: 'Manrope',
         'manrope': ['Manrope', 'sans-serif'],
-        'anton': ['Anton SC', 'sans-serif'],
+        'anton': ['Anton', 'Anton SC', 'sans-serif'],
       },
       colors: {
         primary: {

@@ -16,7 +16,7 @@ export default function BottomContinueButton({
     className = ""
 }: BottomContinueButtonProps) {
     return (
-        <div className={`fixed bottom-0 left-0 w-full h-20 bg-gradient-to-t from-black to-transparent overflow-hidden ${className}`}>
+        <div className={`fixed bottom-0 left-0 w-full h-20 bg-gradient-to-t from-black to-transparent overflow-hidden z-50 ${className}`}>
             <div className="w-full h-12 absolute bottom-0 overflow-hidden rounded-t-[2.8125rem]"
                 style={{
                     background: 'radial-gradient(ellipse 70.81% 149.79% at 50.00% 100.00%, #01655C 0%, #008076 100%)'

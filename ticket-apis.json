@@ -1,0 +1,205 @@
+{
+  "baseUrl": "https://clubwiz.in/ticket",
+  "authentication": {
+    "type": "Bearer Token",
+    "note": "Authorize required for protected endpoints"
+  },
+  "conventions": {
+    "successResponse": {
+      "description": "On success, response body contains pure JSON data without status or statusCode"
+    },
+    "errorResponse": {
+      "description": "On error, response body contains status = error. Refer HTTP status from API response headers or other APIs"
+    }
+  },
+  "apis": [
+    {
+      "name": "Get Ticket by Ticket Number",
+      "method": "GET",
+      "endpoint": "/club-tickets/by-number/{ticketNumber}",
+      "description": "Retrieve ticket information using ticket number (e.g., BQ-290)",
+      "pathParams": {
+        "ticketNumber": "string"
+      },
+      "success": {
+        "response": {
+          "ticketId": "string",
+          "ticketNumber": "string",
+          "clubId": "string",
+          "userId": "string",
+          "bookingDate": "YYYY-MM-DD",
+          "arrivalTime": "HH:mm:ss",
+          "guestCount": "number",
+          "status": "BOOKED | VALIDATED | CANCELLED"
+        }
+      },
+      "error": {
+        "status": "error",
+        "message": "Ticket not found"
+      }
+    },
+    {
+      "name": "Create Club Ticket",
+      "method": "POST",
+      "endpoint": "/club-tickets",
+      "description": "Book a ticket for a club visit. Automatically checks if event exists and applies entry fee.",
+      "requestBody": {
+        "clubId": "string",
+        "clubName": "string",
+        "userId": "string",
+        "userEmail": "string",
+        "userName": "string",
+        "userPhone": "string",
+        "bookingDate": "YYYY-MM-DD",
+        "arrivalTime": {
+          "hour": "number",
+          "minute": "number",
+          "second": "number",
+          "nano": "number"
+        },
+        "guestCount": "number",
+        "offerId": "string",
+        "occasion": "string",
+        "floorPreference": "string",
+        "currency": "string"
+      },
+      "success": {
+        "response": {
+          "ticketId": "string",
+          "ticketNumber": "string",
+          "status": "BOOKED",
+          "totalAmount": "number",
+          "currency": "string"
+        }
+      },
+      "error": {
+        "status": "error",
+        "message": "Invalid booking data"
+      }
+    },
+    {
+      "name": "Validate Ticket",
+      "method": "POST",
+      "endpoint": "/club-tickets/{ticketId}/validate",
+      "description": "Mark ticket as validated when user arrives at the club (staff use)",
+      "pathParams": {
+        "ticketId": "string"
+      },
+      "queryParams": {
+        "validatedBy": "string"
+      },
+      "success": {
+        "response": {
+          "ticketId": "string",
+          "status": "VALIDATED",
+          "validatedAt": "ISO_DATETIME",
+          "validatedBy": "string"
+        }
+      },
+      "error": {
+        "status": "error",
+        "message": "Ticket not found or already validated"
+      }
+    },
+    {
+      "name": "Cancel Ticket",
+      "method": "POST",
+      "endpoint": "/club-tickets/{ticketId}/cancel",
+      "description": "Cancel a club ticket with a reason",
+      "pathParams": {
+        "ticketId": "string"
+      },
+      "requestBody": {
+        "reason": "string",
+        "additionalNotes": "string"
+      },
+      "success": {
+        "response": {
+          "ticketId": "string",
+          "status": "CANCELLED",
+          "cancelledAt": "ISO_DATETIME"
+        }
+      },
+      "error": {
+        "status": "error",
+        "message": "Ticket cannot be cancelled"
+      }
+    },
+    {
+      "name": "Get Ticket Details by Ticket ID",
+      "method": "GET",
+      "endpoint": "/club-tickets/{ticketId}",
+      "description": "Retrieve complete club ticket information by ticket ID",
+      "pathParams": {
+        "ticketId": "string"
+      },
+      "success": {
+        "response": {
+          "ticketId": "string",
+          "ticketNumber": "string",
+          "clubId": "string",
+          "userId": "string",
+          "bookingDate": "YYYY-MM-DD",
+          "arrivalTime": "HH:mm:ss",
+          "guestCount": "number",
+          "status": "BOOKED | VALIDATED | CANCELLED"
+        }
+      },
+      "error": {
+        "status": "error",
+        "message": "Ticket not found"
+      }
+    },
+    {
+      "name": "Get Tickets by User",
+      "method": "GET",
+      "endpoint": "/club-tickets/user/{userId}",
+      "description": "Retrieve all club tickets for a specific user",
+      "pathParams": {
+        "userId": "string"
+      },
+      "success": {
+        "response": [
+          {
+            "ticketId": "string",
+            "ticketNumber": "string",
+            "clubName": "string",
+            "bookingDate": "YYYY-MM-DD",
+            "status": "BOOKED | VALIDATED | CANCELLED"
+          }
+        ]
+      },
+      "error": {
+        "status": "error",
+        "message": "User not found"
+      }
+    },
+    {
+      "name": "Get Available Time Slots",
+      "method": "GET",
+      "endpoint": "/club-tickets/clubs/{clubId}/time-slots",
+      "description": "Get available arrival times for a club on a specific date. Shows if event exists and entry fee.",
+      "pathParams": {
+        "clubId": "string"
+      },
+      "queryParams": {
+        "date": "YYYY-MM-DD"
+      },
+      "success": {
+        "response": {
+          "timeSlots": [
+            {
+              "time": "HH:mm:ss",
+              "availableOffers": "number",
+              "isAvailable": "boolean"
+            }
+          ]
+        }
+      },
+      "error": {
+        "status": "error",
+        "message": "Invalid club or date"
+      }
+    }
+  ]
+}

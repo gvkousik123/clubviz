@@ -60,7 +60,6 @@ export default function IntroScreen() {
 
     const handleGoogleLogin = () => {
         // Handle Google login
-        console.log("Google login");
     };
 
     const handleRegister = () => {

@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 import Sidebar from '@/components/common/sidebar';
 import { useSearch } from '@/hooks/use-search';
-import { PublicClubService, PublicEventService } from '@/lib/services/public.service';
 import { UserLocationService } from '@/lib/services/user-location.service';
 import { isGuestMode } from '@/lib/api-client-public';
 import { LocationSuggestionList } from '@/components/common/location-suggestion-list';
@@ -34,11 +33,21 @@ import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/use-profile';
 import { AutocompleteSuggestion } from '@/lib/services/search.service';
 import { STORAGE_KEYS } from '@/lib/constants/storage';
-import { useStories } from '@/hooks/use-stories';
 import { StoriesSection } from '@/components/story';
 import { StoryViewer } from '@/components/story/story-viewer';
-import { ClubCard } from '@/components/clubs/club-card';
 import { useUserLocation } from '@/hooks/use-user-location';
+// Use centralized data store for optimized API calls
+import { useData, useClubsData, useEventsData, useStoriesData } from '@/lib/store';
+import {
+    ClubCardSkeleton,
+    EventCardSkeleton,
+    StorySkeleton,
+    VenueCardSkeleton,
+    ClubsSectionSkeleton,
+    EventsSectionSkeleton,
+    StoriesSectionSkeleton,
+    VenuesSectionSkeleton
+} from '@/components/ui/skeleton-loaders';
 
 // Dummy data
 const heroSlides = [
@@ -90,16 +99,92 @@ const HomePage = () => {
         }
     }, [router]);
 
-    // API data state - Using public API responses directly
-    const [venues, setVenues] = useState<any[]>([]);
-    const [allClubs, setAllClubs] = useState<any[]>([]);
-    const [events, setEvents] = useState<any[]>([]);
-    const [isLoadingVenues, setIsLoadingVenues] = useState(false);
-    const [isLoadingAllClubs, setIsLoadingAllClubs] = useState(false);
-    const [isLoadingEvents, setIsLoadingEvents] = useState(false);
+    // ==================== CENTRALIZED DATA STORE ====================
+    // Use centralized data context for optimized API calls with caching
+    const {
+        clubs: cachedClubs,
+        clubsLoading: isLoadingAllClubs,
+        fetchClubs,
+        events: cachedEvents,
+        eventsLoading: isLoadingEvents,
+        fetchEvents,
+        stories: cachedStories,
+        storiesLoading,
+        fetchStories,
+        initializeData,
+        isInitialized
+    } = useData();
 
-    // Stories API
-    const { stories, fetchStories, loading: storiesLoading } = useStories();
+    const resolveClubId = (club: any): string => {
+        const source = club?.club || club;
+        const resolvedId = source?.id || source?.clubId || source?._id || club?.id || club?.clubId || club?._id;
+        return resolvedId ? String(resolvedId) : '';
+    };
+
+    // Helper function to map club data from API response
+    const mapClubData = (club: any, index: number) => ({
+        id: resolveClubId(club),
+        name: club.name ? (club.name.length > 20 ? club.name.substring(0, 20) + '...' : club.name) : '',
+        description: club.description ? (club.description.length > 50 ? club.description.substring(0, 50) + '...' : club.description) : '',
+        location: club.location ? (club.location.length > 30 ? club.location.substring(0, 30) + '...' : club.location) : '',
+        imageUrl: club.logo || venueFallback[index % venueFallback.length]?.image || '/dabo ambience main dabo page/Rectangle 5.jpg',
+        isActive: club.isActive !== undefined ? club.isActive : true,
+        logo: club.logo || '',
+        category: club.category || 'NIGHTCLUB',
+        memberCount: club.memberCount || 0,
+        maxMembers: club.maxMembers || 200,
+        isJoined: club.isJoined || false,
+        isFull: club.isFull || false,
+        ownerName: club.ownerName || '',
+        createdAt: club.createdAt || '',
+        capacityPercentage: club.capacityPercentage || 0,
+        memberStatus: club.memberStatus || '',
+        shortDescription: club.shortDescription || club.description || ''
+    });
+    // Derived state from cached data
+    const allClubs = useMemo(() => {
+        return cachedClubs
+            .map((club: any, index: number) => mapClubData(club, index))
+            .filter((club: any) => !!club.id);
+    }, [cachedClubs]);
+
+    const venues = useMemo(() => {
+        return allClubs.slice(0, 5);
+    }, [allClubs]);
+
+    const events = useMemo(() => {
+        return cachedEvents
+            .map((event: any, index: number) => ({
+                // prefer explicit id, fall back to common alternatives
+                id: String(event.id || event._id || event.eventId || ''),
+                title: event.title ? (event.title.length > 20 ? event.title.substring(0, 20) + '...' : event.title) : '',
+                shortDescription: event.shortDescription || event.clubName || '',
+                imageUrl: event.imageUrl || eventFallback[index % eventFallback.length]?.image || '/event list/Rectangle 1.jpg',
+                location: event.location && event.location.length > 25 ?
+                    event.location.substring(0, 25) + '...' :
+                    (event.location || event.clubName || 'TBD'),
+                startDateTime: event.startDateTime || '',
+                endDateTime: event.endDateTime || '',
+                formattedDate: event.formattedDate || '',
+                formattedTime: event.formattedTime || '',
+                timeUntilEvent: event.timeUntilEvent || '',
+                duration: event.duration || '',
+                attendeeCount: event.attendeeCount || 0,
+                maxAttendees: event.maxAttendees || 100,
+                isRegistered: event.isRegistered || false,
+                canRegister: event.canRegister !== undefined ? event.canRegister : true,
+                isFull: event.isFull || false,
+                clubId: event.clubId || '',
+                clubName: event.clubName ? (event.clubName.length > 15 ? event.clubName.substring(0, 15) + '...' : event.clubName) : '',
+                clubLogo: event.clubLogo || '',
+            }))
+            .filter((e: any) => e.id);
+    }, [cachedEvents]);
+
+    const stories = cachedStories;
+    const isLoadingVenues = isLoadingAllClubs;
+
+    // Story viewer state
     const [isStoryViewerOpen, setIsStoryViewerOpen] = useState(false);
     const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
 
@@ -154,6 +239,7 @@ const HomePage = () => {
     const searchInputWrapperRef = useRef<HTMLDivElement | null>(null);
     const searchDropdownRef = useRef<HTMLDivElement | null>(null);
     const prefetchedCoordsRef = useRef<{ lat: number; lng: number } | null>(null);
+    const homeRecoveryAttemptedRef = useRef(false);
 
     const [activeSuggestionId, setActiveSuggestionId] = useState<string | null>(null);
     const [suggestionLoadingId, setSuggestionLoadingId] = useState<string | null>(null);
@@ -314,41 +400,27 @@ const HomePage = () => {
         }
     };
 
-    // Helper function to map club data from API response
-    const mapClubData = (club: any, index: number) => ({
-        id: club.id || '',
-        name: club.name ? (club.name.length > 20 ? club.name.substring(0, 20) + '...' : club.name) : '',
-        description: club.description ? (club.description.length > 50 ? club.description.substring(0, 50) + '...' : club.description) : '',
-        location: club.location ? (club.location.length > 30 ? club.location.substring(0, 30) + '...' : club.location) : '',
-        imageUrl: club.logo || venueFallback[index % venueFallback.length]?.image || '/dabo ambience main dabo page/Rectangle 5.jpg',
-        isActive: club.isActive !== undefined ? club.isActive : true,
-        logo: club.logo || '',
-        category: club.category || 'NIGHTCLUB',
-        memberCount: club.memberCount || 0,
-        maxMembers: club.maxMembers || 200,
-        isJoined: club.isJoined || false,
-        isFull: club.isFull || false,
-        ownerName: club.ownerName || '',
-        createdAt: club.createdAt || '',
-        capacityPercentage: club.capacityPercentage || 0,
-        memberStatus: club.memberStatus || '',
-        shortDescription: club.shortDescription || club.description || ''
-    });
+
 
     useEffect(() => {
         const loadInitialData = async () => {
             const isGuest = isGuestMode();
+            let userCoords: { latitude: number; longitude: number } | undefined;
 
             // Load user's saved location (for authenticated users)
             if (!isGuest) {
                 try {
                     const locationResult = await UserLocationService.getUserLocation();
                     if (locationResult.success && locationResult.data) {
-                        console.log('User saved location:', locationResult.data);
-                        // Location is available, can be used for searches
+                        // Location loaded successfully - extract coordinates
+                        if (locationResult.data.latitude && locationResult.data.longitude) {
+                            userCoords = {
+                                latitude: locationResult.data.latitude,
+                                longitude: locationResult.data.longitude
+                            };
+                        }
                     }
                 } catch (error) {
-                    console.log('No saved location found:', error);
                     // User hasn't saved a location yet
                 }
             }
@@ -356,130 +428,52 @@ const HomePage = () => {
             // Load profile data (only for authenticated users)
             if (!isGuest) {
                 await loadProfile();
-                // Load stories for authenticated users
-                fetchStories();
             }
 
-            // Load clubs ONCE - ALWAYS use Public API: /clubs/public/list
-            setIsLoadingVenues(true);
-            setIsLoadingAllClubs(true);
-            try {
-                // Use PublicClubService for all users to get data from /clubs/public/list
-                const clubData = await PublicClubService.getPublicClubsList({
-                    page: 0,
-                    size: 20,
-                    sortBy: 'createdAt',
-                    sortDirection: 'desc'
-                });
-
-                console.log('Raw API Clubs Response:', clubData);
-
-                // Handle clubs data based on API response
-                if (clubData?.content && clubData.content.length > 0) {
-                    console.log('API Clubs Response Content:', clubData.content);
-                    console.log('Total clubs received:', clubData.content.length);
-
-                    // Map all clubs data
-                    const mappedAllClubs = clubData.content.map((club: any, index: number) => mapClubData(club, index));
-                    console.log('Mapped All Clubs:', mappedAllClubs);
-
-                    // Use first 5 for venues section, all for "All Clubs" section
-                    setVenues(mappedAllClubs.slice(0, 5));
-                    setAllClubs(mappedAllClubs);
-                } else {
-                    // No clubs available - show empty state
-                    console.log('No clubs data from API - content:', clubData?.content);
-                    setVenues([]);
-                    setAllClubs([]);
-                }
-            } catch (error: any) {
-                console.error('Failed to load clubs:', error);
-                console.error('Error details:', error.response?.data || error.message);
-                toast({
-                    title: "Failed to load clubs",
-                    description: error.message || "Could not fetch clubs. No clubs will be shown.",
-                    variant: "destructive",
-                });
-                // Show empty state on error
-                setVenues([]);
-                setAllClubs([]);
-            } finally {
-                setIsLoadingVenues(false);
-                setIsLoadingAllClubs(false);
-            }
-
-            // Load events - ALWAYS use Public API: /event-management/events/list
-            setIsLoadingEvents(true);
-            try {
-                // Use PublicEventService for all users to get data from /event-management/events/list
-                const eventData = await PublicEventService.getPublicEvents({
-                    page: 0,
-                    size: 20,
-                    sortBy: 'startDateTime',
-                    sortOrder: 'asc'
-                });
-
-                console.log('Raw API Events Response:', eventData);
-
-                if (eventData?.content && eventData.content.length > 0) {
-                    console.log('API Events Response Content:', eventData.content);
-                    console.log('Total events received:', eventData.content.length);
-
-                    // Map API events with full text (UI clamps handle truncation) and use fallback images for null imageUrl
-                    const mappedEvents = eventData.content.map((event: any, index: number) => ({
-                        id: event.id || '',
-                        title: event.title || '',
-                        shortDescription: event.shortDescription || event.clubName || '',
-                        imageUrl: event.imageUrl || eventFallback[index % eventFallback.length]?.image || '/event list/Rectangle 1.jpg',
-                        location: event.location || event.clubName || 'TBD',
-                        startDateTime: event.startDateTime || '',
-                        endDateTime: event.endDateTime || '',
-                        formattedDate: event.formattedDate || '',
-                        formattedTime: event.formattedTime || '',
-                        timeUntilEvent: event.timeUntilEvent || '',
-                        duration: event.duration || '',
-                        attendeeCount: event.attendeeCount || 0,
-                        maxAttendees: event.maxAttendees || 100,
-                        isRegistered: event.isRegistered || false,
-                        canRegister: event.canRegister !== undefined ? event.canRegister : true,
-                        isFull: event.isFull || false,
-                        clubId: event.clubId || '',
-                        clubName: event.clubName || '',
-                        clubLogo: event.clubLogo || '',
-                        organizerName: event.organizerName || '',
-                        status: event.status || 'UPCOMING',
-                        isPublic: event.isPublic !== undefined ? event.isPublic : true,
-                        requiresApproval: event.requiresApproval || false,
-                        attendeeStatus: event.attendeeStatus || '',
-                        eventStatusText: event.eventStatusText || '',
-                        pastEvent: event.pastEvent || false,
-                        upcoming: event.upcoming !== undefined ? event.upcoming : true,
-                        ongoing: event.ongoing || false,
-                        capacityPercentage: event.capacityPercentage || 0,
-                        genre: event.genre || event.category || ''
-                    }));
-                    console.log('Mapped Events:', mappedEvents);
-                    setEvents(mappedEvents);
-                } else {
-                    console.log('No events data from API - content:', eventData?.content);
-                    setEvents([]);
-                }
-            } catch (error: any) {
-                console.error('Failed to load events:', error);
-                console.error('Error details:', error.response?.data || error.message);
-                toast({
-                    title: "Failed to load events",
-                    description: error.message || "Could not fetch events.",
-                    variant: "destructive",
-                });
-                setEvents([]);
-            } finally {
-                setIsLoadingEvents(false);
-            }
+            // ==================== OPTIMIZED DATA LOADING ====================
+            // Use centralized data store - data is cached and shared across pages
+            // This prevents duplicate API calls when navigating between pages
+            // Pass coordinates if available for location-based results
+            await initializeData(userCoords);
         };
 
         loadInitialData();
-    }, [toast, loadProfile]);
+    }, [loadProfile, initializeData]);
+
+    useEffect(() => {
+        if (homeRecoveryAttemptedRef.current) {
+            return;
+        }
+
+        if (!isInitialized || isLoadingAllClubs || isLoadingEvents) {
+            return;
+        }
+
+        if (allClubs.length > 0 || events.length > 0) {
+            return;
+        }
+
+        homeRecoveryAttemptedRef.current = true;
+        const coords = currentLocation
+            ? { latitude: currentLocation.lat, longitude: currentLocation.lng }
+            : undefined;
+
+        Promise.all([
+            fetchClubs(true, coords),
+            fetchEvents(true, coords),
+        ]).catch((error) => {
+            console.error('Home recovery fetch failed:', error);
+        });
+    }, [
+        isInitialized,
+        isLoadingAllClubs,
+        isLoadingEvents,
+        allClubs.length,
+        events.length,
+        currentLocation,
+        fetchClubs,
+        fetchEvents,
+    ]);
 
     // Show guest mode notification
     useEffect(() => {
@@ -549,7 +543,6 @@ const HomePage = () => {
         }
 
         // If there is a query, use quick search (universalSearch)
-        console.log('Searching for:', trimmedQuery);
         try {
             setShowingSearchResults(true);
             setNearbyDropdownOpen(false); // Close suggestions on enter
@@ -673,7 +666,6 @@ const HomePage = () => {
     };
 
     const toggleSidebar = () => {
-        console.log('Toggling sidebar. Current state:', isSidebarOpen);
         setIsSidebarOpen(!isSidebarOpen);
     };
 
@@ -1151,15 +1143,7 @@ const HomePage = () => {
                             {isHydrated && !isGuestMode() && (storiesLoading || stories.length > 0) && (
                                 <section className="pt-2 mb-2">
                                     {storiesLoading ? (
-                                        <div>
-                                            <div className="flex items-center justify-between mb-4 px-5">
-                                                <h2 className="text-white text-lg font-medium">Vibe Meter</h2>
-                                            </div>
-                                            <div className="px-5 flex items-center gap-2 text-white/50 py-4">
-                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                                <span className="text-sm">Loading stories...</span>
-                                            </div>
-                                        </div>
+                                        <StoriesSectionSkeleton count={7} />
                                     ) : (
                                         <StoriesSection
                                             className="px-1"
@@ -1173,7 +1157,6 @@ const HomePage = () => {
                                                 const clubName = s.club?.name || s.userFullName || 'User Story';
                                                 const title = s.title || s.caption || clubName || 'Story';
 
-                                                console.log('🏠 Story mapping - ID:', id, 'mediaUrl:', mediaUrl);
 
                                                 return {
                                                     id: id,
@@ -1214,28 +1197,66 @@ const HomePage = () => {
                                 </div>
                                 <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
                                     {isLoadingAllClubs ? (
-                                        <div className="flex items-center justify-center w-full py-8">
-                                            <Loader2 className="w-6 h-6 text-[#14FFEC] animate-spin" />
-                                        </div>
+                                        Array.from({ length: 4 }).map((_, i) => (
+                                            <div key={i} className="w-[336px] h-[201px] relative flex-shrink-0 mr-1">
+                                                <div className="w-[336px] h-[169px] left-0 top-0 absolute bg-gradient-to-r from-[#1a2a2a] via-[#2a3a3a] to-[#1a2a2a] animate-pulse rounded-[15px]"></div>
+                                                <div className="w-[320px] h-[85px] left-[8px] top-[125px] absolute bg-gradient-to-r from-[#1a2a2a] via-[#2a3a3a] to-[#1a2a2a] animate-pulse rounded-[15px]"></div>
+                                            </div>
+                                        ))
                                     ) : allClubs.length > 0 ? (
                                         allClubs.map((club, index) => {
-                                            const fallbackImage = venueFallback[index % venueFallback.length]?.image || '/venue/Screenshot 2024-12-10 195651.png';
+                                            const fallbackImage = venueFallback[index % venueFallback.length]?.image || '';
 
                                             return (
-                                                <ClubCard
-                                                    key={club.id}
-                                                    club={{
-                                                        id: club.id,
-                                                        name: club.name,
-                                                        openTime: 'Hours not available',
-                                                        rating: 4.0,
-                                                        image: club.imageUrl || fallbackImage,
-                                                        address: club.location || club.description,
-                                                        category: club.category || 'Club'
-                                                    }}
-                                                    href={`/club/${club.id}`}
-                                                    fallbackImage={fallbackImage}
-                                                />
+                                                <Link key={club.id} href={`/club/${club.id}`}>
+                                                    <div className="w-[336px] h-[201px] relative flex-shrink-0 cursor-pointer">
+                                                        <div className="w-[336px] h-[169px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[15px] border-[#14FFEC] overflow-hidden">
+                                                            <img
+                                                                src={club.imageUrl || fallbackImage}
+                                                                alt={club.name}
+                                                                className="w-full h-full object-cover absolute inset-0"
+                                                            />
+                                                            <div className="w-full h-full absolute inset-0 bg-white/10 mix-blend-overlay"></div>
+                                                            <div className="w-full h-[169px] px-4 pt-[17px] pb-[113px] left-0 top-0 absolute justify-end items-center inline-flex bg-gradient-to-b from-black via-black/50 to-black/0 rounded-[10px] overflow-hidden">
+                                                                <button
+                                                                    className="w-[39px] self-stretch bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] justify-center items-center inline-flex overflow-hidden"
+                                                                    aria-label="Bookmark club"
+                                                                >
+                                                                    <svg className="w-5 h-5 text-[#14FFEC]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="h-[85px] inset-x-2 top-[116px] absolute rounded-[15px] border border-white/25 bg-[rgba(9,32,39,0.78)] backdrop-blur-[30px] backdrop-saturate-150 z-10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.24),0_12px_26px_rgba(0,0,0,0.42)]"></div>
+                                                        <div className="h-[85px] inset-x-2 top-[116px] absolute rounded-[15px] bg-gradient-to-b from-white/[0.16] via-white/[0.06] to-black/25 z-[11] pointer-events-none"></div>
+
+                                                        <div className="w-[40px] h-[40px] right-[50px] top-[95px] absolute z-20 rounded-full bg-white/[0.02] backdrop-blur-[1px] p-[4px]">
+                                                            <div className="w-full h-full flex items-center justify-center bg-[#008378] rounded-full overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),inset_0_-1px_2px_rgba(255,255,255,0.1)]">
+                                                                <div className="text-white text-[13px] font-extrabold font-['Manrope'] leading-5 tracking-[0.01em]">
+                                                                    {club.capacityPercentage && club.capacityPercentage > 0 ? (club.capacityPercentage / 20).toFixed(1) : '4.0'}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="left-[32px] right-[86px] top-[133px] absolute z-20">
+                                                            <div className="w-full flex-col justify-center items-start gap-1 inline-flex">
+                                                                <div className="self-stretch text-[#14FFEC] text-[24px] font-black font-['Manrope'] leading-[26px] tracking-[0.02em] truncate overflow-hidden whitespace-nowrap">
+                                                                    {club.name}
+                                                                </div>
+                                                                <div className="self-stretch h-3.5 text-white text-xs font-semibold font-['Manrope'] leading-3.5 tracking-[0.01em] truncate overflow-hidden whitespace-nowrap">
+                                                                    Open now
+                                                                </div>
+                                                                {club.location && (
+                                                                    <div className="self-stretch text-[#C3C3C3] text-[10px] font-medium font-['Manrope'] leading-3 tracking-[0.1px] truncate overflow-hidden whitespace-nowrap">
+                                                                        {club.location}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </Link>
                                             );
                                         })
                                     ) : (
@@ -1255,9 +1276,15 @@ const HomePage = () => {
                                 </div>
                                 <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide pl-5">
                                     {isLoadingEvents ? (
-                                        <div className="flex items-center justify-center w-full py-8">
-                                            <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
-                                        </div>
+                                        Array.from({ length: 3 }).map((_, i) => (
+                                            <div key={i} className="w-[222px] h-[305px] flex-shrink-0 relative rounded-[20px] overflow-hidden bg-gradient-to-r from-[#1a2a2a] via-[#2a3a3a] to-[#1a2a2a] animate-pulse">
+                                                <div className="w-full h-[180px] bg-[#0a1a1a]"></div>
+                                                <div className="p-4 space-y-2">
+                                                    <div className="h-4 bg-[#0a1a1a] rounded w-3/4"></div>
+                                                    <div className="h-3 bg-[#0a1a1a] rounded w-1/2"></div>
+                                                </div>
+                                            </div>
+                                        ))
                                     ) : events.length > 0 ? (
                                         events.slice(0, 5).map((event, index) => {
                                             const eventDate = new Date(event.startDateTime);
@@ -1369,9 +1396,9 @@ const HomePage = () => {
                                             </div>
                                             <div className="self-stretch h-[13px] flex justify-start items-center gap-3">
                                                 <img src="/footer-logos/File.svg" alt="Terms" className="w-[17px] h-[17px]" />
-                                                <div className="w-[231px] h-[18px] text-white text-base font-medium leading-4 tracking-[0.5px] break-words">
+                                                <Link href="/terms" className="w-[231px] h-[18px] text-white text-base font-medium leading-4 tracking-[0.5px] break-words hover:underline">
                                                     Terms & Condition
-                                                </div>
+                                                </Link>
                                             </div>
                                             <div className="h-[14px] flex justify-center items-center gap-[11px]">
                                                 <img src="/footer-logos/File (1).svg" alt="Privacy" className="w-[17px] h-[17px]" />
@@ -1408,13 +1435,22 @@ const HomePage = () => {
                         const mediaUrl = s.mediaUrl || s.mediaBase64 || '';
                         const clubName = s.club?.name || s.userFullName || 'User Story';
                         const title = s.title || s.caption || clubName || 'Story';
+                        const isVideo = s.mediaType === 'VIDEO';
 
                         return {
                             id: id,
                             image: mediaUrl,
                             title: title,
                             timestamp: s.createdAt ? new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-                            duration: s.duration || 5
+                            duration: isVideo ? undefined : (s.duration || 5),
+                            internalStories: [
+                                {
+                                    id: id,
+                                    image: mediaUrl,
+                                    duration: isVideo ? undefined : (s.duration || 5),
+                                    type: isVideo ? 'video' : 'image'
+                                }
+                            ]
                         };
                     })}
                     initialIndex={selectedStoryIndex}

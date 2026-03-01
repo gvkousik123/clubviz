@@ -93,7 +93,6 @@ export default function UploadStoryPage() {
                 caption: caption.trim() || undefined,
                 fileName: selectedFile.name
             });
-            console.log('Upload result:', result);
 
             // Always show success and navigate (API handles errors in hook)
             toast({
