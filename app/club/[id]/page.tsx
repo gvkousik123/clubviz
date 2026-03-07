@@ -342,10 +342,7 @@ export default function ClubDetailPage() {
                             key={`${club.id}-${index}`}
                             className="min-w-full h-full object-cover transition-transform duration-300"
                             src={image}
-<<<<<<< HEAD
                             alt={`${club.name} - Image ${index + 1}`}
-=======
->>>>>>> origin/main
                             style={{
                                 transform: `translateX(${(index - currentImageIndex) * 100}%)`,
                             }}
@@ -601,41 +598,6 @@ export default function ClubDetailPage() {
                                         </div>
                                     </div>
                                 </div>
-=======
-                    {/* Location Section */}
-                    <div className="w-full mt-5 mb-5">
-                        <h3 className="text-white text-xl font-semibold mb-4">Location</h3>
-                        <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[20px] p-4">
-                            <div className="flex items-start gap-3">
-                                <MapPin className="w-5 h-5 text-[#FF3B3B] flex-shrink-0 mt-1" />
-                                <div className="flex-1">
-                                    <p className="text-white text-sm mb-2">{getAddress()}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Facilities Section */}
-                    {club.facilities && club.facilities.length > 0 && (
-                        <div className="w-full mt-5 mb-5">
-                            <h3 className="text-white text-xl font-semibold mb-4">Facilities</h3>
-                            <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
-                                {club.facilities.map((facility: any, i: number) => (
-                                    <TagComponent key={i} label={facility} icon={<Star className="w-3 h-3" />} />
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Cuisines Section */}
-                    {club.foodCuisines && club.foodCuisines.length > 0 && (
-                        <div className="w-full mt-5 mb-5">
-                            <h3 className="text-white text-xl font-semibold mb-4">Cuisines</h3>
-                            <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
-                                {club.foodCuisines.map((cuisine: any, i: number) => (
-                                    <TagComponent key={i} label={cuisine} />
-                                ))}
->>>>>>> origin/main
                             </div>
                         </div>
 
@@ -649,93 +611,11 @@ export default function ClubDetailPage() {
                             <span className="font-semibold text-[16px] leading-[16px] text-[#fffeff]">Events In {club?.name || 'Club'}</span>
                         </div>
 
-<<<<<<< HEAD
                         {/* Events Cards */}
                         {isLoadingEvents ? (
                             <div className="flex items-center justify-center w-full py-8">
                                 <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
                             </div>
-=======
-                    {/* Today's Offers Section */}
-                    {offers && offers.length > 0 && (
-                        <div className="w-full mt-5 mb-5">
-                            <h3 className="text-white text-xl font-semibold mb-4">Today's Offers</h3>
-                            <div className="bg-[rgba(40,60,61,0.30)] rounded-[15px] overflow-hidden p-3 space-y-2">
-                                {offers.map((offer: any, i: number) => (
-                                    <div key={i} className="bg-[#263438] rounded-[10px] border border-dashed border-[#14FFEC] p-3 flex items-center justify-between">
-                                        <div className="text-white text-sm font-semibold">{offer.title || offer}</div>
-                                        <div className="w-6 h-6 opacity-50">
-                                            <img src="/common/discount.png" alt="Offer" className="w-full h-full object-contain" />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Photos/Gallery Section */}
-                    {club.images && club.images.length > 0 && (
-                        <div className="w-full mt-5 mb-5">
-                            <h3 className="text-white text-base font-semibold mb-4">Photos</h3>
-                            <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4 flex flex-wrap gap-2 justify-center">
-                                {club.images.slice(0, 5).map((img: any, i: number) => (
-                                    <div key={i} className={`${i === 0 || i === 1 ? 'w-[48%] h-44' : 'w-[31%] h-28'} bg-gray-700 rounded-[15px] relative overflow-hidden`}>
-                                        <img
-                                            src={img.url || img}
-                                            alt={`Gallery ${i + 1}`}
-                                            className="w-full h-full object-cover rounded-[15px]"
-                                        />
-                                        {i === 4 && club.images.length > 5 && (
-                                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-[15px]">
-                                                <span className="text-white text-lg font-bold">+{club.images.length - 5}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Contact Section */}
-                    {(club.contactPhone || club.contactEmail) && (
-                        <div className="w-full mt-5 mb-5">
-                            <h3 className="text-white text-xl font-semibold mb-4">Contact</h3>
-                            <div className="bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4 space-y-2">
-                                {club.contactPhone && <p className="text-white text-sm">📞 {club.contactPhone}</p>}
-                                {club.contactEmail && <p className="text-white text-sm">✉️ {club.contactEmail}</p>}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Bar Section */}
-                    {club.barOptions && club.barOptions.length > 0 && (
-                        <div className="w-full mt-5 mb-5">
-                            <h3 className="text-white text-xl font-semibold mb-4">Bar</h3>
-                            <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
-                                {club.barOptions.map((option: any, i: number) => (
-                                    <TagComponent key={i} label={option} />
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Join Button */}
-                    <button
-                        onClick={handleToggleLike}
-                        disabled={isJoinLoading}
-                        className="w-full max-w-md mt-2 mb-4 py-3 px-6 rounded-[30px] bg-gradient-to-r from-[#005D5C] to-[#14FFEC] text-white font-bold hover:brightness-110 transition disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                        {isJoinLoading ? (
-                            <>
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                                Joining...
-                            </>
-                        ) : isLiked ? (
-                            <>
-                                <Heart className="w-5 h-5 fill-current" />
-                                Joined
-                            </>
->>>>>>> origin/main
                         ) : (
                             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide w-full">
                                 {(clubEvents.length > 0 ? clubEvents : dummyEvents).slice(0, 5).map((event, index) => {
