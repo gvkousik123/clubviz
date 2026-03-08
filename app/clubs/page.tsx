@@ -3,20 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Loader2, X, Filter, Heart } from 'lucide-react';
+import { ArrowLeft, Search, User, SlidersHorizontal, MapPin, Loader2, X, Filter } from 'lucide-react';
+import { SealPercent } from '@phosphor-icons/react';
 import type { Club } from '@/components/clubs';
 import { useToast } from '@/hooks/use-toast';
 import { ClubCard } from '@/components/clubs/club-card';
 import { ClubListCard } from '@/components/clubs/club-list-card';
-import { ClubsListSkeleton } from '@/components/ui/skeleton-loaders';
-import { LocationPickerModal } from '@/components/common/location-picker-modal';
+import Sidebar from '@/components/common/sidebar';
 
 import { PublicClubService } from '@/lib/services/public.service';
-import { ClubService } from '@/lib/services/club.service';
-import { SearchService, NearbySearchParamsV2, SearchClubV2 } from '@/lib/services/search.service';
 import { usePublicClubs } from '@/hooks/use-public-clubs';
-import { STORAGE_KEYS } from '@/lib/constants/storage';
-import { getStoredLocation } from '@/lib/location';
 
 // Dummy clubs data for local development
 const DUMMY_CLUBS: Club[] = [
@@ -69,17 +65,19 @@ const DUMMY_CLUBS: Club[] = [
 
 export default function ClubsListPage() {
     const router = useRouter();
-    const { toast } = useToast();
+    const { toast } = useToast() ;
     const [clubs, setClubs] = useState<Club[]>([]);
     const [loading, setLoading] = useState(true);
     const [favorites, setFavorites] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [showLocationPicker, setShowLocationPicker] = useState(false);
-    const [searchingNearby, setSearchingNearby] = useState(false);
-    const [currentSearchLocation, setCurrentSearchLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
+
+    // Sidebar state
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    // Active filter tab state
+    const [activeFilterTab, setActiveFilterTab] = useState<string>('all');
 
     // Filter states
-    const [showFilters, setShowFilters] = useState(false);
     const [categories, setCategories] = useState<string[]>([]);
     const [locations, setLocations] = useState<string[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -110,81 +108,8 @@ export default function ClubsListPage() {
     };
 
     const handleSearch = async () => {
-        // Check if we have user coordinates (from stored location or browser)
-        const storedLocation = getStoredLocation();
-        
-        if (!storedLocation || !storedLocation.lat || !storedLocation.lng) {
-            // No location available - show location picker
-            setShowLocationPicker(true);
-            return;
-        }
-
-        // We have coordinates - perform nearby search
-        await performNearbySearch(storedLocation);
-    };
-
-    const performNearbySearch = async (location: { lat: number; lng: number; label?: string }) => {
-        setSearchingNearby(true);
-        try {
-            const nearbyParams: NearbySearchParamsV2 = {
-                lat: location.lat,
-                lng: location.lng,
-                page: 0,
-                size: 20,
-            };
-
-            const response = await SearchService.nearbySearch(nearbyParams);
-            
-            if (response && response.clubs && response.clubs.length > 0) {
-                const mappedClubs: Club[] = response.clubs.map((club: SearchClubV2, index: number) => ({
-                    id: club.id,
-                    name: club.name || '',
-                    openTime: club.openingHours || 'Hours not available',
-                    rating: club.rating || 0,
-                    image: club.logoUrl || getClubFallbackImage(index),
-                    address: club.address || '',
-                    category: club.priceRange || 'Club'
-                }));
-                setClubs(mappedClubs);
-                setTotalPages(response.totalPages || 1);
-                setCurrentSearchLocation({
-                    lat: location.lat,
-                    lng: location.lng,
-                    name: location.label || 'Selected Location'
-                });
-                
-                toast({
-                    title: 'Search complete',
-                    description: `Found ${mappedClubs.length} clubs nearby`,
-                });
-            } else {
-                setClubs([]);
-                toast({
-                    title: 'No clubs found',
-                    description: 'No clubs found in this area. Try expanding your search radius.',
-                    variant: 'destructive',
-                });
-            }
-        } catch (error) {
-            console.error('💥 Error performing nearby search:', error);
-            toast({
-                title: 'Search failed',
-                description: 'Could not search nearby clubs. Please try again.',
-                variant: 'destructive',
-            });
-        } finally {
-            setSearchingNearby(false);
-        }
-    };
-
-    const handleLocationSelected = async (coords: { lat: number; lng: number }, locationName: string) => {
-        setShowLocationPicker(false);
-        setCurrentSearchLocation({
-            lat: coords.lat,
-            lng: coords.lng,
-            name: locationName
-        });
-        await performNearbySearch(coords);
+        // Use public API for search
+        loadClubs(true);
     };
 
 
@@ -205,20 +130,28 @@ export default function ClubsListPage() {
     const loadFilterOptions = async () => {
         setLoadingFilters(true);
         try {
+            console.log('📥 Loading filter options...');
             const [categoriesData, locationsData] = await Promise.all([
                 PublicClubService.getClubCategories(),
                 PublicClubService.getClubLocations()
             ]);
 
+            console.log('📊 Raw categories response:', categoriesData);
+            console.log('📊 Raw locations response:', locationsData);
 
             // Handle both array and object responses
             const categoriesArray = Array.isArray(categoriesData) ? categoriesData : (categoriesData?.content || []);
             const locationsArray = Array.isArray(locationsData) ? locationsData : (locationsData?.content || []);
 
+            console.log('✅ Processed categories:', categoriesArray);
+            console.log('✅ Processed locations:', locationsArray);
 
             // Filter out empty values and set state
             const filteredCategories = categoriesArray.filter((cat: any) => cat && (typeof cat === 'string' ? cat.trim() : cat));
             const filteredLocations = locationsArray.filter((loc: any) => loc && (typeof loc === 'string' ? loc.trim() : loc));
+
+            console.log('✅ Filtered categories count:', filteredCategories.length);
+            console.log('✅ Filtered locations count:', filteredLocations.length);
 
             setCategories(filteredCategories);
             setLocations(filteredLocations);
@@ -260,7 +193,9 @@ export default function ClubsListPage() {
 
             // ONLY use Public API - defined in API-DOCUMENTATION.json
             // Endpoint: GET /clubs/public/list
+            console.log('🔍 Fetching clubs with params:', params);
             const response = await PublicClubService.getPublicClubsList(params);
+            console.log('✅ Clubs API Response:', response);
 
             if (response && response.content && response.content.length > 0) {
                 const apiClubs: Club[] = response.content.map((club: any, index: number) => ({
@@ -272,10 +207,12 @@ export default function ClubsListPage() {
                     address: club.location || club.description || '',
                     category: club.category || 'Club'
                 }));
+                console.log('📊 Mapped clubs:', apiClubs.length, apiClubs);
                 setClubs(apiClubs);
                 setTotalPages(response.totalPages || 1);
                 setHasMore(response.hasNext || false);
             } else {
+                console.log('❌ No clubs available from API');
                 setClubs([]);
                 setTotalPages(1);
                 setHasMore(false);
@@ -293,51 +230,29 @@ export default function ClubsListPage() {
         }
     };
 
-    const loadFavorites = async () => {
+    const loadFavorites = () => {
         try {
-            const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
-            if (!token) return;
-
-            const response: any = await ClubService.getUserFavoriteClubs({ page: 0, size: 100 });
-            const favClubs = response?.clubs || response?.content || response?.data?.clubs || [];
-            const favIds = favClubs.map((c: any) => c.id);
-            setFavorites(favIds);
+            const saved = localStorage.getItem('favoriteClubs');
+            if (saved) {
+                setFavorites(JSON.parse(saved));
+            }
         } catch (error) {
             console.error('Error loading favorites:', error);
-            // Fallback to localStorage
-            try {
-                const saved = localStorage.getItem('favoriteClubs');
-                if (saved) {
-                    setFavorites(JSON.parse(saved));
-                }
-            } catch {}
         }
     };
 
-    const toggleFavorite = async (clubId: string) => {
+    const toggleFavorite = (clubId: string) => {
         try {
-            const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.accessToken) : null;
-            if (!token) {
-                toast({
-                    title: 'Login Required',
-                    description: 'Please login to add clubs to favorites.',
-                    variant: 'destructive',
-                });
-                return;
-            }
+            const newFavorites = favorites.includes(clubId)
+                ? favorites.filter(id => id !== clubId)
+                : [...favorites, clubId];
 
-            const isFav = favorites.includes(clubId);
-            if (isFav) {
-                await ClubService.removeClubFromFavorites(clubId);
-                setFavorites(prev => prev.filter(id => id !== clubId));
-            } else {
-                await ClubService.addClubToFavorites(clubId);
-                setFavorites(prev => [...prev, clubId]);
-            }
+            setFavorites(newFavorites);
+            localStorage.setItem('favoriteClubs', JSON.stringify(newFavorites));
 
             toast({
-                title: isFav ? 'Removed from favorites' : 'Added to favorites',
-                description: isFav
+                title: favorites.includes(clubId) ? 'Removed from favorites' : 'Added to favorites',
+                description: favorites.includes(clubId)
                     ? 'Club removed from your favorites'
                     : 'Club added to your favorites',
             });
@@ -372,48 +287,58 @@ export default function ClubsListPage() {
 
     return (
         <div className="min-h-screen bg-[#031313] text-white">
-            <LocationPickerModal
-                isOpen={showLocationPicker}
-                onClose={() => setShowLocationPicker(false)}
-                onSelectLocation={handleLocationSelected}
-            />
             <div className="relative mx-auto max-w-[430px]">
                 {/* Fixed Header with Gradient Background */}
-                <header className="fixed top-0 left-0 w-full max-w-[430px] mx-auto h-[16vh] bg-gradient-to-b from-[#222831] to-[#11B9AB] rounded-b-[30px] px-5 pb-6 pt-4 z-50 flex flex-col justify-between">
-                    {/* Header with Back Arrow and Profile */}
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <button
-                                onClick={handleGoBack}
-                                className="p-2 hover:bg-white/10 rounded-full transition-all duration-300"
+                <header className="fixed top-0 left-0 w-full max-w-[430px] mx-auto h-[185px] bg-gradient-to-b from-[#222831] to-[#11b9ab] rounded-br-[30px] rounded-bl-[30px] border z-50 flex flex-col overflow-hidden">
+                    {/* Top Section - Back Button and User Icon */}
+                    <div className="flex items-start justify-between pt-[61px] pl-4 pr-4">
+                        {/* Back Button */}
+                        <button
+                            onClick={handleGoBack}
+                            className="w-[35px] h-[35px] bg-white/20 rounded-[18px] flex items-center justify-center hover:bg-white/30 transition-colors"
+                        >
+                            <svg 
+                                className="w-2 h-4" 
+                                viewBox="0 0 8 16" 
+                                fill="none" 
+                                xmlns="http://www.w3.org/2000/svg"
                             >
-                                <ArrowLeft size={24} className="text-white" />
-                            </button>
-                            <h1 className="text-white text-base font-bold tracking-wide">
-                                ALL CLUBS
-                            </h1>
-                        </div>
+                                <path 
+                                    d="M7 1L1 8L7 15" 
+                                    stroke="#FFFFFF" 
+                                    strokeWidth="2" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                        </button>
 
+                        {/* User Icon */}
+                        <Link
+                            href="/account"
+                            className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center hover:bg-white/30 transition-colors"
+                        >
+                            <User className="w-5 h-5 text-white" />
+                        </Link>
                     </div>
 
-                    {/* Search Bar */}
-                    <div className="flex items-center gap-2 w-full">
+                    {/* Search Bar Section */}
+                    <div className="flex items-center gap-[13px] pl-4 pr-4 pt-[13px] pb-[89px]">
                         <div className="flex-1 h-10 px-4 py-2 bg-white/20 rounded-[23px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center gap-2 min-w-0">
                             <button
                                 onClick={handleSearch}
-                                disabled={loading || searchingNearby || !searchQuery.trim()}
+                                disabled={loading || !searchQuery.trim()}
                                 className="disabled:opacity-50 flex-shrink-0"
-                                title="Search nearby clubs"
                             >
-                                {loading || searchingNearby ? (
+                                {loading ? (
                                     <Loader2 className="w-[21px] h-[21px] text-white animate-spin" />
                                 ) : (
-                                    <MapPin className="w-[21px] h-[21px] text-[#14FFEC]" />
+                                    <Search className="w-[21px] h-[21px] text-white" />
                                 )}
                             </button>
                             <input
                                 type="text"
-                                placeholder="Search nearby..."
+                                placeholder="Search"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyPress={(e) => {
@@ -421,27 +346,24 @@ export default function ClubsListPage() {
                                         handleSearch();
                                     }
                                 }}
-                                className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white outline-none min-w-0"
-                                disabled={loading || searchingNearby}
+                                className="flex-1 bg-transparent text-white text-base font-bold tracking-[0.5px] placeholder-white/70 outline-none min-w-0"
+                                disabled={loading}
                             />
                         </div>
+
+                        {/* Hamburger Menu Button */}
                         <button
-                            onClick={() => setShowFilters(!showFilters)}
-                            className={`w-10 h-10 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center flex-shrink-0 transition-colors ${showFilters || selectedCategory || selectedLocation
-                                ? 'bg-[#14FFEC]'
-                                : 'bg-white/20'
-                                }`}
-                            title="Filter clubs"
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                            className="w-10 h-10 bg-white/20 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex flex-col items-center justify-center gap-[3px] hover:bg-white/30 transition-colors flex-shrink-0"
                         >
-                            <SlidersHorizontal className={`w-[21px] h-[21px] ${showFilters || selectedCategory || selectedLocation
-                                ? 'text-black'
-                                : 'text-white'
-                                }`} />
+                            <div className="w-[15px] h-[2px] bg-white rounded-[2px]"></div>
+                            <div className="w-[19px] h-[2px] bg-white rounded-[6px]"></div>
+                            <div className="w-[15px] h-[2px] bg-white rounded-[2px]"></div>
                         </button>
                     </div>
 
-                    {/* Filter Panel */}
-                    {showFilters && (
+                    {/* Filter Panel - Keeping for potential future use */}
+                    {false && (
                         <div className="mt-3 bg-white/10 backdrop-blur-md rounded-2xl p-4 space-y-3">
                             {/* Category Filter */}
                             <div>
@@ -487,6 +409,7 @@ export default function ClubsListPage() {
                             {(selectedCategory || selectedLocation) && (
                                 <button
                                     onClick={() => {
+                                        console.log('🔄 Clearing filters and reloading clubs...');
                                         setSelectedCategory('');
                                         setSelectedLocation('');
                                         setCurrentPage(0);
@@ -501,22 +424,71 @@ export default function ClubsListPage() {
                     )}
                 </header>
 
+                {/* Main Content Container */}
+                <div className="w-full flex flex-col items-center pt-[206px] relative">
+                    {/* Filter Tabs Section */}
+                    <div className="w-full max-w-[430px] bg-[#031313] pt-0 pb-[21px] relative z-0 pointer-events-auto">
+                        <div className="flex items-center">
+                            {/* Fixed Filters Tab */}
+                            <div className="flex-shrink-0 pl-4">
+                                <button
+                                    onClick={() => {
+                                        console.log('Filters tab clicked');
+                                        setActiveFilterTab('filters');
+                                    }}
+                                    className={`w-[99px] h-10 flex justify-center items-center gap-2 px-3.5 py-2 rounded-[23px] border border-solid border-[#14ffec] transition-colors ${
+                                        activeFilterTab === 'filters' ? 'bg-[#14ffec]' : 'bg-[#004342]'
+                                    }`}
+                                >
+                                    <Filter className={`w-4 h-4 ${
+                                        activeFilterTab === 'filters' ? 'text-[#031313]' : 'text-white'
+                                    }`} />
+                                    <span className={`font-extrabold text-[14px] leading-[16px] whitespace-nowrap ${
+                                        activeFilterTab === 'filters' ? 'text-[#031313]' : 'text-white'
+                                    }`}>
+                                        Filters
+                                    </span>
+                                </button>
+                            </div>
 
+                            {/* Scrollable Tabs Container */}
+                            <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide">
+                                <div className="flex items-center gap-[10px] pl-4 pr-4">
+                                    {[
+                                        { id: 'today', label: 'Events Today' },
+                                        { id: 'week', label: 'Events This Week' },
+                                        { id: 'distance', label: 'Distance' },
+                                        { id: 'visited', label: 'Previously Visited' },
+                                        { id: 'popularity', label: 'Popularity' }
+                                    ].map((tab, index, arr) => (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => {
+                                                console.log(`${tab.label} tab clicked`);
+                                                setActiveFilterTab(tab.id);
+                                            }}
+                                            className={`flex-shrink-0 h-10 flex justify-center items-center gap-2 px-3.5 py-2 rounded-[23px] border border-solid border-[#14ffec] transition-colors ${
+                                                activeFilterTab === tab.id ? 'bg-[#14ffec]' : 'bg-[#004342]'
+                                            }`}
+                                        >
+                                            <span className={`font-extrabold text-[14px] leading-[16px] whitespace-nowrap ${
+                                                activeFilterTab === tab.id ? 'text-[#031313]' : 'text-white'
+                                            }`}>
+                                                {tab.label}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                {/* Main Content */}
-                <div className="w-full flex flex-col items-center space-y-6 pt-[18vh] px-0">
+                    {/* Content Section */}
+                    <div className="w-full flex flex-col items-center space-y-6 px-0 relative z-10">
                     {/* Active Filters Display */}
-                    {(selectedCategory || selectedLocation || currentSearchLocation) && (
+                    {(selectedCategory || selectedLocation) && (
                         <div className="w-full max-w-[430px] px-5">
                             <div className="flex flex-wrap gap-2">
-                                {currentSearchLocation && (
-                                    <div className="bg-[#14FFEC]/20 border border-[#14FFEC] rounded-full px-3 py-1 flex items-center gap-2">
-                                        <MapPin size={14} className="text-[#14FFEC] flex-shrink-0" />
-                                        <span className="text-[#14FFEC] text-xs font-semibold">
-                                            {currentSearchLocation.name}
-                                        </span>
-                                    </div>
-                                )}
                                 {selectedCategory && (
                                     <div className="bg-[#14FFEC]/20 border border-[#14FFEC] rounded-full px-3 py-1 flex items-center gap-2">
                                         <span className="text-[#14FFEC] text-xs font-semibold">
@@ -549,14 +521,16 @@ export default function ClubsListPage() {
 
                     {/* All Clubs Section */}
                     <section className="w-full max-w-[430px]">
-                        <div className="flex items-center justify-between mb-4 px-5">
+                        <div className="flex items-center justify-between mb-4 px-4">
                             <h2 className="text-white text-sm font-semibold truncate">All Clubs</h2>
                         </div>
-                        <div className="flex flex-col gap-4 pb-6 px-5">
+                        <div className="flex flex-col items-center gap-4 pb-6 px-4">
                             {loading ? (
-                                <ClubsListSkeleton count={6} />
+                                <div className="flex items-center justify-center w-full py-8">
+                                    <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+                                </div>
                             ) : clubs.length === 0 ? (
-                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full mr-5">
+                                <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-8 text-center text-sm text-white/60 w-full">
                                     We couldn't find any clubs right now. Check back soon!
                                 </div>
                             ) : (
@@ -565,11 +539,11 @@ export default function ClubsListPage() {
                                     return (
                                         <div
                                             key={club.id}
-                                            className="w-[336px] h-[201px] relative flex-shrink-0 mr-1 cursor-pointer"
+                                            className={`w-full ${index === 0 ? 'h-[247px]' : 'h-[214px]'} relative flex-shrink-0 cursor-pointer`}
                                             onClick={() => handleClubClick(club.id)}
                                         >
                                             {/* Main image container with rounded top */}
-                                            <div className="w-[336px] h-[169px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[15px] border-[#14FFEC] overflow-hidden">
+                                            <div className="w-full h-[169px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[15px] border-[#14FFEC] overflow-hidden">
                                                 <img
                                                     src={fallbackImage}
                                                     alt={club.name}
@@ -577,7 +551,7 @@ export default function ClubsListPage() {
                                                 />
                                                 {/* White overlay effect */}
                                                 <div className="w-full h-full absolute inset-0 bg-white/10 mix-blend-overlay"></div>
-                                                <div className="w-[336px] h-[169px] pl-[281px] pr-4 pt-[17px] pb-[113px] left-0 top-0 absolute justify-end items-center inline-flex bg-gradient-to-b from-black via-black/50 to-black/0 rounded-[10px] overflow-hidden">
+                                                <div className="w-full h-[169px] px-4 pt-[17px] pb-[113px] left-0 top-0 absolute justify-end items-center inline-flex bg-gradient-to-b from-black via-black/50 to-black/0 rounded-[10px] overflow-hidden">
                                                     <button
                                                         onClick={(e) => {
                                                             e.preventDefault();
@@ -586,25 +560,30 @@ export default function ClubsListPage() {
                                                         }}
                                                         className="w-[39px] self-stretch bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] justify-center items-center inline-flex overflow-hidden"
                                                     >
-                                                        <Heart className="w-5 h-5 text-[#14FFEC]" fill={favorites.includes(club.id) ? "currentColor" : "none"} />
+                                                        <svg className="w-5 h-5 text-[#14FFEC]" fill={favorites.includes(club.id) ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                        </svg>
                                                     </button>
                                                 </div>
                                             </div>
 
                                             {/* Glassmorphism bottom section */}
-                                            <div className="w-[320px] h-[85px] left-[8px] top-[125px] absolute bg-[rgba(212.01,212.01,212.01,0.10)] rounded-[15px] border backdrop-blur-[17.50px]"></div>
+                                            <div className="h-[85px] inset-x-2 top-[125px] absolute rounded-[15px] border border-white/25 bg-[rgba(9,32,39,0.78)] backdrop-blur-[30px] backdrop-saturate-150 z-10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.24),0_12px_26px_rgba(0,0,0,0.42)]"></div>
+                                            <div className="h-[85px] inset-x-2 top-[125px] absolute rounded-[15px] bg-gradient-to-b from-white/[0.16] via-white/[0.06] to-black/25 z-[11] pointer-events-none"></div>
 
                                             {/* Rating badge */}
-                                            <div className="w-[30px] h-[30px] pl-1 pr-[5px] py-[5px] left-[250px] top-[110px] absolute justify-center items-center inline-flex bg-[#008378] rounded-[17px] overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),inset_0_-1px_2px_rgba(255,255,255,0.1)]">
-                                                <div className="text-white text-[13px] font-extrabold font-['Manrope'] leading-5 tracking-[0.01em]">
-                                                    {club.rating}
+                                            <div className="w-[40px] h-[40px] right-[50px] top-[104px] absolute z-20 rounded-full bg-white/[0.02] backdrop-blur-[1px] p-[4px]">
+                                                <div className="w-full h-full flex items-center justify-center bg-[#008378] rounded-full overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),inset_0_-1px_2px_rgba(255,255,255,0.1)]">
+                                                    <div className="text-white text-[13px] font-extrabold font-['Manrope'] leading-5 tracking-[0.01em]">
+                                                        {club.rating}
+                                                    </div>
                                                 </div>
                                             </div>
 
                                             {/* Text content */}
-                                            <div className="w-32 h-[42px] left-[33px] top-[147px] absolute justify-start items-center gap-[29px] inline-flex">
-                                                <div className="w-52 flex-col justify-center items-start gap-1 inline-flex">
-                                                    <div className="self-stretch h-4 text-[#14FFEC] text-base font-black font-['Manrope'] leading-4 tracking-[0.02em] truncate overflow-hidden whitespace-nowrap">
+                                            <div className="left-[32px] right-[86px] top-[142px] absolute z-20">
+                                                <div className="w-full flex-col justify-center items-start gap-1 inline-flex">
+                                                    <div className="self-stretch text-[#14FFEC] text-[15px] font-extrabold font-['Manrope'] leading-5 tracking-[0.02em] truncate overflow-hidden whitespace-nowrap">
                                                         {club.name}
                                                     </div>
                                                     <div className="self-stretch h-3.5 text-white text-xs font-semibold font-['Manrope'] leading-3.5 tracking-[0.01em] truncate overflow-hidden whitespace-nowrap">
@@ -617,16 +596,58 @@ export default function ClubsListPage() {
                                                     )}
                                                 </div>
                                             </div>
+
+                                            {index === 0 && (
+                                                <div className="absolute inset-x-[10px] top-[168px] h-[83px] bg-[#008378] rounded-[20px] z-0 shadow-[inset_0_20px_22px_rgba(0,0,0,0.52)]">
+                                                    <div className="absolute inset-x-0 top-0 h-[76px] bg-gradient-to-b from-black/70 via-black/42 to-transparent rounded-t-[20px] pointer-events-none"></div>
+                                                    <div className="absolute inset-x-0 bottom-0 h-[42px] flex items-center pl-[29px] pr-6">
+                                                        <span className="font-normal text-[14px] leading-[21px] text-center text-white truncate">
+                                                            Timeless Tuesdays Ft. DJ Xpensive
+                                                        </span>
+                                                        <span className="ml-3 inline-block h-2 w-2 rounded-full bg-red-500" aria-hidden="true"></span>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {index === 1 && (
+                                                <>
+                                                    <div className="absolute inset-x-[10px] top-[168px] h-[83px] bg-[#008378] rounded-[20px] z-[1] shadow-[inset_0_20px_22px_rgba(0,0,0,0.52)]">
+                                                        <div className="absolute inset-x-0 top-0 h-[76px] bg-gradient-to-b from-black/70 via-black/42 to-transparent rounded-t-[20px] pointer-events-none"></div>
+                                                        <div className="absolute inset-x-0 bottom-0 h-[42px] flex items-center pl-[29px] pr-6">
+                                                            <span className="font-normal text-[14px] leading-[21px] text-center text-white truncate">
+                                                                Typical Tuesdays Ft. DJ Xeroo
+                                                            </span>
+                                                            <span className="ml-3 inline-block h-2 w-2 rounded-full bg-red-500" aria-hidden="true"></span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="absolute inset-x-[10px] top-[213px] h-[83px] bg-[rgba(0,131,120,0.62)] rounded-[20px] overflow-hidden z-0 shadow-[inset_0_8px_10px_rgba(0,0,0,0.38)]">
+                                                        <div className="absolute inset-x-0 bottom-0 h-[45px] flex items-center pl-[29px] pr-0 overflow-hidden">
+                                                            <span className="font-extrabold text-[13px] leading-[16px] text-white truncate pr-16">Buy 1 get 1 on IFML Drinks</span>
+                                                            <SealPercent
+                                                                className="w-[86.73780059814453px] h-[86.49639892578125px] text-[#1b726b] shrink-0 absolute right-[-6px]"
+                                                                weight="fill"
+                                                            />
+                                                        </div>
+                                                        <div className="absolute inset-x-0 top-0 h-[62px] bg-gradient-to-b from-black/55 via-black/28 to-transparent rounded-t-[20px] pointer-events-none"></div>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                     );
                                 })
                             )}
                         </div>
                     </section>
+                    </div>
                 </div>
             </div>
 
-
+            {/* Sidebar */}
+            <Sidebar
+                isOpen={isSidebarOpen}
+                onClose={() => setIsSidebarOpen(false)}
+            />
         </div>
     );
 }
