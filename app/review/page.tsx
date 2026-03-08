@@ -14,7 +14,7 @@ export default function ReviewPage() {
         router.push('/review/write');
     };
 
-    const reviews = [
+    const reviews: { id: number; name: string; avatar: string; rating: number; date: string; review: string; daysAgo: string; verified: boolean }[] = [
         {
             id: 1,
             name: 'Anjali Sharma',
@@ -46,6 +46,24 @@ export default function ReviewPage() {
             verified: false
         }
     ];
+
+    const filteredReviews = useMemo(() => {
+        let filtered = reviews.filter(review => {
+            const matchesSearch = searchTerm === '' ||
+                review.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                review.review.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesRating = filterRating === null || Math.floor(review.rating) >= filterRating;
+            return matchesSearch && matchesRating;
+        });
+
+        if (sortBy === 'highest') {
+            filtered = filtered.sort((a, b) => b.rating - a.rating);
+        } else if (sortBy === 'lowest') {
+            filtered = filtered.sort((a, b) => a.rating - b.rating);
+        }
+
+        return filtered;
+    }, [searchTerm, filterRating, sortBy]);
 
     return (
         <div className="min-h-screen bg-[#021313] text-white">
@@ -146,22 +164,7 @@ export default function ReviewPage() {
 
                 {/* Reviews List */}
                 <div className="space-y-4 mt-4">
-                    {useMemo(() => {
-                        let filtered = reviews.filter(review => {
-                            const matchesSearch = searchTerm === '' || 
-                                review.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                review.review.toLowerCase().includes(searchTerm.toLowerCase());
-                            const matchesRating = filterRating === null || Math.floor(review.rating) >= filterRating;
-                            return matchesSearch && matchesRating;
-                        });
-
-                        if (sortBy === 'highest') {
-                            filtered = filtered.sort((a, b) => b.rating - a.rating);
-                        } else if (sortBy === 'lowest') {
-                            filtered = filtered.sort((a, b) => a.rating - b.rating);
-                        }
-
-                        return filtered.length > 0 ? filtered.map((review) => (
+                    {filteredReviews.length > 0 ? filteredReviews.map((review) => (
                         <div key={review.id} className="bg-[rgba(40,60,61,0.30)] rounded-2xl p-4">
                             <div className="flex items-center gap-3">
                                 <img
@@ -209,7 +212,9 @@ export default function ReviewPage() {
                                 <span className="text-white/50 text-xs">{review.daysAgo}</span>
                             </div>
                         </div>
-                    ))}
+                    )) : (
+                        <div className="text-center text-white/50 text-sm py-8">No reviews found.</div>
+                    )}
                 </div>
             </div>
         </div>
