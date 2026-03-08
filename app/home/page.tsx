@@ -988,10 +988,10 @@ const HomePage = () => {
                                                     </div>
 
                                                     {/* Text content */}
-                                                    <div className="w-32 h-[50px] left-[33px] top-[144px] absolute justify-start items-center gap-[29px] inline-flex">
-                                                        <div className="w-52 flex-col justify-center items-start gap-2 inline-flex">
-                                                            <div className="self-stretch h-5 text-[#14FFEC] text-xl font-black font-['Manrope'] leading-5 tracking-[0.02em] truncate overflow-hidden whitespace-nowrap">
-                                                                {club.name && club.name.length > 12 ? club.name.substring(0, 12) + '...' : club.name}
+                                                    <div className="w-32 h-[42px] left-[33px] top-[147px] absolute justify-start items-center gap-[29px] inline-flex">
+                                                        <div className="w-52 flex-col justify-center items-start gap-1 inline-flex">
+                                                            <div className="self-stretch h-4 text-[#14FFEC] text-[13px] font-extrabold font-['Manrope'] leading-4 tracking-[0.02em] truncate overflow-hidden whitespace-nowrap">
+                                                                {club.name}
                                                             </div>
                                                             <div className="self-stretch h-5 text-white text-[13px] font-semibold font-['Manrope'] leading-5 tracking-[0.01em] truncate overflow-hidden whitespace-nowrap">
                                                                 {((club.address || club.locationText?.city || 'Open now').length > 20 ? (club.address || club.locationText?.city || 'Open now').substring(0, 20) + '...' : (club.address || club.locationText?.city || 'Open now'))}
@@ -1041,9 +1041,9 @@ const HomePage = () => {
                                                     </div>
 
                                                     {/* Text content */}
-                                                    <div className="w-32 h-[50px] left-[33px] top-[144px] absolute justify-start items-center gap-[29px] inline-flex">
-                                                        <div className="w-52 flex-col justify-center items-start gap-2 inline-flex">
-                                                            <div className="self-stretch h-5 text-[#14FFEC] text-xl font-black font-['Manrope'] leading-5 tracking-[0.02em] first-letter:text-2xl first-letter:leading-2">
+                                                    <div className="w-32 h-[42px] left-[33px] top-[147px] absolute justify-start items-center gap-[29px] inline-flex">
+                                                        <div className="w-52 flex-col justify-center items-start gap-1 inline-flex">
+                                                            <div className="self-stretch h-4 text-[#14FFEC] text-[13px] font-extrabold font-['Manrope'] leading-4 tracking-[0.02em] truncate overflow-hidden whitespace-nowrap">
                                                                 {venue.name}
                                                             </div>
                                                             <div className="self-stretch h-5 text-white text-[13px] font-semibold font-['Manrope'] leading-5 tracking-[0.01em]">
@@ -1239,7 +1239,7 @@ const HomePage = () => {
 
                                                         <div className="left-[32px] right-[86px] top-[133px] absolute z-20">
                                                             <div className="w-full flex-col justify-center items-start gap-1 inline-flex">
-                                                                <div className="self-stretch text-[#14FFEC] text-[24px] font-black font-['Manrope'] leading-[26px] tracking-[0.02em] truncate overflow-hidden whitespace-nowrap">
+                                                                <div className="self-stretch text-[#14FFEC] text-[15px] font-extrabold font-['Manrope'] leading-5 tracking-[0.02em] truncate overflow-hidden whitespace-nowrap">
                                                                     {club.name}
                                                                 </div>
                                                                 <div className="self-stretch h-3.5 text-white text-xs font-semibold font-['Manrope'] leading-3.5 tracking-[0.01em] truncate overflow-hidden whitespace-nowrap">

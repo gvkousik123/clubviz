@@ -82,7 +82,7 @@ export const ClubCard: React.FC<ClubCardProps> = ({
                 {/* Text content */}
                 <div className="w-32 h-[42px] left-[33px] top-[147px] absolute justify-start items-center gap-[29px] inline-flex">
                     <div className="w-52 flex-col justify-center items-start gap-1 inline-flex">
-                        <div className="self-stretch h-4 text-[#14FFEC] text-base font-black font-['Manrope'] leading-4 tracking-[0.02em] truncate">
+                        <div className="self-stretch h-4 text-[#14FFEC] text-[13px] font-extrabold font-['Manrope'] leading-4 tracking-[0.02em] truncate">
                             {club.name}
                         </div>
                         {/* <div className="self-stretch h-3.5 text-white text-xs font-semibold font-['Manrope'] leading-3.5 tracking-[0.01em] truncate">

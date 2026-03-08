@@ -539,7 +539,7 @@ export default function ClubsListPage() {
                                     return (
                                         <div
                                             key={club.id}
-                                            className={`w-full ${index === 0 ? 'h-[247px]' : index === 1 ? 'h-[308px]' : 'h-[214px]'} relative flex-shrink-0 cursor-pointer`}
+                                            className={`w-full ${index === 0 ? 'h-[247px]' : 'h-[214px]'} relative flex-shrink-0 cursor-pointer`}
                                             onClick={() => handleClubClick(club.id)}
                                         >
                                             {/* Main image container with rounded top */}
@@ -583,7 +583,7 @@ export default function ClubsListPage() {
                                             {/* Text content */}
                                             <div className="left-[32px] right-[86px] top-[142px] absolute z-20">
                                                 <div className="w-full flex-col justify-center items-start gap-1 inline-flex">
-                                                    <div className="self-stretch text-[#14FFEC] text-[24px] font-black font-['Manrope'] leading-[26px] tracking-[0.02em] truncate overflow-hidden whitespace-nowrap">
+                                                    <div className="self-stretch text-[#14FFEC] text-[15px] font-extrabold font-['Manrope'] leading-5 tracking-[0.02em] truncate overflow-hidden whitespace-nowrap">
                                                         {club.name}
                                                     </div>
                                                     <div className="self-stretch h-3.5 text-white text-xs font-semibold font-['Manrope'] leading-3.5 tracking-[0.01em] truncate overflow-hidden whitespace-nowrap">
