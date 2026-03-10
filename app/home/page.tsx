@@ -1231,6 +1231,7 @@ const HomePage = () => {
                                                     href={`/club/${club.id}`}
                                                     isFavorite={clubFavorites.includes(club.id)}
                                                     onToggleFavorite={handleToggleClubFavorite}
+                                                    isHorizontalScroll={true}
                                                 />
                                             );
                                         })
