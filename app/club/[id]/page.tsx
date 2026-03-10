@@ -12,12 +12,15 @@ import {
     Star,
     Loader2,
     Share2,
+    Bookmark,
+    ArrowRight,
     Tag as TagIcon
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useOffers } from '@/hooks/use-offers';
 import { isGuestMode } from '@/lib/api-client-public';
 import { ClubService } from '@/lib/services/club.service';
+import { EventService as PublicEventService } from '@/lib/services';
 // Use centralized data store for cached club details
 import { useClubDetail } from '@/lib/store';
 import { ClubDetailSkeleton } from '@/components/ui/skeleton-loaders';
@@ -37,14 +40,15 @@ export default function ClubDetailPage() {
     const { toast } = useToast();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isLiked, setIsLiked] = useState(false);
+    const [isBookmarked, setIsBookmarked] = useState(false);
     const [isJoinLoading, setIsJoinLoading] = useState(false);
-    const [isFavorited, setIsFavorited] = useState(false);
-    const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
+    const [activeEntryTab, setActiveEntryTab] = useState<'couple' | 'male' | 'female'>('couple');
+    const [clubEvents, setClubEvents] = useState<any[]>([]);
+    const [isLoadingEvents, setIsLoadingEvents] = useState(false);
 
     // Get club ID and initialize offers hook
     const clubId = params.id as string;
     const { offers, loading: offersLoading, fetchOffers } = useOffers(clubId);
-
     // ==================== OPTIMIZED: Use cached club data ====================
     // This prevents duplicate API calls when navigating back and forth
     const { club, loading: isLoading, error, refetch } = useClubDetail(clubId);
@@ -56,43 +60,37 @@ export default function ClubDetailPage() {
         }
     }, [club]);
 
-    // Load favorite status when club loads
-    useEffect(() => {
-        if (!clubId || isGuestMode()) return;
-        ClubService.isClubFavorited(clubId)
-            .then((res: any) => setIsFavorited(!!res?.favorited))
-            .catch(() => {});
-    }, [clubId]);
-
-    const handleToggleFavorite = async () => {
-        if (isGuestMode()) {
-            toast({ title: 'Sign in', description: 'Please sign in to favorite clubs.' });
-            return;
-        }
-        setIsFavoriteLoading(true);
-        try {
-            if (isFavorited) {
-                await ClubService.removeClubFromFavorites(clubId);
-                setIsFavorited(false);
-                toast({ title: 'Removed from favorites', description: 'Club removed from your favorites.' });
-            } else {
-                await ClubService.addClubToFavorites(clubId);
-                setIsFavorited(true);
-                toast({ title: 'Added to favorites', description: 'Club added to your favorites.' });
-            }
-        } catch (err: any) {
-            toast({ title: 'Error', description: err?.message || 'Failed to update favorites.', variant: 'destructive' });
-        } finally {
-            setIsFavoriteLoading(false);
-        }
-    };
-
     // Fetch offers when club is loaded
     useEffect(() => {
         if (clubId) {
             fetchOffers();
         }
     }, [clubId, fetchOffers]);
+
+    // Fetch events for the club
+    const fetchClubEvents = async () => {
+        if (!clubId) return;
+        setIsLoadingEvents(true);
+        try {
+            const eventsData = await PublicEventService.getEventsByClub(clubId);
+            if (eventsData && (eventsData as any)?.data) {
+                setClubEvents((eventsData as any)?.data);
+            } else if (Array.isArray(eventsData)) {
+                setClubEvents(eventsData);
+            }
+        } catch (err) {
+            console.error('Error fetching club events:', err);
+            setClubEvents([]);
+        } finally {
+            setIsLoadingEvents(false);
+        }
+    };
+
+    useEffect(() => {
+        if (clubId) {
+            fetchClubEvents();
+        }
+    }, [clubId]);
 
     const handleGoBack = () => {
         router.back();
@@ -152,6 +150,52 @@ export default function ClubDetailPage() {
         setCurrentImageIndex((prev) => (prev - 1 + len) % len);
     };
 
+    const isValidImageUrl = (url: string): boolean => {
+        if (!url || typeof url !== 'string') return false;
+        if (url.includes('example.com')) return false;
+        if (url.includes('placeholder')) return false;
+        return true;
+    };
+
+    const getEventFallbackImage = (index: number) => {
+        const eventImages = [
+            '/event list/Rectangle 1.jpg',
+            '/event list/Rectangle 2.jpg',
+            '/event list/Rectangle 3.jpg'
+        ];
+        return eventImages[index % eventImages.length];
+    };
+
+    const dummyEvents = [
+        {
+            id: 'dummy-1',
+            title: 'Neon Nights: DJ Live Set',
+            location: 'Dabo Main Hall',
+            clubName: club?.name || 'Dabo',
+            startDateTime: new Date().toISOString(),
+            genre: 'EDM',
+            imageUrl: ''
+        },
+        {
+            id: 'dummy-2',
+            title: 'Bollywood Bash',
+            location: 'Dabo Rooftop',
+            clubName: club?.name || 'Dabo',
+            startDateTime: new Date(Date.now() + 86400000).toISOString(),
+            genre: 'Bollywood',
+            imageUrl: ''
+        },
+        {
+            id: 'dummy-3',
+            title: 'Retro Vibes Night',
+            location: 'Dabo Lounge',
+            clubName: club?.name || 'Dabo',
+            startDateTime: new Date(Date.now() + 2 * 86400000).toISOString(),
+            genre: 'Retro',
+            imageUrl: ''
+        }
+    ];
+
     const handleApplyOffer = (offer: any) => {
         if (offer.promoCode) {
             // Copy promo code to clipboard
@@ -201,10 +245,30 @@ export default function ClubDetailPage() {
         );
     }
 
-    // Get images
-    const heroImages = (club.images && club.images.length > 0)
-        ? club.images.map((img: any) => img.url || img)
-        : [club.logo || club.logoUrl || ''];
+    // Get images - Match home page logic
+    let heroImages: string[] = [];
+
+    // First try to get from images array
+    if (club.images && club.images.length > 0) {
+        heroImages = (club.images as any[])
+            .map((img: any) => (typeof img === 'string' ? img : img?.url))
+            .filter(Boolean);
+    }
+
+    // If no images array, try logo/logoUrl (same as home page uses club.logo)
+    if (heroImages.length === 0) {
+        const logoImage = club.logo || club.logoUrl;
+        if (logoImage) {
+            heroImages = [logoImage];
+        }
+    }
+
+    // Final fallback
+    if (heroImages.length === 0) {
+        heroImages = ['/venue/Screenshot 2024-12-10 195651.png'];
+    }
+
+    console.log('🎨 Final heroImages:', heroImages);
 
     // Format address
     const getAddress = () => {
@@ -218,18 +282,36 @@ export default function ClubDetailPage() {
         return parts.join(', ') || club.location || 'Address not available';
     };
 
+    const locationLat = club.locationMap?.lat;
+    const locationLng = club.locationMap?.lng;
+    const addressText = getAddress() === 'Address not available'
+        ? 'House 1913/B/1, Yogesham CHS, Wardha Road, Nagpur'
+        : getAddress();
+    const locationQuery = encodeURIComponent(addressText);
+    const mapsHref = locationLat && locationLng
+        ? `https://www.google.com/maps?q=${locationLat},${locationLng}`
+        : `https://www.google.com/maps/search/?api=1&query=${locationQuery}`;
+    const staticMapUrl = locationLat && locationLng
+        ? `https://staticmap.openstreetmap.de/staticmap.php?center=${locationLat},${locationLng}&zoom=16&size=600x240&markers=${locationLat},${locationLng},red-pushpin`
+        : `/location/location-map-placeholder.svg`;
+
     return (
         <div className="min-h-screen bg-[#021313] relative w-full max-w-[430px] mx-auto">
             {/* Hero Image Carousel */}
-            <div className="relative w-full bg-gray-900 overflow-hidden flex justify-center items-center min-h-[300px] max-h-[500px]">
+            <div className="relative w-[430px] h-[391px] bg-gray-900 overflow-hidden flex justify-center items-center mx-auto">
                 <div className="absolute inset-0 flex">
                     {heroImages.map((image, index) => (
                         <img
-                            key={index}
-                            className="min-w-full h-full object-contain transition-transform duration-300"
+                            key={`${club.id}-${index}`}
+                            className="min-w-full h-full object-cover transition-transform duration-300"
                             src={image}
+                            alt={`${club.name} - Image ${index + 1}`}
                             style={{
                                 transform: `translateX(${(index - currentImageIndex) * 100}%)`,
+                            }}
+                            onError={(e) => {
+                                console.error('❌ Image failed to load:', image);
+                                e.currentTarget.src = '/venue/Screenshot 2024-12-10 195651.png';
                             }}
                         />
                     ))}
@@ -237,221 +319,470 @@ export default function ClubDetailPage() {
 
                 {/* Navigation arrows (only if multiple images) */}
                 {heroImages.length > 1 && (
-                    <div className="absolute left-3.5 top-1/2 transform -translate-y-1/2 flex justify-between items-center w-[calc(100%-28px)]">
-                        <button onClick={prevImage} className="w-[30px] h-[30px] bg-white rounded-full flex items-center justify-center hover:bg-white/80 transition">
-                            <ChevronLeft className="w-4 h-4 text-black" />
+                    <>
+                        <button 
+                            onClick={prevImage} 
+                            className="absolute left-[14px] top-1/2 transform -translate-y-1/2 w-[40px] h-[40px] bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition z-10"
+                        >
+                            <ChevronLeft className="w-6 h-6 text-black" />
                         </button>
-                        <button onClick={nextImage} className="w-[30px] h-[30px] bg-white rounded-full flex items-center justify-center hover:bg-white/80 transition">
-                            <ChevronRight className="w-4 h-4 text-black" />
+                        <button 
+                            onClick={nextImage} 
+                            className="absolute right-[14px] top-1/2 transform -translate-y-1/2 w-[40px] h-[40px] bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition z-10"
+                        >
+                            <ChevronRight className="w-6 h-6 text-black" />
                         </button>
-                    </div>
+                    </>
                 )}
 
                 {/* Back button */}
                 <button
                     onClick={handleGoBack}
-                    className="absolute left-4 top-6 w-[35px] h-[35px] bg-white/20 rounded-[18px] flex items-center justify-center hover:bg-white/30 transition z-50"
+                    className="absolute left-4 top-4 w-[35px] h-[35px] bg-white/20 rounded-[18px] flex items-center justify-center hover:bg-white/30 transition z-10"
                 >
                     <ArrowLeft className="h-5 w-5 text-white" />
                 </button>
-
-                {/* Share and Like buttons */}
-                <div className="absolute right-4 top-12 flex gap-2">
-                    <button
-                        onClick={handleShare}
-                        className="w-[35px] h-[35px] bg-white/20 rounded-[18px] flex items-center justify-center hover:bg-white/30 transition"
-                    >
-                        <Share2 className="h-5 w-5 text-white" />
-                    </button>
-                    <button
-                        onClick={handleToggleFavorite}
-                        disabled={isFavoriteLoading}
-                        className="w-[35px] h-[35px] bg-white/20 rounded-[18px] flex items-center justify-center hover:bg-white/30 transition disabled:opacity-50"
-                    >
-                        {isFavoriteLoading ? (
-                            <Loader2 className="h-5 w-5 text-[#14FFEC] animate-spin" />
-                        ) : (
-                            <Heart className={`h-5 w-5 ${isFavorited ? 'fill-[#FF3B3B] text-[#FF3B3B]' : 'text-white'}`} />
-                        )}
-                    </button>
-                </div>
             </div>
 
-            {/* Profile picture - centered */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 z-30" style={{ top: 'calc(35vh - 42.5px)' }}>
-                <div className="w-[85px] h-[85px] rounded-full border-4 border-[#08C2B3] overflow-hidden shadow-xl bg-black">
+            {/* Main Content Section */}
+            <div 
+                className="w-full bg-[#021313] rounded-tl-[40px] rounded-tr-[40px] rounded-br-[20px] rounded-bl-[20px] pb-8 relative"
+                style={{ marginTop: '-32px', position: 'relative', zIndex: 10 }}
+            >
+                {/* Club Logo Circle - Centered at top, half outside */}
+                <div 
+                    className="absolute flex items-center gap-2.5 p-1 rounded-[36px] border-2 border-solid border-[#14FFEC] bg-[#021313]"
+                    style={{
+                        top: '-36px',
+                        left: '50%',
+                        transform: 'translateX(-50%)'
+                    }}
+                >
                     <img
                         src={club.logo || ''}
                         alt={club.name}
-                        className="w-full h-full object-cover"
+                        className="w-16 h-16 object-cover rounded-[45px]"
+                        onError={(e) => (e.currentTarget.src = heroImages[0])}
                     />
                 </div>
-            </div>
+                {/* Rating Circle - Below the logo */}
+                <div 
+                    className="absolute w-[38px] h-[38px] bg-[#005d5c] rounded-[30px] flex items-center justify-center"
+                    style={{
+                        top: '24px',
+                        left: '50%',
+                        transform: 'translateX(-50%)'
+                    }}
+                >
+                    <span className="font-bold text-[16px] leading-[21px] text-center text-[#fff4f4]">
+                        {club.rating || 4.0}
+                    </span>
+                </div>
 
-            {/* Main content */}
-            <div className="bg-gradient-to-b from-[#021313] to-[rgba(2,19,19,0)] mt-[-5vh] rounded-t-[40px] relative z-0 px-4 pb-[18px] w-full">
-                <div className="flex flex-col items-center w-full" style={{ paddingTop: 'calc(8vh + 30px)' }}>
-                    {/* Title */}
-                    <h1 className="text-white text-[30px] tracking-[0.36px] text-center font-normal leading-[35px] mb-3 uppercase" style={{ fontFamily: "'Anton', sans-serif" }}>
+                {/* Club Name */}
+                <div 
+                    className="px-[29px] text-center"
+                    style={{ paddingTop: '79px' }}
+                >
+                    <span className="font-extrabold text-[36px] leading-[20px] text-center text-white" style={{ fontFamily: "'Anton SC', sans-serif" }}>
                         {club.name}
-                    </h1>
+                    </span>
+                </div>
+                {/* Share and Save Buttons */}
+                <div 
+                    className="flex justify-center items-center gap-3 w-full"
+                    style={{ paddingTop: '25px', paddingBottom: '9px' }}
+                >
+                    {/* Share Button */}
+                    <button
+                        onClick={handleShare}
+                        className="w-10 h-10 flex justify-center items-center rounded-full bg-[rgba(20,255,236,0.15)] hover:bg-[rgba(20,255,236,0.25)] transition"
+                    >
+                        <Share2 size={20} className="text-[#14ffec]" />
+                    </button>
 
-                    {/* Action Buttons - Reserve a spot */}
-                    <div className="w-full mt-6 mb-4 flex justify-center">
-                        <button
-                            onClick={() => {
-                                // Store club data in sessionStorage for booking flow
-                                sessionStorage.setItem('currentClubData', JSON.stringify(club));
-                                router.push(`/booking/slot?clubId=${clubId}`);
-                            }}
-                            className="py-3 px-8 rounded-[25px] bg-[#14FFEC] text-black font-bold hover:brightness-90 transition flex items-center justify-center gap-2"
-                        >
-                            Reserve your spot
-                        </button>
-                    </div>
+                    {/* Save Button */}
+                    <button
+                        onClick={() => {
+                            setIsBookmarked(!isBookmarked);
+                            toast({
+                                title: isBookmarked ? 'Removed' : 'Saved',
+                                description: `${club.name} has been ${isBookmarked ? 'removed from' : 'added to'} your favorites.`,
+                            });
+                        }}
+                        className="w-10 h-10 flex justify-center items-center rounded-full bg-[rgba(20,255,236,0.15)] hover:bg-[rgba(20,255,236,0.25)] transition"
+                    >
+                        <Bookmark 
+                            size={20} 
+                            className={`text-[#14ffec] ${isBookmarked ? 'fill-current' : ''}`}
+                        />
+                    </button>
+                </div>
 
-                    <p className="text-white/70 text-sm text-center mb-4 px-4">{club.description}</p>
+                {/* Booking Tabs */}
+                <div 
+                    className="w-[398px] flex justify-center items-center gap-[7px] mx-auto"
+                    style={{ paddingTop: '9px', paddingBottom: '16px' }}
+                >
+                    {/* Reserve your spot Button */}
+                    <button 
+                        onClick={() => {
+                            sessionStorage.setItem('currentClubData', JSON.stringify(club));
+                            router.push(`/booking/slot?clubId=${clubId}`);
+                        }}
+                        className="w-48 flex justify-center items-center gap-2.5 px-6 py-[11px] rounded-[25px] bg-[#005d5c] hover:bg-[#007c7b] transition"
+                    >
+                        <span className="font-bold text-[16px] leading-[16px] text-white">Reserve your spot</span>
+                    </button>
 
-                    {/* Rating */}
-                    {club.rating && (
-                        <div className="flex items-center gap-2 mb-4">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-white text-sm font-semibold">{club.rating}</span>
-                        </div>
-                    )}
+                    {/* Book offline Button */}
+                    <button 
+                        onClick={() => {
+                            toast({
+                                title: 'Contact Club',
+                                description: 'Please contact the club directly for offline bookings.',
+                            });
+                        }}
+                        className="w-36 flex justify-center items-center gap-2.5 px-6 py-[11px] rounded-[25px] bg-[#005d5c] hover:bg-[#007c7b] transition"
+                    >
+                        <span className="font-bold text-[16px] leading-[16px] text-white">Book offline</span>
+                    </button>
+                </div>
 
-                    {/* Location Section */}
-                    <div className="w-full mt-5 mb-5">
-                        <h3 className="text-white text-xl font-semibold mb-4">Location</h3>
-                        <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[20px] p-4">
-                            <div className="flex items-start gap-3">
-                                <MapPin className="w-5 h-5 text-[#FF3B3B] flex-shrink-0 mt-1" />
-                                <div className="flex-1">
-                                    <p className="text-white text-sm mb-2">{getAddress()}</p>
+                {/* Club Details Section */}
+                <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
+                    <div className="w-full flex flex-col justify-center items-center gap-[11px] bg-[rgba(40,60,61,0.3)] py-[15px] rounded-[15px]" style={{ paddingLeft: '17px', paddingRight: '17px' }}>
+                        
+                        {/* Now Playing */}
+                        <div className="flex flex-col self-stretch">
+                            <div className="flex items-center gap-2.5 self-stretch mb-4">
+                                <span className="font-semibold text-[16px] leading-[16px] text-[#fffeff]">Now Playing</span>
+                            </div>
+                                
+                                {/* Music Player Card */}
+                                <div className="w-full h-[74px] bg-[#202b2b] flex items-center relative p-0 rounded-tl-[38px] rounded-bl-[38px] rounded-tr-[26px] rounded-br-[26px]">
+                                    {/* Circle with Play Button and Equalizer */}
+                                    <div 
+                                        className="w-[60px] h-[60px] bg-[#005d5c] rounded-full flex items-center justify-center relative flex-shrink-0"
+                                        style={{ marginLeft: '8px' }}
+                                    >
+                                        <svg 
+                                            className="w-[25px] h-[25px] text-[#14ffec] absolute z-10" 
+                                            fill="currentColor" 
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path d="M8 5v14l11-7z" />
+                                        </svg>
+                                        
+                                        <div className="absolute w-[44px] h-[20px] right-0 bottom-0">
+                                            <div className="flex items-end justify-center gap-0.5 h-full">
+                                                <div className="w-0.5 h-1 bg-[#14ffec] rounded-full"></div>
+                                                <div className="w-0.5 h-3 bg-[#14ffec] rounded-full"></div>
+                                                <div className="w-0.5 h-2 bg-[#14ffec] rounded-full"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Right Content - Text and Genre Tabs */}
+                                    <div className="flex flex-col gap-2 ml-[13px] justify-center">
+                                        <span className="font-normal text-[13px] leading-[9.230769597567045%] text-white">DJ is not playing</span>
+                                        
+                                        <div className="flex gap-2 items-center" style={{ marginTop: '6px', marginBottom: '11px' }}>
+                                            <span className="px-2 py-1 bg-[#14ffec] text-black text-xs font-semibold rounded-full">EDM</span>
+                                            <span className="px-2 py-1 bg-[#0D2C2C] text-white text-xs font-semibold rounded-full">House</span>
+                                        </div>
+                                    </div>
                                 </div>
+                        </div>
+
+                        {/* Today's Offers */}
+                        <div className="flex flex-col items-center self-stretch">
+                            <div className="flex items-center gap-2.5 self-stretch mb-[12px]">
+                                <TagIcon className="w-4 h-4 text-[#14FFEC]" />
+                                <span className="font-semibold text-[14px] leading-[16px] text-white">Today's Offers</span>
+                            </div>
+                            {offers && offers.length > 0 ? (
+                                <div className="self-stretch h-auto bg-[#202b2b] rounded-[15px] p-[10px] flex flex-col gap-[13px]">
+                                    {offers.slice(0, 3).map((offer: any, i: number) => (
+                                        <div key={i} className="flex items-center justify-between bg-[rgba(20,255,236,0.1)] border border-dashed border-[#14FFEC] rounded-[10px] p-2">
+                                            <span className="text-white text-xs font-semibold truncate">{(offer as any)?.title || (typeof offer === 'string' ? offer : 'Offer')}</span>
+                                            <button 
+                                                onClick={() => handleApplyOffer(offer)}
+                                                className="text-[#14FFEC] text-xs font-bold hover:text-[#00d9d0] transition"
+                                            >
+                                                Apply
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="self-stretch h-[74px] bg-[#202b2b] rounded-[15px] p-[10px] flex items-center justify-center">
+                                    <span className="text-white text-sm">No offers available today</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Entry/Booking */}
+                        <div className="flex flex-col items-center self-stretch">
+                            <div className="flex items-center gap-2.5 self-stretch mb-[12px]">
+                                <TagIcon className="w-4 h-4 text-[#14FFEC]" />
+                                <span className="font-semibold text-[14px] leading-[16px] text-white">Entry Charges</span>
+                            </div>
+                            <div className="self-stretch bg-[#202b2b] rounded-[15px] p-[10px] flex flex-col">
+                                {/* Tabs */}
+                                <div className="flex gap-2 mb-3">
+                                    {['couple', 'male', 'female'].map((tab) => (
+                                        <button
+                                            key={tab}
+                                            onClick={() => setActiveEntryTab(tab as 'couple' | 'male' | 'female')}
+                                            className={`px-4 py-2 rounded-full text-xs font-semibold transition ${
+                                                activeEntryTab === tab
+                                                    ? 'bg-[#14FFEC] text-black'
+                                                    : 'bg-[#0D2C2C] text-white hover:bg-[#0D3C3C]'
+                                            }`}
+                                        >
+                                            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                        </button>
+                                    ))}
+                                </div>
+                                {/* Entry Details */}
+                                {club.entryCharges && club.entryCharges[activeEntryTab] ? (
+                                    <div className="bg-[#263438] rounded-[10px] p-2">
+                                        <p className="text-white text-sm font-semibold">₹{club.entryCharges[activeEntryTab]}</p>
+                                    </div>
+                                ) : (
+                                    <div className="bg-[#263438] rounded-[10px] p-2">
+                                        <p className="text-white text-sm">Entry charges not available</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
+
                     </div>
+                </div>
 
-                    {/* Facilities Section */}
-                    {club.facilities && club.facilities.length > 0 && (
-                        <div className="w-full mt-5 mb-5">
-                            <h3 className="text-white text-xl font-semibold mb-4">Facilities</h3>
-                            <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
-                                {club.facilities.map((facility: any, i: number) => (
-                                    <TagComponent key={i} label={facility} icon={<Star className="w-3 h-3" />} />
-                                ))}
-                            </div>
+                {/* Events In Club */}
+                <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '16px' }}>
+                    <div className="flex flex-col items-center self-stretch">
+                        <div className="flex items-center gap-2.5 self-stretch mb-[16px]">
+                            <span className="font-semibold text-[16px] leading-[16px] text-[#fffeff]">Events In {club.name}</span>
                         </div>
-                    )}
 
-                    {/* Cuisines Section */}
-                    {club.foodCuisines && club.foodCuisines.length > 0 && (
-                        <div className="w-full mt-5 mb-5">
-                            <h3 className="text-white text-xl font-semibold mb-4">Cuisines</h3>
-                            <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
-                                {club.foodCuisines.map((cuisine: any, i: number) => (
-                                    <TagComponent key={i} label={cuisine} />
-                                ))}
+                        {/* Events Cards */}
+                        {isLoadingEvents ? (
+                            <div className="flex items-center justify-center w-full py-8">
+                                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
                             </div>
-                        </div>
-                    )}
-
-                    {/* Music Genres Section */}
-                    {club.music && club.music.length > 0 && (
-                        <div className="w-full mt-5 mb-5">
-                            <h3 className="text-white text-xl font-semibold mb-4">Music</h3>
-                            <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
-                                {club.music.map((genre: any, i: number) => (
-                                    <TagComponent key={i} label={genre} />
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Today's Offers Section */}
-                    {offers && offers.length > 0 && (
-                        <div className="w-full mt-5 mb-5">
-                            <h3 className="text-white text-xl font-semibold mb-4">Today's Offers</h3>
-                            <div className="bg-[rgba(40,60,61,0.30)] rounded-[15px] overflow-hidden p-3 space-y-2">
-                                {offers.map((offer: any, i: number) => (
-                                    <div key={i} className="bg-[#263438] rounded-[10px] border border-dashed border-[#14FFEC] p-3 flex items-center justify-between">
-                                        <div className="text-white text-sm font-semibold">{offer.title || offer}</div>
-                                        <div className="w-6 h-6 opacity-50">
-                                            <img src="/common/discount.png" alt="Offer" className="w-full h-full object-contain" />
+                        ) : clubEvents && clubEvents.length > 0 ? (
+                            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide w-full">
+                                {clubEvents.slice(0, 5).map((event, index) => (
+                                    <div key={event.id || index} className="flex-shrink-0 w-[170px] bg-[#202b2b] rounded-[15px] overflow-hidden cursor-pointer hover:opacity-80 transition">
+                                        <div className="w-full h-[100px] bg-gray-700 relative overflow-hidden">
+                                            <img
+                                                src={event.imageUrl || getEventFallbackImage(index)}
+                                                alt={event.title}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                        <div className="p-2">
+                                            <p className="text-white text-xs font-bold truncate">{event.title}</p>
+                                            <p className="text-[#B6B6B6] text-xs truncate">{event.genre || event.location}</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                    )}
-
-                    {/* Photos/Gallery Section */}
-                    {club.images && club.images.length > 0 && (
-                        <div className="w-full mt-5 mb-5">
-                            <h3 className="text-white text-base font-semibold mb-4">Photos</h3>
-                            <div className="w-full bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4 flex flex-wrap gap-2 justify-center">
-                                {club.images.slice(0, 5).map((img: any, i: number) => (
-                                    <div key={i} className={`${i === 0 || i === 1 ? 'w-[48%] h-44' : 'w-[31%] h-28'} bg-gray-700 rounded-[15px] relative overflow-hidden`}>
-                                        <img
-                                            src={img.url || img}
-                                            alt={`Gallery ${i + 1}`}
-                                            className="w-full h-full object-cover rounded-[15px]"
-                                        />
-                                        {i === 4 && club.images.length > 5 && (
-                                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-[15px]">
-                                                <span className="text-white text-lg font-bold">+{club.images.length - 5}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Contact Section */}
-                    {(club.contactPhone || club.contactEmail) && (
-                        <div className="w-full mt-5 mb-5">
-                            <h3 className="text-white text-xl font-semibold mb-4">Contact</h3>
-                            <div className="bg-[rgba(40,60,61,0.30)] rounded-[15px] p-4 space-y-2">
-                                {club.contactPhone && <p className="text-white text-sm">📞 {club.contactPhone}</p>}
-                                {club.contactEmail && <p className="text-white text-sm">✉️ {club.contactEmail}</p>}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Bar Section */}
-                    {club.barOptions && club.barOptions.length > 0 && (
-                        <div className="w-full mt-5 mb-5">
-                            <h3 className="text-white text-xl font-semibold mb-4">Bar</h3>
-                            <div className="flex flex-wrap gap-2 bg-[rgba(40,60,61,0.30)] rounded-[15px] p-3">
-                                {club.barOptions.map((option: any, i: number) => (
-                                    <TagComponent key={i} label={option} />
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Join Button */}
-                    <button
-                        onClick={handleToggleLike}
-                        disabled={isJoinLoading}
-                        className="w-full max-w-md mt-2 mb-4 py-3 px-6 rounded-[30px] bg-gradient-to-r from-[#005D5C] to-[#14FFEC] text-white font-bold hover:brightness-110 transition disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                        {isJoinLoading ? (
-                            <>
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                                Joining...
-                            </>
-                        ) : isLiked ? (
-                            <>
-                                <Heart className="w-5 h-5 fill-current" />
-                                Joined
-                            </>
                         ) : (
-                            'Join Club'
+                            <div className="w-full h-[150px] bg-[rgba(40,60,61,0.3)] rounded-[15px] flex items-center justify-center">
+                                <span className="text-white text-sm">No upcoming events</span>
+                            </div>
                         )}
-                    </button>
+                    </div>
+                </div>
+
+                {/* Photos */}
+                <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '16px' }}>
+                    <div className="flex flex-col items-center self-stretch">
+                        <div className="flex items-center gap-2.5 self-stretch mb-[16px]">
+                            <span className="font-semibold text-[16px] leading-[16px] text-[#fffeff]">Photos</span>
+                        </div>
+
+                        {heroImages && heroImages.length > 0 ? (
+                            <div className="w-full max-w-[398px] mx-auto bg-[rgba(40,60,61,0.3)] p-4 rounded-[15px]">
+                                <div className="flex flex-col gap-3 w-full">
+                                    {heroImages.slice(0, 5).map((img, i) => (
+                                        <div key={i} className={`${i === 0 ? 'w-full h-40' : 'w-full h-24'} bg-gray-700 rounded-[15px] relative overflow-hidden`}>
+                                            <img
+                                                src={img}
+                                                alt={`Gallery ${i + 1}`}
+                                                className="w-full h-full object-cover rounded-[15px]"
+                                            />
+                                            {i === 4 && heroImages.length > 5 && (
+                                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-[15px]">
+                                                    <span className="text-white text-lg font-bold">+{heroImages.length - 5}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="w-full max-w-[398px] mx-auto bg-[rgba(40,60,61,0.3)] p-4 rounded-[15px] flex items-center justify-center h-[150px]">
+                                <span className="text-white text-sm">No photos available</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Location */}
+                <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '16px' }}>
+                    <div className="flex flex-col items-center self-stretch">
+                        <div className="flex items-center gap-2.5 self-stretch mb-[16px]">
+                            <span className="font-semibold text-[16px] leading-[16px] text-[#fffeff]">Location</span>
+                        </div>
+
+                        <div className="w-full max-w-[398px] mx-auto bg-[rgba(40,60,61,0.3)] rounded-[15px] overflow-hidden">
+                            {/* Map Container */}
+                            <div className="relative w-full h-[200px] bg-gray-700 overflow-hidden">
+                                {/* Map Pin - Positioned above center */}
+                                <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
+                                    <div className="flex flex-col items-center">
+                                        <MapPin className="w-8 h-8 text-[#FF3B3B] drop-shadow-lg" fill="#FF3B3B" />
+                                    </div>
+                                </div>
+                                
+                                {/* Map Image */}
+                                <img
+                                    src="https://staticmapmaker.com/img/google-placeholder.png"
+                                    alt="Club Location Map"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+
+                            {/* Address Info Below Map */}
+                            <div className="p-4 flex flex-col gap-3">
+                                <div className="flex items-start gap-2">
+                                    <MapPin className="w-5 h-5 text-[#FF3B3B] flex-shrink-0 mt-0.5" />
+                                    <div className="flex-1">
+                                        <p className="text-white text-sm font-semibold">Address</p>
+                                        <a 
+                                            href={mapsHref} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-[#14FFEC] text-xs hover:underline break-words"
+                                        >
+                                            {addressText}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Facilities */}
+                <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '16px' }}>
+                    <div className="flex flex-col items-center self-stretch">
+                        <div className="flex items-center gap-2.5 self-stretch mb-[16px]">
+                            <span className="font-semibold text-[16px] leading-[16px] text-[#fffeff]">Facilities</span>
+                        </div>
+
+                        {club.facilities && club.facilities.length > 0 ? (
+                            <div className="flex flex-col justify-end gap-3.5 self-stretch bg-[rgba(40,60,61,0.3)] pl-5 pr-[22px] pt-3 pb-[18px] rounded-[17px]">
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-[9px] self-stretch">
+                                    {club.facilities.map((facility: any, i: number) => (
+                                        <TagComponent key={i} label={facility} icon={<Star className="w-3 h-3" />} />
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="w-full bg-[rgba(40,60,61,0.3)] rounded-[15px] p-4 flex items-center justify-center h-[100px]">
+                                <span className="text-white text-sm">No facilities information available</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Food */}
+                <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '16px' }}>
+                    <div className="flex flex-col items-center self-stretch">
+                        <div className="flex items-center gap-2.5 self-stretch mb-[16px]">
+                            <span className="font-semibold text-[16px] leading-[16px] text-[#fffeff]">Food</span>
+                        </div>
+
+                        {club.foodCuisines && club.foodCuisines.length > 0 ? (
+                            <div className="flex flex-col gap-3.5 self-stretch bg-[rgba(40,60,61,0.3)] pl-[21px] pr-3.5 pt-3 pb-3 rounded-[17px]">
+                                <div className="flex flex-wrap gap-x-3 gap-y-[9px] self-stretch">
+                                    {club.foodCuisines.map((food: any, i: number) => (
+                                        <TagComponent key={i} label={food} />
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="w-full bg-[rgba(40,60,61,0.3)] rounded-[15px] p-4 flex items-center justify-center h-[100px]">
+                                <span className="text-white text-sm">No food/cuisine information available</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Music */}
+                <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '16px' }}>
+                    <div className="flex flex-col items-center self-stretch">
+                        <div className="flex items-center gap-2.5 self-stretch mb-[16px]">
+                            <span className="font-semibold text-[16px] leading-[16px] text-[#fffeff]">Music</span>
+                        </div>
+
+                        {club.music && club.music.length > 0 ? (
+                            <div className="flex flex-col gap-3.5 self-stretch bg-[rgba(40,60,61,0.3)] pl-[21px] pr-[22px] pt-3 pb-3 rounded-[17px]">
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-[9px] self-stretch">
+                                    {club.music.map((genre: any, i: number) => (
+                                        <TagComponent key={i} label={genre} />
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="w-full bg-[rgba(40,60,61,0.3)] rounded-[15px] p-4 flex items-center justify-center h-[100px]">
+                                <span className="text-white text-sm">No music genres information available</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Bar */}
+                <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '16px' }}>
+                    <div className="flex flex-col items-center self-stretch">
+                        <div className="flex items-center gap-2.5 self-stretch mb-[16px]">
+                            <span className="font-semibold text-[16px] leading-[16px] text-[#fffeff]">Bar</span>
+                        </div>
+
+                        {club.barOptions && club.barOptions.length > 0 ? (
+                            <div className="flex flex-col gap-3.5 self-stretch bg-[rgba(40,60,61,0.3)] pl-[21px] pr-[22px] pt-3 pb-3 rounded-[17px]">
+                                <div className="flex flex-wrap gap-x-3 gap-y-[9px] self-stretch">
+                                    {club.barOptions.map((option: any, i: number) => (
+                                        <TagComponent key={i} label={option} />
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="w-full bg-[rgba(40,60,61,0.3)] rounded-[15px] p-4 flex items-center justify-center h-[100px]">
+                                <span className="text-white text-sm">No bar information available</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Leave a review */}
+                <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '16px', paddingBottom: '32px' }}>
+                    <div className="w-full max-w-[398px] h-12 relative flex items-center bg-[#283c3d] px-4 rounded-2xl mx-auto">
+                        <span className="font-medium text-[16px] leading-[21px] text-white whitespace-nowrap">Leave a review</span>
+                        <Link
+                            href={`/review/write?clubId=${encodeURIComponent(clubId)}`}
+                            className="absolute right-[14.25px] w-6 h-6 rounded-full bg-[#14ffec] flex items-center justify-center"
+                            aria-label="Write a review"
+                        >
+                            <ArrowRight className="w-[19.500003814697266px] h-[19.500003814697266px] text-black" />
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>
