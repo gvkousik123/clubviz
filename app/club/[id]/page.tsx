@@ -21,6 +21,8 @@ import { useOffers } from '@/hooks/use-offers';
 import { isGuestMode } from '@/lib/api-client-public';
 import { ClubService } from '@/lib/services/club.service';
 import { EventService as PublicEventService } from '@/lib/services';
+import { useStories } from '@/hooks/use-stories';
+import { StoriesSection } from '@/components/story';
 // Use centralized data store for cached club details
 import { useClubDetail } from '@/lib/store';
 import { ClubDetailSkeleton } from '@/components/ui/skeleton-loaders';
@@ -45,6 +47,10 @@ export default function ClubDetailPage() {
     const [activeEntryTab, setActiveEntryTab] = useState<'couple' | 'male' | 'female'>('couple');
     const [clubEvents, setClubEvents] = useState<any[]>([]);
     const [isLoadingEvents, setIsLoadingEvents] = useState(false);
+    // stories for this club
+    const { stories, fetchStories } = useStories();
+
+    const clubStories = stories.filter(s => s.clubId === clubId);
 
     // Get club ID and initialize offers hook
     const clubId = params.id as string;
@@ -89,8 +95,9 @@ export default function ClubDetailPage() {
     useEffect(() => {
         if (clubId) {
             fetchClubEvents();
+            fetchStories(0, 50); // load stories once
         }
-    }, [clubId]);
+    }, [clubId, fetchStories]);
 
     const handleGoBack = () => {
         router.back();
@@ -403,12 +410,36 @@ export default function ClubDetailPage() {
 
                     {/* Save Button */}
                     <button
-                        onClick={() => {
+                        onClick={async () => {
+                            if (isGuestMode()) {
+                                toast({ title: 'Sign in', description: 'Please sign in to save clubs.' });
+                                return;
+                            }
                             setIsBookmarked(!isBookmarked);
-                            toast({
-                                title: isBookmarked ? 'Removed' : 'Saved',
-                                description: `${club.name} has been ${isBookmarked ? 'removed from' : 'added to'} your favorites.`,
-                            });
+                            try {
+                                if (isBookmarked) {
+                                    // Remove from favorites
+                                    await ClubService.removeClubFromFavorites(clubId);
+                                    toast({
+                                        title: 'Removed',
+                                        description: `${club.name} has been removed from your favorites.`,
+                                    });
+                                } else {
+                                    // Add to favorites
+                                    await ClubService.addClubToFavorites(clubId);
+                                    toast({
+                                        title: 'Saved',
+                                        description: `${club.name} has been added to your favorites.`,
+                                    });
+                                }
+                            } catch (error: any) {
+                                setIsBookmarked(!isBookmarked);
+                                toast({ 
+                                    title: 'Error', 
+                                    description: error.message || 'Failed to update favorites',
+                                    variant: 'destructive'
+                                });
+                            }
                         }}
                         className="w-10 h-10 flex justify-center items-center rounded-full bg-[rgba(20,255,236,0.15)] hover:bg-[rgba(20,255,236,0.25)] transition"
                     >
@@ -450,50 +481,25 @@ export default function ClubDetailPage() {
                 </div>
 
                 {/* Club Details Section */}
+                {/* stories display */}
+                {clubStories.length > 0 && (
+                    <section className="w-full px-4 pt-4">
+                        <StoriesSection
+                            stories={clubStories}
+                            className="mb-6"
+                            onStoryClick={(idx) => {
+                                const storyId = clubStories[idx]?.id;
+                                if (storyId) {
+                                    router.push(`/story/${storyId}?index=${idx}`);
+                                }
+                            }}
+                        />
+                    </section>
+                )}
                 <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
                     <div className="w-full flex flex-col justify-center items-center gap-[11px] bg-[rgba(40,60,61,0.3)] py-[15px] rounded-[15px]" style={{ paddingLeft: '17px', paddingRight: '17px' }}>
                         
-                        {/* Now Playing */}
-                        <div className="flex flex-col self-stretch">
-                            <div className="flex items-center gap-2.5 self-stretch mb-4">
-                                <span className="font-semibold text-[16px] leading-[16px] text-[#fffeff]">Now Playing</span>
-                            </div>
-                                
-                                {/* Music Player Card */}
-                                <div className="w-full h-[74px] bg-[#202b2b] flex items-center relative p-0 rounded-tl-[38px] rounded-bl-[38px] rounded-tr-[26px] rounded-br-[26px]">
-                                    {/* Circle with Play Button and Equalizer */}
-                                    <div 
-                                        className="w-[60px] h-[60px] bg-[#005d5c] rounded-full flex items-center justify-center relative flex-shrink-0"
-                                        style={{ marginLeft: '8px' }}
-                                    >
-                                        <svg 
-                                            className="w-[25px] h-[25px] text-[#14ffec] absolute z-10" 
-                                            fill="currentColor" 
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path d="M8 5v14l11-7z" />
-                                        </svg>
-                                        
-                                        <div className="absolute w-[44px] h-[20px] right-0 bottom-0">
-                                            <div className="flex items-end justify-center gap-0.5 h-full">
-                                                <div className="w-0.5 h-1 bg-[#14ffec] rounded-full"></div>
-                                                <div className="w-0.5 h-3 bg-[#14ffec] rounded-full"></div>
-                                                <div className="w-0.5 h-2 bg-[#14ffec] rounded-full"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Right Content - Text and Genre Tabs */}
-                                    <div className="flex flex-col gap-2 ml-[13px] justify-center">
-                                        <span className="font-normal text-[13px] leading-[9.230769597567045%] text-white">DJ is not playing</span>
-                                        
-                                        <div className="flex gap-2 items-center" style={{ marginTop: '6px', marginBottom: '11px' }}>
-                                            <span className="px-2 py-1 bg-[#14ffec] text-black text-xs font-semibold rounded-full">EDM</span>
-                                            <span className="px-2 py-1 bg-[#0D2C2C] text-white text-xs font-semibold rounded-full">House</span>
-                                        </div>
-                                    </div>
-                                </div>
-                        </div>
+                        {/* Now Playing section removed implementation pending (BUG-U07) */}
 
                         {/* Today's Offers */}
                         <div className="flex flex-col items-center self-stretch">
@@ -522,7 +528,8 @@ export default function ClubDetailPage() {
                             )}
                         </div>
 
-                        {/* Entry/Booking */}
+                        {/* Entry/Booking - Only show if club has events */}
+                        {clubEvents && clubEvents.length > 0 && (
                         <div className="flex flex-col items-center self-stretch">
                             <div className="flex items-center gap-2.5 self-stretch mb-[12px]">
                                 <TagIcon className="w-4 h-4 text-[#14FFEC]" />
@@ -557,6 +564,7 @@ export default function ClubDetailPage() {
                                 )}
                             </div>
                         </div>
+                        )}
 
                     </div>
                 </div>
@@ -773,16 +781,16 @@ export default function ClubDetailPage() {
 
                 {/* Leave a review */}
                 <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '16px', paddingBottom: '32px' }}>
-                    <div className="w-full max-w-[398px] h-12 relative flex items-center bg-[#283c3d] px-4 rounded-2xl mx-auto">
+                    <Link
+                        href={`/review/write?clubId=${encodeURIComponent(clubId)}`}
+                        className="w-full max-w-[398px] h-12 relative flex items-center bg-[#283c3d] px-4 rounded-2xl mx-auto hover:bg-[#2f4647] transition-colors block"
+                        aria-label="Write a review"
+                    >
                         <span className="font-medium text-[16px] leading-[21px] text-white whitespace-nowrap">Leave a review</span>
-                        <Link
-                            href={`/review/write?clubId=${encodeURIComponent(clubId)}`}
-                            className="absolute right-[14.25px] w-6 h-6 rounded-full bg-[#14ffec] flex items-center justify-center"
-                            aria-label="Write a review"
-                        >
+                        <div className="absolute right-[14.25px] w-6 h-6 rounded-full bg-[#14ffec] flex items-center justify-center pointer-events-none">
                             <ArrowRight className="w-[19.500003814697266px] h-[19.500003814697266px] text-black" />
-                        </Link>
-                    </div>
+                        </div>
+                    </Link>
                 </div>
             </div>
         </div>

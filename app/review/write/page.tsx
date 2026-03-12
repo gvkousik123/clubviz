@@ -1,18 +1,41 @@
 ﻿'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Star, Loader2 } from 'lucide-react';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
 import { useContact } from '@/hooks/use-contact';
 import { useProfile } from '@/hooks/use-profile';
 import { useToast } from '@/hooks/use-toast';
+import { ClubService } from '@/lib/services/club.service';
 
 export default function WriteReviewPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { toast } = useToast();
     const { submitReview, loading } = useContact();
     const { profile } = useProfile();
+    const [clubName, setClubName] = useState('Club');
+    const [clubId, setClubId] = useState('');
+
+    // Get clubId from route query params and fetch club info
+    useEffect(() => {
+        const id = searchParams?.get('clubId');
+        if (id) {
+            setClubId(id);
+            // Fetch club details to get the name
+            ClubService.getClubById(id)
+                .then(club => {
+                    if (club?.name) {
+                        setClubName(club.name);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching club:', err);
+                    setClubName('Club');
+                });
+        }
+    }, [searchParams]);
 
     const [rating, setRating] = useState(0);
     const [reviewText, setReviewText] = useState('');
@@ -56,7 +79,8 @@ export default function WriteReviewPage() {
             rating,
             review: reviewText,
             feedback: reviewText,
-            photoOrVideo
+            photoOrVideo,
+            clubId: clubId // BUG-U04: Include clubId so review is associated with correct club
         });
 
         if (success) {
@@ -88,7 +112,7 @@ export default function WriteReviewPage() {
 
                 {/* Club Name - positioned inside the header */}
                 <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center">
-                    <h2 className="text-white text-2xl font-extrabold">DABO CLUB & KITCHEN</h2>
+                    <h2 className="text-white text-2xl font-extrabold">{clubName}</h2>
                 </div>
             </div>
 

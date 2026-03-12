@@ -73,7 +73,8 @@ export default function EditProfilePage() {
             const updateData: any = {};
             if (profileData.fullName?.trim()) updateData.fullName = profileData.fullName.trim();
             if (profileData.email?.trim()) updateData.email = profileData.email.trim();
-            if (profileData.mobileNumber?.trim()) updateData.mobileNumber = profileData.mobileNumber.trim();
+            // map mobileNumber field to phoneNumber for backend compatibility
+            if (profileData.mobileNumber?.trim()) updateData.phoneNumber = profileData.mobileNumber.trim();
             if (profileData.profilePicture?.trim()) updateData.profilePicture = profileData.profilePicture.trim();
 
             await updateProfile(updateData);

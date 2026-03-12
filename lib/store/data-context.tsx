@@ -596,7 +596,7 @@ export function useStoriesData() {
  */
 export function useClubDetail(id: string | null) {
     const { clubDetails, fetchClubById } = useData();
-    const [loading, setLoading] = React.useState(false);
+    const [loading, setLoading] = React.useState(id ? !clubDetails[id] : false);
     const [error, setError] = React.useState<string | null>(null);
 
     const club = id ? clubDetails[id] : null;
@@ -604,6 +604,7 @@ export function useClubDetail(id: string | null) {
     useEffect(() => {
         if (id && !club) {
             setLoading(true);
+            setError(null);
             fetchClubById(id)
                 .catch(err => setError(err.message))
                 .finally(() => setLoading(false));
@@ -618,7 +619,7 @@ export function useClubDetail(id: string | null) {
  */
 export function useEventDetail(id: string | null) {
     const { eventDetails, fetchEventById } = useData();
-    const [loading, setLoading] = React.useState(false);
+    const [loading, setLoading] = React.useState(id ? !eventDetails[id] : false);
     const [error, setError] = React.useState<string | null>(null);
 
     const event = id ? eventDetails[id] : null;
@@ -626,6 +627,7 @@ export function useEventDetail(id: string | null) {
     useEffect(() => {
         if (id && !event) {
             setLoading(true);
+            setError(null);
             fetchEventById(id)
                 .catch(err => setError(err.message))
                 .finally(() => setLoading(false));

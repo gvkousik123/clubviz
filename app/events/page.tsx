@@ -332,48 +332,7 @@ export default function EventsListPage() {
                         </section>
                     )}
 
-                    {/* Calendar Date Range Picker */}
-                    <section className="w-full px-5">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-white text-base font-semibold">Filter by Date Range</h2>
-                        </div>
-                        <div className="space-y-3">
-                            {/* Start Date */}
-                            <div>
-                                <label className="text-white/70 text-xs font-semibold mb-2 block">START DATE</label>
-                                <input
-                                    type="date"
-                                    value={startDate ? startDate.toISOString().split('T')[0] : ''}
-                                    onChange={(e) => setStartDate(e.target.value ? new Date(e.target.value) : null)}
-                                    className="w-full bg-[#0D1F1F] border border-[#14FFEC]/30 text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[#14FFEC]"
-                                />
-                            </div>
-
-                            {/* End Date */}
-                            <div>
-                                <label className="text-white/70 text-xs font-semibold mb-2 block">END DATE</label>
-                                <input
-                                    type="date"
-                                    value={endDate ? endDate.toISOString().split('T')[0] : ''}
-                                    onChange={(e) => setEndDate(e.target.value ? new Date(e.target.value) : null)}
-                                    className="w-full bg-[#0D1F1F] border border-[#14FFEC]/30 text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[#14FFEC]"
-                                />
-                            </div>
-
-                            {/* Clear Button */}
-                            {hasDateSelection && (
-                                <button
-                                    onClick={() => {
-                                        setStartDate(null);
-                                        setEndDate(null);
-                                    }}
-                                    className="w-full bg-white/10 hover:bg-white/20 text-white text-sm rounded-lg px-4 py-2 transition-colors"
-                                >
-                                    Clear Selection
-                                </button>
-                            )}
-                        </div>
-                    </section>
+                    {/* Calendar Date Range Picker - REMOVED per BUG-U02 */}
 
                     {/* All Events Section */}
                     <section className="w-full px-5">

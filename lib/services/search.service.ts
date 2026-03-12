@@ -158,6 +158,10 @@ export const SearchService = {
    */
   async advancedSearch(params: AdvancedSearchParams): Promise<SearchV2Response> {
     try {
+      // add SQL/Mongo wildcard syntax to query if not already present
+      if (params.query && !params.query.includes('%') && !params.query.includes('*')) {
+        params.query = `%${params.query}%`;
+      }
       const response = await api.post('/search/search/v2', params);
       return handleApiResponse(response);
     } catch (error) {
@@ -184,8 +188,13 @@ export const SearchService = {
    */
   async quickSearch(params: QuickSearchParams): Promise<SearchV2Response> {
     try {
+      // wrap query for partial matching
+      let q = params.query;
+      if (q && !q.includes('%') && !q.includes('*')) {
+        q = `%${q}%`;
+      }
       const queryParams = new URLSearchParams();
-      queryParams.append('query', params.query);
+      queryParams.append('query', q);
       if (params.lat) queryParams.append('lat', params.lat.toString());
       if (params.lng) queryParams.append('lng', params.lng.toString());
       if (params.radiusKm) queryParams.append('radiusKm', params.radiusKm.toString());
