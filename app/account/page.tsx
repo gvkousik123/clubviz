@@ -1,13 +1,19 @@
 ﻿'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronRight, Edit, ChevronDown, User } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Edit, ChevronDown, User, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useProfile } from '@/hooks/use-profile';
+import { ClubService } from '@/lib/services/club.service';
+import { EventService } from '@/lib/services/event.service';
 
 export default function MyAccountPage() {
     const router = useRouter();
+    const [favoriteClubs, setFavoriteClubs] = useState<any[]>([]);
+    const [favoriteEvents, setFavoriteEvents] = useState<any[]>([]);
+    const [loadingFavorites, setLoadingFavorites] = useState(false);
+    
     const {
         profile,
         stats,
@@ -22,7 +28,25 @@ export default function MyAccountPage() {
     useEffect(() => {
         loadProfile();
         loadStats();
+        loadFavorites();
     }, [loadProfile, loadStats]);
+
+    const loadFavorites = async () => {
+        setLoadingFavorites(true);
+        try {
+            const clubsResponse: any = await ClubService.getUserFavoriteClubs({ page: 0, size: 2 });
+            const clubs = clubsResponse?.clubs || clubsResponse?.content || clubsResponse?.data?.clubs || [];
+            setFavoriteClubs(clubs.slice(0, 2));
+
+            const eventsResponse: any = await EventService.getFavoriteEvents({ page: 0, size: 2 });
+            const events = eventsResponse?.events || eventsResponse?.content || eventsResponse?.data?.events || [];
+            setFavoriteEvents(events.slice(0, 2));
+        } catch (error) {
+            console.error('Error loading favorites:', error);
+        } finally {
+            setLoadingFavorites(false);
+        }
+    };
 
     const handleGoBack = () => {
         router.back();
@@ -101,22 +125,66 @@ export default function MyAccountPage() {
 
                     {/* Favourite Clubs Section */}
                     <div className="space-y-4">
-                        <Link href="/favourites/clubs" className="flex items-center gap-4 cursor-pointer">
+                        <div className="flex items-center gap-4">
                             <h3 className="text-white font-semibold text-sm whitespace-nowrap">Favourite Clubs</h3>
                             <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
-                        </Link>
-
-                        {/* API integration pending - showing empty state */}
+                            {favoriteClubs.length > 0 && (
+                                <Link href="/favourites/clubs" className="text-[#14FFEC] text-xs font-medium hover:text-[#11B9AB] transition">
+                                    View All
+                                </Link>
+                            )}
+                        </div>
+                        {loadingFavorites ? (
+                            <div className="flex justify-center py-4">
+                                <Loader2 className="w-5 h-5 text-[#14FFEC] animate-spin" />
+                            </div>
+                        ) : favoriteClubs.length > 0 ? (
+                            <div className="space-y-2">
+                                {favoriteClubs.map(club => (
+                                    <div key={club.id} className="bg-[#0D1F1F] rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:bg-[#1a2d2d] transition" onClick={() => router.push(`/club/${club.id}`)}>
+                                        <img src={club.logo || club.logoUrl} alt={club.name} className="w-12 h-12 rounded object-cover" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-white text-sm font-medium truncate">{club.name}</p>
+                                            <p className="text-[#9D9C9C] text-xs truncate">{club.category || 'Club'}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-[#9D9C9C] text-xs">No favorite clubs yet</p>
+                        )}
                     </div>
 
                     {/* Favourite Events Section */}
                     <div className="space-y-4">
-                        <Link href="/favourites/events" className="flex items-center gap-4 cursor-pointer">
+                        <div className="flex items-center gap-4">
                             <h3 className="text-white font-semibold text-sm whitespace-nowrap">Favourite Events</h3>
                             <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
-                        </Link>
-
-                        {/* API integration pending - showing empty state */}
+                            {favoriteEvents.length > 0 && (
+                                <Link href="/favourites/events" className="text-[#14FFEC] text-xs font-medium hover:text-[#11B9AB] transition">
+                                    View All
+                                </Link>
+                            )}
+                        </div>
+                        {loadingFavorites ? (
+                            <div className="flex justify-center py-4">
+                                <Loader2 className="w-5 h-5 text-[#14FFEC] animate-spin" />
+                            </div>
+                        ) : favoriteEvents.length > 0 ? (
+                            <div className="space-y-2">
+                                {favoriteEvents.map(event => (
+                                    <div key={event.id} className="bg-[#0D1F1F] rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:bg-[#1a2d2d] transition" onClick={() => router.push(`/event/${event.id}`)}>
+                                        <img src={event.imageUrl || event.image || '/placeholder/image.png'} alt={event.title} className="w-12 h-12 rounded object-cover" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-white text-sm font-medium truncate">{event.title}</p>
+                                            <p className="text-[#9D9C9C] text-xs truncate">{event.club?.name || 'Event'}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-[#9D9C9C] text-xs">No favorite events yet</p>
+                        )}
                     </div>
 
                     {/* My Preferences Section - Empty State */}

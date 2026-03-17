@@ -6,12 +6,15 @@ import { Phone, Mail, Instagram, MessageCircle, X, Loader2, Star } from 'lucide-
 import PageHeader from '@/components/common/page-header';
 import { useContact } from '@/hooks/use-contact';
 import { useToast } from '@/hooks/use-toast';
+import { ContactService } from '@/lib/services/contact.service';
 
 export default function ContactUsPage() {
     const { submitBusinessEnquiry, submitReview, submitSupportRequest, loading } = useContact();
     const { toast } = useToast();
     const [activeTab, setActiveTab] = useState<'support' | 'feedback' | 'contact'>('contact');
     const [showEnquiryForm, setShowEnquiryForm] = useState(false);
+    const [userTickets, setUserTickets] = useState<any[]>([]);
+    const [ticketsLoading, setTicketsLoading] = useState(false);
 
     // Customer Support Form State
     const [supportForm, setSupportForm] = useState({
@@ -52,6 +55,24 @@ export default function ContactUsPage() {
         } catch (error) {
             console.error('Error parsing user data:', error);
         }
+    }, []);
+
+    // Fetch user's support tickets
+    useEffect(() => {
+        const fetchTickets = async () => {
+            setTicketsLoading(true);
+            try {
+                const response = await ContactService.getUserSupportTickets();
+                const tickets = response?.data || [];
+                setUserTickets(Array.isArray(tickets) ? tickets : []);
+            } catch (error) {
+                console.error('Error fetching support tickets:', error);
+                setUserTickets([]);
+            } finally {
+                setTicketsLoading(false);
+            }
+        };
+        fetchTickets();
     }, []);
 
     const handleContactClick = (type: string, value: string) => {
@@ -517,9 +538,47 @@ export default function ContactUsPage() {
                                 </button>
                             </form>
                         </div>
+
+                        {/* My Support Tickets */}
+                        {/* My Support Tickets */}
+                        <div className="mt-6">
+                            <div className="flex items-center gap-4 mb-4">
+                                <h3 className="text-[#FFFEFF] text-base font-semibold whitespace-nowrap">My Tickets</h3>
+                                <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
+                            </div>
+
+                            {ticketsLoading ? (
+                                <div className="flex justify-center py-6">
+                                    <Loader2 className="w-6 h-6 text-[#14FFEC] animate-spin" />
+                                </div>
+                            ) : userTickets.length === 0 ? (
+                                <div className="bg-[#0D1F1F] border border-[#0C898B]/40 rounded-2xl p-6 text-center">
+                                    <p className="text-[#9D9C9C] text-sm">No support tickets yet. Submit a message above to create one.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {userTickets.map((ticket: any) => (
+                                        <div key={ticket.id} className="bg-[#0D1F1F] border border-[#0C898B]/40 rounded-2xl p-4">
+                                            <div className="flex items-start justify-between gap-2 mb-2">
+                                                <span className="text-xs font-bold uppercase tracking-wider text-[#14FFEC] bg-[#14FFEC]/10 px-2 py-0.5 rounded-full">
+                                                    {ticket.type || 'SUPPORT'}
+                                                </span>
+                                                <span className="text-xs text-[#9D9C9C] shrink-0">
+                                                    {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
+                                                </span>
+                                            </div>
+                                            <p className="text-white text-sm font-semibold mb-1">{ticket.name || ticket.username}</p>
+                                            <p className="text-[#9D9C9C] text-xs leading-relaxed line-clamp-3">{ticket.message || ticket.feedback}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
+
+            {/* TAB 3: Rating & Feedback Form */}
 
             {/* TAB 3: Rating & Feedback Form */}
             {activeTab === 'feedback' && (

@@ -15,6 +15,7 @@ export interface RatingFeedbackRequest {
     review: string;
     feedback?: string;
     photoOrVideo?: string;
+    clubId?: string; // optional club identifier for contextual reviews
 }
 
 export interface CustomerSupportRequest {
@@ -82,6 +83,22 @@ export const ContactService = {
                     message: result.message || 'Success',
                     data: result
                 };
+            }
+            return handleApiResponse(response);
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || handleApiError(error);
+            throw new Error(errorMessage);
+        }
+    },
+
+    // Get all support tickets submitted by the current user
+    // GET /contact-form/contact/tickets/user
+    getUserSupportTickets: async (): Promise<ApiResponse<any[]>> => {
+        try {
+            const response = await api.get('/contact-form/contact/tickets/user');
+            const result = response.data;
+            if (Array.isArray(result)) {
+                return { success: true, data: result };
             }
             return handleApiResponse(response);
         } catch (error: any) {

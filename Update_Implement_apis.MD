@@ -374,7 +374,59 @@ curl -X POST \
 
 ---
 
-## 🔍 Search APIs
+## � Contact / Support APIs
+
+The backend exposes a **Contact Controller** that supports customer support tickets, rating/feedback, business inquiries, and ticket lookup.
+
+### ✅ Currently integrated in the app
+- `POST /contact/rating_feedback` — used by **`/app/contact/page.tsx`** to submit feedback.
+- `POST /contact/customer_support` — used by **`/app/contact/page.tsx`** to create support tickets.
+- `GET /contact/tickets/user` — used by **`/app/contact/page.tsx`** to list the current user’s support tickets.
+
+### 🔜 Not integrated (present in backend but not used in UI)
+- `GET /contact/customer_support` (list tickets)
+- `GET /contact/clubwiz_business` (business enquiries list)
+- `GET /contact/tickets/business-admin` (business admin ticket list)
+- `GET /contact/customer_support/{id}` (single support ticket)
+- `GET /contact/clubwiz_business/{id}` (business inquiry detail)
+
+### Endpoints
+
+#### Rating & Feedback (integrated)
+```http
+POST /contact/rating_feedback
+```
+
+#### Customer Support (integrated)
+```http
+POST /contact/customer_support
+```
+
+#### Support Tickets (integrated)
+```http
+GET /contact/tickets/user
+```
+
+#### Business Inquiries (not yet integrated)
+```http
+GET /contact/clubwiz_business
+POST /contact/clubwiz_business
+GET /contact/clubwiz_business/{id}
+```
+
+#### Ticket Admin (not yet integrated)
+```http
+GET /contact/tickets/business-admin
+```
+
+#### Support Ticket Details (not yet integrated)
+```http
+GET /contact/customer_support/{id}
+```
+
+---
+
+## �🔍 Search APIs
 
 ---
 

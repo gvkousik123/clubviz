@@ -66,6 +66,19 @@ export default function ClubDetailPage() {
         }
     }, [club]);
 
+    // Check if club is bookmarked/favorited when page loads
+    useEffect(() => {
+        if (!clubId || isGuestMode()) return;
+        ClubService.isClubFavorited(clubId)
+            .then((res: any) => {
+                const favorited = res?.favorited ?? res?.data?.favorited ?? false;
+                setIsBookmarked(favorited);
+            })
+            .catch(() => {
+                // Silently ignore — user may not be logged in
+            });
+    }, [clubId]);
+
     // Fetch offers when club is loaded
     useEffect(() => {
         if (clubId) {
