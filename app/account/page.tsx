@@ -57,7 +57,8 @@ export default function MyAccountPage() {
     };
 
     // Use real user data from API
-    const displayName = currentUser?.username || 'User';
+    const displayFullName = currentUser?.fullName || currentUser?.username || 'User';
+    const displayUsername = currentUser?.username || currentUser?.email || 'User';
     const displayEmail = currentUser?.email || 'No email';
     const displayPhone = currentUser?.mobileNumber || currentUser?.phoneNumber || 'Not provided';
     const displayPicture = currentUser?.profilePicture || '/placeholder/image.png';
@@ -89,16 +90,26 @@ export default function MyAccountPage() {
                     {/* Profile Section */}
                     <div className="flex items-center justify-between px-4 gap-4 w-full">
                         <div className="flex-1 flex flex-col gap-3">
-                            {/* Name */}
+                            {/* Full Name */}
                             <div className="text-white text-base font-manrope font-semibold tracking-[0.50px]">
-                                {displayName || 'User'}
+                                {displayFullName}
                             </div>
-                            {/* Phone Number - Left Aligned */}
-                            <div className="text-[#C3C2C2] text-sm font-manrope font-medium tracking-[0.50px]">
+                            {/* Username / ID */}
+                            <div className="text-[#C3C2C2] text-xs font-manrope font-medium tracking-[0.50px] break-words">
+                                {displayUsername}
+                            </div>
+                            {/* Phone Number - Left Aligned with more text */}
+                            <div className="text-[#C3C2C2] text-sm font-manrope font-medium tracking-[0.50px] mt-2">
                                 {displayPhone && displayPhone !== 'Not provided' ? (
-                                    <span>{displayPhone}</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[#14FFEC]">📱</span>
+                                        <span>{displayPhone}</span>
+                                    </div>
                                 ) : displayEmail && displayEmail !== 'No email' ? (
-                                    <span>{displayEmail}</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[#14FFEC]">✉️</span>
+                                        <span>{displayEmail}</span>
+                                    </div>
                                 ) : (
                                     <span>Contact info not available</span>
                                 )}

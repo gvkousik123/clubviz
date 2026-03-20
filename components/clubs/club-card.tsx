@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { Heart } from 'lucide-react';
+import { useOptimizedImage } from '@/hooks/use-optimized-image';
 
 export interface Club {
     id: string;
@@ -39,7 +40,12 @@ export const ClubCard: React.FC<ClubCardProps> = ({
         }
     };
 
-    const imageUrl = club.image || '/placeholder/image.png';
+    // Use optimized image loading
+    const { displayUrl, handleImageError } = useOptimizedImage(
+        club.image || club.logo,
+        fallbackImage || '/placeholder/image.png'
+    );
+
     const cardWidth = isHorizontalScroll ? 'w-[336px]' : 'w-full';
 
     return (
@@ -48,15 +54,10 @@ export const ClubCard: React.FC<ClubCardProps> = ({
                 {/* Main image container with rounded top */}
                 <div className="w-full h-[169px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[15px] border-[#14FFEC] overflow-hidden">
                     <img
-                        src={imageUrl}
+                        src={displayUrl}
                         alt={club.name}
                         className="w-full h-full object-cover absolute inset-0"
-                        onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            if (target.src !== '/placeholder/image.png') {
-                                target.src = '/placeholder/image.png';
-                            }
-                        }}
+                        onError={handleImageError}
                     />
                     {/* White overlay effect */}
                     <div className="w-full h-full absolute inset-0 bg-white/10 mix-blend-overlay"></div>
@@ -112,4 +113,17 @@ export const ClubCard: React.FC<ClubCardProps> = ({
     );
 };
 
-export default ClubCard;
+// Custom comparison for React.memo to prevent unnecessary re-renders
+const areEqual = (prevProps: ClubCardProps, nextProps: ClubCardProps) => {
+    // Compare only the props that actually affect rendering
+    return (
+        prevProps.club.id === nextProps.club.id &&
+        prevProps.club.name === nextProps.club.name &&
+        prevProps.club.image === nextProps.club.image &&
+        prevProps.isFavorite === nextProps.isFavorite &&
+        prevProps.className === nextProps.className &&
+        prevProps.isHorizontalScroll === nextProps.isHorizontalScroll
+    );
+};
+
+export default React.memo(ClubCard, areEqual);
