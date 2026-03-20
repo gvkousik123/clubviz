@@ -14,13 +14,15 @@ import {
     Share2,
     Bookmark,
     ArrowRight,
-    Tag as TagIcon
+    Tag as TagIcon,
+    X
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useOffers } from '@/hooks/use-offers';
 import { isGuestMode } from '@/lib/api-client-public';
 import { ClubService } from '@/lib/services/club.service';
 import { EventService as PublicEventService } from '@/lib/services';
+import { StoryService } from '@/lib/services/story.service';
 import { useStories } from '@/hooks/use-stories';
 import { StoriesSection } from '@/components/story';
 // Use centralized data store for cached club details
@@ -47,13 +49,15 @@ export default function ClubDetailPage() {
     const [activeEntryTab, setActiveEntryTab] = useState<'couple' | 'male' | 'female'>('couple');
     const [clubEvents, setClubEvents] = useState<any[]>([]);
     const [isLoadingEvents, setIsLoadingEvents] = useState(false);
+    const [clubStories, setClubStories] = useState<any[]>([]);
+    const [isLoadingStories, setIsLoadingStories] = useState(false);
+    const [showStoriesModal, setShowStoriesModal] = useState(false);
+    
+    // Get club ID first
+    const clubId = params.id as string;
+    
     // stories for this club
     const { stories, fetchStories } = useStories();
-
-    const clubStories = stories.filter(s => s.clubId === clubId);
-
-    // Get club ID and initialize offers hook
-    const clubId = params.id as string;
     const { offers, loading: offersLoading, fetchOffers } = useOffers(clubId);
     // ==================== OPTIMIZED: Use cached club data ====================
     // This prevents duplicate API calls when navigating back and forth
@@ -105,9 +109,53 @@ export default function ClubDetailPage() {
         }
     };
 
+    // Fetch stories for the club
+    const fetchClubStoriesData = async () => {
+        if (!clubId) return;
+        setIsLoadingStories(true);
+        try {
+            const response: any = await StoryService.getStoriesByClub(clubId);
+            console.log('📖 Stories API Response:', response);
+            
+            // Handle different response formats
+            let storiesData = [];
+            
+            // Check if response has a message indicating no stories
+            if (response?.message && response.message.includes('No stories')) {
+                console.log('📭 No stories found for this club');
+                storiesData = [];
+            }
+            // Handle array response
+            else if (Array.isArray(response)) {
+                storiesData = response;
+            }
+            // Handle wrapped response with data property
+            else if (response?.data && Array.isArray(response.data)) {
+                storiesData = response.data;
+            }
+            // Handle paginated response
+            else if (response?.content && Array.isArray(response.content)) {
+                storiesData = response.content;
+            }
+            // Handle wrapped response with stories property
+            else if (response?.stories && Array.isArray(response.stories)) {
+                storiesData = response.stories;
+            }
+            
+            setClubStories(Array.isArray(storiesData) ? storiesData : []);
+            console.log(`✅ Loaded ${storiesData.length} stories for club ${clubId}`);
+        } catch (err: any) {
+            console.error('❌ Error fetching club stories:', err);
+            setClubStories([]);
+        } finally {
+            setIsLoadingStories(false);
+        }
+    };
+
     useEffect(() => {
         if (clubId) {
             fetchClubEvents();
+            fetchClubStoriesData();
             fetchStories(0, 50); // load stories once
         }
     }, [clubId, fetchStories]);
@@ -362,6 +410,18 @@ export default function ClubDetailPage() {
                 >
                     <ArrowLeft className="h-5 w-5 text-white" />
                 </button>
+
+                {/* Story Count Badge - Bottom Center */}
+                {clubStories && clubStories.length > 0 && (
+                    <button
+                        onClick={() => setShowStoriesModal(true)}
+                        className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-[50px] h-[50px] bg-[#14FFEC] rounded-full flex items-center justify-center hover:bg-[#11d4c4] transition z-10 shadow-lg"
+                    >
+                        <span className="font-bold text-[20px] text-black">
+                            {clubStories.length}
+                        </span>
+                    </button>
+                )}
             </div>
 
             {/* Main Content Section */}
@@ -573,6 +633,36 @@ export default function ClubDetailPage() {
                                 ) : (
                                     <div className="bg-[#263438] rounded-[10px] p-2">
                                         <p className="text-white text-sm">Entry charges not available</p>
+                                    </div>
+                                )}
+                                
+                                {/* Redeemable Cover Display */}
+                                {club.entryPricing && (
+                                    <div className="mt-3 pt-3 border-t border-[#14FFEC]/30">
+                                        {(() => {
+                                            let redeemDetails = '';
+                                            if (activeEntryTab === 'couple') {
+                                                redeemDetails = club.entryPricing.coupleRedeemDetails || club.entryPricing.redeemDetails || '';
+                                            } else if (activeEntryTab === 'male') {
+                                                redeemDetails = club.entryPricing.maleStagRedeemDetails || club.entryPricing.redeemDetails || '';
+                                            } else {
+                                                redeemDetails = club.entryPricing.femaleStagRedeemDetails || club.entryPricing.redeemDetails || '';
+                                            }
+                                            
+                                            if (!redeemDetails) return null;
+                                            
+                                            return (
+                                                <div className="flex flex-col gap-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-white text-xs font-semibold">Redeemable Cover:</span>
+                                                        <span className="text-[#14FFEC] text-xs font-bold">{redeemDetails}</span>
+                                                    </div>
+                                                    {club.entryPricing.timeRestriction && (
+                                                        <p className="text-[#B6B6B6] text-xs">{club.entryPricing.timeRestriction}</p>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 )}
                             </div>
@@ -806,6 +896,53 @@ export default function ClubDetailPage() {
                     </Link>
                 </div>
             </div>
+
+            {/* Stories Modal */}
+            {showStoriesModal && clubStories.length > 0 && (
+                <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center">
+                    <div className="w-full max-w-[430px] bg-[#021313] rounded-t-[30px] max-h-[90vh] overflow-y-auto">
+                        {/* Modal Header */}
+                        <div className="sticky top-0 bg-[#021313] px-5 py-4 border-b border-[#14FFEC]/20 flex items-center justify-between">
+                            <h2 className="text-white text-lg font-semibold">{club.name} Stories</h2>
+                            <button
+                                onClick={() => setShowStoriesModal(false)}
+                                className="text-white hover:text-[#14FFEC] transition"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        {/* Stories Section */}
+                        <div className="px-5 py-4">
+                            {isLoadingStories ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+                                </div>
+                            ) : (
+                                <StoriesSection
+                                    stories={clubStories.map(story => ({
+                                        id: story.id,
+                                        image: story.mediaUrl || story.mediaUrl1 || '/placeholder.jpg',
+                                        title: story.title || story.caption || 'Story',
+                                        timestamp: story.createdAt || new Date().toISOString(),
+                                        clubName: club.name,
+                                        isViewed: false,
+                                        duration: story.duration || 5
+                                    }))}
+                                    className="mb-4"
+                                    onStoryClick={(idx) => {
+                                        const storyId = clubStories[idx]?.id;
+                                        if (storyId) {
+                                            setShowStoriesModal(false);
+                                            router.push(`/story/${storyId}?index=${idx}`);
+                                        }
+                                    }}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

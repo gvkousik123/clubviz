@@ -108,5 +108,15 @@ export const StoryService = {
         } catch (error) {
             throw new Error(handleApiError(error));
         }
+    },
+
+    // Get stories for a specific club
+    getStoriesByClub: async (clubId: string): Promise<ApiResponse<Story[]>> => {
+        try {
+            const response = await api.get(`/story/stories/by-club/${clubId}`);
+            return handleApiResponse(response);
+        } catch (error) {
+            throw new Error(handleApiError(error));
+        }
     }
 };

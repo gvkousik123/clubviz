@@ -75,9 +75,7 @@ export default function ClubsListPage() {
 
     // Filter states
     const [showFilters, setShowFilters] = useState(false);
-    const [categories, setCategories] = useState<string[]>([]);
     const [locations, setLocations] = useState<string[]>([]);
-    const [selectedCategory, setSelectedCategory] = useState<string>('');
     const [selectedLocation, setSelectedLocation] = useState<string>('');
     const [loadingFilters, setLoadingFilters] = useState(false);
 
@@ -123,7 +121,6 @@ export default function ClubsListPage() {
                 page: 0,
                 size: 100,
                 // Add filter parameters if selected
-                ...(selectedCategory && { musicGenres: [selectedCategory] }),
                 ...(selectedLocation && { cuisines: [selectedLocation] })
             };
 
@@ -184,39 +181,28 @@ export default function ClubsListPage() {
 
     // Reload clubs when filters change
     useEffect(() => {
-        if (selectedCategory || selectedLocation) {
+        if (selectedLocation) {
             loadClubs(true);
         }
-    }, [selectedCategory, selectedLocation]);
+    }, [selectedLocation]);
 
     const loadFilterOptions = async () => {
         setLoadingFilters(true);
         try {
-            const [categoriesData, locationsData] = await Promise.all([
-                PublicClubService.getClubCategories(),
-                PublicClubService.getClubLocations()
-            ]);
+            const locationsData = await PublicClubService.getClubLocations();
 
             // Handle both array and object responses
-            const categoriesArray = Array.isArray(categoriesData) ? categoriesData : ((categoriesData as any)?.content || []);
             const locationsArray = Array.isArray(locationsData) ? locationsData : ((locationsData as any)?.content || []);
 
             // Filter out empty values and convert to strings
-            const filteredCategories = categoriesArray
-                .filter((cat: any) => cat)
-                .map((cat: any) => typeof cat === 'string' ? cat : (cat?.name || cat?.label || String(cat)))
-                .filter((cat: string) => cat && cat.trim());
-                
             const filteredLocations = locationsArray
                 .filter((loc: any) => loc)
                 .map((loc: any) => typeof loc === 'string' ? loc : (loc?.name || loc?.label || String(loc)))
                 .filter((loc: string) => loc && loc.trim());
 
-            setCategories(filteredCategories);
             setLocations(filteredLocations);
         } catch (error) {
             console.error('💥 Failed to load filter options:', error);
-            setCategories([]);
             setLocations([]);
         } finally {
             setLoadingFilters(false);
@@ -236,9 +222,6 @@ export default function ClubsListPage() {
             };
 
             // Add filters if selected
-            if (selectedCategory) {
-                params.category = selectedCategory;
-            }
             if (selectedLocation) {
                 params.location = selectedLocation;
             }
@@ -419,13 +402,13 @@ export default function ClubsListPage() {
                         </div>
                         <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className={`w-10 h-10 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center flex-shrink-0 transition-colors ${showFilters || selectedCategory || selectedLocation
+                            className={`w-10 h-10 rounded-full shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex items-center justify-center flex-shrink-0 transition-colors ${showFilters || selectedLocation
                                 ? 'bg-[#14FFEC]'
                                 : 'bg-white/20'
                                 }`}
                             title="Filter clubs"
                         >
-                            <SlidersHorizontal className={`w-[21px] h-[21px] ${showFilters || selectedCategory || selectedLocation
+                            <SlidersHorizontal className={`w-[21px] h-[21px] ${showFilters || selectedLocation
                                 ? 'text-black'
                                 : 'text-white'
                                 }`} />
@@ -435,26 +418,6 @@ export default function ClubsListPage() {
                     {/* Filter Panel */}
                     {showFilters && (
                         <div className="mt-3 bg-white/10 backdrop-blur-md rounded-2xl p-4 space-y-3">
-                            {/* Category Filter */}
-                            <div>
-                                <label className="text-white text-xs font-semibold mb-2 block">Category</label>
-                                <div className="relative">
-                                    <select
-                                        value={selectedCategory}
-                                        onChange={(e) => setSelectedCategory(e.target.value)}
-                                        className="w-full bg-white/10 text-white rounded-lg px-3 py-2 text-sm outline-none border border-white/20 focus:border-[#14FFEC]"
-                                        disabled={loadingFilters}
-                                    >
-                                        <option value="" className="bg-[#222831]">All Categories</option>
-                                        {Array.isArray(categories) && categories.map((cat) => (
-                                            <option key={cat} value={cat} className="bg-[#222831]">
-                                                {cat}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
                             {/* Location Filter */}
                             <div>
                                 <label className="text-white text-xs font-semibold mb-2 block">Location</label>
@@ -476,10 +439,9 @@ export default function ClubsListPage() {
                             </div>
 
                             {/* Clear Filters Button */}
-                            {(selectedCategory || selectedLocation) && (
+                            {selectedLocation && (
                                 <button
                                     onClick={() => {
-                                        setSelectedCategory('');
                                         setSelectedLocation('');
                                         setCurrentPage(0);
                                     }}
@@ -498,7 +460,7 @@ export default function ClubsListPage() {
                 {/* Main Content */}
                 <div className="w-full flex flex-col items-center space-y-6 pt-[18vh] px-0">
                     {/* Active Filters Display */}
-                    {(selectedCategory || selectedLocation || currentSearchLocation) && (
+                    {(selectedLocation || currentSearchLocation) && (
                         <div className="w-full max-w-[430px] px-5">
                             <div className="flex flex-wrap gap-2">
                                 {currentSearchLocation && (
@@ -507,19 +469,6 @@ export default function ClubsListPage() {
                                         <span className="text-[#14FFEC] text-xs font-semibold">
                                             {currentSearchLocation.name}
                                         </span>
-                                    </div>
-                                )}
-                                {selectedCategory && (
-                                    <div className="bg-[#14FFEC]/20 border border-[#14FFEC] rounded-full px-3 py-1 flex items-center gap-2">
-                                        <span className="text-[#14FFEC] text-xs font-semibold">
-                                            {selectedCategory}
-                                        </span>
-                                        <button
-                                            onClick={() => setSelectedCategory('')}
-                                            className="text-[#14FFEC] hover:text-white"
-                                        >
-                                            <X size={14} />
-                                        </button>
                                     </div>
                                 )}
                                 {selectedLocation && (
