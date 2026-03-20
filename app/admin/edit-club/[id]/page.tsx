@@ -110,6 +110,14 @@ export default function EditClubPage() {
     }, [clubId, toast, router]);
 
     const handleInputChange = (field: string, value: any) => {
+        // Prevent negative values for numeric fields
+        const numericFields = ['maxCapacity', 'numberOfTables', 'numberOfChairs', 'rating', 'coupleEntryPrice', 'groupEntryPrice', 'maleStagEntryPrice', 'femaleStagEntryPrice', 'coverCharge'];
+        if (numericFields.includes(field) && value !== '') {
+            const numValue = Number(value);
+            if (numValue < 0) {
+                return; // Reject negative values
+            }
+        }
         setEditData((prev: any) => ({
             ...prev,
             [field]: value

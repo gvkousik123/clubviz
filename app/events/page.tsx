@@ -17,6 +17,7 @@ export default function EventsListPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [events, setEvents] = useState<EventListItem[]>([]);
+    const [allEvents, setAllEvents] = useState<EventListItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [favorites, setFavorites] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -25,33 +26,60 @@ export default function EventsListPage() {
     const [showLocationPicker, setShowLocationPicker] = useState(false);
     const [searchingNearby, setSearchingNearby] = useState(false);
     const [currentSearchLocation, setCurrentSearchLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
+    const [eventFilter, setEventFilter] = useState<'UPCOMING' | 'PAST'>('UPCOMING');
 
     const fetchEvents = async () => {
         setLoading(true);
 
         try {
-            const response = await PublicEventService.getPublicEvents({
-                page: 0,
-                size: 50,
-                sortBy: 'startDateTime',
-                sortOrder: 'asc',
-                status: 'UPCOMING'
-            });
+            // Fetch both UPCOMING and PAST events
+            const [upcomingResponse, pastResponse] = await Promise.all([
+                PublicEventService.getPublicEvents({
+                    page: 0,
+                    size: 50,
+                    sortBy: 'startDateTime',
+                    sortOrder: 'asc',
+                    status: 'UPCOMING'
+                }),
+                PublicEventService.getPublicEvents({
+                    page: 0,
+                    size: 50,
+                    sortBy: 'startDateTime',
+                    sortOrder: 'desc',
+                    status: 'PAST'
+                })
+            ]);
 
-            if (response && response.content) {
-                // Map the response to ensure all fields have proper defaults
-                const mappedEvents = response.content.map((event) => ({
+            // Combine and map all events
+            const combinedEvents: EventListItem[] = [];
+            
+            if (upcomingResponse && upcomingResponse.content) {
+                combinedEvents.push(...upcomingResponse.content.map((event) => ({
                     ...event,
                     imageUrl: event.imageUrl || '/event list/Rectangle 1.jpg',
                     clubId: event.clubId || '',
                     clubName: event.clubName || '',
                     clubLogo: event.clubLogo || '',
                     organizerName: event.organizerName || ''
-                }));
-                setEvents(mappedEvents as any);
-            } else {
-                setEvents([]);
+                })));
             }
+            
+            if (pastResponse && pastResponse.content) {
+                combinedEvents.push(...pastResponse.content.map((event) => ({
+                    ...event,
+                    imageUrl: event.imageUrl || '/event list/Rectangle 1.jpg',
+                    clubId: event.clubId || '',
+                    clubName: event.clubName || '',
+                    clubLogo: event.clubLogo || '',
+                    organizerName: event.organizerName || ''
+                })));
+            }
+
+            setAllEvents(combinedEvents);
+            
+            // Show upcoming events by default
+            const upcomingEvents = combinedEvents.filter(event => event.status === 'UPCOMING');
+            setEvents(upcomingEvents);
         } catch (err) {
             console.error('💥 Failed to load events', err);
             toast({
@@ -60,9 +88,18 @@ export default function EventsListPage() {
                 variant: "destructive"
             });
             setEvents([]);
+            setAllEvents([]);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleFilterChange = (filter: 'UPCOMING' | 'PAST') => {
+        setEventFilter(filter);
+        const filtered = allEvents.filter(event => {
+            return filter === 'UPCOMING' ? event.status === 'UPCOMING' : event.status === 'PAST';
+        });
+        setEvents(filtered);
     };
 
 
@@ -331,6 +368,34 @@ export default function EventsListPage() {
                             </div>
                         </section>
                     )}
+
+                    {/* Calendar Date Range Picker - REMOVED per BUG-U02 */}
+
+                    {/* Event Filter Tabs */}
+                    <section className="w-full px-5">
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => handleFilterChange('UPCOMING')}
+                                className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${
+                                    eventFilter === 'UPCOMING'
+                                        ? 'bg-[#14FFEC] text-[#021313]'
+                                        : 'bg-[#14FFEC]/20 text-[#14FFEC] border border-[#14FFEC]/50'
+                                }`}
+                            >
+                                Upcoming
+                            </button>
+                            <button
+                                onClick={() => handleFilterChange('PAST')}
+                                className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${
+                                    eventFilter === 'PAST'
+                                        ? 'bg-[#14FFEC] text-[#021313]'
+                                        : 'bg-[#14FFEC]/20 text-[#14FFEC] border border-[#14FFEC]/50'
+                                }`}
+                            >
+                                Past
+                            </button>
+                        </div>
+                    </section>
 
                     {/* Calendar Date Range Picker - REMOVED per BUG-U02 */}
 

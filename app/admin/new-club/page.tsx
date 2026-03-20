@@ -203,6 +203,14 @@ export default function NewClubPage() {
     };
 
     const handleInputChange = (field: string, value: string) => {
+        // Prevent negative values for numeric fields
+        const numericFields = ['maxCapacity', 'numberOfTables', 'numberOfChairs', 'rating'];
+        if (numericFields.includes(field) && value !== '') {
+            const numValue = Number(value);
+            if (numValue < 0) {
+                return; // Reject negative values
+            }
+        }
         setFormData({ ...formData, [field]: value });
     };
 

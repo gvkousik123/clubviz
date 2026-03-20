@@ -46,6 +46,14 @@ apiClient.interceptors.request.use(
 // Helper function to handle JWT token expiration or unauthorized/forbidden access
 const handleForcedLogout = (showToast = true) => {
   if (typeof window !== 'undefined') {
+    // Clear profile cache
+    try {
+      const ProfileService = require('./services/profile.service').ProfileService;
+      ProfileService.clearProfileCache();
+    } catch (err) {
+      // Fail silently
+    }
+
     // Clear all auth-related localStorage
     localStorage.removeItem(STORAGE_KEYS.accessToken);
     localStorage.removeItem(STORAGE_KEYS.refreshToken);

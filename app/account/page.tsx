@@ -56,10 +56,10 @@ export default function MyAccountPage() {
         router.push('/account/edit');
     };
 
-    // Use real user data from localStorage
+    // Use real user data from API
     const displayName = currentUser?.username || 'User';
     const displayEmail = currentUser?.email || 'No email';
-    const displayPhone = currentUser?.phoneNumber || 'Not provided';
+    const displayPhone = currentUser?.mobileNumber || currentUser?.phoneNumber || 'Not provided';
     const displayPicture = currentUser?.profilePicture || '/placeholder/image.png';
 
     return (
@@ -78,22 +78,34 @@ export default function MyAccountPage() {
                             <span className="text-white text-lg font-bold">&lt;</span>
                         </button>
                         <h1 className="text-white text-xl font-manrope font-bold tracking-[0.50px] absolute left-1/2 transform -translate-x-1/2">MY ACCOUNT</h1>
-                        <div className="w-[35px]"></div> {/* Spacer for centering */}
+                        <button
+                            onClick={() => router.push('/account/edit')}
+                            className="w-[35px] h-[35px] bg-white/20 rounded-[18px] flex items-center justify-center hover:bg-white/30 transition-colors"
+                        >
+                            <Edit size={18} className="text-white" />
+                        </button>
                     </div>
 
                     {/* Profile Section */}
-                    <div className="flex items-end justify-between px-4">
-                        <div className="flex flex-col items-center gap-8">
-                            <div className="flex flex-col items-center gap-2">
-                                <div className="text-white text-base font-manrope font-medium tracking-[0.50px]">
-                                    {displayName || 'User'}
-                                </div>
-                                <div className="text-[#C3C2C2] text-[13px] font-manrope font-medium tracking-[0.50px]">
-                                    {displayPhone && displayPhone !== 'Not provided' ? displayPhone : displayEmail}
-                                </div>
+                    <div className="flex items-center justify-between px-4 gap-4 w-full">
+                        <div className="flex-1 flex flex-col gap-3">
+                            {/* Name */}
+                            <div className="text-white text-base font-manrope font-semibold tracking-[0.50px]">
+                                {displayName || 'User'}
+                            </div>
+                            {/* Phone Number - Left Aligned */}
+                            <div className="text-[#C3C2C2] text-sm font-manrope font-medium tracking-[0.50px]">
+                                {displayPhone && displayPhone !== 'Not provided' ? (
+                                    <span>{displayPhone}</span>
+                                ) : displayEmail && displayEmail !== 'No email' ? (
+                                    <span>{displayEmail}</span>
+                                ) : (
+                                    <span>Contact info not available</span>
+                                )}
                             </div>
                         </div>
-                        <div className="relative">
+                        {/* Profile Picture */}
+                        <div className="relative flex-shrink-0">
                             <div className="w-[125px] h-[125px] rounded-full border-2 border-[#14FFEC]"></div>
                             {displayPicture && displayPicture !== '/placeholder/image.png' ? (
                                 <img
@@ -192,23 +204,11 @@ export default function MyAccountPage() {
                         <div className="flex items-center gap-4">
                             <h3 className="text-white font-semibold text-sm whitespace-nowrap">My Preferences</h3>
                             <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
-                            <button
-                                onClick={() => handleEditPreferences('all')}
-                                className="flex items-center gap-1 text-[#14FFEC] text-xs"
-                            >
-                                Edit <Edit size={12} />
-                            </button>
                         </div>
 
                         {/* Empty State */}
                         <div className="bg-[#0D1F1F] rounded-lg p-6 text-center">
                             <p className="text-gray-400 text-sm">No preferences set yet</p>
-                            <button
-                                onClick={() => handleEditPreferences('all')}
-                                className="mt-3 px-4 py-2 bg-[#14FFEC] text-black rounded-lg text-xs font-medium hover:bg-[#11B9AB] transition-colors"
-                            >
-                                Set Preferences
-                            </button>
                         </div>
                     </div>
                 </div>

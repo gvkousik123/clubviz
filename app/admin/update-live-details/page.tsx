@@ -94,6 +94,14 @@ function UpdateLiveDetailsPageContent() {
     };
 
     const handleInputChange = (field: string, value: string) => {
+        // Prevent negative values for numeric fields
+        const numericFields = ['currentCount', 'expectedCount'];
+        if (numericFields.includes(field) && value !== '') {
+            const numValue = Number(value);
+            if (numValue < 0) {
+                return; // Reject negative values
+            }
+        }
         setFormData({ ...formData, [field]: value });
         // Clear validation error for this field
         if (validationErrors[field]) {

@@ -23,11 +23,14 @@ export default function WriteReviewPage() {
         const id = searchParams?.get('clubId');
         if (id) {
             setClubId(id);
+            setClubName('Club'); // Reset to default while loading
             // Fetch club details to get the name
             ClubService.getClubById(id)
                 .then(club => {
                     if (club?.name) {
                         setClubName(club.name);
+                    } else {
+                        setClubName('Club');
                     }
                 })
                 .catch(err => {

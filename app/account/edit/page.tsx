@@ -2,22 +2,32 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Mail, MapPin, Calendar, Music, Camera, Building, ArrowLeft } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Camera, Building, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import { useProfile } from '@/hooks/use-profile';
 
 type ProfileFormState = {
     fullName: string;
     email: string;
-    mobileNumber: string;  // Changed from phoneNumber to mobileNumber
+    mobileNumber: string;
     profilePicture: string;
+    address: string;
+    city: string;
+    state: string;
+    country: string;
+    pincode: string;
 };
 
 const INITIAL_FORM_STATE: ProfileFormState = {
     fullName: '',
     email: '',
-    mobileNumber: '',  // Changed from phoneNumber to mobileNumber
+    mobileNumber: '',
     profilePicture: '',
+    address: '',
+    city: '',
+    state: '',
+    country: '',
+    pincode: '',
 };
 
 export default function EditProfilePage() {
@@ -38,14 +48,20 @@ export default function EditProfilePage() {
         loadProfile();
     }, [loadProfile]);
 
-    // Update form when profile loads
+    // Update form when profile loads - properly map phoneNumber to mobileNumber
     useEffect(() => {
         if (profile || currentUser) {
+            const phoneNum = (profile?.phoneNumber || currentUser?.phoneNumber || currentUser?.mobileNumber || '');
             setProfileData({
                 fullName: profile?.fullName || currentUser?.fullName || '',
                 email: profile?.email || currentUser?.email || '',
-                mobileNumber: profile?.mobileNumber || currentUser?.mobileNumber || '',
+                mobileNumber: phoneNum,
                 profilePicture: profile?.profilePicture || currentUser?.profilePicture || '',
+                address: (profile as any)?.address || (currentUser as any)?.address || '',
+                city: (profile as any)?.city || (currentUser as any)?.city || '',
+                state: (profile as any)?.state || (currentUser as any)?.state || '',
+                country: (profile as any)?.country || (currentUser as any)?.country || '',
+                pincode: (profile as any)?.pincode || (currentUser as any)?.pincode || '',
             });
         }
     }, [profile, currentUser]);
@@ -73,9 +89,14 @@ export default function EditProfilePage() {
             const updateData: any = {};
             if (profileData.fullName?.trim()) updateData.fullName = profileData.fullName.trim();
             if (profileData.email?.trim()) updateData.email = profileData.email.trim();
-            // map mobileNumber field to phoneNumber for backend compatibility
-            if (profileData.mobileNumber?.trim()) updateData.phoneNumber = profileData.mobileNumber.trim();
+            // map mobileNumber field to mobileNumber for backend compatibility
+            if (profileData.mobileNumber?.trim()) updateData.mobileNumber = profileData.mobileNumber.trim();
             if (profileData.profilePicture?.trim()) updateData.profilePicture = profileData.profilePicture.trim();
+            if (profileData.address?.trim()) updateData.address = profileData.address.trim();
+            if (profileData.city?.trim()) updateData.city = profileData.city.trim();
+            if (profileData.state?.trim()) updateData.state = profileData.state.trim();
+            if (profileData.country?.trim()) updateData.country = profileData.country.trim();
+            if (profileData.pincode?.trim()) updateData.pincode = profileData.pincode.trim();
 
             await updateProfile(updateData);
             router.back();
@@ -182,13 +203,84 @@ export default function EditProfilePage() {
                             {/* Mobile Number Field */}
                             <div className="bg-[#0D1F1F] rounded-[30px] border border-[#0C898B] px-5 py-3 flex items-center gap-5">
                                 <div className="w-6 h-6 flex items-center justify-center">
-                                    <span className="text-[#14FFEC] text-lg">📱</span>
+                                    <Phone className="w-5 h-5 text-[#14FFEC]" />
                                 </div>
                                 <input
                                     type="tel"
                                     placeholder="Mobile Number"
                                     value={profileData.mobileNumber}
                                     onChange={(e) => handleInputChange('mobileNumber', e.target.value)}
+                                    className="flex-1 bg-transparent text-white text-base font-manrope font-semibold placeholder-[#9D9C9C] outline-none"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Address Info Section */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                            <h3 className="text-white font-semibold text-base whitespace-nowrap">Address</h3>
+                            <div className="flex-1 h-px bg-gradient-to-r from-[#14FFEC] to-transparent"></div>
+                        </div>
+
+                        <div className="space-y-4">
+                            {/* Address Field */}
+                            <div className="bg-[#0D1F1F] rounded-[30px] border border-[#0C898B] px-5 py-3 flex items-center gap-5">
+                                <div className="w-6 h-6 flex items-center justify-center">
+                                    <Building className="w-5 h-5 text-[#14FFEC]" />
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Street Address"
+                                    value={profileData.address}
+                                    onChange={(e) => handleInputChange('address', e.target.value)}
+                                    className="flex-1 bg-transparent text-white text-base font-manrope font-semibold placeholder-[#9D9C9C] outline-none"
+                                />
+                            </div>
+
+                            {/* City Field */}
+                            <div className="bg-[#0D1F1F] rounded-[30px] border border-[#0C898B] px-5 py-3 flex items-center gap-5">
+                                <div className="w-6 h-6 flex items-center justify-center">
+                                    <MapPin className="w-5 h-5 text-[#14FFEC]" />
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="City"
+                                    value={profileData.city}
+                                    onChange={(e) => handleInputChange('city', e.target.value)}
+                                    className="flex-1 bg-transparent text-white text-base font-manrope font-semibold placeholder-[#9D9C9C] outline-none"
+                                />
+                            </div>
+
+                            {/* State and Country */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-[#0D1F1F] rounded-[30px] border border-[#0C898B] px-5 py-3 flex items-center gap-5">
+                                    <input
+                                        type="text"
+                                        placeholder="State"
+                                        value={profileData.state}
+                                        onChange={(e) => handleInputChange('state', e.target.value)}
+                                        className="flex-1 bg-transparent text-white text-sm font-manrope font-semibold placeholder-[#9D9C9C] outline-none"
+                                    />
+                                </div>
+                                <div className="bg-[#0D1F1F] rounded-[30px] border border-[#0C898B] px-5 py-3 flex items-center gap-5">
+                                    <input
+                                        type="text"
+                                        placeholder="Country"
+                                        value={profileData.country}
+                                        onChange={(e) => handleInputChange('country', e.target.value)}
+                                        className="flex-1 bg-transparent text-white text-sm font-manrope font-semibold placeholder-[#9D9C9C] outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Pincode Field */}
+                            <div className="bg-[#0D1F1F] rounded-[30px] border border-[#0C898B] px-5 py-3 flex items-center gap-5">
+                                <input
+                                    type="text"
+                                    placeholder="Pincode"
+                                    value={profileData.pincode}
+                                    onChange={(e) => handleInputChange('pincode', e.target.value)}
                                     className="flex-1 bg-transparent text-white text-base font-manrope font-semibold placeholder-[#9D9C9C] outline-none"
                                 />
                             </div>

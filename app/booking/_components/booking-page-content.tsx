@@ -2,8 +2,9 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Minus, Plus } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useDragScroll } from '@/hooks/use-drag-scroll';
+import NumberCounter from '@/components/common/number-counter';
 import { BookingService } from '@/lib/services/booking.service';
 import type { Table } from '@/lib/api-types';
 import { toast } from '@/hooks/use-toast';
@@ -85,13 +86,8 @@ export default function BookingPageContent() {
         router.back();
     };
 
-    const handleGuestChange = (increment: boolean) => {
-        setGuests((prev) => {
-            if (increment) {
-                return prev + 1;
-            }
-            return Math.max(1, prev - 1);
-        });
+    const handleGuestChange = (guests: number) => {
+        setGuests(guests);
     };
 
     const handleDateSelect = (date: string) => {
@@ -155,22 +151,14 @@ export default function BookingPageContent() {
 
             <div className="space-y-8 px-6 py-6">
                 <div className="space-y-4">
-                    <h2 className="text-lg font-medium text-white">Guest</h2>
-                    <div className="flex items-center justify-center gap-8">
-                        <button
-                            onClick={() => handleGuestChange(false)}
-                            className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-600 transition-all duration-300 hover:bg-teal-700"
-                        >
-                            <Minus size={20} className="text-white" />
-                        </button>
-                        <span className="text-3xl font-bold text-white">{guests}</span>
-                        <button
-                            onClick={() => handleGuestChange(true)}
-                            className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-600 transition-all duration-300 hover:bg-teal-700"
-                        >
-                            <Plus size={20} className="text-white" />
-                        </button>
-                    </div>
+                    <NumberCounter 
+                        value={guests}
+                        onChange={handleGuestChange}
+                        min={1}
+                        max={12}
+                        label="Guest"
+                        width="w-20"
+                    />
                 </div>
 
                 <div className="space-y-4">

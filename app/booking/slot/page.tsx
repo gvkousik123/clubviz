@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Plus, Minus, ChevronDown, Loader2 } from 'lucide-react';
+import { ChevronDown, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import PageHeader from '@/components/common/page-header';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
+import NumberCounter from '@/components/common/number-counter';
 import { EventCardRow } from "@/components/events/event-card-row";
 import { api } from '@/lib/api-client';
 import { useToast } from '@/hooks/use-toast';
@@ -210,16 +211,12 @@ function SlotPageContent() {
         router.push('/home');
     };
 
-    const incrementGuest = () => {
-        if (guestCount < 10) {
-            setGuestCount(guestCount + 1);
-        }
+    const incrementGuest = (newValue: number) => {
+        setGuestCount(newValue);
     };
 
     const decrementGuest = () => {
-        if (guestCount > 1) {
-            setGuestCount(guestCount - 1);
-        }
+        // This is now handled by NumberCounter
     };
 
     const handleDateSelect = (index: number) => {
@@ -334,30 +331,13 @@ function SlotPageContent() {
                 {/* Guest Selection - Only for restaurant mode */}
                 {!isEvent && (
                     <div className="w-full max-w-[22.625rem] flex flex-col items-center gap-5">
-                        <div className="w-full flex items-center gap-[0.9375rem]">
-                            <div className="text-[#FFFEFF] text-base font-['Manrope'] font-semibold leading-4 tracking-[0.03125rem]">
-                                Guest
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <button
-                                onClick={decrementGuest}
-                                className="w-[2.9375rem] h-[2.9375rem] bg-[#03867B] rounded-[1.875rem] backdrop-blur-[0.63125rem] flex items-center justify-center"
-                            >
-                                <Minus size={18} className="text-white" />
-                            </button>
-                            <div className="w-[12.75rem] h-[2.9375rem] bg-[#0D1F1F] rounded-[1.375rem] flex items-center justify-center">
-                                <span className="text-white text-base font-['Manrope'] font-bold leading-5 tracking-[0.01rem]">
-                                    {guestCount}
-                                </span>
-                            </div>
-                            <button
-                                onClick={incrementGuest}
-                                className="w-[2.9375rem] h-[2.9375rem] bg-[#03867B] rounded-[1.875rem] backdrop-blur-[0.63125rem] flex items-center justify-center"
-                            >
-                                <Plus size={18} className="text-white" />
-                            </button>
-                        </div>
+                        <NumberCounter 
+                            value={guestCount}
+                            onChange={incrementGuest}
+                            min={1}
+                            max={10}
+                            label="Guest"
+                        />
                     </div>
                 )}
 

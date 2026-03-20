@@ -6,11 +6,10 @@ import {
     MapPin,
     Calendar,
     ChevronLeft,
-    Minus,
-    Plus,
     Loader2
 } from 'lucide-react';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
+import TicketCounter from '@/components/common/ticket-counter';
 import { EventService } from '@/lib/services/event.service';
 import { useToast } from '@/hooks/use-toast';
 import { useEventDetail } from '@/lib/store';
@@ -35,6 +34,7 @@ function TicketsPageContent() {
     const [eventData, setEventData] = useState<any>(null);
     const [ticketTypes, setTicketTypes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isHydrated, setIsHydrated] = useState(false);
 
     // Helper function to get pricing for a specific ticket type
     const getTicketPrice = (type: 'maleStag' | 'femaleStag' | 'couple', category: 'early' | 'general') => {
@@ -90,6 +90,28 @@ function TicketsPageContent() {
         return `Rs ${pricing.price}`;
     };
 
+    // Get remark for a ticket type
+    const getTicketRemark = (type: 'maleStag' | 'femaleStag' | 'couple', category: 'early' | 'general') => {
+        if (!ticketTypes || ticketTypes.length === 0) return null;
+
+        const ticketNameMap: Record<string, string> = {
+            'maleStag-early': 'Early Bird Male Stag',
+            'femaleStag-early': 'Early Bird Female Stag',
+            'couple-early': 'Early Bird Couple',
+            'maleStag-general': 'General Male Stag',
+            'femaleStag-general': 'General Female Stag',
+            'couple-general': 'General Couple',
+        };
+
+        const ticketName = ticketNameMap[`${type}-${category}`];
+        const ticketType = ticketTypes.find(t =>
+            t.name && t.name.toLowerCase().includes(type.toLowerCase()) &&
+            t.name.toLowerCase().includes(category)
+        ) || ticketTypes.find(t => t.name === ticketName);
+
+        return ticketType?.remark || null;
+    };
+
     // Format and set event data when cached data is available
     useEffect(() => {
         if (cachedEventData) {
@@ -123,6 +145,10 @@ function TicketsPageContent() {
     }, [cachedEventData]);
 
     useEffect(() => {
+        setIsHydrated(true);
+    }, []);
+
+    useEffect(() => {
         if (!eventId) {
             toast({
                 title: 'Error',
@@ -137,16 +163,11 @@ function TicketsPageContent() {
         setActiveTab(tab);
     };
 
-    const updateTicketCount = (type: 'maleStag' | 'femaleStag' | 'couple', action: 'increment' | 'decrement') => {
-        setTickets(prev => {
-            const currentValue = prev[type];
-            if (action === 'decrement' && currentValue > 0) {
-                return { ...prev, [type]: currentValue - 1 };
-            } else if (action === 'increment') {
-                return { ...prev, [type]: currentValue + 1 };
-            }
-            return prev;
-        });
+    const updateTicketCount = (type: 'maleStag' | 'femaleStag' | 'couple', value: number) => {
+        setTickets(prev => ({
+            ...prev,
+            [type]: value
+        }));
     };
 
     const handleProceedToPay = () => {
@@ -207,6 +228,14 @@ function TicketsPageContent() {
     };
 
     if (loading) {
+        return (
+            <div className="min-h-screen w-full bg-[#021313] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
+            </div>
+        );
+    }
+
+    if (!isHydrated) {
         return (
             <div className="min-h-screen w-full bg-[#021313] flex items-center justify-center">
                 <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
@@ -299,27 +328,19 @@ function TicketsPageContent() {
                         {/* Male Stag Entry */}
                         <div className="flex flex-col gap-2 mb-2">
                             <div className="flex justify-between items-center">
-                                <div>
+                                <div className="flex-1">
                                     <p className="text-white font-['Manrope'] font-medium">Male Stag Entry</p>
                                     <p className="text-[#14FFEC] font-['Manrope'] font-medium">{formatPriceText(getTicketPrice('maleStag', 'early'))}</p>
+                                    {getTicketRemark('maleStag', 'early') && (
+                                        <p className="text-[#71F8FF] font-['Manrope'] font-medium text-xs mt-1">{getTicketRemark('maleStag', 'early')}</p>
+                                    )}
                                 </div>
-                                <div className="bg-[#313131] rounded-[22px] px-3 py-1 flex items-center">
-                                    <button
-                                        onClick={() => updateTicketCount('maleStag', 'decrement')}
-                                        className="w-6 h-6 bg-[#14FFEC] rounded-full flex items-center justify-center"
-                                    >
-                                        <Minus size={14} className="text-black" />
-                                    </button>
-                                    <div className="w-7 h-7 mx-2 bg-[#14FFEC] rounded-lg flex items-center justify-center">
-                                        <span className="text-black font-medium">{tickets.maleStag}</span>
-                                    </div>
-                                    <button
-                                        onClick={() => updateTicketCount('maleStag', 'increment')}
-                                        className="w-6 h-6 bg-[#14FFEC] rounded-full flex items-center justify-center"
-                                    >
-                                        <Plus size={14} className="text-black" />
-                                    </button>
-                                </div>
+                                <TicketCounter 
+                                    value={tickets.maleStag}
+                                    onChange={(value) => updateTicketCount('maleStag', value)}
+                                    min={0}
+                                    max={20}
+                                />
                             </div>
                             <p className="text-white font-['Manrope'] font-medium">Early birds couple entry</p>
                         </div>
@@ -332,27 +353,19 @@ function TicketsPageContent() {
                         {/* Female Stag Entry */}
                         <div className="flex flex-col gap-3 mb-3">
                             <div className="flex justify-between items-center">
-                                <div>
+                                <div className="flex-1">
                                     <p className="text-white font-['Manrope'] font-medium">Female stag Entry</p>
                                     <p className="text-[#14FFEC] font-['Manrope'] font-medium">{formatPriceText(getTicketPrice('femaleStag', 'early'))}</p>
+                                    {getTicketRemark('femaleStag', 'early') && (
+                                        <p className="text-[#71F8FF] font-['Manrope'] font-medium text-xs mt-1">{getTicketRemark('femaleStag', 'early')}</p>
+                                    )}
                                 </div>
-                                <div className="bg-[#313131] rounded-[22px] px-3 py-1 flex items-center">
-                                    <button
-                                        onClick={() => updateTicketCount('femaleStag', 'decrement')}
-                                        className="w-6 h-6 bg-[#14FFEC] rounded-full flex items-center justify-center"
-                                    >
-                                        <Minus size={14} className="text-black" />
-                                    </button>
-                                    <div className="w-7 h-7 mx-2 bg-[#14FFEC] rounded-lg flex items-center justify-center">
-                                        <span className="text-black font-medium">{tickets.femaleStag}</span>
-                                    </div>
-                                    <button
-                                        onClick={() => updateTicketCount('femaleStag', 'increment')}
-                                        className="w-6 h-6 bg-[#14FFEC] rounded-full flex items-center justify-center"
-                                    >
-                                        <Plus size={14} className="text-black" />
-                                    </button>
-                                </div>
+                                <TicketCounter 
+                                    value={tickets.femaleStag}
+                                    onChange={(value) => updateTicketCount('femaleStag', value)}
+                                    min={0}
+                                    max={20}
+                                />
                             </div>
                             <p className="text-white font-['Manrope'] font-medium">Early birds couple entry</p>
                         </div>
@@ -365,27 +378,19 @@ function TicketsPageContent() {
                         {/* Couple Entry */}
                         <div className="flex flex-col gap-3 mb-3">
                             <div className="flex justify-between items-center">
-                                <div>
+                                <div className="flex-1">
                                     <p className="text-white font-['Manrope'] font-medium">Couple Entry</p>
                                     <p className="text-[#14FFEC] font-['Manrope'] font-medium">{formatPriceText(getTicketPrice('couple', 'early'))}</p>
+                                    {getTicketRemark('couple', 'early') && (
+                                        <p className="text-[#71F8FF] font-['Manrope'] font-medium text-xs mt-1">{getTicketRemark('couple', 'early')}</p>
+                                    )}
                                 </div>
-                                <div className="bg-[#313131] rounded-[22px] px-3 py-1 flex items-center">
-                                    <button
-                                        onClick={() => updateTicketCount('couple', 'decrement')}
-                                        className="w-6 h-6 bg-[#14FFEC] rounded-full flex items-center justify-center"
-                                    >
-                                        <Minus size={14} className="text-black" />
-                                    </button>
-                                    <div className="w-7 h-7 mx-2 bg-[#14FFEC] rounded-lg flex items-center justify-center">
-                                        <span className="text-black font-medium">{tickets.couple}</span>
-                                    </div>
-                                    <button
-                                        onClick={() => updateTicketCount('couple', 'increment')}
-                                        className="w-6 h-6 bg-[#14FFEC] rounded-full flex items-center justify-center"
-                                    >
-                                        <Plus size={14} className="text-black" />
-                                    </button>
-                                </div>
+                                <TicketCounter 
+                                    value={tickets.couple}
+                                    onChange={(value) => updateTicketCount('couple', value)}
+                                    min={0}
+                                    max={20}
+                                />
                             </div>
                             <p className="text-white font-['Manrope'] font-medium">Early birds couple entry</p>
                         </div>
@@ -396,27 +401,19 @@ function TicketsPageContent() {
                         {/* Male Stag Entry */}
                         <div className="flex flex-col gap-3 mb-3">
                             <div className="flex justify-between items-center">
-                                <div>
+                                <div className="flex-1">
                                     <p className="text-white font-['Manrope'] font-semibold">Male Stag Entry</p>
                                     <p className="text-[#14FFEC] font-['Manrope'] font-semibold">{formatPriceText(getTicketPrice('maleStag', 'general'))}</p>
+                                    {getTicketRemark('maleStag', 'general') && (
+                                        <p className="text-[#71F8FF] font-['Manrope'] font-medium text-xs mt-1">{getTicketRemark('maleStag', 'general')}</p>
+                                    )}
                                 </div>
-                                <div className="bg-[#313131] rounded-[22px] px-3 py-1 flex items-center">
-                                    <button
-                                        onClick={() => updateTicketCount('maleStag', 'decrement')}
-                                        className="w-6 h-6 bg-[#14FFEC] rounded-full flex items-center justify-center"
-                                    >
-                                        <Minus size={14} className="text-black" />
-                                    </button>
-                                    <div className="w-7 h-7 mx-2 bg-[#14FFEC] rounded-lg flex items-center justify-center">
-                                        <span className="text-black font-medium">{tickets.maleStag}</span>
-                                    </div>
-                                    <button
-                                        onClick={() => updateTicketCount('maleStag', 'increment')}
-                                        className="w-6 h-6 bg-[#14FFEC] rounded-full flex items-center justify-center"
-                                    >
-                                        <Plus size={14} className="text-black" />
-                                    </button>
-                                </div>
+                                <TicketCounter 
+                                    value={tickets.maleStag}
+                                    onChange={(value) => updateTicketCount('maleStag', value)}
+                                    min={0}
+                                    max={20}
+                                />
                             </div>
                             <p className="text-white font-['Manrope'] font-semibold">Early birds couple entry</p>
                         </div>
@@ -429,27 +426,19 @@ function TicketsPageContent() {
                         {/* Female Stag Entry */}
                         <div className="flex flex-col gap-3 mb-3">
                             <div className="flex justify-between items-center">
-                                <div>
+                                <div className="flex-1">
                                     <p className="text-white font-['Manrope'] font-semibold">Female stag Entry</p>
                                     <p className="text-[#14FFEC] font-['Manrope'] font-semibold">{formatPriceText(getTicketPrice('femaleStag', 'general'))}</p>
+                                    {getTicketRemark('femaleStag', 'general') && (
+                                        <p className="text-[#71F8FF] font-['Manrope'] font-medium text-xs mt-1">{getTicketRemark('femaleStag', 'general')}</p>
+                                    )}
                                 </div>
-                                <div className="bg-[#313131] rounded-[22px] px-3 py-1 flex items-center">
-                                    <button
-                                        onClick={() => updateTicketCount('femaleStag', 'decrement')}
-                                        className="w-6 h-6 bg-[#14FFEC] rounded-full flex items-center justify-center"
-                                    >
-                                        <Minus size={14} className="text-black" />
-                                    </button>
-                                    <div className="w-7 h-7 mx-2 bg-[#14FFEC] rounded-lg flex items-center justify-center">
-                                        <span className="text-black font-medium">{tickets.femaleStag}</span>
-                                    </div>
-                                    <button
-                                        onClick={() => updateTicketCount('femaleStag', 'increment')}
-                                        className="w-6 h-6 bg-[#14FFEC] rounded-full flex items-center justify-center"
-                                    >
-                                        <Plus size={14} className="text-black" />
-                                    </button>
-                                </div>
+                                <TicketCounter 
+                                    value={tickets.femaleStag}
+                                    onChange={(value) => updateTicketCount('femaleStag', value)}
+                                    min={0}
+                                    max={20}
+                                />
                             </div>
                             <p className="text-white font-['Manrope'] font-semibold">Early birds couple entry</p>
                         </div>
@@ -462,27 +451,19 @@ function TicketsPageContent() {
                         {/* Couple Entry */}
                         <div className="flex flex-col gap-3 mb-3">
                             <div className="flex justify-between items-center">
-                                <div>
+                                <div className="flex-1">
                                     <p className="text-white font-['Manrope'] font-semibold">Couple Entry</p>
                                     <p className="text-[#14FFEC] font-['Manrope'] font-semibold">{formatPriceText(getTicketPrice('couple', 'general'))}</p>
+                                    {getTicketRemark('couple', 'general') && (
+                                        <p className="text-[#71F8FF] font-['Manrope'] font-medium text-xs mt-1">{getTicketRemark('couple', 'general')}</p>
+                                    )}
                                 </div>
-                                <div className="bg-[#313131] rounded-[22px] px-3 py-1 flex items-center">
-                                    <button
-                                        onClick={() => updateTicketCount('couple', 'decrement')}
-                                        className="w-6 h-6 bg-[#14FFEC] rounded-full flex items-center justify-center"
-                                    >
-                                        <Minus size={14} className="text-black" />
-                                    </button>
-                                    <div className="w-7 h-7 mx-2 bg-[#14FFEC] rounded-lg flex items-center justify-center">
-                                        <span className="text-black font-medium">{tickets.couple}</span>
-                                    </div>
-                                    <button
-                                        onClick={() => updateTicketCount('couple', 'increment')}
-                                        className="w-6 h-6 bg-[#14FFEC] rounded-full flex items-center justify-center"
-                                    >
-                                        <Plus size={14} className="text-black" />
-                                    </button>
-                                </div>
+                                <TicketCounter 
+                                    value={tickets.couple}
+                                    onChange={(value) => updateTicketCount('couple', value)}
+                                    min={0}
+                                    max={20}
+                                />
                             </div>
                             <p className="text-white font-['Manrope'] font-semibold">Early birds couple entry</p>
                         </div>

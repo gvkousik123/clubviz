@@ -11,6 +11,13 @@ export interface UserProfile {
   phoneNumber?: string;
   mobileNumber?: string;
   profilePicture?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  pincode?: string;
+  latitude?: number;
+  longitude?: number;
   isProfileVerified?: boolean;
   otpExpiryTime?: string;
   otpAttempts?: number;
@@ -37,8 +44,15 @@ export interface ProfileStats {
 export interface ProfileUpdateRequest {
   fullName?: string;
   email?: string;
-  phoneNumber?: string;
+  mobileNumber?: string;
   profilePicture?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  pincode?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface ProfileListItem {
@@ -60,6 +74,9 @@ export interface ProfileListItem {
  * Based on API endpoints: /profile, /profile/stats, /profile/all, /profile/admin/{userId}
  */
 export class ProfileService {
+  private static profileCache: UserProfile | null = null;
+  private static cacheTimestamp: number = 0;
+  private static readonly CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
 
   // ============================================================================
   // USER PROFILE OPERATIONS
@@ -67,11 +84,23 @@ export class ProfileService {
 
   /**
    * Get current user profile
-   * GET /profile
+   * GET /users/auth/profile
    */
   static async getProfile(): Promise<UserProfile> {
     try {
-      const response = await api.get<UserProfile>('/profile');
+      // Check if we have valid cached data
+      if (this.profileCache && Date.now() - this.cacheTimestamp < this.CACHE_DURATION) {
+        console.log('Using cached profile data');
+        return this.profileCache;
+      }
+
+      const response = await api.get<UserProfile>('/users/auth/profile');
+      // Cache profile data
+      if (response.data) {
+        this.profileCache = response.data;
+        this.cacheTimestamp = Date.now();
+        this.updateStoredProfileData(response.data);
+      }
       return response.data;
     } catch (error) {
       const errorMessage = handleApiError(error);
@@ -81,11 +110,11 @@ export class ProfileService {
 
   /**
    * Update user profile
-   * PUT /profile
+   * PUT /users/auth/profile
    */
   static async updateProfile(profileData: ProfileUpdateRequest): Promise<UserProfile> {
     try {
-      const response = await api.put<UserProfile>('/profile', profileData);
+      const response = await api.put<UserProfile>('/users/auth/profile', profileData);
 
       // Update stored auth data with new profile info
       this.updateStoredProfileData(response.data);
@@ -188,9 +217,17 @@ export class ProfileService {
   }
 
   /**
-   * Get current user info from stored auth data
+   * Get current user info from stored data (no API calls)
    */
-  static getCurrentUser(): Partial<UserProfile> | null {
+  static async getCurrentUserFromAPI(): Promise<Partial<UserProfile> | null> {
+    // Use localStorage data only - no API calls to /auth/profile
+    return this.getCurrentUserFromStorage();
+  }
+
+  /**
+   * Get current user info from stored auth data (fallback only)
+   */
+  static getCurrentUserFromStorage(): Partial<UserProfile> | null {
     const authData = this.getStoredAuthData();
     if (!authData) return null;
 
@@ -200,9 +237,24 @@ export class ProfileService {
       email: authData.email,
       fullName: authData.fullName,
       phoneNumber: authData.phoneNumber,
+      mobileNumber: authData.mobileNumber,
       profilePicture: authData.profilePicture,
+      address: authData.address,
+      city: authData.city,
+      state: authData.state,
+      country: authData.country,
+      pincode: authData.pincode,
+      latitude: authData.latitude,
+      longitude: authData.longitude,
       roles: authData.roles,
     };
+  }
+
+  /**
+   * Get current user info from stored auth data (legacy method)
+   */
+  static getCurrentUser(): Partial<UserProfile> | null {
+    return this.getCurrentUserFromStorage();
   }
 
   /**
@@ -255,7 +307,19 @@ export class ProfileService {
    */
   static clearStoredData(): void {
     if (typeof window === 'undefined') return;
+    // Clear cache
+    this.profileCache = null;
+    this.cacheTimestamp = 0;
+    // Clear localStorage
     localStorage.removeItem(STORAGE_KEYS.accessToken);
     localStorage.removeItem(STORAGE_KEYS.user);
+  }
+
+  /**
+   * Clear profile cache (called on token expiration or 403 error)
+   */
+  static clearProfileCache(): void {
+    this.profileCache = null;
+    this.cacheTimestamp = 0;
   }
 }

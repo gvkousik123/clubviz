@@ -84,6 +84,15 @@ export default function ManageOffersPage() {
     }, [toast, router]);
 
     const handleInputChange = (field: string, value: any) => {
+        // Prevent negative values for numeric fields
+        const numericFields = ['discountPercentage', 'discountAmount', 'minimumAmount', 'usageLimit'];
+        if (numericFields.includes(field) && value !== '') {
+            const numValue = Number(value);
+            if (numValue < 0) {
+                return; // Reject negative values
+            }
+        }
+        
         setFormData(prev => ({
             ...prev,
             [field]: value

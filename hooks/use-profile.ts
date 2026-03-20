@@ -79,13 +79,19 @@ export const useProfile = (): UseProfileReturn => {
   const loadProfile = useCallback(async () => {
     setIsProfileLoading(true);
     try {
-      // Load profile from localStorage only - no API calls
-      const userData = ProfileService.getCurrentUser();
+      // Load profile from API endpoint
+      const userData = await ProfileService.getProfile();
       setCurrentUser(userData);
-      setProfile(userData as UserProfile);
+      setProfile(userData);
     } catch (error) {
+      // Fallback to localStorage if API fails
+      const cachedUser = ProfileService.getCurrentUser();
+      setCurrentUser(cachedUser);
+      if (cachedUser) {
+        setProfile(cachedUser as UserProfile);
+      }
       // Silently fail - don't show toast for profile load errors
-      // console.error('Profile load error:', error);
+      console.error('Profile load error:', error);
     } finally {
       setIsProfileLoading(false);
     }

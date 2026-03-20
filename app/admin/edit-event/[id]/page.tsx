@@ -241,6 +241,14 @@ export default function EditEventPage() {
     };
 
     const handleInputChange = (field: string, value: string) => {
+        // Prevent negative values for numeric fields
+        const numericFields = ['maxAttendees', 'ticketPrice', 'eventFee'];
+        if (numericFields.includes(field) && value !== '') {
+            const numValue = Number(value);
+            if (numValue < 0) {
+                return; // Reject negative values
+            }
+        }
         setFormData({ ...formData, [field]: value });
     };
 
