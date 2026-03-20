@@ -158,7 +158,7 @@ export const SearchService = {
    */
   async advancedSearch(params: AdvancedSearchParams): Promise<SearchV2Response> {
     try {
-      const response = await api.post('/search/v2', params);
+      const response = await api.post('/search/search/v2', params);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -171,7 +171,7 @@ export const SearchService = {
    */
   async autocomplete(query: string): Promise<AutocompleteResponse> {
     try {
-      const response = await api.get(`/search/v2/autocomplete?query=${encodeURIComponent(query)}`);
+      const response = await api.get(`/search/search/v2/autocomplete?query=${encodeURIComponent(query)}`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -193,7 +193,7 @@ export const SearchService = {
       if (params.page !== undefined) queryParams.append('page', params.page.toString());
       if (params.size !== undefined) queryParams.append('size', params.size.toString());
 
-      const response = await api.get(`/search/v2/quick?${queryParams.toString()}`);
+      const response = await api.get(`/search/search/v2/quick?${queryParams.toString()}`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -215,7 +215,7 @@ export const SearchService = {
       if (params.page !== undefined) queryParams.append('page', params.page.toString());
       if (params.size !== undefined) queryParams.append('size', params.size.toString());
 
-      const response = await api.get(`/search/v2/nearby?${queryParams.toString()}`);
+      const response = await api.get(`/search/search/v2/nearby?${queryParams.toString()}`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
