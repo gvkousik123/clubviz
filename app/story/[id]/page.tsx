@@ -110,10 +110,10 @@ export default function StoryPage() {
 
     if (loading) {
         return (
-            <div className="w-full h-screen bg-background-primary flex items-center justify-center">
+            <div className="w-full h-screen bg-[#021313] flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
-                    <p className="text-text-secondary">Loading story...</p>
+                    <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#14FFEC] border-t-transparent mx-auto mb-4"></div>
+                    <p className="text-white/70 text-sm">Loading story...</p>
                 </div>
             </div>
         );
@@ -121,12 +121,12 @@ export default function StoryPage() {
 
     if (!stories || stories.length === 0) {
         return (
-            <div className="w-full h-screen bg-background-primary flex items-center justify-center">
+            <div className="w-full h-screen bg-[#021313] flex items-center justify-center">
                 <div className="text-center">
-                    <p className="text-text-secondary mb-4">No stories available</p>
+                    <p className="text-white text-lg mb-6">No story available</p>
                     <button
                         onClick={handleClose}
-                        className="px-4 py-2 bg-primary-500 text-white rounded"
+                        className="px-6 py-2 bg-[#14FFEC] text-black rounded-full font-semibold hover:brightness-90 transition"
                     >
                         Go Back
                     </button>

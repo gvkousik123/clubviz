@@ -227,38 +227,26 @@ export function StoryViewer({
                     <X className="w-6 h-6 text-white" />
                 </button>
 
-                {/* User Profile Image from story folder */}
-                <img
-                    className="w-[37px] h-[37px] absolute left-[27px] top-[36px] rounded-full border border-[#E1CAFF] object-cover"
-                    src="/vibemeter/Screenshot_2025-05-16_192139-removebg-preview.png"
-                    alt="User"
-                />
-
-                {/* Progress Bars for Internal Stories */}
-                <div className="absolute left-[84px] right-[24px] top-[53px] flex gap-2">
-                    {internalStories.map((_, index) => (
-                        <div key={index} className="flex-1 h-1 relative max-w-[96px]">
-                            <div className="w-full h-1 bg-white/25 rounded-[24px]"></div>
-                            <div
-                                className="h-1 absolute left-0 top-0 bg-white rounded-[24px] transition-all duration-100 ease-linear"
-                                style={{
-                                    width: index < currentInternalIndex ? '100%' :
-                                        index === currentInternalIndex ? `${progress}%` : '0%'
-                                }}
-                            ></div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Story Title Button */}
-                <div className="absolute left-1/2 top-[862px] transform -translate-x-1/2 flex justify-center items-start">
-                    <div className="h-[39px] px-4 py-0.5 bg-[#014A4B] rounded-[30px] border-2 border-[#0FD8E2] flex justify-center items-center gap-2.5">
-                        <div className="text-white text-xs font-bold font-['Manrope'] leading-5 tracking-[0.12px] text-center whitespace-nowrap">
-                            {currentStory.title}
-                        </div>
+                {/* User Profile Section - Very Minimal */}
+                <div className="absolute left-4 top-4 flex items-center gap-2 z-10">
+                    {/* DP/Profile Image */}
+                    <img
+                        className="w-10 h-10 rounded-full border border-white object-cover"
+                        src={currentStory.image}
+                        alt="Story"
+                    />
+                    
+                    {/* Club/Story Info */}
+                    <div className="flex flex-col">
+                        <p className="text-white text-sm font-semibold leading-none">{currentStory.clubName}</p>
+                        <p className="text-white/70 text-xs leading-none">{currentStory.timestamp}</p>
                     </div>
                 </div>
 
+                {/* Story Counter - Very Small */}
+                <div className="absolute right-4 top-4 text-white/70 text-xs z-10">
+                    {currentStoryIndex + 1} / {stories.length}
+                </div>
 
                 {/* Tap Areas for navigation */}
                 <div className="absolute inset-0 flex">

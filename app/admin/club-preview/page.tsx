@@ -15,6 +15,7 @@ import {
     Loader2
 } from 'lucide-react';
 import { ClubService } from '@/lib/services/club.service';
+import { getSortedClubImages } from '@/lib/utils';
 import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 
@@ -204,16 +205,18 @@ function ClubPreviewContent() {
     };
 
     const nextImage = () => {
-        const heroImages = clubData?.images?.length > 0
-            ? clubData.images.map((img: any) => img.url || img)
-            : [clubData?.logo || clubData?.logoUrl || '/venue/Screenshot 2024-12-10 195651.png'];
+        const heroImages = getSortedClubImages(
+            clubData?.images,
+            [clubData?.logo || clubData?.logoUrl || '/venue/Screenshot 2024-12-10 195651.png']
+        );
         setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
     };
 
     const prevImage = () => {
-        const heroImages = clubData?.images?.length > 0
-            ? clubData.images.map((img: any) => img.url || img)
-            : [clubData?.logo || clubData?.logoUrl || '/venue/Screenshot 2024-12-10 195651.png'];
+        const heroImages = getSortedClubImages(
+            clubData?.images,
+            [clubData?.logo || clubData?.logoUrl || '/venue/Screenshot 2024-12-10 195651.png']
+        );
         setCurrentImageIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length);
     };
 
@@ -257,9 +260,10 @@ function ClubPreviewContent() {
         );
     }
 
-    const heroImages = clubData.images?.length > 0
-        ? clubData.images.map((img: any) => img.url || img)
-        : [clubData.logo || clubData.logoUrl || '/venue/Screenshot 2024-12-10 195651.png'];
+    const heroImages = getSortedClubImages(
+        clubData?.images,
+        [clubData?.logo || clubData?.logoUrl || '/venue/Screenshot 2024-12-10 195651.png']
+    );
 
     const getAddress = () => {
         if (clubData.locationText?.fullAddress) return clubData.locationText.fullAddress;

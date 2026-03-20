@@ -20,11 +20,15 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useOffers } from '@/hooks/use-offers';
 import { isGuestMode } from '@/lib/api-client-public';
+import { getSortedClubImages } from '@/lib/utils';
 import { ClubService } from '@/lib/services/club.service';
 import { EventService as PublicEventService } from '@/lib/services';
 import { StoryService } from '@/lib/services/story.service';
 import { useStories } from '@/hooks/use-stories';
 import { StoriesSection } from '@/components/story';
+import { StoryViewer } from '@/components/story/story-viewer';
+import { StoryOverlay } from '@/components/story/story-overlay';
+import { StoryCard } from '@/components/story/story-card';
 // Use centralized data store for cached club details
 import { useClubDetail } from '@/lib/store';
 import { ClubDetailSkeleton } from '@/components/ui/skeleton-loaders';
@@ -51,7 +55,8 @@ export default function ClubDetailPage() {
     const [isLoadingEvents, setIsLoadingEvents] = useState(false);
     const [clubStories, setClubStories] = useState<any[]>([]);
     const [isLoadingStories, setIsLoadingStories] = useState(false);
-    const [showStoriesModal, setShowStoriesModal] = useState(false);
+    const [showStoryOverlay, setShowStoryOverlay] = useState(false);
+    const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
     
     // Get club ID first
     const clubId = params.id as string;
@@ -142,6 +147,7 @@ export default function ClubDetailPage() {
                 storiesData = response.stories;
             }
             
+            console.log(`📊 Stories Data after extraction:`, storiesData);
             setClubStories(Array.isArray(storiesData) ? storiesData : []);
             console.log(`✅ Loaded ${storiesData.length} stories for club ${clubId}`);
         } catch (err: any) {
@@ -162,6 +168,35 @@ export default function ClubDetailPage() {
 
     const handleGoBack = () => {
         router.back();
+    };
+
+    const handleStoryCircleClick = (index: number) => {
+        setSelectedStoryIndex(index);
+        setShowStoryOverlay(true);
+    };
+
+    // Transform API stories to StoryOverlay format
+    const transformStoriesForViewer = (stories: any[]): any[] => {
+        return stories.map(story => ({
+            id: story.id,
+            image: story.mediaUrl || story.mediaUrl1 || story.mediaUrl2 || '',
+            title: story.title || story.description || story.caption || 'Story',
+            timestamp: story.createdAt || new Date().toISOString(),
+            duration: story.duration || 5,
+            internalStories: [{
+                id: story.id,
+                image: story.mediaUrl || story.mediaUrl1 || story.mediaUrl2 || '',
+                duration: story.duration || 5,
+                type: story.mediaType || 'image'
+            }]
+        }));
+    };
+
+    const handleHeroImageClick = () => {
+        if (clubStories && clubStories.length > 0) {
+            setShowStoryOverlay(true);
+            setSelectedStoryIndex(0);
+        }
     };
 
     const handleShare = async () => {
@@ -316,11 +351,9 @@ export default function ClubDetailPage() {
     // Get images - Match home page logic
     let heroImages: string[] = [];
 
-    // First try to get from images array
+    // Extract and sort images with MAIN_IMAGE first
     if (club.images && club.images.length > 0) {
-        heroImages = (club.images as any[])
-            .map((img: any) => (typeof img === 'string' ? img : img?.url))
-            .filter(Boolean);
+        heroImages = getSortedClubImages(club.images, []);
     }
 
     // If no images array, try logo/logoUrl (same as home page uses club.logo)
@@ -366,7 +399,10 @@ export default function ClubDetailPage() {
     return (
         <div className="min-h-screen bg-[#021313] relative w-full max-w-[430px] mx-auto">
             {/* Hero Image Carousel */}
-            <div className="relative w-[430px] h-[391px] bg-gray-900 overflow-hidden flex justify-center items-center mx-auto">
+            <div 
+                className={`relative w-[430px] h-[391px] bg-gray-900 overflow-hidden flex justify-center items-center mx-auto ${clubStories && clubStories.length > 0 ? 'cursor-pointer' : ''}`}
+                onClick={handleHeroImageClick}
+            >
                 <div className="absolute inset-0 flex">
                     {heroImages.map((image, index) => (
                         <img
@@ -403,6 +439,13 @@ export default function ClubDetailPage() {
                     </>
                 )}
 
+                {/* Stories Indicator Badge */}
+                {clubStories && clubStories.length > 0 && (
+                    <div className="absolute bottom-4 right-4 z-20 bg-[#14FFEC] text-black px-3 py-1 rounded-full flex items-center gap-2">
+                        <span className="text-xs font-bold">{clubStories.length} Stories</span>
+                    </div>
+                )}
+
                 {/* Back button */}
                 <button
                     onClick={handleGoBack}
@@ -410,18 +453,6 @@ export default function ClubDetailPage() {
                 >
                     <ArrowLeft className="h-5 w-5 text-white" />
                 </button>
-
-                {/* Story Count Badge - Bottom Center */}
-                {clubStories && clubStories.length > 0 && (
-                    <button
-                        onClick={() => setShowStoriesModal(true)}
-                        className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-[50px] h-[50px] bg-[#14FFEC] rounded-full flex items-center justify-center hover:bg-[#11d4c4] transition z-10 shadow-lg"
-                    >
-                        <span className="font-bold text-[20px] text-black">
-                            {clubStories.length}
-                        </span>
-                    </button>
-                )}
             </div>
 
             {/* Main Content Section */}
@@ -431,6 +462,10 @@ export default function ClubDetailPage() {
             >
                 {/* Club Logo Circle - Centered at top, half outside */}
                 <div 
+                onClick={() => {
+                            setSelectedStoryIndex(0);
+                            setShowStoryOverlay(true);
+                        }}
                     className="absolute flex items-center gap-2.5 p-1 rounded-[36px] border-2 border-solid border-[#14FFEC] bg-[#021313]"
                     style={{
                         top: '-36px',
@@ -446,7 +481,7 @@ export default function ClubDetailPage() {
                     />
                 </div>
                 {/* Rating Circle - Below the logo */}
-                <div 
+                {/* <div 
                     className="absolute w-[38px] h-[38px] bg-[#005d5c] rounded-[30px] flex items-center justify-center"
                     style={{
                         top: '24px',
@@ -454,10 +489,10 @@ export default function ClubDetailPage() {
                         transform: 'translateX(-50%)'
                     }}
                 >
-                    <span className="font-bold text-[16px] leading-[21px] text-center text-[#fff4f4]">
-                        {club.rating || 4.0}
+                   <span className="font-bold text-[16px] leading-[21px] text-center text-[#fff4f4]">
+                        {clubStories && clubStories.length > 0 ? clubStories.length : (club.rating || 0)}
                     </span>
-                </div>
+                </div> */}
 
                 {/* Club Name */}
                 <div 
@@ -552,23 +587,6 @@ export default function ClubDetailPage() {
                         <span className="font-bold text-[16px] leading-[16px] text-white">Book offline</span>
                     </button>
                 </div>
-
-                {/* Club Details Section */}
-                {/* stories display */}
-                {clubStories.length > 0 && (
-                    <section className="w-full px-4 pt-4">
-                        <StoriesSection
-                            stories={clubStories}
-                            className="mb-6"
-                            onStoryClick={(idx) => {
-                                const storyId = clubStories[idx]?.id;
-                                if (storyId) {
-                                    router.push(`/story/${storyId}?index=${idx}`);
-                                }
-                            }}
-                        />
-                    </section>
-                )}
                 <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
                     <div className="w-full flex flex-col justify-center items-center gap-[11px] bg-[rgba(40,60,61,0.3)] py-[15px] rounded-[15px]" style={{ paddingLeft: '17px', paddingRight: '17px' }}>
                         
@@ -897,52 +915,13 @@ export default function ClubDetailPage() {
                 </div>
             </div>
 
-            {/* Stories Modal */}
-            {showStoriesModal && clubStories.length > 0 && (
-                <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center">
-                    <div className="w-full max-w-[430px] bg-[#021313] rounded-t-[30px] max-h-[90vh] overflow-y-auto">
-                        {/* Modal Header */}
-                        <div className="sticky top-0 bg-[#021313] px-5 py-4 border-b border-[#14FFEC]/20 flex items-center justify-between">
-                            <h2 className="text-white text-lg font-semibold">{club.name} Stories</h2>
-                            <button
-                                onClick={() => setShowStoriesModal(false)}
-                                className="text-white hover:text-[#14FFEC] transition"
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        {/* Stories Section */}
-                        <div className="px-5 py-4">
-                            {isLoadingStories ? (
-                                <div className="flex items-center justify-center py-8">
-                                    <Loader2 className="w-8 h-8 text-[#14FFEC] animate-spin" />
-                                </div>
-                            ) : (
-                                <StoriesSection
-                                    stories={clubStories.map(story => ({
-                                        id: story.id,
-                                        image: story.mediaUrl || story.mediaUrl1 || '/placeholder.jpg',
-                                        title: story.title || story.caption || 'Story',
-                                        timestamp: story.createdAt || new Date().toISOString(),
-                                        clubName: club.name,
-                                        isViewed: false,
-                                        duration: story.duration || 5
-                                    }))}
-                                    className="mb-4"
-                                    onStoryClick={(idx) => {
-                                        const storyId = clubStories[idx]?.id;
-                                        if (storyId) {
-                                            setShowStoriesModal(false);
-                                            router.push(`/story/${storyId}?index=${idx}`);
-                                        }
-                                    }}
-                                />
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Story Overlay Modal */}
+            <StoryOverlay
+                isOpen={showStoryOverlay}
+                stories={transformStoriesForViewer(clubStories || [])}
+                initialIndex={selectedStoryIndex}
+                onClose={() => setShowStoryOverlay(false)}
+            />
         </div>
     );
 }

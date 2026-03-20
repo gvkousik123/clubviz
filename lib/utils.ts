@@ -119,3 +119,35 @@ export function formatEventDateBadge(date: Date | undefined | null): { month: st
     return { month: 'N/A', day: 'N/A' }
   }
 }
+
+/**
+ * Sort and extract club images with MAIN_IMAGE first
+ * Images with type "MAIN_IMAGE" will appear first, followed by other types
+ */
+export function getSortedClubImages(images: any[] | undefined, fallback: string[] = []): string[] {
+  if (!images || !Array.isArray(images) || images.length === 0) {
+    return fallback
+  }
+
+  // Sort images: MAIN_IMAGE first, then others
+  const sorted = [...images].sort((a, b) => {
+    const aType = a?.type || ''
+    const bType = b?.type || ''
+    
+    // MAIN_IMAGE comes first
+    if (aType === 'MAIN_IMAGE' && bType !== 'MAIN_IMAGE') return -1
+    if (aType !== 'MAIN_IMAGE' && bType === 'MAIN_IMAGE') return 1
+    
+    return 0
+  })
+
+  // Extract URLs from sorted images
+  const urls = sorted
+    .map((img: any) => {
+      if (typeof img === 'string') return img
+      return img?.url || ''
+    })
+    .filter(Boolean)
+
+  return urls.length > 0 ? urls : fallback
+}
