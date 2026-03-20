@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Star, Loader2 } from 'lucide-react';
 import BottomContinueButton from '@/components/common/bottom-continue-button';
@@ -9,7 +9,7 @@ import { useProfile } from '@/hooks/use-profile';
 import { useToast } from '@/hooks/use-toast';
 import { ClubService } from '@/lib/services/club.service';
 
-export default function WriteReviewPage() {
+function WriteReviewContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
@@ -23,12 +23,11 @@ export default function WriteReviewPage() {
         const id = searchParams?.get('clubId');
         if (id) {
             setClubId(id);
-            setClubName('Club'); // Reset to default while loading
-            // Fetch club details to get the name
+            setClubName('Club');
             ClubService.getClubById(id)
                 .then(club => {
                     if (club?.name) {
-                        setClubName(club.name);
+                        setClubName(club?.name || 'Club');
                     } else {
                         setClubName('Club');
                     }
@@ -224,5 +223,14 @@ export default function WriteReviewPage() {
                 </button>
             </div>
         </div>
+    );
+}
+
+
+export default function WriteReviewPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-[#021313] flex items-center justify-center"><Loader2 className="animate-spin text-[#14FFEC]" size={48} /></div>}>
+            <WriteReviewContent />
+        </Suspense>
     );
 }
