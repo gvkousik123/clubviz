@@ -33,6 +33,10 @@ import type { NearbyResultSummary } from '@/hooks/use-search';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/use-profile';
 import { AutocompleteSuggestion } from '@/lib/services/search.service';
+import { 
+  getSafeImageUrl, getEventImageUrl, getClubImageUrl, 
+  truncateText, getEventLocation, getEventDate, formatEventDateBadge 
+} from '@/lib/utils';
 import { STORAGE_KEYS } from '@/lib/constants/storage';
 import { StoriesSection } from '@/components/story';
 import { StoryViewer } from '@/components/story/story-viewer';
@@ -257,7 +261,7 @@ const HomePage = () => {
         nearbyDetails,
         currentLocation,
         locationError,
-        universalSearch,
+        searchQuick,
         searchNearby,
         fetchNearbyDetails,
         clearResults,
@@ -547,11 +551,11 @@ const HomePage = () => {
             return;
         }
 
-        // If there is a query, use quick search (universalSearch)
+        // If there is a query, use quick search API
         try {
             setShowingSearchResults(true);
             setNearbyDropdownOpen(false); // Close suggestions on enter
-            await universalSearch(trimmedQuery);
+            await searchQuick(trimmedQuery);
             // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (error) {
@@ -807,8 +811,8 @@ const HomePage = () => {
                                                                 // Close dropdown and show results
                                                                 setNearbyDropdownOpen(false);
                                                                 setShowingSearchResults(true);
-                                                                // Trigger main search with the suggestion text
-                                                                universalSearch(suggestion.text);
+                                                                // Trigger search with the suggestion text using quick search API
+                                                                searchQuick(suggestion.text);
                                                             }}
                                                             className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg transition-colors text-left group w-full"
                                                         >
@@ -921,37 +925,39 @@ const HomePage = () => {
                                     <h3 className="text-white text-base font-semibold">Events</h3>
                                     <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                                         {searchEvents.slice(0, 5).map((event, index) => {
-                                            const eventDate = new Date(event.startDateTime);
-                                            const monthShort = eventDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
-                                            const day = eventDate.getDate().toString().padStart(2, '0');
+                                            const eventDate = getEventDate(event);
+                                            const dateBadge = formatEventDateBadge(eventDate);
                                             const fallbackImage = getEventFallbackImage(index);
+                                            const imageUrl = getEventImageUrl(event, fallbackImage);
 
                                             return (
-                                                <div key={event.id} className="w-[222px] h-[305px] flex-shrink-0 relative rounded-[20px] overflow-hidden" style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}>
+                                                <Link key={event.id} href={`/event/${event.id}`}>
+                                                    <div className="w-[222px] h-[305px] flex-shrink-0 relative rounded-[20px] overflow-hidden cursor-pointer hover:opacity-80 transition-opacity" style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}>
                                                     {/* Image */}
                                                     <div className="relative">
                                                         <img
-                                                            src={event.imageUrl && isValidImageUrl(event.imageUrl) ? event.imageUrl : fallbackImage}
-                                                            alt={event.title}
+                                                            src={imageUrl}
+                                                            alt={event.title || 'Event'}
                                                             className="w-full h-[160px] object-cover"
                                                         />
                                                         {/* Date Badge */}
                                                         <div className="absolute top-4 left-4 bg-[#14FFEC] rounded-lg px-2 py-1 min-w-[40px] text-center">
-                                                            <div className="text-black text-xs font-bold">{monthShort}</div>
-                                                            <div className="text-black text-lg font-bold leading-none">{day}</div>
+                                                            <div className="text-black text-xs font-bold">{dateBadge.month}</div>
+                                                            <div className="text-black text-lg font-bold leading-none">{dateBadge.day}</div>
                                                         </div>
                                                     </div>
                                                     {/* Content */}
                                                     <div className="p-4 h-[145px] flex flex-col justify-between">
                                                         <div>
-                                                            <h3 className="text-white font-bold text-sm mb-2 line-clamp-2">{event.title}</h3>
-                                                            <p className="text-gray-300 text-xs mb-1">{event.clubName || event.club?.name || event.location}</p>
+                                                            <h3 className="text-white font-bold text-sm mb-2 line-clamp-2">{truncateText(event.title, 50)}</h3>
+                                                            <p className="text-gray-300 text-xs mb-1">{truncateText(getEventLocation(event), 40)}</p>
                                                         </div>
                                                         <div className="flex justify-between items-center mt-auto">
                                                             <span className="text-[#14FFEC] text-xs">View Details</span>
                                                         </div>
                                                     </div>
                                                 </div>
+                                                </Link>
                                             );
                                         })}
                                     </div>
@@ -964,16 +970,16 @@ const HomePage = () => {
                                     <h3 className="text-white text-base font-semibold">Clubs</h3>
                                     <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                                         {searchClubs.slice(0, 5).map((club, index) => {
-                                            const img = club.images?.[0];
-                                            const imageUrl = (typeof img === 'string' ? img : img?.url) || club.logoUrl;
                                             const fallbackImage = getVenueFallbackImage(index);
+                                            const imageUrl = getClubImageUrl(club, fallbackImage);
                                             return (
-                                                <div key={club.id} className="w-[336px] h-[201px] relative flex-shrink-0 mr-1">
+                                                <Link key={club.id} href={`/club/${club.id}`}>
+                                                    <div className="w-[336px] h-[201px] relative flex-shrink-0 mr-1 cursor-pointer hover:opacity-80 transition-opacity">
                                                     {/* Main image container with rounded top */}
                                                     <div className="w-[336px] h-[169px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[15px] border-[#14FFEC] overflow-hidden">
                                                         <img
-                                                            src={imageUrl && isValidImageUrl(imageUrl) ? imageUrl : fallbackImage}
-                                                            alt={club.name}
+                                                            src={imageUrl}
+                                                            alt={club.name || 'Club'}
                                                             className="w-full h-full object-cover absolute inset-0"
                                                         />
                                                         {/* White overlay effect */}
@@ -994,7 +1000,7 @@ const HomePage = () => {
                                                     {/* Rating badge */}
                                                     <div className="w-[30px] h-[30px] pl-1 pr-[5px] py-[5px] left-[250px] top-[110px] absolute justify-center items-center inline-flex bg-[#008378] rounded-[17px] overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),inset_0_-1px_2px_rgba(255,255,255,0.1)]">
                                                         <div className="text-white text-[13px] font-extrabold font-['Manrope'] leading-5 tracking-[0.01em]">
-                                                            4.2
+                                                            {(club.rating || 4.2).toFixed(1)}
                                                         </div>
                                                     </div>
 
@@ -1002,14 +1008,15 @@ const HomePage = () => {
                                                     <div className="w-32 h-[50px] left-[33px] top-[144px] absolute justify-start items-center gap-[29px] inline-flex">
                                                         <div className="w-52 flex-col justify-center items-start gap-2 inline-flex">
                                                             <div className="self-stretch h-5 text-[#14FFEC] text-xl font-black font-['Manrope'] leading-5 tracking-[0.02em] truncate overflow-hidden whitespace-nowrap">
-                                                                {club.name && club.name.length > 12 ? club.name.substring(0, 12) + '...' : club.name}
+                                                                {truncateText(club.name, 12)}
                                                             </div>
                                                             <div className="self-stretch h-5 text-white text-[13px] font-semibold font-['Manrope'] leading-5 tracking-[0.01em] truncate overflow-hidden whitespace-nowrap">
-                                                                {((club.address || club.locationText?.city || 'Open now').length > 20 ? (club.address || club.locationText?.city || 'Open now').substring(0, 20) + '...' : (club.address || club.locationText?.city || 'Open now'))}
+                                                                {truncateText(club.address || 'Open now', 20)}
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                    </div>
+                                                </Link>
                                             );
                                         })}
                                     </div>
@@ -1024,7 +1031,8 @@ const HomePage = () => {
                                         {balancedResults.venues.slice(0, 5).map((venue, index) => {
                                             const fallbackImage = getVenueFallbackImage(index);
                                             return (
-                                                <div key={venue.id} className="w-[336px] h-[201px] relative flex-shrink-0 mr-1">
+                                                <Link key={venue.id} href={`/club/${venue.id}`}>
+                                                    <div className="w-[336px] h-[201px] relative flex-shrink-0 mr-1 cursor-pointer hover:opacity-80 transition-opacity">
                                                     {/* Main image container with rounded top */}
                                                     <div className="w-[336px] h-[169px] left-0 top-0 absolute flex-col justify-start items-start flex rounded-[15px] border-[#14FFEC] overflow-hidden">
                                                         <img
@@ -1066,6 +1074,7 @@ const HomePage = () => {
                                                         </div>
                                                     </div>
                                                 </div>
+                                                </Link>
                                             );
                                         })}
                                     </div>

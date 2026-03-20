@@ -11,6 +11,8 @@ import { LocationPickerModal } from '@/components/common/location-picker-modal';
 
 import { PublicClubService } from '@/lib/services/public.service';
 import { ClubService } from '@/lib/services/club.service';
+import { SearchService } from '@/lib/services/search.service';
+import { getStoredLocation } from '@/lib/location';
 
 // Dummy clubs data for local development
 const DUMMY_CLUBS: Club[] = [
@@ -100,8 +102,67 @@ export default function ClubsListPage() {
     };
 
     const handleSearch = async () => {
-        // Show location picker for search
-        setShowLocationPicker(true);
+        setLoading(true);
+        try {
+            // Get location from stored location or current search location
+            const location = currentSearchLocation || getStoredLocation();
+            
+            if (!location || !location.lat || !location.lng) {
+                setShowLocationPicker(true);
+                setLoading(false);
+                return;
+            }
+
+            // Use advanced search with all filters
+            const searchParams = {
+                query: searchQuery.trim() || undefined,
+                latitude: location.lat,
+                longitude: location.lng,
+                radiusKm: 50,
+                searchType: 'CLUBS_ONLY' as const,
+                page: 0,
+                size: 100,
+                // Add filter parameters if selected
+                ...(selectedCategory && { musicGenres: [selectedCategory] }),
+                ...(selectedLocation && { cuisines: [selectedLocation] })
+            };
+
+            const response = await SearchService.advancedSearch(searchParams);
+            
+            if (response && response.clubs && response.clubs.length > 0) {
+                const searchedClubs: Club[] = response.clubs.map((club: any, index: number) => ({
+                    id: club.id,
+                    name: club.name || '',
+                    openTime: 'Hours not available',
+                    rating: club.rating || 4.0,
+                    image: club.logoUrl || getClubFallbackImage(index),
+                    address: club.address || '',
+                    category: club.category || 'Club'
+                }));
+                
+                setClubs(searchedClubs);
+                toast({
+                    title: 'Search complete',
+                    description: `Found ${searchedClubs.length} clubs matching your criteria`,
+                });
+            } else {
+                setClubs([]);
+                toast({
+                    title: 'No clubs found',
+                    description: 'No clubs match your search criteria. Try adjusting your filters.',
+                    variant: 'destructive',
+                });
+            }
+        } catch (error: any) {
+            console.error('💥 Search error:', error);
+            toast({
+                title: 'Search failed',
+                description: error.message || 'Could not perform search. Please try again.',
+                variant: 'destructive',
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleLocationSelected = async (coords: { lat: number; lng: number }, locationName: string) => {
@@ -136,15 +197,20 @@ export default function ClubsListPage() {
                 PublicClubService.getClubLocations()
             ]);
 
-
             // Handle both array and object responses
             const categoriesArray = Array.isArray(categoriesData) ? categoriesData : ((categoriesData as any)?.content || []);
             const locationsArray = Array.isArray(locationsData) ? locationsData : ((locationsData as any)?.content || []);
 
-
-            // Filter out empty values and set state
-            const filteredCategories = categoriesArray.filter((cat: any) => cat && (typeof cat === 'string' ? cat.trim() : cat));
-            const filteredLocations = locationsArray.filter((loc: any) => loc && (typeof loc === 'string' ? loc.trim() : loc));
+            // Filter out empty values and convert to strings
+            const filteredCategories = categoriesArray
+                .filter((cat: any) => cat)
+                .map((cat: any) => typeof cat === 'string' ? cat : (cat?.name || cat?.label || String(cat)))
+                .filter((cat: string) => cat && cat.trim());
+                
+            const filteredLocations = locationsArray
+                .filter((loc: any) => loc)
+                .map((loc: any) => typeof loc === 'string' ? loc : (loc?.name || loc?.label || String(loc)))
+                .filter((loc: string) => loc && loc.trim());
 
             setCategories(filteredCategories);
             setLocations(filteredLocations);

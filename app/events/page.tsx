@@ -12,6 +12,7 @@ import { SearchService, NearbySearchParamsV2, SearchEventV2 } from '@/lib/servic
 import { LocationPickerModal } from '@/components/common/location-picker-modal';
 import { STORAGE_KEYS } from '@/lib/constants/storage';
 import { getStoredLocation } from '@/lib/location';
+import { getEventImageUrl, getEventLocation } from '@/lib/utils';
 
 export default function EventsListPage() {
     const router = useRouter();
@@ -178,10 +179,10 @@ export default function EventsListPage() {
             if (response && response.events && response.events.length > 0) {
                 const mappedEvents: EventListItem[] = response.events.map((event: SearchEventV2) => ({
                     id: event.id,
-                    title: event.title,
+                    title: event.title || 'Event',
                     startDateTime: event.startDateTime,
-                    location: event.location,
-                    imageUrl: event.imageUrl || '/event list/Rectangle 1.jpg',
+                    location: getEventLocation(event),
+                    imageUrl: getEventImageUrl(event, '/event list/Rectangle 1.jpg'),
                     clubId: event.id,
                     clubName: '',
                     clubLogo: '',

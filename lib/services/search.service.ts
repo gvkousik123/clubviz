@@ -16,57 +16,57 @@ export interface TicketType {
 export interface SearchClubV2 {
   id: string;
   name: string;
-  description: string;
-  logoUrl: string;
-  images: string[];
-  address: string;
-  distanceKm: number;
-  coordinates: Coordinates;
-  cuisines: string[];
-  facilities: string[];
-  musicGenres: string[];
-  barOptions: string[];
-  coupleEntryPrice: number;
-  groupEntryPrice: number;
-  priceRange: string;
-  rating: number;
-  reviewCount: number;
-  isPopular: boolean;
-  isNew: boolean;
-  openingHours: string;
-  isOpenNow: boolean;
-  tags: string[];
+  description?: string;
+  logoUrl?: string;
+  images?: string[];
+  address?: string | null;
+  distanceKm?: number | null;
+  coordinates?: Coordinates | null;
+  cuisines?: string[] | null;
+  facilities?: string[] | null;
+  musicGenres?: string[] | null;
+  barOptions?: string[] | null;
+  coupleEntryPrice?: number | null;
+  groupEntryPrice?: number | null;
+  priceRange?: string | null;
+  rating?: number;
+  reviewCount?: number;
+  isPopular?: boolean;
+  isNew?: boolean;
+  openingHours?: string | null;
+  isOpenNow?: boolean;
+  tags?: string[];
 }
 
 export interface SearchEventV2 {
   id: string;
   title: string;
-  description: string;
-  imageUrl: string;
-  images: string[];
-  eventArtistName: string;
-  aboutEventArtist: string;
-  musicGenre: string;
-  eventOrganizer: string;
-  eventOrganizerLogo: string;
-  startDateTime: string;
-  endDateTime: string;
-  isUpcoming: boolean;
-  timeUntilEvent: string;
-  clubName: string;
-  location: string;
-  distanceKm: number;
-  coordinates: Coordinates;
-  ticketTypes: TicketType[];
-  minTicketPrice: number;
-  maxTicketPrice: number;
-  hasAvailableTickets: boolean;
-  totalTickets: number;
-  instagramHandle: string;
-  spotifyHandle: string;
-  attendeeCount: number;
-  isTrending: boolean;
-  tags: string[];
+  description?: string;
+  imageUrl?: string;
+  images?: string[];
+  eventArtistName?: string;
+  aboutEventArtist?: string;
+  musicGenre?: string;
+  eventOrganizer?: string;
+  eventOrganizerLogo?: string;
+  startDateTime?: string;
+  endDateTime?: string;
+  isUpcoming?: boolean;
+  timeUntilEvent?: string;
+  clubName?: string;
+  location?: string;
+  distanceKm?: number | null;
+  coordinates?: Coordinates | null;
+  ticketTypes?: TicketType[];
+  minTicketPrice?: number | null;
+  maxTicketPrice?: number | null;
+  hasAvailableTickets?: boolean;
+  totalTickets?: number | null;
+  instagramHandle?: string;
+  spotifyHandle?: string;
+  attendeeCount?: number;
+  isTrending?: boolean;
+  tags?: string[];
 }
 
 export interface FacetItem {
@@ -153,16 +153,12 @@ export interface AutocompleteResponse {
 
 export const SearchService = {
   /**
-   * Advanced search
-   * POST /search/search/v2
+   * Advanced search with multiple filters
+   * POST /search/v2
    */
   async advancedSearch(params: AdvancedSearchParams): Promise<SearchV2Response> {
     try {
-      // add SQL/Mongo wildcard syntax to query if not already present
-      if (params.query && !params.query.includes('%') && !params.query.includes('*')) {
-        params.query = `%${params.query}%`;
-      }
-      const response = await api.post('/search/search/v2', params);
+      const response = await api.post('/search/v2', params);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -170,12 +166,12 @@ export const SearchService = {
   },
 
   /**
-   * Autocomplete suggestions
-   * GET /search/search/v2/autocomplete
+   * Autocomplete suggestions for search-as-you-type
+   * GET /search/v2/autocomplete
    */
   async autocomplete(query: string): Promise<AutocompleteResponse> {
     try {
-      const response = await api.get(`/search/search/v2/autocomplete?query=${encodeURIComponent(query)}`);
+      const response = await api.get(`/search/v2/autocomplete?query=${encodeURIComponent(query)}`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -184,25 +180,20 @@ export const SearchService = {
 
   /**
    * Quick search with query parameters
-   * GET /search/search/v2/quick
+   * GET /search/v2/quick
    */
   async quickSearch(params: QuickSearchParams): Promise<SearchV2Response> {
     try {
-      // wrap query for partial matching
-      let q = params.query;
-      if (q && !q.includes('%') && !q.includes('*')) {
-        q = `%${q}%`;
-      }
       const queryParams = new URLSearchParams();
-      queryParams.append('query', q);
-      if (params.lat) queryParams.append('lat', params.lat.toString());
-      if (params.lng) queryParams.append('lng', params.lng.toString());
-      if (params.radiusKm) queryParams.append('radiusKm', params.radiusKm.toString());
-      if (params.searchType) queryParams.append('searchType', params.searchType);
+      queryParams.append('query', params.query);
+      // if (params.lat) queryParams.append('lat', params.lat.toString());
+      // if (params.lng) queryParams.append('lng', params.lng.toString());
+      // if (params.radiusKm) queryParams.append('radiusKm', params.radiusKm.toString());
+      // if (params.searchType) queryParams.append('searchType', params.searchType);
       if (params.page !== undefined) queryParams.append('page', params.page.toString());
       if (params.size !== undefined) queryParams.append('size', params.size.toString());
 
-      const response = await api.get(`/search/search/v2/quick?${queryParams.toString()}`);
+      const response = await api.get(`/search/v2/quick?${queryParams.toString()}`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -211,7 +202,7 @@ export const SearchService = {
 
   /**
    * Discover nearby clubs and events
-   * GET /search/search/v2/nearby
+   * GET /search/v2/nearby
    */
   async nearbySearch(params: NearbySearchParamsV2): Promise<SearchV2Response> {
     try {
@@ -224,7 +215,7 @@ export const SearchService = {
       if (params.page !== undefined) queryParams.append('page', params.page.toString());
       if (params.size !== undefined) queryParams.append('size', params.size.toString());
 
-      const response = await api.get(`/search/search/v2/nearby?${queryParams.toString()}`);
+      const response = await api.get(`/search/v2/nearby?${queryParams.toString()}`);
       return handleApiResponse(response);
     } catch (error) {
       throw new Error(handleApiError(error));

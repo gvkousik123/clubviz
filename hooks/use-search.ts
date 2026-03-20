@@ -161,31 +161,39 @@ export function useSearch(): UseSearchState & UseSearchActions {
 
             // Adapt to nearbyResults
             const summaries: NearbyResultSummary[] = [];
-            response.clubs.forEach(c => {
-                summaries.push({
-                    id: c.id,
-                    name: c.name,
-                    description: c.description,
-                    address: c.address,
-                    lat: c.coordinates.latitude,
-                    lng: c.coordinates.longitude,
-                    type: 'CLUB',
-                    imageUrl: c.logoUrl || c.images?.[0],
-                    metadata: { rating: c.rating, isActive: true }
-                });
+            
+            // Only include clubs with valid coordinates
+            response.clubs?.forEach(c => {
+                if (c.coordinates?.latitude && c.coordinates?.longitude) {
+                    summaries.push({
+                        id: c.id,
+                        name: c.name,
+                        description: c.description,
+                        address: c.address || '',
+                        lat: c.coordinates.latitude,
+                        lng: c.coordinates.longitude,
+                        type: 'CLUB',
+                        imageUrl: c.logoUrl || c.images?.[0] || '',
+                        metadata: { rating: c.rating || 0, isActive: true }
+                    });
+                }
             });
-            response.events.forEach(e => {
-                summaries.push({
-                    id: e.id,
-                    name: e.title,
-                    description: e.description,
-                    address: e.location,
-                    lat: e.coordinates.latitude,
-                    lng: e.coordinates.longitude,
-                    type: 'EVENT',
-                    imageUrl: e.imageUrl || e.images?.[0],
-                    metadata: { start: e.startDateTime }
-                });
+            
+            // Only include events with valid coordinates
+            response.events?.forEach(e => {
+                if (e.coordinates?.latitude && e.coordinates?.longitude) {
+                    summaries.push({
+                        id: e.id,
+                        name: e.title,
+                        description: e.description,
+                        address: e.location || '',
+                        lat: e.coordinates.latitude,
+                        lng: e.coordinates.longitude,
+                        type: 'EVENT',
+                        imageUrl: e.imageUrl || e.images?.[0] || '',
+                        metadata: { start: e.startDateTime }
+                    });
+                }
             });
 
             setNearbyResults({ results: summaries });
