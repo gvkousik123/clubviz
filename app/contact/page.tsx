@@ -194,52 +194,6 @@ export default function ContactUsPage() {
                                 )}
                             </div>
                         </div>
-
-                        {/* New Ticket Form - Divider */}
-                        <div className="my-8 border-t border-[#0C898B]/30"></div>
-
-                        {/* New Ticket Form */}
-                        <div>
-                            <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-2xl p-6">
-                                <h3 className="text-white text-2xl font-bold mb-2">Send us a Message</h3>
-                                <p className="text-[#9D9C9C] text-sm mb-6">Our support team will respond to your inquiry as soon as possible.</p>
-
-                                <form onSubmit={handleSubmitSupport} className="space-y-4">
-                                    <div>
-                                        <label className="text-sm text-[#9D9C9C] mb-2 block font-semibold">Name *</label>
-                                        <div className="w-full bg-[#031414] border border-[#0C898B] rounded-lg p-3 text-white">
-                                            {userInfo.name || 'Not provided'}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="text-sm text-[#9D9C9C] mb-2 block font-semibold">Email *</label>
-                                        <div className="w-full bg-[#031414] border border-[#0C898B] rounded-lg p-3 text-white">
-                                            {userInfo.email || 'Not provided'}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="text-sm text-[#9D9C9C] mb-2 block font-semibold">Message *</label>
-                                        <textarea
-                                            required
-                                            placeholder="Please describe your issue or inquiry..."
-                                            className="w-full bg-[#031414] border border-[#0C898B] rounded-lg p-3 text-white placeholder-[#9D9C9C]/50 focus:outline-none focus:ring-1 focus:ring-[#14FFEC] h-32 resize-none"
-                                            value={supportForm.message}
-                                            onChange={e => setSupportForm({ message: e.target.value })}
-                                        />
-                                    </div>
-
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="w-full bg-gradient-to-r from-[#005D5C] to-[#14FFEC] text-black font-bold py-3 rounded-xl hover:brightness-110 transition disabled:opacity-50 flex justify-center items-center gap-2"
-                                    >
-                                        {loading ? <><Loader2 className="w-5 h-5 animate-spin" />Sending...</> : 'Send Message'}
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
                     </div>
                 </div>
             )}
@@ -250,8 +204,7 @@ export default function ContactUsPage() {
                 <div className="px-6 py-6 pb-20">
                     <div className="max-w-2xl mx-auto">
                         <div className="bg-[#0D1F1F] border border-[#0C898B] rounded-2xl p-6">
-                            <h3 className="text-white text-2xl font-bold mb-2">Share Your Feedback</h3>
-                            <p className="text-[#9D9C9C] text-sm mb-6">Help us improve by sharing your feedback.</p>
+                            <h3 className="text-white text-2xl font-bold mb-2">Share Your Message</h3>
 
                             <form onSubmit={handleSubmitFeedback} className="space-y-4">
                                 <div>
