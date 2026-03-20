@@ -17,14 +17,19 @@ function WriteReviewContent() {
     const { profile } = useProfile();
     const [clubName, setClubName] = useState('Club');
     const [clubId, setClubId] = useState('');
+    const [eventId, setEventId] = useState('');
+    const [entityType, setEntityType] = useState<'club' | 'event'>('club');
 
-    // Get clubId from route query params and fetch club info
+    // Get clubId or eventId from route query params and fetch info
     useEffect(() => {
-        const id = searchParams?.get('clubId');
-        if (id) {
-            setClubId(id);
+        const clubIdParam = searchParams?.get('clubId');
+        const eventIdParam = searchParams?.get('eventId');
+        
+        if (clubIdParam) {
+            setClubId(clubIdParam);
+            setEntityType('club');
             setClubName('Club');
-            ClubService.getClubById(id)
+            ClubService.getClubById(clubIdParam)
                 .then(club => {
                     if (club?.name) {
                         setClubName(club?.name || 'Club');
@@ -36,6 +41,10 @@ function WriteReviewContent() {
                     console.error('Error fetching club:', err);
                     setClubName('Club');
                 });
+        } else if (eventIdParam) {
+            setEventId(eventIdParam);
+            setEntityType('event');
+            setClubName('Event');
         }
     }, [searchParams]);
 
@@ -82,7 +91,8 @@ function WriteReviewContent() {
             review: reviewText,
             feedback: reviewText,
             photoOrVideo,
-            clubId: clubId // BUG-U04: Include clubId so review is associated with correct club
+            ...(clubId && { clubId }),
+            ...(eventId && { eventId })
         });
 
         if (success) {

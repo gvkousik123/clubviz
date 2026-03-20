@@ -16,6 +16,7 @@ export interface RatingFeedbackRequest {
     feedback?: string;
     photoOrVideo?: string;
     clubId?: string; // optional club identifier for contextual reviews
+    eventId?: string; // optional event identifier for event reviews
 }
 
 export interface CustomerSupportRequest {
@@ -99,6 +100,27 @@ export const ContactService = {
             const result = response.data;
             if (Array.isArray(result)) {
                 return { success: true, data: result };
+            }
+            return handleApiResponse(response);
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || handleApiError(error);
+            throw new Error(errorMessage);
+        }
+    },
+
+    // Get specific support ticket details by ID
+    // GET /contact-form/contact/customer_support/{ticketId}
+    getTicketDetail: async (ticketId: string): Promise<ApiResponse<any>> => {
+        try {
+            const response = await api.get(`/contact-form/contact/customer_support/${ticketId}`);
+            const result = response.data;
+            // If response status is 200-299 and we have data, consider it success
+            if (response.status < 300 && result) {
+                return {
+                    success: true,
+                    message: 'Success',
+                    data: result
+                };
             }
             return handleApiResponse(response);
         } catch (error: any) {

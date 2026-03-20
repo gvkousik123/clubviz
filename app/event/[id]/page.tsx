@@ -12,7 +12,8 @@ import {
     Users,
     ChevronLeft,
     Loader2,
-    Building2
+    Building2,
+    ArrowRight
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { EventService } from '@/lib/services/event.service';
@@ -380,6 +381,20 @@ export default function EventDetailsPage() {
                         </div>
                     </>
                 )}
+
+                {/* Leave a review */}
+                <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '16px', paddingBottom: '32px' }}>
+                    <Link
+                        href={`/review/write?eventId=${encodeURIComponent(eventData.id)}`}
+                        className="w-full max-w-[398px] h-12 relative flex items-center bg-[#283c3d] px-4 rounded-2xl mx-auto hover:bg-[#2f4647] transition-colors block"
+                        aria-label="Write a review"
+                    >
+                        <span className="font-medium text-[16px] leading-[21px] text-white whitespace-nowrap">Leave a review</span>
+                        <div className="absolute right-[14.25px] w-6 h-6 rounded-full bg-[#14ffec] flex items-center justify-center pointer-events-none">
+                            <ArrowRight className="w-[19.500003814697266px] h-[19.500003814697266px] text-black" />
+                        </div>
+                    </Link>
+                </div>
 
                 {/* Bottom Action Button */}
                 <div className="fixed bottom-6 left-0 right-0 px-4 z-50 flex justify-center pointer-events-none">
