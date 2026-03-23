@@ -133,7 +133,7 @@ export function EventCard({
                         <button
                             type="button"
                             onClick={handleFavorite}
-                            className="absolute right-4 top-[92px] flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/40 backdrop-blur-md transition-all duration-300 hover:bg-black/60"
+                            className="absolute left-4 bottom-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/40 backdrop-blur-md transition-all duration-300 hover:bg-black/60 z-10"
                             aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
                         >
                             <Heart

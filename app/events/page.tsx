@@ -13,6 +13,7 @@ import { LocationPickerModal } from '@/components/common/location-picker-modal';
 import { STORAGE_KEYS } from '@/lib/constants/storage';
 import { getStoredLocation } from '@/lib/location';
 import { getEventImageUrl, getEventLocation } from '@/lib/utils';
+import { filterFutureEvents } from '@/lib/date-utils';
 
 export default function EventsListPage() {
     const router = useRouter();
@@ -27,46 +28,24 @@ export default function EventsListPage() {
     const [showLocationPicker, setShowLocationPicker] = useState(false);
     const [searchingNearby, setSearchingNearby] = useState(false);
     const [currentSearchLocation, setCurrentSearchLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
-    const [eventFilter, setEventFilter] = useState<'UPCOMING' | 'PAST'>('UPCOMING');
-
     const fetchEvents = async () => {
         setLoading(true);
 
         try {
-            // Fetch both UPCOMING and PAST events
-            const [upcomingResponse, pastResponse] = await Promise.all([
-                PublicEventService.getPublicEvents({
-                    page: 0,
-                    size: 50,
-                    sortBy: 'startDateTime',
-                    sortOrder: 'asc',
-                    status: 'UPCOMING'
-                }),
-                PublicEventService.getPublicEvents({
-                    page: 0,
-                    size: 50,
-                    sortBy: 'startDateTime',
-                    sortOrder: 'desc',
-                    status: 'PAST'
-                })
-            ]);
+            // Fetch only UPCOMING events (no past events)
+            const upcomingResponse = await PublicEventService.getPublicEvents({
+                page: 0,
+                size: 50,
+                sortBy: 'startDateTime',
+                sortOrder: 'asc',
+                status: 'UPCOMING'
+            });
 
-            // Combine and map all events
-            const combinedEvents: EventListItem[] = [];
+            // Map only upcoming events
+            const upcomingEvents: EventListItem[] = [];
             
             if (upcomingResponse && upcomingResponse.content) {
-                combinedEvents.push(...upcomingResponse.content.map((event) => ({
-                    ...event,
-                    imageUrl: event.imageUrl || '/event list/Rectangle 1.jpg',
-                    clubId: event.clubId || '',
-                    clubName: event.clubName || '',
-                    clubLogo: event.clubLogo || '',
-                    organizerName: event.organizerName || ''
-                })));
-            }
-            
-            if (pastResponse && pastResponse.content) {
-                combinedEvents.push(...pastResponse.content.map((event) => ({
+                upcomingEvents.push(...upcomingResponse.content.map((event) => ({
                     ...event,
                     imageUrl: event.imageUrl || '/event list/Rectangle 1.jpg',
                     clubId: event.clubId || '',
@@ -76,11 +55,11 @@ export default function EventsListPage() {
                 })));
             }
 
-            setAllEvents(combinedEvents);
-            
-            // Show upcoming events by default
-            const upcomingEvents = combinedEvents.filter(event => event.status === 'UPCOMING');
-            setEvents(upcomingEvents);
+            // Filter out past events based on IST timezone
+            const futureEvents = filterFutureEvents(upcomingEvents);
+
+            setAllEvents(futureEvents);
+            setEvents(futureEvents);
         } catch (err) {
             console.error('💥 Failed to load events', err);
             toast({
@@ -94,15 +73,6 @@ export default function EventsListPage() {
             setLoading(false);
         }
     };
-
-    const handleFilterChange = (filter: 'UPCOMING' | 'PAST') => {
-        setEventFilter(filter);
-        const filtered = allEvents.filter(event => {
-            return filter === 'UPCOMING' ? event.status === 'UPCOMING' : event.status === 'PAST';
-        });
-        setEvents(filtered);
-    };
-
 
     const loadFavorites = async () => {
         try {
@@ -188,7 +158,11 @@ export default function EventsListPage() {
                     clubLogo: '',
                     organizerName: event.eventOrganizer || ''
                 }));
-                setEvents(mappedEvents);
+                
+                // Filter out past events based on IST timezone
+                const futureEvents = filterFutureEvents(mappedEvents);
+                
+                setEvents(futureEvents);
                 setCurrentSearchLocation({
                     lat: location.lat,
                     lng: location.lng,
@@ -197,7 +171,7 @@ export default function EventsListPage() {
                 
                 toast({
                     title: 'Search complete',
-                    description: `Found ${mappedEvents.length} events nearby`,
+                    description: `Found ${futureEvents.length} events nearby`,
                 });
             } else {
                 setEvents([]);
@@ -372,31 +346,7 @@ export default function EventsListPage() {
 
                     {/* Calendar Date Range Picker - REMOVED per BUG-U02 */}
 
-                    {/* Event Filter Tabs */}
-                    <section className="w-full px-5">
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => handleFilterChange('UPCOMING')}
-                                className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${
-                                    eventFilter === 'UPCOMING'
-                                        ? 'bg-[#14FFEC] text-[#021313]'
-                                        : 'bg-[#14FFEC]/20 text-[#14FFEC] border border-[#14FFEC]/50'
-                                }`}
-                            >
-                                Upcoming
-                            </button>
-                            <button
-                                onClick={() => handleFilterChange('PAST')}
-                                className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${
-                                    eventFilter === 'PAST'
-                                        ? 'bg-[#14FFEC] text-[#021313]'
-                                        : 'bg-[#14FFEC]/20 text-[#14FFEC] border border-[#14FFEC]/50'
-                                }`}
-                            >
-                                Past
-                            </button>
-                        </div>
-                    </section>
+                    {/* Event Filter Tabs - REMOVED: Only showing upcoming events */}
 
                     {/* Calendar Date Range Picker - REMOVED per BUG-U02 */}
 

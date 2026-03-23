@@ -7,12 +7,17 @@ import Link from 'next/link';
 import { useProfile } from '@/hooks/use-profile';
 import { ClubService } from '@/lib/services/club.service';
 import { EventService } from '@/lib/services/event.service';
+import { ClubCard } from '@/components/clubs/club-card';
+import { EventCard } from '@/components/events/event-card';
+import { formatEventDateBadge, filterUpcomingEvents } from '@/lib/utils';
 
 export default function MyAccountPage() {
     const router = useRouter();
     const [favoriteClubs, setFavoriteClubs] = useState<any[]>([]);
     const [favoriteEvents, setFavoriteEvents] = useState<any[]>([]);
     const [loadingFavorites, setLoadingFavorites] = useState(false);
+    const [clubFavoritesIds, setClubFavoritesIds] = useState<string[]>([]);
+    const [eventFavoritesIds, setEventFavoritesIds] = useState<string[]>([]);
     
     const {
         profile,
@@ -37,14 +42,49 @@ export default function MyAccountPage() {
             const clubsResponse: any = await ClubService.getUserFavoriteClubs({ page: 0, size: 2 });
             const clubs = clubsResponse?.clubs || clubsResponse?.content || clubsResponse?.data?.clubs || [];
             setFavoriteClubs(clubs.slice(0, 2));
+            setClubFavoritesIds(clubs.map((c: any) => c.id).filter(Boolean));
 
-            const eventsResponse: any = await EventService.getFavoriteEvents({ page: 0, size: 2 });
+            const eventsResponse: any = await EventService.getFavoriteEvents({ page: 0, size: 10 });
             const events = eventsResponse?.events || eventsResponse?.content || eventsResponse?.data?.events || [];
-            setFavoriteEvents(events.slice(0, 2));
+            const upcomingEvents = filterUpcomingEvents(events);
+            setFavoriteEvents(upcomingEvents.slice(0, 2));
+            setEventFavoritesIds(events.map((e: any) => e.id).filter(Boolean));
         } catch (error) {
             console.error('Error loading favorites:', error);
         } finally {
             setLoadingFavorites(false);
+        }
+    };
+
+    const handleToggleClubFavorite = async (clubId: string) => {
+        const isFav = clubFavoritesIds.includes(clubId);
+        try {
+            if (isFav) {
+                await ClubService.removeClubFromFavorites(clubId);
+                setClubFavoritesIds(prev => prev.filter(id => id !== clubId));
+                setFavoriteClubs(prev => prev.filter(c => c.id !== clubId));
+            } else {
+                await ClubService.addClubToFavorites(clubId);
+                setClubFavoritesIds(prev => [...prev, clubId]);
+            }
+        } catch (error) {
+            console.error('Failed to update club favorite:', error);
+        }
+    };
+
+    const handleToggleEventFavorite = async (eventId: string) => {
+        const isFav = eventFavoritesIds.includes(eventId);
+        try {
+            if (isFav) {
+                await EventService.removeFromFavorites(eventId);
+                setEventFavoritesIds(prev => prev.filter(id => id !== eventId));
+                setFavoriteEvents(prev => prev.filter(e => e.id !== eventId));
+            } else {
+                await EventService.addToFavorites(eventId);
+                setEventFavoritesIds(prev => [...prev, eventId]);
+            }
+        } catch (error) {
+            console.error('Failed to update event favorite:', error);
         }
     };
 
@@ -162,14 +202,16 @@ export default function MyAccountPage() {
                                 <Loader2 className="w-5 h-5 text-[#14FFEC] animate-spin" />
                             </div>
                         ) : favoriteClubs.length > 0 ? (
-                            <div className="space-y-2">
+                            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                                 {favoriteClubs.map(club => (
-                                    <div key={club.id} className="bg-[#0D1F1F] rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:bg-[#1a2d2d] transition" onClick={() => router.push(`/club/${club.id}`)}>
-                                        <img src={club.logo || club.logoUrl} alt={club.name} className="w-12 h-12 rounded object-cover" />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-white text-sm font-medium truncate">{club.name}</p>
-                                            <p className="text-[#9D9C9C] text-xs truncate">{club.category || 'Club'}</p>
-                                        </div>
+                                    <div key={club.id} className="flex-shrink-0 w-[270px]">
+                                        <ClubCard
+                                            club={club}
+                                            href={`/club/${club.id}`}
+                                            fallbackImage="/placeholder/image.png"
+                                            isFavorite={clubFavoritesIds.includes(club.id)}
+                                            onToggleFavorite={handleToggleClubFavorite}
+                                        />
                                     </div>
                                 ))}
                             </div>
@@ -194,14 +236,17 @@ export default function MyAccountPage() {
                                 <Loader2 className="w-5 h-5 text-[#14FFEC] animate-spin" />
                             </div>
                         ) : favoriteEvents.length > 0 ? (
-                            <div className="space-y-2">
+                            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                                 {favoriteEvents.map(event => (
-                                    <div key={event.id} className="bg-[#0D1F1F] rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:bg-[#1a2d2d] transition" onClick={() => router.push(`/event/${event.id}`)}>
-                                        <img src={event.imageUrl || event.image || '/placeholder/image.png'} alt={event.title} className="w-12 h-12 rounded object-cover" />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-white text-sm font-medium truncate">{event.title}</p>
-                                            <p className="text-[#9D9C9C] text-xs truncate">{event.club?.name || 'Event'}</p>
-                                        </div>
+                                    <div key={event.id} className="flex-shrink-0 w-[270px]">
+                                        <EventCard
+                                            event={event}
+                                            href={`/event/${event.id}`}
+                                            fallbackImage="/placeholder/image.png"
+                                            formattedDate={formatEventDateBadge(event.startDateTime)}
+                                            isFavorite={eventFavoritesIds.includes(event.id)}
+                                            onToggleFavorite={handleToggleEventFavorite}
+                                        />
                                     </div>
                                 ))}
                             </div>

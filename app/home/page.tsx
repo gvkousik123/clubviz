@@ -42,6 +42,7 @@ import { StoriesSection } from '@/components/story';
 import { StoryViewer } from '@/components/story/story-viewer';
 import { ClubCard } from '@/components/clubs/club-card';
 import { useUserLocation } from '@/hooks/use-user-location';
+import { filterFutureEvents } from '@/lib/date-utils';
 // Use centralized data store for optimized API calls
 import { useData, useClubsData, useEventsData, useStoriesData } from '@/lib/store';
 import {
@@ -392,16 +393,14 @@ const HomePage = () => {
 
         // For authenticated users, check saved location from API
         if (userLocation) {
-            // Priority: City → Address → Coordinates → N/A
+            // Priority: City → Address → N/A (skip coordinates for privacy)
             if (userLocation.city) {
                 return userLocation.city;
             }
             if (userLocation.address) {
                 return userLocation.address;
             }
-            if (userLocation.latitude && userLocation.longitude) {
-                return `${userLocation.latitude.toFixed(4)}, ${userLocation.longitude.toFixed(4)}`;
-            }
+            // Don't display raw coordinates - show N/A instead
             return 'N/A';
         }
 
@@ -924,7 +923,7 @@ const HomePage = () => {
                                 <div className="space-y-4">
                                     <h3 className="text-white text-base font-semibold">Events</h3>
                                     <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-                                        {searchEvents.slice(0, 5).map((event, index) => {
+                                        {filterFutureEvents(searchEvents).slice(0, 5).map((event, index) => {
                                             const eventDate = getEventDate(event);
                                             const dateBadge = formatEventDateBadge(eventDate);
                                             const fallbackImage = getEventFallbackImage(index);

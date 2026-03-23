@@ -8,6 +8,7 @@ import { toast } from '@/hooks/use-toast';
 import { EventService } from '@/lib/services/event.service';
 import { EventsListSkeleton } from '@/components/ui/skeleton-loaders';
 import { EventCard } from '@/components/events/event-card';
+import { filterFutureEvents } from '@/lib/date-utils';
 
 export default function FavoriteEventsPage() {
     const router = useRouter();
@@ -42,7 +43,11 @@ export default function FavoriteEventsPage() {
             const response: any = await EventService.getFavoriteEvents({ page: 0, size: 50 });
             // Handle different response formats
             const events = response?.events || response?.content || response?.data?.events || response?.data?.content || [];
-            setFavoriteEvents(events);
+            
+            // Filter out past events based on IST timezone
+            const futureEvents = filterFutureEvents(events);
+            
+            setFavoriteEvents(futureEvents);
         } catch (error: any) {
             console.error('Error loading favorite events:', error);
             setFavoriteEvents([]);

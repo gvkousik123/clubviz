@@ -20,7 +20,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useOffers } from '@/hooks/use-offers';
 import { isGuestMode } from '@/lib/api-client-public';
-import { getSortedClubImages } from '@/lib/utils';
+import { getSortedClubImages, filterUpcomingEvents } from '@/lib/utils';
 import { ClubService } from '@/lib/services/club.service';
 import { EventService as PublicEventService } from '@/lib/services';
 import { StoryService } from '@/lib/services/story.service';
@@ -32,6 +32,7 @@ import { StoryCard } from '@/components/story/story-card';
 // Use centralized data store for cached club details
 import { useClubDetail } from '@/lib/store';
 import { ClubDetailSkeleton } from '@/components/ui/skeleton-loaders';
+import { EventService } from '@/lib/services/event.service';
 
 // Tag Component for reusability
 const TagComponent = ({ icon, label, iconPath }: { icon?: React.ReactNode, label: string, iconPath?: string }) => (
@@ -57,6 +58,7 @@ export default function ClubDetailPage() {
     const [isLoadingStories, setIsLoadingStories] = useState(false);
     const [showStoryOverlay, setShowStoryOverlay] = useState(false);
     const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
+    const [eventFavorites, setEventFavorites] = useState<string[]>([]);
     
     // Get club ID first
     const clubId = params.id as string;
@@ -100,12 +102,31 @@ export default function ClubDetailPage() {
         if (!clubId) return;
         setIsLoadingEvents(true);
         try {
-            const eventsData = await PublicEventService.getEventsByClub(clubId);
-            if (eventsData && (eventsData as any)?.data) {
-                setClubEvents((eventsData as any)?.data);
-            } else if (Array.isArray(eventsData)) {
-                setClubEvents(eventsData);
+            // Call the club events API endpoint with proper parameters
+            const response = await PublicEventService.getEventsByClub(clubId, {
+                page: 0,
+                size: 20,
+                sortBy: 'startDateTime',
+                sortOrder: 'asc'
+            });
+
+            let events: any[] = [];
+            // Handle response format from EventService
+            if (response && (response as any)?.content) {
+                events = (response as any)?.content;
+            } else if (response && (response as any)?.data) {
+                events = (response as any)?.data;
+            } else if (Array.isArray(response)) {
+                events = response;
             }
+
+            console.log('📅 All events from API:', events);
+            
+            // Filter to only show upcoming events using actual date comparison
+            const upcomingEvents = filterUpcomingEvents(events);
+            console.log('📅 Filtered upcoming events:', upcomingEvents);
+            
+            setClubEvents(upcomingEvents);
         } catch (err) {
             console.error('Error fetching club events:', err);
             setClubEvents([]);
@@ -166,6 +187,18 @@ export default function ClubDetailPage() {
         }
     }, [clubId, fetchStories]);
 
+    // Load event favorites
+    useEffect(() => {
+        if (!isGuestMode()) {
+            EventService.getFavoriteEvents({ page: 0, size: 100 })
+                .then((res: any) => {
+                    const list = res?.content || res?.events || [];
+                    setEventFavorites(list.map((e: any) => e.id || e.eventId).filter(Boolean));
+                })
+                .catch(() => {});
+        }
+    }, []);
+
     const handleGoBack = () => {
         router.back();
     };
@@ -173,6 +206,27 @@ export default function ClubDetailPage() {
     const handleStoryCircleClick = (index: number) => {
         setSelectedStoryIndex(index);
         setShowStoryOverlay(true);
+    };
+
+    const handleToggleEventFavorite = async (eventId: string) => {
+        if (isGuestMode()) {
+            toast({ title: 'Sign in', description: 'Please sign in to favorite events.' });
+            return;
+        }
+        const isFav = eventFavorites.includes(eventId);
+        try {
+            if (isFav) {
+                await EventService.removeFromFavorites(eventId);
+                setEventFavorites(prev => prev.filter(id => id !== eventId));
+                toast({ title: 'Removed from favorites', description: 'Event removed from your favorites.' });
+            } else {
+                await EventService.addToFavorites(eventId);
+                setEventFavorites(prev => [...prev, eventId]);
+                toast({ title: 'Added to favorites', description: 'Event added to your favorites.' });
+            }
+        } catch {
+            toast({ title: 'Error', description: 'Failed to update event favorites.', variant: 'destructive' });
+        }
     };
 
     // Transform API stories to StoryOverlay format
@@ -460,26 +514,45 @@ export default function ClubDetailPage() {
                 className="w-full bg-[#021313] rounded-tl-[40px] rounded-tr-[40px] rounded-br-[20px] rounded-bl-[20px] pb-8 relative"
                 style={{ marginTop: '-32px', position: 'relative', zIndex: 10 }}
             >
-                {/* Club Logo Circle - Centered at top, half outside */}
-                <div 
-                onClick={() => {
+                {/* Club Logo Circle - Centered at top, half outside - ONLY if stories exist */}
+                {clubStories && clubStories.length > 0 ? (
+                    <div 
+                        onClick={() => {
                             setSelectedStoryIndex(0);
                             setShowStoryOverlay(true);
                         }}
-                    className="absolute flex items-center gap-2.5 p-1 rounded-[36px] border-2 border-solid border-[#14FFEC] bg-[#021313]"
-                    style={{
-                        top: '-36px',
-                        left: '50%',
-                        transform: 'translateX(-50%)'
-                    }}
-                >
-                    <img
-                        src={club.logo || ''}
-                        alt={club.name}
-                        className="w-16 h-16 object-cover rounded-[45px]"
-                        onError={(e) => (e.currentTarget.src = heroImages[0])}
-                    />
-                </div>
+                        className="absolute flex items-center gap-2.5 p-1 rounded-[36px] border-2 border-solid border-[#14FFEC] bg-[#021313] cursor-pointer hover:opacity-80 transition"
+                        style={{
+                            top: '-36px',
+                            left: '50%',
+                            transform: 'translateX(-50%)'
+                        }}
+                    >
+                        <img
+                            src={club.logo || ''}
+                            alt={club.name}
+                            className="w-16 h-16 object-cover rounded-[45px]"
+                            onError={(e) => (e.currentTarget.src = heroImages[0])}
+                        />
+                    </div>
+                ) : (
+                    // No colored border if no stories
+                    <div 
+                        className="absolute flex items-center gap-2.5 p-1 rounded-[36px] bg-[#021313]"
+                        style={{
+                            top: '-36px',
+                            left: '50%',
+                            transform: 'translateX(-50%)'
+                        }}
+                    >
+                        <img
+                            src={club.logo || ''}
+                            alt={club.name}
+                            className="w-16 h-16 object-cover rounded-[45px]"
+                            onError={(e) => (e.currentTarget.src = heroImages[0])}
+                        />
+                    </div>
+                )}
                 {/* Rating Circle - Below the logo */}
                 {/* <div 
                     className="absolute w-[38px] h-[38px] bg-[#005d5c] rounded-[30px] flex items-center justify-center"
@@ -704,21 +777,71 @@ export default function ClubDetailPage() {
                             </div>
                         ) : clubEvents && clubEvents.length > 0 ? (
                             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide w-full">
-                                {clubEvents.slice(0, 5).map((event, index) => (
-                                    <div key={event.id || index} className="flex-shrink-0 w-[170px] bg-[#202b2b] rounded-[15px] overflow-hidden cursor-pointer hover:opacity-80 transition">
-                                        <div className="w-full h-[100px] bg-gray-700 relative overflow-hidden">
-                                            <img
-                                                src={event.imageUrl || getEventFallbackImage(index)}
-                                                alt={event.title}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                        <div className="p-2">
-                                            <p className="text-white text-xs font-bold truncate">{event.title}</p>
-                                            <p className="text-[#B6B6B6] text-xs truncate">{event.genre || event.location}</p>
-                                        </div>
-                                    </div>
-                                ))}
+                                {filterUpcomingEvents(clubEvents).slice(0, 5).map((event, index) => {
+                                    const eventDate = new Date(event.startDateTime);
+                                    const monthShort = eventDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+                                    const day = eventDate.getDate().toString().padStart(2, '0');
+                                    const fallbackImage = getEventFallbackImage(index);
+
+                                    return (
+                                        <Link key={event.id || index} href={`/event/${event.id}`}>
+                                            <div className="w-[222px] h-[305px] flex-shrink-0 relative rounded-[20px] overflow-hidden cursor-pointer hover:opacity-80 transition-opacity" style={{ background: 'radial-gradient(ellipse 79.96% 39.73% at 22.30% 70.24%, black 0%, #014A4B 100%)' }}>
+                                                {/* Image */}
+                                                <div className="relative">
+                                                    <img
+                                                        src={event.imageUrl || fallbackImage}
+                                                        alt={event.title}
+                                                        className="w-full h-[180px] object-contain bg-gray-900"
+                                                        style={{
+                                                            borderWidth: '1.5px',
+                                                            borderStyle: 'solid',
+                                                            borderColor: '#28D2DB',
+                                                            borderBottomRightRadius: '0',
+                                                            borderTopLeftRadius: '20px',
+                                                            borderTopRightRadius: '20px',
+                                                            borderBottomLeftRadius: '20px',
+                                                        }}
+                                                    />
+                                                </div>
+
+                                                {/* Date Badge - positioned on the right */}
+                                                <div className="absolute right-4 top-0 w-[36px] h-[45px] px-[2px] py-[10px] bg-gradient-to-b from-black to-[#00C0CA] rounded-b-[28px] border-l border-r border-b border-[#CDCDCD] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] flex flex-col justify-center items-center">
+                                                    <div className="w-[31px] text-center text-white text-[14px] font-semibold font-['Manrope'] leading-4">{monthShort}<br />{day}</div>
+                                                </div>
+
+                                                {/* Content - positioned in the dark area below image */}
+                                                <div className="absolute left-[18px] right-[18px] top-[188px] flex items-center justify-between">
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="text-white text-[13px] font-bold font-['Manrope'] leading-[18px] mb-1 truncate">
+                                                            {event.title}
+                                                        </div>
+                                                        <div className="text-[#C6C6C6] text-[11px] font-semibold font-['Manrope'] leading-[15px] tracking-[0.01em] truncate">
+                                                            {event.clubName || event.location}
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            handleToggleEventFavorite(event.id);
+                                                        }}
+                                                        className="w-[34px] h-[34px] p-[5px] bg-neutral-300/10 rounded-[22px] backdrop-blur-[35px] flex justify-center items-center flex-shrink-0"
+                                                    >
+                                                        <Heart className={`w-5 h-5 ${eventFavorites.includes(event.id) ? 'fill-[#14FFEC] text-[#14FFEC]' : 'text-[#14FFEC]'}`} />
+                                                    </button>
+                                                </div>
+
+                                                <div className="absolute left-[18px] right-[18px] top-[249px]">
+                                                    <div className="w-full h-px bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
+                                                </div>
+
+                                                <div className="absolute left-[18px] right-[18px] top-[262px] text-white text-[11px] font-bold font-['Manrope'] leading-[15px] tracking-[0.01em] truncate">
+                                                    {event.formattedDate || 'Event'}
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         ) : (
                             <div className="w-full h-[150px] bg-[rgba(40,60,61,0.3)] rounded-[15px] flex items-center justify-center">

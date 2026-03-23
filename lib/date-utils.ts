@@ -136,3 +136,54 @@ export const formatDateTimeForAPI = (ddmmyyyy: string, time: string): string => 
         return '';
     }
 };
+
+/**
+ * Get current time in IST (Indian Standard Time)
+ * IST is UTC+5:30
+ */
+export const getCurrentTimeIST = (): Date => {
+    // Get current UTC time
+    const utcDate = new Date();
+    
+    // Convert to IST (UTC+5:30)
+    const istTime = new Date(utcDate.getTime() + (5.5 * 60 * 60 * 1000));
+    
+    return istTime;
+};
+
+/**
+ * Check if an event is in the future (not yet started)
+ * Compares with current IST time
+ * 
+ * @param eventStartDateTime - Event start time in ISO format (e.g., "2026-01-28T16:30:00")
+ * @returns true if event is in the future, false if it's in the past or current
+ */
+export const isFutureEvent = (eventStartDateTime: string | undefined): boolean => {
+    if (!eventStartDateTime) return false;
+
+    try {
+        const eventDate = new Date(eventStartDateTime);
+        const currentTimeIST = getCurrentTimeIST();
+
+        // Event is future if it starts after current time
+        return eventDate > currentTimeIST;
+    } catch {
+        return false;
+    }
+};
+
+/**
+ * Filter events array to only include future events based on IST timezone
+ * 
+ * @param events - Array of events with startDateTime property
+ * @returns Filtered array containing only future events
+ */
+export const filterFutureEvents = <T extends { startDateTime?: string }>(
+    events: T[]
+): T[] => {
+    try {
+        return events.filter(event => isFutureEvent(event.startDateTime));
+    } catch {
+        return events;
+    }
+};

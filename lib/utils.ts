@@ -121,6 +121,37 @@ export function formatEventDateBadge(date: Date | undefined | null): { month: st
 }
 
 /**
+ * Check if an event is past/expired
+ * Uses actual date/time comparison instead of potentially incorrect API flags
+ * Compares with current IST (Indian Standard Time) timezone
+ */
+export function isPastEvent(event: any): boolean {
+  if (!event || !event.startDateTime) return false
+  
+  try {
+    const eventDate = new Date(event.startDateTime)
+    if (isNaN(eventDate.getTime())) return false
+    
+    // Get current time in IST (UTC+5:30)
+    const utcDate = new Date()
+    const istDate = new Date(utcDate.getTime() + (5.5 * 60 * 60 * 1000))
+    
+    // Event is past if its start time is before current IST time
+    return eventDate < istDate
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Filter events to only include upcoming (non-expired) events
+ */
+export function filterUpcomingEvents(events: any[]): any[] {
+  if (!Array.isArray(events)) return []
+  return events.filter(event => !isPastEvent(event))
+}
+
+/**
  * Sort and extract club images with MAIN_IMAGE first
  * Images with type "MAIN_IMAGE" will appear first, followed by other types
  */

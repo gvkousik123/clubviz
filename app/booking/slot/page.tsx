@@ -11,6 +11,7 @@ import NumberCounter from '@/components/common/number-counter';
 import { EventCardRow } from "@/components/events/event-card-row";
 import { api } from '@/lib/api-client';
 import { useToast } from '@/hooks/use-toast';
+import { filterFutureEvents } from '@/lib/date-utils';
 
 // Generate dates for the calendar (7 days at a time)
 const generateDates = (startDate: Date = new Date()) => {
@@ -99,7 +100,10 @@ function SlotPageContent() {
             );
 
             if (response.data?.content) {
-                setEvents(response.data.content.filter((evt: any) => !evt.pastEvent));
+                // Filter out past events both by API pastEvent flag and by IST timezone
+                const filteredByStatus = response.data.content.filter((evt: any) => !evt.pastEvent);
+                const futureEvents = filterFutureEvents(filteredByStatus);
+                setEvents(futureEvents);
             }
         } catch (error: any) {
             console.error('Failed to fetch events:', error);

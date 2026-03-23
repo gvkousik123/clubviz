@@ -4,6 +4,7 @@ import React, { createContext, useContext, useReducer, useCallback, useEffect, R
 import { dataStore, CACHE_KEYS, CACHE_DURATION, CACHE_DURATION_SHORT, ClubData, EventData, StoryData, PaginationInfo } from './data-store';
 import { PublicClubService, PublicEventService } from '@/lib/services/public.service';
 import { StoryService } from '@/lib/services/story.service';
+import { filterUpcomingEvents } from '@/lib/utils';
 
 // ==================== STATE TYPES ====================
 
@@ -292,14 +293,17 @@ export function DataProvider({ children }: DataProviderProps) {
             );
 
             if (data?.content && data.content.length > 0) {
+                // Filter to only show upcoming events
+                const upcomingEvents = filterUpcomingEvents(data.content);
+                
                 dispatch({
                     type: 'SET_EVENTS',
                     payload: {
-                        content: data.content as EventData[],
+                        content: upcomingEvents as EventData[],
                         pagination: {
                             page: data.currentPage || 0,
                             totalPages: data.totalPages || 1,
-                            totalElements: data.totalElements || data.content.length,
+                            totalElements: upcomingEvents.length,
                             hasNext: data.hasNext || false,
                             hasPrevious: data.hasPrevious || false,
                         }
@@ -325,14 +329,17 @@ export function DataProvider({ children }: DataProviderProps) {
                 );
 
                 if (fallbackData?.content) {
+                    // Filter to only show upcoming events
+                    const upcomingEvents = filterUpcomingEvents(fallbackData.content);
+                    
                     dispatch({
                         type: 'SET_EVENTS',
                         payload: {
-                            content: fallbackData.content as EventData[],
+                            content: upcomingEvents as EventData[],
                             pagination: {
                                 page: fallbackData.currentPage || 0,
                                 totalPages: fallbackData.totalPages || 1,
-                                totalElements: fallbackData.totalElements || fallbackData.content.length,
+                                totalElements: upcomingEvents.length,
                                 hasNext: fallbackData.hasNext || false,
                                 hasPrevious: fallbackData.hasPrevious || false,
                             }
