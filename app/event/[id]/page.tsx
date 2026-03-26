@@ -199,10 +199,10 @@ export default function EventDetailsPage() {
                         {/* Club Logo */}
                         <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden flex-shrink-0">
                             <img
-                                src={eventData?.club?.logo || "/common/avatar-default.jpg"}
+                                src={eventData?.club?.logo || "/common/avatar-default.png"}
                                 alt={eventData?.club?.name}
                                 className="w-full h-full object-cover"
-                                onError={(e) => (e.currentTarget.src = "/common/avatar-default.jpg")}
+                                onError={(e) => (e.currentTarget.src = "/common/avatar-default.png")}
                             />
                         </div>
 
@@ -282,10 +282,10 @@ export default function EventDetailsPage() {
                             <div className="flex items-center gap-3 mb-3">
                                 <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden flex-shrink-0">
                                     <img
-                                        src={eventData?.artistImage || "/common/avatar-default.jpg"}
+                                        src={eventData?.artistImage || "/common/avatar-default.png"}
                                         alt={eventData?.eventArtistName}
                                         className="w-full h-full object-cover"
-                                        onError={(e) => (e.currentTarget.src = "/common/avatar-default.jpg")}
+                                        onError={(e) => (e.currentTarget.src = "/common/avatar-default.png")}
                                     />
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -325,10 +325,10 @@ export default function EventDetailsPage() {
                                     <div className="bg-[#0D1F1F] rounded-lg p-4 flex items-center gap-3 hover:bg-[#0F252D] transition-colors">
                                         <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden flex-shrink-0">
                                             <img
-                                                src={eventData?.club?.logo || "/common/avatar-default.jpg"}
+                                                src={eventData?.club?.logo || "/common/avatar-default.png"}
                                                 alt="Club"
                                                 className="w-full h-full object-cover"
-                                                onError={(e) => (e.currentTarget.src = "/common/avatar-default.jpg")}
+                                                onError={(e) => (e.currentTarget.src = "/common/avatar-default.png")}
                                             />
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -348,10 +348,10 @@ export default function EventDetailsPage() {
                                 <div className="bg-[#0D1F1F] rounded-lg p-4 flex items-center gap-3">
                                     <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden flex-shrink-0">
                                         <img
-                                            src={eventData?.organizer?.avatar || "/common/avatar-default.jpg"}
+                                            src={eventData?.organizer?.avatar || "/common/avatar-default.png"}
                                             alt="Organizer"
                                             className="w-full h-full object-cover"
-                                            onError={(e) => (e.currentTarget.src = "/common/avatar-default.jpg")}
+                                            onError={(e) => (e.currentTarget.src = "/common/avatar-default.png")}
                                         />
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -382,11 +382,37 @@ export default function EventDetailsPage() {
                     </>
                 )}
 
+                {/* Ticket Pricing Section */}
+                {eventData?.ticketTypes && eventData.ticketTypes.length > 0 && (
+                    <div className="px-6 mb-6">
+                        <h2 className="text-white text-lg font-['Manrope'] mb-3 font-bold">Ticket Pricing</h2>
+                        <div className="space-y-2">
+                            {eventData.ticketTypes.map((ticket: any, index: number) => (
+                                <div key={index} className="bg-[#0D1F1F] rounded-lg p-3 flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-white font-['Manrope'] font-semibold text-sm">{ticket.name}</h3>
+                                        <p className="text-white/70 text-xs">Available: {ticket.quantity}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[#14FFEC] font-bold text-sm">₹{ticket.price}</p>
+                                        <span className="text-xs text-white/50">{ticket.currency}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Separator Line */}
+                <div className="flex justify-center my-4">
+                    <div className="w-5/6 h-[0.5px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent"></div>
+                </div>
+
                 {/* Leave a review */}
                 <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '16px', paddingBottom: '32px' }}>
                     <Link
                         href={`/review/write?eventId=${encodeURIComponent(eventData.id)}`}
-                        className="w-full max-w-[398px] h-12 relative flex items-center bg-[#283c3d] px-4 rounded-2xl mx-auto hover:bg-[#2f4647] transition-colors block"
+                        className="w-full max-w-[398px] h-12 relative flex items-center bg-[#283c3d] px-4 rounded-2xl mx-auto hover:bg-[#2f4647] transition-colors"
                         aria-label="Write a review"
                     >
                         <span className="font-medium text-[16px] leading-[21px] text-white whitespace-nowrap">Leave a review</span>

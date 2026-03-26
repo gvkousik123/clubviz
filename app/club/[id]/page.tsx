@@ -1027,7 +1027,7 @@ export default function ClubDetailPage() {
                 <div className="w-full" style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '16px', paddingBottom: '32px' }}>
                     <Link
                         href={`/review/write?clubId=${encodeURIComponent(clubId)}`}
-                        className="w-full max-w-[398px] h-12 relative flex items-center bg-[#283c3d] px-4 rounded-2xl mx-auto hover:bg-[#2f4647] transition-colors block"
+                        className="w-full max-w-[398px] h-12 relative flex items-center bg-[#283c3d] px-4 rounded-2xl mx-auto hover:bg-[#2f4647] transition-colors"
                         aria-label="Write a review"
                     >
                         <span className="font-medium text-[16px] leading-[21px] text-white whitespace-nowrap">Leave a review</span>
