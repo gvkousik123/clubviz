@@ -44,8 +44,8 @@ jobs:
           context: .
           push: true
           tags: |
-            gvenkatakousik/clubviz:latest
-            gvenkatakousik/clubviz:${{ github.sha }}
+            clubwizcreds/clubviz:latest
+            clubwizcreds/clubviz:${{ github.sha }}
           no-cache: true
           build-args: |
             NEXT_PUBLIC_API_URL=https://clubwiz.in
@@ -108,7 +108,7 @@ jobs:
 
             # Pull latest frontend image
             echo "📦 Pulling latest frontend image..."
-            docker pull gvenkatakousik/clubviz:latest
+            docker pull clubwizcreds/clubviz:latest
 
             # Check if image exists
             echo "🔍 Checking pulled image..."
@@ -131,7 +131,7 @@ jobs:
               --health-interval=30s \
               --health-timeout=10s \
               --health-retries=3 \
-              gvenkatakousik/clubviz:latest
+              clubwizcreds/clubviz:latest
 
             # Wait for container to fully start
             echo "⏳ Waiting for frontend container to start..."
@@ -186,7 +186,7 @@ jobs:
 
             echo "✅ Deployment script completed!"
             echo "🚀 Deployment completed successfully!"
-            echo "📦 Docker image: gvenkatakousik/clubviz:latest"
+            echo "📦 Docker image: clubwizcreds/clubviz:latest"
             echo "🌐 Your app should be live at: http://clubviz.local"
             echo "🌐 Direct container port (for debugging): http://13.235.40.237:3000"
             echo "📝 Build SHA: $GITHUB_SHA"
