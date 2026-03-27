@@ -155,10 +155,26 @@ export function usePayment() {
                                 console.error('❌ Ticket creation failed - no ticketId in response');
                                 console.error('Full response:', ticketResponse);
                                 
-                                // Extract meaningful error message from API response
-                                const errorMessage = ticketResponse.data?.message || 
-                                                    ticketResponse.message || 
-                                                    'Failed to create event ticket. Please try again.';
+                                // Extract meaningful error message from API response with hardcoded fallbacks
+                                let errorMessage = '';
+                                
+                                // Try to get message from multiple sources
+                                if (ticketResponse?.data?.message) {
+                                    errorMessage = ticketResponse.data.message;
+                                } else if (ticketResponse?.message) {
+                                    errorMessage = ticketResponse.message;
+                                } else if (ticketResponse?.data?.error) {
+                                    errorMessage = ticketResponse.data.error;
+                                } else {
+                                    // Hardcoded fallback message if no response from API
+                                    errorMessage = '⚠️ Unable to create ticket due to a server issue. Please ensure:\n' +
+                                                 '• You do not already have a ticket for this date\n' +
+                                                 '• Your booking details are correct\n' +
+                                                 '• Try again in a few moments\n\n' +
+                                                 'Contact support if the issue persists.';
+                                }
+                                
+                                console.error('📋 Final error message:', errorMessage);
                                 throw new Error(errorMessage);
                             }
 
@@ -192,10 +208,26 @@ export function usePayment() {
                             if (!ticketCreatedSuccessfully) {
                                 console.error('❌ Club ticket creation failed - no ticketId in response');
                                 
-                                // Extract meaningful error message from API response
-                                const errorMessage = ticketResponse.data?.message || 
-                                                    ticketResponse.message || 
-                                                    'Failed to create club ticket. Please try again.';
+                                // Extract meaningful error message from API response with hardcoded fallbacks
+                                let errorMessage = '';
+                                
+                                // Try to get message from multiple sources
+                                if (ticketResponse?.data?.message) {
+                                    errorMessage = ticketResponse.data.message;
+                                } else if (ticketResponse?.message) {
+                                    errorMessage = ticketResponse.message;
+                                } else if (ticketResponse?.data?.error) {
+                                    errorMessage = ticketResponse.data.error;
+                                } else {
+                                    // Hardcoded fallback message if no response from API
+                                    errorMessage = '⚠️ Unable to create booking due to a server issue. Please ensure:\n' +
+                                                 '• You do not already have a booking for this date\n' +
+                                                 '• Your booking details are correct\n' +
+                                                 '• Try again in a few moments\n\n' +
+                                                 'Contact support if the issue persists.';
+                                }
+                                
+                                console.error('📋 Final error message:', errorMessage);
                                 throw new Error(errorMessage);
                             }
 
