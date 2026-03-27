@@ -74,10 +74,10 @@ export default function EventDetailsPage() {
         setIsLiked(!prev);
         try {
             if (!prev) {
-                await EventService.addToFavorites(eventData.id);
+                await EventService.addToFavorites(eventData!.id);
                 toast({ title: 'Added to favorites', description: 'Event added to your favorites.' });
             } else {
-                await EventService.removeFromFavorites(eventData.id);
+                await EventService.removeFromFavorites(eventData!.id);
                 toast({ title: 'Removed from favorites', description: 'Event removed from your favorites.' });
             }
         } catch (error: any) {
@@ -95,7 +95,7 @@ export default function EventDetailsPage() {
         }
 
         // Navigate to ticket booking flow instead of just registering
-        router.push(`/event/tickets?eventId=${eventData.id}`);
+        router.push(`/event/tickets?eventId=${eventData!.id}`);
     };
 
     const handleBackClick = () => {
@@ -137,7 +137,7 @@ export default function EventDetailsPage() {
                 />
 
                 {/* Gradient Overlay - darker version */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-[#021313] pointer-events-none\" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-[#021313] pointer-events-none" />
 
                 {/* Back Button */}
                 <div className="absolute top-4 left-4 flex items-center">
@@ -222,13 +222,25 @@ export default function EventDetailsPage() {
                     <div className="px-4 mb-4 space-y-2">
                         <div className="flex items-center gap-3">
                             <Clock size={20} className="text-[#14FFEC] flex-shrink-0" />
-                            <p className="text-white font-['Manrope'] text-sm">{eventData?.formattedTime || 'Time TBD'}</p>
+                            <p className="text-white font-['Manrope'] text-sm">
+                                {(() => {
+                                    // Check if start and end times are the same
+                                    if (eventData?.startDateTime && eventData?.endDateTime) {
+                                        const startDate = new Date(eventData.startDateTime);
+                                        const endDate = new Date(eventData.endDateTime);
+                                        if (startDate.getTime() === endDate.getTime()) {
+                                            // Same time - show "onwards" format
+                                            const timeMatch = eventData.formattedTime?.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/i);
+                                            if (timeMatch) {
+                                                return `${timeMatch[1]} onwards`;
+                                            }
+                                        }
+                                    }
+                                    // Different times - show as is
+                                    return eventData?.formattedTime || 'Time TBD';
+                                })()}
+                            </p>
                         </div>
-                        {eventData?.duration && (
-                            <div className="flex items-center gap-3 pl-8">
-                                <p className="text-white/70 font-['Manrope'] text-xs">Duration: {eventData.duration}</p>
-                            </div>
-                        )}
                     </div>
 
                     {/* Registration Status Badge */}
@@ -343,8 +355,8 @@ export default function EventDetailsPage() {
                                 </Link>
                             )}
 
-                            {/* Organizer - Show separately if present, otherwise show N/A */}
-                            {eventData?.organizer ? (
+                            {/* Organizer - Only show if present */}
+                            {eventData?.organizer && (
                                 <div className="bg-[#0D1F1F] rounded-lg p-4 flex items-center gap-3">
                                     <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden flex-shrink-0">
                                         <img
@@ -357,20 +369,6 @@ export default function EventDetailsPage() {
                                     <div className="flex-1 min-w-0">
                                         <h3 className="text-white font-['Manrope'] font-bold truncate">
                                             {eventData?.organizer?.displayName}
-                                        </h3>
-                                        <p className="text-[#14FFEC] text-xs">
-                                            Organizer
-                                        </p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="bg-[#0D1F1F] rounded-lg p-4 flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-full bg-[#005D5C] flex items-center justify-center flex-shrink-0">
-                                        <span className="text-[#14FFEC] font-bold">N/A</span>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="text-white font-['Manrope'] font-bold">
-                                            Not Specified
                                         </h3>
                                         <p className="text-[#14FFEC] text-xs">
                                             Organizer

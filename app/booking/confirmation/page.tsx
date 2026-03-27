@@ -149,9 +149,7 @@ function ConfirmationPageContent() {
                             {/* Reservation ID */}
                             <div className="flex items-center gap-2 mb-2">
                                 <span className="text-[#B6B6B6] text-sm font-['Manrope'] font-medium">Reservation ID:</span>
-                                <span className="text-[#14FFEC] text-sm font-['Manrope'] font-bold">
-                                    {ticket?.ticketNumber || 'N/A'}
-                                </span>
+                                {ticket?.ticketNumber && <span className="text-[#14FFEC] text-sm font-['Manrope'] font-bold">{ticket?.ticketNumber}</span>}
                             </div>
                         </div>
 
@@ -180,18 +178,16 @@ function ConfirmationPageContent() {
 
                                 <div>
                                     <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium leading-4">Booking date</p>
-                                    <p className="text-white text-sm font-['Manrope'] font-bold mt-1">
-                                        {ticket?.bookingDate && ticket?.arrivalTime
-                                            ? `${new Date(ticket.bookingDate).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })} | ${ticket.arrivalTime.substring(0, 5)}`
-                                            : 'N/A'}
-                                    </p>
+                                    {ticket?.bookingDate && ticket?.arrivalTime && (
+                                        <p className="text-white text-sm font-['Manrope'] font-bold mt-1">
+                                            {`${new Date(ticket.bookingDate).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })} | ${ticket.arrivalTime.substring(0, 5)}`}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
                                     <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium leading-4">Contact Number</p>
-                                    <p className="text-white text-sm font-['Manrope'] font-bold mt-1">
-                                        {ticket?.userPhone || 'N/A'}
-                                    </p>
+                                    {ticket?.userPhone && <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticket?.userPhone}</p>}
                                 </div>
 
                                 <div>

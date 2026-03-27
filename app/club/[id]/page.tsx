@@ -764,13 +764,9 @@ export default function ClubDetailPage() {
                                     ))}
                                 </div>
                                 {/* Entry Details */}
-                                {club.entryCharges && club.entryCharges[activeEntryTab] ? (
+                                {club.entryCharges && club.entryCharges[activeEntryTab] && (
                                     <div className="bg-[#263438] rounded-[10px] p-2">
                                         <p className="text-white text-sm font-semibold">₹{club.entryCharges[activeEntryTab]}</p>
-                                    </div>
-                                ) : (
-                                    <div className="bg-[#263438] rounded-[10px] p-2">
-                                        <p className="text-white text-sm">Entry charges not available</p>
                                     </div>
                                 )}
                                 

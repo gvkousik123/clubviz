@@ -249,7 +249,7 @@ function BookingTicketPageContent() {
 
                             <div>
                                 <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Time</p>
-                                <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.arrivalTime || 'N/A'}</p>
+                                {ticketData?.arrivalTime && <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.arrivalTime}</p>}
                             </div>
 
                             <div>
@@ -259,7 +259,7 @@ function BookingTicketPageContent() {
 
                             <div>
                                 <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Phone</p>
-                                <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.userPhone || 'N/A'}</p>
+                                {ticketData?.userPhone && <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.userPhone}</p>}
                             </div>
 
                             <div>
@@ -269,12 +269,12 @@ function BookingTicketPageContent() {
 
                             <div>
                                 <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Date</p>
-                                <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.bookingDate || 'N/A'}</p>
+                                {ticketData?.bookingDate && <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.bookingDate}</p>}
                             </div>
 
                             <div>
                                 <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Guests</p>
-                                <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.guestCount || 'N/A'}</p>
+                                {ticketData?.guestCount && <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.guestCount}</p>}
                             </div>
 
                             {ticketData?.totalAmount !== null && ticketData?.totalAmount !== undefined && (

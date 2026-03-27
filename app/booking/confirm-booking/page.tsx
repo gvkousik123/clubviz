@@ -129,7 +129,7 @@ function BookingConfirmPageContent() {
                         Successfully Booked your Table
                     </h2>
                     <p className="text-[#14FFEC] text-sm font-['Manrope'] mb-1">
-                        Reservation ID: <span className="font-bold">{ticketData?.ticketNumber || 'N/A'}</span>
+                        {ticketData?.ticketNumber && <>Reservation ID: <span className="font-bold">{ticketData?.ticketNumber}</span></>}
                     </p>
                     <p className="text-[#B6B6B6] text-xs font-['Manrope'] text-center">
                         Reach the venue before 15 mins of your booking
@@ -142,11 +142,11 @@ function BookingConfirmPageContent() {
                     <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
                             <p className="text-[#B6B6B6] text-xs font-['Manrope'] mb-1">Booking date</p>
-                            <p className="text-white text-sm font-['Manrope'] font-bold">
-                                {ticketData?.bookingDate && ticketData?.arrivalTime
-                                    ? `${formatDate(ticketData.bookingDate)} | ${formatTime(ticketData.arrivalTime)}`
-                                    : 'N/A'}
-                            </p>
+                            {ticketData?.bookingDate && ticketData?.arrivalTime && (
+                                <p className="text-white text-sm font-['Manrope'] font-bold">
+                                    {`${formatDate(ticketData.bookingDate)} | ${formatTime(ticketData.arrivalTime)}`}
+                                </p>
+                            )}
                         </div>
                         <div>
                             <p className="text-[#B6B6B6] text-xs font-['Manrope'] mb-1">Number of Guest(s)</p>
@@ -163,10 +163,12 @@ function BookingConfirmPageContent() {
                     )}
 
                     {/* Location */}
-                    <div className="mb-4">
-                        <p className="text-[#B6B6B6] text-xs font-['Manrope'] mb-1">Location</p>
-                        <p className="text-white text-sm font-['Manrope'] font-bold">{ticketData?.clubName || 'N/A'}</p>
-                    </div>
+                    {ticketData?.clubName && (
+                        <div className="mb-4">
+                            <p className="text-[#B6B6B6] text-xs font-['Manrope'] mb-1">Location</p>
+                            <p className="text-white text-sm font-['Manrope'] font-bold">{ticketData?.clubName}</p>
+                        </div>
+                    )}
 
                     {/* Floor Preference */}
                     {ticketData?.floorPreference && (

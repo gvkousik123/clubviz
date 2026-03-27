@@ -48,6 +48,12 @@ export const ClubCard: React.FC<ClubCardProps> = ({
 
     const cardWidth = isHorizontalScroll ? 'w-[336px]' : 'w-full';
 
+    // Check if openTime is a valid value (not a placeholder)
+    const isValidOpenTime = club.openTime && 
+        club.openTime !== 'N/A' && 
+        club.openTime !== 'Hours not available' &&
+        club.openTime.trim() !== '';
+
     return (
         <div className={`block ${className} cursor-pointer ${cardWidth}`} onClick={() => window.location.href = `/club/${club.id}`}>
             <div className={`${cardWidth} h-[214px] relative flex-shrink-0`}>
@@ -98,9 +104,11 @@ export const ClubCard: React.FC<ClubCardProps> = ({
                         <div className={`self-stretch text-[#14FFEC] ${isHorizontalScroll ? 'text-base' : 'text-[18px]'} font-black font-['Manrope'] leading-[26px] tracking-[0.02em] truncate overflow-hidden whitespace-nowrap`}>
                             {club.name}
                         </div>
-                        <div className="self-stretch h-3.5 text-white text-xs font-semibold font-['Manrope'] leading-3.5 tracking-[0.01em] truncate overflow-hidden whitespace-nowrap">
-                            {club.openTime}
-                        </div>
+                        {isValidOpenTime && (
+                            <div className="self-stretch h-3.5 text-white text-xs font-semibold font-['Manrope'] leading-3.5 tracking-[0.01em] truncate overflow-hidden whitespace-nowrap">
+                                {club.openTime}
+                            </div>
+                        )}
                         {club.address && (
                             <div className="self-stretch text-[#C3C3C3] text-[10px] font-medium font-['Manrope'] leading-3 tracking-[0.1px] truncate overflow-hidden whitespace-nowrap">
                                 {club.address}
