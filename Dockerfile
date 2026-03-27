@@ -33,7 +33,7 @@ COPY --chown=nextjs:nodejs pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY --chown=nextjs:nodejs . .
 
 # Install dependencies and build
-RUN pnpm install --frozen-lockfile && pnpm run build
+RUN pnpm install --no-frozen-lockfile && pnpm run build
 
 # Add build metadata
 LABEL org.opencontainers.image.title="ClubViz" \
@@ -52,13 +52,6 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
-
-# Start the application  
-EXPOSE 3000
-
-# Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD curl -f http://localhost:3000/api/health || exit 1
 
