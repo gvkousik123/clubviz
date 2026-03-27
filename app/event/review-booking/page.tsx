@@ -30,15 +30,13 @@ function ReviewBookingPageContent() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const eventId = bookingData?.eventId || '';
-    const ticketType = bookingData?.ticketType || 'early';
-    const maleStag = bookingData?.maleStag || 0;
-    const femaleStag = bookingData?.femaleStag || 0;
-    const couple = bookingData?.couple || 0;
-    const maleName = bookingData?.maleName || '';
-    const femaleName = bookingData?.femaleName || '';
-    const stagName = bookingData?.stagName || '';
-    const phone = bookingData?.phone || '';
-    const email = bookingData?.email || '';
+    const tickets = bookingData?.tickets || {};
+    const ticketBreakdown = bookingData?.ticketBreakdown || [];
+    const totalTickets = bookingData?.totalTickets || 0;
+    const totalAmount = bookingData?.totalAmount || 0;
+    const userName = bookingData?.userName || '';
+    const userPhone = bookingData?.userPhone || '';
+    const userEmail = bookingData?.userEmail || '';
     const eventData = bookingData?.eventData || null;
 
     // Load booking data from sessionStorage
@@ -80,25 +78,15 @@ function ReviewBookingPageContent() {
     }, [router, toast]);
 
     const calculateTotalAmount = () => {
-        const prices = ticketType === 'early' ? {
-            maleStag: 1500,
-            femaleStag: 0,
-            couple: 0
-        } : {
-            maleStag: 2000,
-            femaleStag: 2000,
-            couple: 2000
-        };
-
-        return (maleStag * prices.maleStag) + (femaleStag * prices.femaleStag) + (couple * prices.couple);
+        // Total amount is already calculated in the booking data
+        return totalAmount;
     };
 
     const handlePayment = async () => {
         try {
             setErrorMessage(null);
-            const totalAmount = calculateTotalAmount();
 
-            // Get user data from localStorage - user object contains id and username
+            // Get user data from localStorage
             const userStr = typeof window !== 'undefined' ? localStorage.getItem('clubviz-user') : null;
             let userId = 'ANONYMOUS';
             let userNameFromStorage = '';
@@ -117,12 +105,11 @@ function ReviewBookingPageContent() {
             // Store contact details in localStorage for persistence across redirects
             if (typeof window !== 'undefined') {
                 const contactDetails = {
-                    email,
-                    phone,
-                    maleName,
-                    femaleName,
-                    stagName,
-                    userId
+                    email: userEmail,
+                    phone: userPhone,
+                    userName: userName,
+                    userId,
+                    tickets: ticketBreakdown
                 };
                 localStorage.setItem('bookingContactDetails', JSON.stringify(contactDetails));
                 console.log('💾 Stored contact details in localStorage:', contactDetails);
@@ -155,46 +142,54 @@ function ReviewBookingPageContent() {
             const arrivalTime = eventData?.startDateTime ? new Date(eventData.startDateTime).toISOString().split('T')[1].substring(0, 8) :
                 eventData?.time || '18:00:00';
 
-            // Store booking data for after payment with ALL required fields
+            // Store booking data for after payment
             const ticketBookingData = {
                 eventId,
                 clubId: clubData.clubId,
                 clubName: clubData.clubName,
                 userId: userId,
-                ticketType,
-                maleStag,
-                femaleStag,
-                couple,
-                maleCount: maleStag,
-                femaleCount: femaleStag,
-                coupleCount: couple,
-                maleName,
-                femaleName,
-                stagName,
-                phone,
-                email,
-                userName: userNameFromStorage || maleName || stagName || 'Guest',
+                ticketBreakdown: ticketBreakdown,
+                totalTickets: totalTickets,
+                totalAmount: totalAmount,
+                userName: userNameFromStorage || userName || 'Guest',
+                userPhone: userPhone,
+                userEmail: userEmail,
                 bookingDate,
                 arrivalTime,
-                guestCount: maleStag + femaleStag + (couple * 2),
+                guestCount: totalTickets,
                 ticketDescription: 'Event ticket booking',
                 currency: 'INR',
                 occasion: 'Event',
                 floorPreference: 'Main Floor',
-                totalAmount,
                 eventData
             };
 
-            console.log('🔵 Storing ticket booking data in sessionStorage:', ticketBookingData);
+            console.log('========== EVENT BOOKING DATA SUMMARY ==========');
+            console.log('📋 Event ID:', eventId);
+            console.log('💰 Total Amount:', totalAmount);
+            console.log('🎟️  Total Tickets:', totalTickets);
+            console.log('📊 Ticket Breakdown:', ticketBreakdown);
+            console.log('👤 User Info:', { userId, userName: userNameFromStorage || userName, userEmail, userPhone });
+            console.log('📅 Booking Details:', { bookingDate, arrivalTime });
+            console.log('🏢 Club Info:', clubData);
+            console.log('🔵 FULL Ticket Booking Data:', JSON.stringify(ticketBookingData, null, 2));
+            console.log('================================================');
+
             sessionStorage.setItem('pendingEventBooking', JSON.stringify(ticketBookingData));
 
             // Format mobile number - remove country code and special characters
-            const mobile = phone.replace(/[^0-9]/g, '').slice(-10); // Get last 10 digits
+            const mobile = userPhone.replace(/[^0-9]/g, '').slice(-10); // Get last 10 digits
 
-            // Initiate payment with contact info (usePayment hook will get additional details from localStorage)
+            console.log('💳 Initiating payment with:');
+            console.log('  Amount:', totalAmount);
+            console.log('  Username:', userName || 'Guest');
+            console.log('  Email:', userEmail);
+            console.log('  Mobile:', mobile);
+
+            // Initiate payment with contact info
             const paymentSuccess = await quickPay(totalAmount, {
-                username: maleName || stagName || 'Guest',
-                email: email,
+                username: userName || 'Guest',
+                email: userEmail,
                 mobile: mobile || '' // Will use fallback in usePayment hook if empty
             });
 
@@ -280,12 +275,12 @@ function ReviewBookingPageContent() {
                     <div className="bg-[#0D1F1F] rounded-xl p-5 space-y-4">
                         <div className="flex items-center gap-3">
                             <Mail size={20} className="text-[#14FFEC]" />
-                            <p className="text-white font-['Manrope'] font-medium">{email}</p>
+                            <p className="text-white font-['Manrope'] font-medium">{userEmail || 'Not provided'}</p>
                         </div>
 
                         <div className="flex items-center gap-3">
                             <Phone size={20} className="text-[#14FFEC]" />
-                            <p className="text-white font-['Manrope'] font-medium">{phone}</p>
+                            <p className="text-white font-['Manrope'] font-medium">{userPhone || 'Not provided'}</p>
                         </div>
                     </div>
                 </div>
@@ -298,62 +293,48 @@ function ReviewBookingPageContent() {
                     </div>
 
                     <div className="bg-[#0D1F1F] rounded-xl p-5">
-                        {/* Male Stag */}
-                        {maleStag > 0 && (
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-3">
-                                    <img src="/common/Ticket.svg" alt="Ticket" width="24" height="24" />
-                                    <p className="text-white font-['Manrope'] font-medium">{ticketType === 'early' ? 'Early Bird' : 'General'} Male Stag</p>
+                        {ticketBreakdown && ticketBreakdown.length > 0 ? (
+                            <>
+                                {ticketBreakdown.map((ticket, idx) => (
+                                    <div key={idx} className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <img src="/common/Ticket.svg" alt="Ticket" width="24" height="24" />
+                                            <div>
+                                                <p className="text-white font-['Manrope'] font-medium">{ticket.name}</p>
+                                                <p className="text-[#14FFEC] text-xs font-['Manrope']">₹ {ticket.price.toLocaleString()}</p>
+                                            </div>
+                                        </div>
+                                        <span className="text-white font-['Manrope'] font-bold">×{ticket.quantity}</span>
+                                    </div>
+                                ))}
+
+                                {/* Dotted line */}
+                                <div className="border-t border-dashed border-[#14FFEC]/40 my-4"></div>
+
+                                {/* Total Tickets */}
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <img src="/common/Ticket.svg" alt="Ticket" width="24" height="24" />
+                                        <p className="text-white font-['Manrope'] font-medium">Total Tickets</p>
+                                    </div>
+                                    <span className="text-white font-['Manrope'] font-bold">{totalTickets}</span>
                                 </div>
-                                <span className="text-white font-['Manrope'] font-bold">×{maleStag}</span>
-                            </div>
-                        )}
 
-                        {/* Female Stag */}
-                        {femaleStag > 0 && (
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-3">
-                                    <img src="/common/Ticket.svg" alt="Ticket" width="24" height="24" />
-                                    <p className="text-white font-['Manrope'] font-medium">{ticketType === 'early' ? 'Early Bird' : 'General'} Female Stag</p>
+                                {/* Dotted line */}
+                                <div className="border-t border-dashed border-[#14FFEC]/40 my-4"></div>
+
+                                {/* Total Amount */}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <img src="/common/Ticket.svg" alt="Ticket" width="24" height="24" />
+                                        <p className="text-white font-['Manrope'] font-medium">Total Amount</p>
+                                    </div>
+                                    <span className="text-[#14FFEC] font-['Manrope'] font-bold text-lg">₹ {totalAmount.toLocaleString()}</span>
                                 </div>
-                                <span className="text-white font-['Manrope'] font-bold">×{femaleStag}</span>
-                            </div>
+                            </>
+                        ) : (
+                            <p className="text-gray-400">No tickets selected</p>
                         )}
-
-                        {/* Couple */}
-                        {couple > 0 && (
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-3">
-                                    <img src="/common/Ticket.svg" alt="Ticket" width="24" height="24" />
-                                    <p className="text-white font-['Manrope'] font-medium">{ticketType === 'early' ? 'Early Bird' : 'General'} Couple</p>
-                                </div>
-                                <span className="text-white font-['Manrope'] font-bold">×{couple}</span>
-                            </div>
-                        )}
-
-                        {/* Dotted line */}
-                        <div className="border-t border-dashed border-[#14FFEC]/40 my-4"></div>
-
-                        {/* Total Tickets */}
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                                <img src="/common/Ticket.svg" alt="Ticket" width="24" height="24" />
-                                <p className="text-white font-['Manrope'] font-medium">Total Tickets</p>
-                            </div>
-                            <span className="text-white font-['Manrope'] font-bold">{maleStag + femaleStag + couple}</span>
-                        </div>
-
-                        {/* Dotted line */}
-                        <div className="border-t border-dashed border-[#14FFEC]/40 my-4"></div>
-
-                        {/* No. of people attending */}
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <img src="/common/Ticket.svg" alt="Ticket" width="24" height="24" />
-                                <p className="text-white font-['Manrope'] font-medium">People Attending</p>
-                            </div>
-                            <span className="text-white font-['Manrope'] font-bold">{maleStag + femaleStag + (couple * 2)}</span>
-                        </div>
                     </div>
                 </div>
 

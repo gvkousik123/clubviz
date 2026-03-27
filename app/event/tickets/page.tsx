@@ -26,90 +26,25 @@ function TicketsPageContent() {
     const { event: cachedEventData, loading: eventLoading } = useEventDetail(eventId);
 
     const [activeTab, setActiveTab] = useState('early');
-    const [tickets, setTickets] = useState({
-        maleStag: 0,
-        femaleStag: 0,
-        couple: 0,
-    });
+    const [tickets, setTickets] = useState<Record<string, number>>({});
     const [eventData, setEventData] = useState<any>(null);
     const [ticketTypes, setTicketTypes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isHydrated, setIsHydrated] = useState(false);
 
-    // Helper function to get pricing for a specific ticket type
-    const getTicketPrice = (type: 'maleStag' | 'femaleStag' | 'couple', category: 'early' | 'general') => {
-        if (!ticketTypes || ticketTypes.length === 0) {
-            // Fallback to default prices if no ticket types are available
-            if (category === 'early') {
-                return type === 'maleStag' ? { price: 1500, cover: 1000 } :
-                    type === 'femaleStag' ? { price: 0, cover: 0, isFree: true } :
-                        { price: 0, cover: 0, isFree: true };
-            } else {
-                return type === 'maleStag' ? { price: 2000, cover: 1000 } :
-                    type === 'femaleStag' ? { price: 2000, cover: 1000 } :
-                        { price: 2000, cover: 1000 };
-            }
-        }
-
-        // Map type and category to ticket name
-        const ticketNameMap: Record<string, string> = {
-            'maleStag-early': 'Early Bird Male Stag',
-            'femaleStag-early': 'Early Bird Female Stag',
-            'couple-early': 'Early Bird Couple',
-            'maleStag-general': 'General Male Stag',
-            'femaleStag-general': 'General Female Stag',
-            'couple-general': 'General Couple',
-        };
-
-        const ticketName = ticketNameMap[`${type}-${category}`];
-        const ticketType = ticketTypes.find(t =>
-            t.name && t.name.toLowerCase().includes(type.toLowerCase()) &&
-            t.name.toLowerCase().includes(category)
-        ) || ticketTypes.find(t => t.name === ticketName);
-
-        if (ticketType) {
-            return {
-                price: ticketType.price || 0,
-                cover: ticketType.coverCharge || 0,
-                isFree: ticketType.price === 0 || ticketType.price === null
-            };
-        }
-
-        // Fallback prices
-        return category === 'early'
-            ? (type === 'maleStag' ? { price: 1500, cover: 1000 } : { price: 0, cover: 0, isFree: true })
-            : { price: 2000, cover: 1000 };
-    };
-
     // Format price text
-    const formatPriceText = (pricing: { price: number; cover?: number; isFree?: boolean }) => {
-        if (pricing.isFree) return 'Free Entry';
-        if (pricing.cover && pricing.cover > 0) {
-            return `Rs ${pricing.price} (Cover - ${pricing.cover})`;
-        }
-        return `Rs ${pricing.price}`;
+    const formatPriceText = (price: number, currency: string = 'INR') => {
+        if (!price) return 'Free Entry';
+        return `₹ ${price.toLocaleString()}`;
     };
 
-    // Get remark for a ticket type
-    const getTicketRemark = (type: 'maleStag' | 'femaleStag' | 'couple', category: 'early' | 'general') => {
-        if (!ticketTypes || ticketTypes.length === 0) return null;
-
-        const ticketNameMap: Record<string, string> = {
-            'maleStag-early': 'Early Bird Male Stag',
-            'femaleStag-early': 'Early Bird Female Stag',
-            'couple-early': 'Early Bird Couple',
-            'maleStag-general': 'General Male Stag',
-            'femaleStag-general': 'General Female Stag',
-            'couple-general': 'General Couple',
-        };
-
-        const ticketName = ticketNameMap[`${type}-${category}`];
-        const ticketType = ticketTypes.find(t =>
-            t.name && t.name.toLowerCase().includes(type.toLowerCase()) &&
-            t.name.toLowerCase().includes(category)
-        ) || ticketTypes.find(t => t.name === ticketName);
-
-        return ticketType?.remark || null;
+    // Initialize tickets state with ticket types
+    const initializeTickets = (types: any[]) => {
+        const initialState: Record<string, number> = {};
+        types.forEach((type) => {
+            initialState[type.name] = 0;
+        });
+        setTickets(initialState);
     };
 
     // Format and set event data when cached data is available
@@ -123,6 +58,7 @@ function TicketsPageContent() {
                 title: cachedEventData.title || 'Event',
                 venue: cachedEventData.location || cachedEventData.club?.name || 'Venue',
                 clubName: cachedEventData.club?.name || '',
+                clubId: cachedEventData.club?.id || '',
                 date: cachedEventData.formattedDate || cachedEventData.startDateTime || 'Date',
                 time: cachedEventData.formattedTime || cachedEventData.startDateTime || 'Time',
                 image: cachedEventData.imageUrl || cachedEventData.images?.[0] || cachedEventData.club?.logo || '/event list/Rectangle 1.jpg',
@@ -138,6 +74,7 @@ function TicketsPageContent() {
             // Extract ticket types if available
             if (cachedEventData.ticketTypes && Array.isArray(cachedEventData.ticketTypes)) {
                 setTicketTypes(cachedEventData.ticketTypes);
+                initializeTickets(cachedEventData.ticketTypes);
             }
 
             setLoading(false);
@@ -163,16 +100,16 @@ function TicketsPageContent() {
         setActiveTab(tab);
     };
 
-    const updateTicketCount = (type: 'maleStag' | 'femaleStag' | 'couple', value: number) => {
+    const updateTicketCount = (ticketName: string, value: number) => {
         setTickets(prev => ({
             ...prev,
-            [type]: value
+            [ticketName]: Math.max(0, value)
         }));
     };
 
     const handleProceedToPay = () => {
         // Calculate total tickets
-        const totalTickets = tickets.maleStag + tickets.femaleStag + tickets.couple;
+        const totalTickets = Object.values(tickets).reduce((sum, count) => sum + count, 0);
 
         if (totalTickets === 0) {
             toast({
@@ -186,7 +123,7 @@ function TicketsPageContent() {
         // Get user contact info from localStorage
         const userStr = typeof window !== 'undefined' ? localStorage.getItem('clubviz-user') : null;
         let contactInfo = {
-            maleName: 'Guest',
+            name: 'Guest',
             phone: '',
             email: ''
         };
@@ -195,7 +132,7 @@ function TicketsPageContent() {
             try {
                 const user = JSON.parse(userStr);
                 contactInfo = {
-                    maleName: user.username || user.name || user.fullName || 'Guest',
+                    name: user.username || user.name || user.fullName || 'Guest',
                     phone: user.phoneNumber || user.mobileNumber || user.mobile || '',
                     email: user.email || ''
                 };
@@ -204,18 +141,31 @@ function TicketsPageContent() {
             }
         }
 
-        // Store booking data directly with contact info from localStorage
+        // Create ticket breakdown with actual names from ticketTypes
+        const ticketBreakdown = ticketTypes
+            .filter(type => tickets[type.name] > 0)
+            .map(type => ({
+                name: type.name,
+                price: type.price,
+                quantity: tickets[type.name],
+                currency: type.currency
+            }));
+
+        // Calculate total amount
+        const totalAmount = ticketBreakdown.reduce((sum, ticket) => {
+            return sum + (ticket.price * ticket.quantity);
+        }, 0);
+
+        // Store booking data with actual ticket breakdown
         const bookingData = {
             eventId: eventId,
-            ticketType: activeTab,
-            maleStag: tickets.maleStag,
-            femaleStag: tickets.femaleStag,
-            couple: tickets.couple,
-            maleName: contactInfo.maleName,
-            femaleName: 'Sammy Simon',
-            stagName: contactInfo.maleName,
-            phone: contactInfo.phone,
-            email: contactInfo.email,
+            tickets: tickets,
+            ticketBreakdown: ticketBreakdown,
+            totalTickets: totalTickets,
+            totalAmount: totalAmount,
+            userName: contactInfo.name,
+            userPhone: contactInfo.phone,
+            userEmail: contactInfo.email,
             eventData: eventData
         };
 
@@ -223,7 +173,9 @@ function TicketsPageContent() {
         sessionStorage.setItem('eventBookingData', JSON.stringify(bookingData));
         sessionStorage.setItem('currentEventData', JSON.stringify(eventData));
 
-        // Go directly to review booking page
+        console.log('Booking data prepared:', bookingData);
+
+        // Go to review booking page
         router.push(`/event/review-booking`);
     };
 
@@ -301,172 +253,52 @@ function TicketsPageContent() {
                 <div className="px-6 pt-8">
                     <h2 className="text-white text-center text-base font-['Anton'] font-normal tracking-wide mb-3">SELECT YOUR ENTRY TICKETS</h2>
 
-                    {/* Tab Selection */}
-                    <div className="flex mb-3">
-                        <button
-                            onClick={() => handleTabChange('early')}
-                            className={`flex-1 py-2 rounded-t-[45px] text-white font-['Manrope'] font-semibold text-center ${activeTab === 'early'
-                                ? 'bg-[radial-gradient(ellipse_at_center_bottom,_var(--tw-gradient-stops))] from-[#003D3C] to-[#01807E]'
-                                : 'bg-[#37484D]'
-                                }`}
-                        >
-                            Early bird Tickets
-                        </button>
-                        <button
-                            onClick={() => handleTabChange('general')}
-                            className={`flex-1 py-2 rounded-t-[30px] text-white font-['Manrope'] font-semibold text-center ${activeTab === 'general'
-                                ? 'bg-[radial-gradient(ellipse_at_center_bottom,_var(--tw-gradient-stops))] from-[#003D3C] to-[#01807E]'
-                                : 'bg-[#37484D]'
-                                }`}
-                        >
-                            General Tickets
-                        </button>
-                    </div>
+                    {/* Ticket Selection */}
+                    <div className="space-y-3">
+                        {ticketTypes && ticketTypes.length > 0 ? (
+                            ticketTypes.map((ticketType, index) => (
+                                <div key={ticketType.name || index}>
+                                    {/* Ticket Card */}
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex-1">
+                                                <p className="text-white font-['Manrope'] font-semibold text-base">
+                                                    {ticketType.name}
+                                                </p>
+                                                <p className="text-[#14FFEC] font-['Manrope'] font-medium text-base">
+                                                    {formatPriceText(ticketType.price, ticketType.currency)}
+                                                </p>
+                                                {ticketType.remark && (
+                                                    <p className="text-[#71F8FF] font-['Manrope'] font-medium text-xs mt-1">
+                                                        {ticketType.remark}
+                                                    </p>
+                                                )}
+                                                <p className="text-gray-400 text-xs mt-2">
+                                                    Available: {ticketType.quantity}
+                                                </p>
+                                            </div>
+                                            <TicketCounter
+                                                value={tickets[ticketType.name] || 0}
+                                                onChange={(value) => updateTicketCount(ticketType.name, value)}
+                                                min={0}
+                                                max={ticketType.quantity || 20}
+                                            />
+                                        </div>
+                                    </div>
 
-                    {/* Ticket Selection - Early Bird Tab */}
-                    <div className={activeTab === 'early' ? 'block' : 'hidden'}>
-                        {/* Male Stag Entry */}
-                        <div className="flex flex-col gap-2 mb-2">
-                            <div className="flex justify-between items-center">
-                                <div className="flex-1">
-                                    <p className="text-white font-['Manrope'] font-medium">Male Stag Entry</p>
-                                    <p className="text-[#14FFEC] font-['Manrope'] font-medium">{formatPriceText(getTicketPrice('maleStag', 'early'))}</p>
-                                    {getTicketRemark('maleStag', 'early') && (
-                                        <p className="text-[#71F8FF] font-['Manrope'] font-medium text-xs mt-1">{getTicketRemark('maleStag', 'early')}</p>
+                                    {/* Separator Line */}
+                                    {index < ticketTypes.length - 1 && (
+                                        <div className="flex justify-center my-3">
+                                            <div className="w-5/6 h-[1px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent opacity-80"></div>
+                                        </div>
                                     )}
                                 </div>
-                                <TicketCounter 
-                                    value={tickets.maleStag}
-                                    onChange={(value) => updateTicketCount('maleStag', value)}
-                                    min={0}
-                                    max={20}
-                                />
+                            ))
+                        ) : (
+                            <div className="text-center py-8">
+                                <p className="text-gray-400">No tickets available</p>
                             </div>
-                            <p className="text-white font-['Manrope'] font-medium">Early birds couple entry</p>
-                        </div>
-
-                        {/* Separator Line */}
-                        <div className="flex justify-center my-3">
-                            <div className="w-5/6 h-[1px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent opacity-80"></div>
-                        </div>
-
-                        {/* Female Stag Entry */}
-                        <div className="flex flex-col gap-3 mb-3">
-                            <div className="flex justify-between items-center">
-                                <div className="flex-1">
-                                    <p className="text-white font-['Manrope'] font-medium">Female stag Entry</p>
-                                    <p className="text-[#14FFEC] font-['Manrope'] font-medium">{formatPriceText(getTicketPrice('femaleStag', 'early'))}</p>
-                                    {getTicketRemark('femaleStag', 'early') && (
-                                        <p className="text-[#71F8FF] font-['Manrope'] font-medium text-xs mt-1">{getTicketRemark('femaleStag', 'early')}</p>
-                                    )}
-                                </div>
-                                <TicketCounter 
-                                    value={tickets.femaleStag}
-                                    onChange={(value) => updateTicketCount('femaleStag', value)}
-                                    min={0}
-                                    max={20}
-                                />
-                            </div>
-                            <p className="text-white font-['Manrope'] font-medium">Early birds couple entry</p>
-                        </div>
-
-                        {/* Separator Line */}
-                        <div className="flex justify-center my-3">
-                            <div className="w-5/6 h-[1px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent opacity-80"></div>
-                        </div>
-
-                        {/* Couple Entry */}
-                        <div className="flex flex-col gap-3 mb-3">
-                            <div className="flex justify-between items-center">
-                                <div className="flex-1">
-                                    <p className="text-white font-['Manrope'] font-medium">Couple Entry</p>
-                                    <p className="text-[#14FFEC] font-['Manrope'] font-medium">{formatPriceText(getTicketPrice('couple', 'early'))}</p>
-                                    {getTicketRemark('couple', 'early') && (
-                                        <p className="text-[#71F8FF] font-['Manrope'] font-medium text-xs mt-1">{getTicketRemark('couple', 'early')}</p>
-                                    )}
-                                </div>
-                                <TicketCounter 
-                                    value={tickets.couple}
-                                    onChange={(value) => updateTicketCount('couple', value)}
-                                    min={0}
-                                    max={20}
-                                />
-                            </div>
-                            <p className="text-white font-['Manrope'] font-medium">Early birds couple entry</p>
-                        </div>
-                    </div>
-
-                    {/* Ticket Selection - General Tab */}
-                    <div className={activeTab === 'general' ? 'block' : 'hidden'}>
-                        {/* Male Stag Entry */}
-                        <div className="flex flex-col gap-3 mb-3">
-                            <div className="flex justify-between items-center">
-                                <div className="flex-1">
-                                    <p className="text-white font-['Manrope'] font-semibold">Male Stag Entry</p>
-                                    <p className="text-[#14FFEC] font-['Manrope'] font-semibold">{formatPriceText(getTicketPrice('maleStag', 'general'))}</p>
-                                    {getTicketRemark('maleStag', 'general') && (
-                                        <p className="text-[#71F8FF] font-['Manrope'] font-medium text-xs mt-1">{getTicketRemark('maleStag', 'general')}</p>
-                                    )}
-                                </div>
-                                <TicketCounter 
-                                    value={tickets.maleStag}
-                                    onChange={(value) => updateTicketCount('maleStag', value)}
-                                    min={0}
-                                    max={20}
-                                />
-                            </div>
-                            <p className="text-white font-['Manrope'] font-semibold">Early birds couple entry</p>
-                        </div>
-
-                        {/* Separator Line */}
-                        <div className="flex justify-center my-3">
-                            <div className="w-5/6 h-[1px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent opacity-80"></div>
-                        </div>
-
-                        {/* Female Stag Entry */}
-                        <div className="flex flex-col gap-3 mb-3">
-                            <div className="flex justify-between items-center">
-                                <div className="flex-1">
-                                    <p className="text-white font-['Manrope'] font-semibold">Female stag Entry</p>
-                                    <p className="text-[#14FFEC] font-['Manrope'] font-semibold">{formatPriceText(getTicketPrice('femaleStag', 'general'))}</p>
-                                    {getTicketRemark('femaleStag', 'general') && (
-                                        <p className="text-[#71F8FF] font-['Manrope'] font-medium text-xs mt-1">{getTicketRemark('femaleStag', 'general')}</p>
-                                    )}
-                                </div>
-                                <TicketCounter 
-                                    value={tickets.femaleStag}
-                                    onChange={(value) => updateTicketCount('femaleStag', value)}
-                                    min={0}
-                                    max={20}
-                                />
-                            </div>
-                            <p className="text-white font-['Manrope'] font-semibold">Early birds couple entry</p>
-                        </div>
-
-                        {/* Separator Line */}
-                        <div className="flex justify-center my-3">
-                            <div className="w-5/6 h-[1px] bg-gradient-to-r from-transparent via-[#71F8FF] to-transparent opacity-80"></div>
-                        </div>
-
-                        {/* Couple Entry */}
-                        <div className="flex flex-col gap-3 mb-3">
-                            <div className="flex justify-between items-center">
-                                <div className="flex-1">
-                                    <p className="text-white font-['Manrope'] font-semibold">Couple Entry</p>
-                                    <p className="text-[#14FFEC] font-['Manrope'] font-semibold">{formatPriceText(getTicketPrice('couple', 'general'))}</p>
-                                    {getTicketRemark('couple', 'general') && (
-                                        <p className="text-[#71F8FF] font-['Manrope'] font-medium text-xs mt-1">{getTicketRemark('couple', 'general')}</p>
-                                    )}
-                                </div>
-                                <TicketCounter 
-                                    value={tickets.couple}
-                                    onChange={(value) => updateTicketCount('couple', value)}
-                                    min={0}
-                                    max={20}
-                                />
-                            </div>
-                            <p className="text-white font-['Manrope'] font-semibold">Early birds couple entry</p>
-                        </div>
+                        )}
                     </div>
                 </div>
 

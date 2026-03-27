@@ -87,13 +87,35 @@ export function usePayment() {
                             const eventBooking = JSON.parse(eventBookingStr);
                             console.log('📦 Event booking data from sessionStorage:', eventBooking);
 
-                            // Calculate guestCount from counts
-                            const maleCount = eventBooking.maleCount || eventBooking.maleStag || 0;
-                            const femaleCount = eventBooking.femaleCount || eventBooking.femaleStag || 0;
-                            const coupleCount = eventBooking.coupleCount || eventBooking.couple || 0;
+                            // Handle BOTH old and new ticket structure
+                            let maleCount = 0;
+                            let femaleCount = 0;
+                            let coupleCount = 0;
+                            let totalAmount = eventBooking.totalAmount || 0;
+
+                            // NEW format: ticketBreakdown array
+                            if (eventBooking.ticketBreakdown && Array.isArray(eventBooking.ticketBreakdown)) {
+                                console.log('📊 Processing NEW ticketBreakdown format');
+                                eventBooking.ticketBreakdown.forEach((ticket: any) => {
+                                    if (ticket.name.includes('Male') && !ticket.name.includes('Female')) {
+                                        maleCount += ticket.quantity || 0;
+                                    } else if (ticket.name.includes('Female')) {
+                                        femaleCount += ticket.quantity || 0;
+                                    } else if (ticket.name.includes('Couple')) {
+                                        coupleCount += ticket.quantity || 0;
+                                    }
+                                });
+                            } else {
+                                // OLD format: individual count fields
+                                console.log('📊 Processing OLD format with individual counts');
+                                maleCount = eventBooking.maleCount || eventBooking.maleStag || 0;
+                                femaleCount = eventBooking.femaleCount || eventBooking.femaleStag || 0;
+                                coupleCount = eventBooking.coupleCount || eventBooking.couple || 0;
+                            }
+
                             const guestCount = maleCount + femaleCount + (coupleCount * 2);
 
-                            // Build payload with ONLY required fields per API spec
+                            // Build payload with ALL required fields per API spec
                             const ticketPayload = {
                                 userId: eventBooking.userId,
                                 eventId: eventBooking.eventId,
@@ -103,10 +125,20 @@ export function usePayment() {
                                 maleCount: maleCount,
                                 femaleCount: femaleCount,
                                 coupleCount: coupleCount,
+                                totalAmount: totalAmount,
                                 currency: eventBooking.currency || 'INR',
                                 orderId: order_id
                             };
-                            console.log('📤 Event Ticket payload (REQUIRED fields only):', JSON.stringify(ticketPayload, null, 2));
+                            
+                            console.log('========== EVENT TICKET PAYLOAD DEBUG ==========');
+                            console.log('📋 EventId:', ticketPayload.eventId);
+                            console.log('💰 TotalAmount:', ticketPayload.totalAmount);
+                            console.log('🎟️  Counts - Male:', maleCount, 'Female:', femaleCount, 'Couple:', coupleCount);
+                            console.log('👥 GuestCount:', guestCount);
+                            console.log('💳 OrderId:', order_id);
+                            console.log('🔐 Token will be auto-added via request interceptor');
+                            console.log('📤 FULL Payload:', JSON.stringify(ticketPayload, null, 2));
+                            console.log('================================================');
 
                             const ticketResponse = await TicketService.createEventTicketWithOrder(ticketPayload);
 

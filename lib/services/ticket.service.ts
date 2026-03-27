@@ -660,10 +660,11 @@ export class TicketService {
             coupleCount: number;
             currency: string;
             orderId: string;
+            totalAmount?: number;
         }
     ): Promise<ApiResponse<any>> {
         try {
-            // Build payload with ONLY the required fields per API spec
+            // Build payload with all required and optional fields per API spec
             const payload = {
                 userId: ticketData.userId,
                 eventId: ticketData.eventId,
@@ -674,18 +675,28 @@ export class TicketService {
                 femaleCount: ticketData.femaleCount,
                 coupleCount: ticketData.coupleCount,
                 currency: ticketData.currency,
+                totalAmount: ticketData.totalAmount || 0,
                 orderId: ticketData.orderId
             };
 
             console.log('🔵 Creating EVENT ticket with orderId:', ticketData.orderId);
             console.log('📤 Event Ticket Payload:', JSON.stringify(payload, null, 2));
-            console.log('🔵 Calling endpoint: /ticket/club-tickets/event');
+            console.log('🔵 Calling endpoint: POST /ticket/club-tickets/event');
+            console.log('🔐 Authorization token: AUTOMATICALLY ADDED via request interceptor');
+            console.log('   Token source: localStorage[STORAGE_KEYS.accessToken]');
+            console.log('   Token format: Bearer <token>');
 
             const response = await api.post<any>(
                 `${this.TICKET_BASE}/club-tickets/event`,
                 payload
             );
-            console.log('✅ Event ticket created successfully:', response.data);
+            
+            console.log('✅ Event ticket created successfully');
+            console.log('📨 API Response:', response.data);
+            
+            if (response.status !== 200 && response.status !== 201) {
+                console.error('⚠️  Unexpected HTTP status code:', response.status);
+            }
 
             // API returns { status: "success", message: "...", timestamp: "..." }
             // Convert to standard ApiResponse format
