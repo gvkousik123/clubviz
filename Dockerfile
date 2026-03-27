@@ -32,8 +32,9 @@ COPY --chown=nextjs:nodejs pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 # Copy source code
 COPY --chown=nextjs:nodejs . .
 
-# Install dependencies and build
-RUN pnpm install --no-frozen-lockfile && pnpm run build
+# Install ALL dependencies (including devDependencies) and build
+# NODE_ENV must NOT be production during install or pnpm skips devDependencies (tailwindcss, typescript, etc.)
+RUN NODE_ENV=development pnpm install --no-frozen-lockfile && pnpm run build
 
 # Add build metadata
 LABEL org.opencontainers.image.title="ClubViz" \
