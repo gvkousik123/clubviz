@@ -24,6 +24,11 @@ function ReviewBookingPageContent() {
     const { toast } = useToast();
     const { quickPay, loading: paymentLoading } = usePayment();
 
+    // Handle back navigation to home instead of previous page
+    const handleBackToHome = () => {
+        router.push('/home');
+    };
+
     // Get data from sessionStorage
     const [bookingData, setBookingData] = useState<any>(null);
     const [isCreatingTicket, setIsCreatingTicket] = useState(false);
@@ -85,6 +90,7 @@ function ReviewBookingPageContent() {
     const handlePayment = async () => {
         try {
             setErrorMessage(null);
+            console.clear(); // Clear previous logs for clarity
 
             // Get user data from localStorage
             const userStr = typeof window !== 'undefined' ? localStorage.getItem('clubviz-user') : null;
@@ -195,10 +201,21 @@ function ReviewBookingPageContent() {
 
             if (!paymentSuccess) {
                 setErrorMessage('Failed to initiate payment. Please try again.');
+                console.error('❌ Payment initiation failed');
             }
         } catch (error: any) {
-            console.error('Payment error:', error);
-            setErrorMessage(error.message || 'An error occurred. Please try again.');
+            console.error('❌ Payment error:', error);
+            const errorMsg = error?.message || 'An error occurred. Please try again.';
+            setErrorMessage(errorMsg);
+            
+            // Also show as toast for more visibility
+            if (errorMsg.includes('already have an active ticket')) {
+                toast({
+                    title: '⚠️  Booking Conflict',
+                    description: errorMsg,
+                    variant: 'destructive'
+                });
+            }
         }
     };
 
@@ -220,21 +237,24 @@ function ReviewBookingPageContent() {
 
     return (
         <div className="min-h-screen w-full bg-[#021313] relative">
-            <PageHeader title="REVIEW EVENT BOOKING" />
+            <PageHeader title="REVIEW EVENT BOOKING" onBack={handleBackToHome} />
 
-            {/* Error Message Alert */}
+            {/* Error Message Alert - Enhanced */}
             {errorMessage && (
-                <div className="fixed top-20 left-4 right-4 z-50 bg-red-900/80 border border-red-400 text-red-100 px-4 py-3 rounded-lg shadow-lg flex items-start gap-3">
-                    <div className="flex-1">
-                        <p className="font-semibold">Booking Error</p>
-                        <p className="text-sm mt-1">{errorMessage}</p>
+                <div className="fixed top-[12vh] left-0 right-0 z-50 px-4">
+                    <div className="bg-gradient-to-r from-red-900 to-red-800 border-2 border-red-400 text-red-50 px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-sm flex items-start gap-4">
+                        <div className="flex-shrink-0 text-2xl">⚠️</div>
+                        <div className="flex-1">
+                            <p className="font-['Manrope'] font-bold text-base">Booking Failed</p>
+                            <p className="text-red-100 font-['Manrope'] text-sm mt-2 leading-relaxed">{errorMessage}</p>
+                        </div>
+                        <button
+                            onClick={() => setErrorMessage(null)}
+                            className="flex-shrink-0 text-red-200 hover:text-red-100 text-2xl font-bold transition-colors"
+                        >
+                            ✕
+                        </button>
                     </div>
-                    <button
-                        onClick={() => setErrorMessage(null)}
-                        className="text-red-300 hover:text-red-100 font-bold"
-                    >
-                        ✕
-                    </button>
                 </div>
             )}
 

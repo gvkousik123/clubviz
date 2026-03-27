@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/common/page-header';
 import Image from 'next/image';
 import { TicketService } from '@/lib/services/ticket.service';
@@ -25,10 +26,16 @@ interface BookingItem {
 }
 
 export default function BookingPage() {
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
     const [activeEventFilter, setActiveEventFilter] = useState<string | 'all'>('all');
     const [tickets, setTickets] = useState<BookingItem[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Handle back navigation to home
+    const handleBackToHome = () => {
+        router.push('/home');
+    };
 
     useEffect(() => {
         fetchUserTickets();
@@ -145,7 +152,7 @@ export default function BookingPage() {
 
     return (
         <div className="min-h-screen w-full bg-[#021313] overflow-hidden">
-            <PageHeader title="MY BOOKINGS" />
+            <PageHeader title="MY BOOKINGS" onBack={handleBackToHome} />
 
             {/* Tab Navigation */}
             <div className="px-4 py-6 pt-[20vh]">

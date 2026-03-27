@@ -142,11 +142,27 @@ export function usePayment() {
 
                             const ticketResponse = await TicketService.createEventTicketWithOrder(ticketPayload);
 
-                            if (!ticketResponse.success) {
-                                throw new Error('Failed to create event ticket. Please try again.');
+                            console.log('📋 Ticket response:', ticketResponse);
+                            console.log('✅ Success flag:', ticketResponse.success);
+                            console.log('📦 Ticket data:', ticketResponse.data);
+
+                            // API returns success if either:
+                            // 1. response.success === true (from our handler)
+                            // 2. ticketResponse.data?.ticketId exists (ticket was created)
+                            const ticketCreatedSuccessfully = ticketResponse.success || !!ticketResponse.data?.ticketId;
+
+                            if (!ticketCreatedSuccessfully) {
+                                console.error('❌ Ticket creation failed - no ticketId in response');
+                                console.error('Full response:', ticketResponse);
+                                
+                                // Extract meaningful error message from API response
+                                const errorMessage = ticketResponse.data?.message || 
+                                                    ticketResponse.message || 
+                                                    'Failed to create event ticket. Please try again.';
+                                throw new Error(errorMessage);
                             }
 
-                            console.log('✅ Event ticket created with orderId:', order_id);
+                            console.log('✅ Event ticket created successfully with ID:', ticketResponse.data?.ticketId);
                         } else if (clubBookingStr) {
                             // Create club ticket with orderId
                             const clubBooking = JSON.parse(clubBookingStr);
@@ -166,11 +182,24 @@ export function usePayment() {
 
                             const ticketResponse = await TicketService.createClubTicketWithOrder(ticketPayload);
 
-                            if (!ticketResponse.success) {
-                                throw new Error('Failed to create club ticket. Please try again.');
+                            console.log('📋 Club Ticket response:', ticketResponse);
+                            
+                            // API returns success if either:
+                            // 1. response.success === true (from our handler)
+                            // 2. ticketResponse.data?.ticketId exists (ticket was created)
+                            const ticketCreatedSuccessfully = ticketResponse.success || !!ticketResponse.data?.ticketId;
+
+                            if (!ticketCreatedSuccessfully) {
+                                console.error('❌ Club ticket creation failed - no ticketId in response');
+                                
+                                // Extract meaningful error message from API response
+                                const errorMessage = ticketResponse.data?.message || 
+                                                    ticketResponse.message || 
+                                                    'Failed to create club ticket. Please try again.';
+                                throw new Error(errorMessage);
                             }
 
-                            console.log('✅ Club ticket created with orderId:', order_id);
+                            console.log('✅ Club ticket created successfully with ID:', ticketResponse.data?.ticketId);
                         }
                     } catch (ticketError: any) {
                         console.error('❌ Ticket creation failed:', ticketError);

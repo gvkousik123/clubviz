@@ -664,7 +664,6 @@ export class TicketService {
         }
     ): Promise<ApiResponse<any>> {
         try {
-            // Build payload with all required and optional fields per API spec
             const payload = {
                 userId: ticketData.userId,
                 eventId: ticketData.eventId,
@@ -680,31 +679,39 @@ export class TicketService {
             };
 
             console.log('🔵 Creating EVENT ticket with orderId:', ticketData.orderId);
-            console.log('📤 Event Ticket Payload:', JSON.stringify(payload, null, 2));
+            console.log('📤 EVENT Ticket Request Payload:', JSON.stringify(payload, null, 2));
+            console.log('💰 REQUEST totalAmount:', payload.totalAmount);
             console.log('🔵 Calling endpoint: POST /ticket/club-tickets/event');
-            console.log('🔐 Authorization token: AUTOMATICALLY ADDED via request interceptor');
-            console.log('   Token source: localStorage[STORAGE_KEYS.accessToken]');
-            console.log('   Token format: Bearer <token>');
+            console.log('🔐 Authorization: Bearer <token> (auto-added)');
 
             const response = await api.post<any>(
                 `${this.TICKET_BASE}/club-tickets/event`,
                 payload
             );
             
-            console.log('✅ Event ticket created successfully');
-            console.log('📨 API Response:', response.data);
+            console.log('✅ Event ticket API response received');
+            console.log('📨 HTTP Status:', response.status);
+            console.log('📨 Response Payload:', response.data);
+            
+            if (response.data?.totalAmount === 0 && payload.totalAmount > 0) {
+                console.warn('⚠️  WARNING: Backend returned totalAmount: 0, but request sent:', payload.totalAmount);
+                console.warn('   This might be a backend calculation issue. Check if API is calculating totalAmount from entryFee.');
+            }
             
             if (response.status !== 200 && response.status !== 201) {
                 console.error('⚠️  Unexpected HTTP status code:', response.status);
             }
 
-            // API returns { status: "success", message: "...", timestamp: "..." }
-            // Convert to standard ApiResponse format
+            // API returns the ticket object directly (no status wrapper)
             const result = response.data;
+            
+            // Check if we got a ticketId (indicating successful creation)
+            const isSuccess = response.status === 201 || response.status === 200 || !!result?.ticketId;
+            
             return {
-                success: result.status === 'success',
+                success: isSuccess,
                 data: result,
-                message: result.message || 'Event ticket created successfully'
+                message: result?.message || result?.ticketNumber || 'Event ticket created successfully'
             };
         } catch (error: any) {
             console.error('❌ Event ticket creation error:', {
@@ -762,13 +769,16 @@ export class TicketService {
             );
             console.log('✅ Club ticket created successfully:', response.data);
 
-            // API returns { status: "success", message: "...", timestamp: "..." }
-            // Convert to standard ApiResponse format
+            // API returns the ticket object directly (no status wrapper)
             const result = response.data;
+            
+            // Check if we got a ticketId (indicating successful creation)
+            const isSuccess = response.status === 201 || response.status === 200 || !!result?.ticketId;
+            
             return {
-                success: result.status === 'success',
+                success: isSuccess,
                 data: result,
-                message: result.message || 'Club ticket created successfully'
+                message: result?.message || result?.ticketNumber || 'Club ticket created successfully'
             };
         } catch (error) {
             console.error('❌ Club ticket creation error:', error);
