@@ -1,0 +1,64 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Testing
+coverage
+.nyc_output
+test
+tests
+__tests__
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE and Editor files
+.vscode
+.idea
+.DS_Store
+*.swp
+*.swo
+*~
+.env
+.env.local
+.env.*.local
+
+# Build and dist
+.next
+out
+build
+dist
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.circleci
+
+# Documentation
+README.md
+CHANGELOG.md
+docs
+LICENSE
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files (don't need in image)
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+
+# Development files
+dev.pem
+design-screens
+scripts
+styles/design-system.css
+
+# Logs
+*.log
+logs

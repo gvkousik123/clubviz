@@ -44,6 +44,9 @@ jobs:
             gvenkatakousik/clubviz:${{ github.sha }}
           no-cache: true
           build-args: |
+            NEXT_PUBLIC_API_URL=https://clubwiz.in
+            NEXT_PUBLIC_SOCKET_URL=https://clubwiz.in
+            NEXT_PUBLIC_APP_ENV=production
             NEXT_PUBLIC_VERSION=${{ github.sha }}
             VCS_REF=${{ github.sha }}
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
