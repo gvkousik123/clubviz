@@ -43,6 +43,21 @@ const TagComponent = ({ icon, label, iconPath }: { icon?: React.ReactNode, label
     </div>
 );
 
+// Helper function to format offer type
+const formatOfferType = (offerType: string): string => {
+    const typeMap: { [key: string]: string } = {
+        'BUY_ONE_GET_ONE': 'Buy 1 Get 1',
+        'BOGO': 'Buy 1 Get 1',
+        'PERCENTAGE_DISCOUNT': '% Discount',
+        'FLAT_DISCOUNT': 'Flat Discount',
+        'FREE_DRINK': 'Free Drink',
+        'FREE_ENTRY': 'Free Entry',
+        'HAPPY_HOUR': 'Happy Hour',
+        'OTHER': 'Special Offer'
+    };
+    return typeMap[offerType] || offerType;
+};
+
 export default function ClubDetailPage() {
     const router = useRouter();
     const params = useParams();
@@ -672,16 +687,48 @@ export default function ClubDetailPage() {
                                 <span className="font-semibold text-[14px] leading-[16px] text-white">Today's Offers</span>
                             </div>
                             {offers && offers.length > 0 ? (
-                                <div className="self-stretch h-auto bg-[#202b2b] rounded-[15px] p-[10px] flex flex-col gap-[13px]">
+                                <div className="self-stretch h-auto bg-[#202b2b] rounded-[15px] p-[10px] flex flex-col gap-[10px]">
                                     {offers.slice(0, 3).map((offer: any, i: number) => (
-                                        <div key={i} className="flex items-center justify-between bg-[rgba(20,255,236,0.1)] border border-dashed border-[#14FFEC] rounded-[10px] p-2">
-                                            <span className="text-white text-xs font-semibold truncate">{(offer as any)?.title || (typeof offer === 'string' ? offer : 'Offer')}</span>
-                                            <button 
-                                                onClick={() => handleApplyOffer(offer)}
-                                                className="text-[#14FFEC] text-xs font-bold hover:text-[#00d9d0] transition"
-                                            >
-                                                Apply
-                                            </button>
+                                        <div key={i} className="bg-gradient-to-r from-[rgba(20,255,236,0.08)] to-[rgba(20,255,236,0.04)] border border-[#14FFEC]/40 rounded-[12px] p-3 flex flex-col gap-2 hover:border-[#14FFEC]/60 transition">
+                                            {/* Offer Header - Type and Title */}
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="inline-block bg-[#14FFEC]/20 text-[#14FFEC] text-[10px] font-bold px-2 py-1 rounded-full mb-1.5">
+                                                        {formatOfferType(offer.offerType)}
+                                                    </div>
+                                                    <p className="text-white text-xs font-semibold leading-tight">
+                                                        {offer.title}
+                                                    </p>
+                                                </div>
+                                                {offer.discountPercentage > 0 && (
+                                                    <div className="flex-shrink-0 text-right">
+                                                        <p className="text-[#14FFEC] text-sm font-bold">
+                                                            {offer.discountPercentage}%
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Offer Description */}
+                                            {offer.description && (
+                                                <p className="text-[#B6B6B6] text-[11px] leading-tight line-clamp-2">
+                                                    {offer.description}
+                                                </p>
+                                            )}
+
+                                            {/* Offer Details Footer */}
+                                            {(offer.minimumAmount || offer.promoCode) && (
+                                                <div className="flex items-center justify-between text-[10px] text-[#9B9B9B] pt-1.5 border-t border-[#14FFEC]/20">
+                                                    {offer.minimumAmount && (
+                                                        <span>Min: ₹{offer.minimumAmount}</span>
+                                                    )}
+                                                    {offer.promoCode && (
+                                                        <span className="text-[#14FFEC] font-semibold">Code: {offer.promoCode}</span>
+                                                    )}
+                                                </div>
+                                            )}
+
+
                                         </div>
                                     ))}
                                 </div>
