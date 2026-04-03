@@ -90,6 +90,7 @@ export function EventListCard({
                     <img
                         src={imageSrc}
                         alt={event.title}
+                        data-fullscreen="true"
                         className="w-full h-[180px] object-cover"
                         style={{
                             borderWidth: '1.5px',

@@ -107,6 +107,7 @@ export function EventCard({
                         <img
                             src={imageSrc}
                             alt={event.title}
+                            data-fullscreen="true"
                             className="h-full w-full object-cover"
                             onError={(e) => {
                                 const target = e.currentTarget;

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { ProfileService, UserProfile, ProfileStats, ProfileListItem } from '@/lib/services/profile.service';
 import { useToast } from '@/hooks/use-toast';
+import { STORAGE_KEYS } from '@/lib/constants/storage';
 
 // ============================================================================
 // PROFILE HOOK INTERFACE
@@ -77,6 +78,11 @@ export const useProfile = (): UseProfileReturn => {
   // ============================================================================
 
   const loadProfile = useCallback(async () => {
+    // Skip API call for guest users (no token)
+    if (typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEYS.accessToken)) {
+      setIsProfileLoading(false);
+      return;
+    }
     setIsProfileLoading(true);
     try {
       // Load profile from API endpoint

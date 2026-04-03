@@ -257,10 +257,18 @@ export default function OTPVerificationScreen() {
                                     Resend Code
                                 </button>
                             </div>
-                            {phoneNumber && (
+                            {(phoneNumber || email) && (
                                 <div className="text-center">
                                     <p className="text-[0.875rem] text-[#6A6A6A]">Code sent to</p>
-                                    <p className="text-[#0D7377] font-semibold">{phoneNumber?.slice(0, 3)} {phoneNumber?.slice(3)}</p>
+                                    {email && (
+                                        <p className="text-[#0D7377] font-semibold">{email}</p>
+                                    )}
+                                    {email && phoneNumber && (
+                                        <p className="text-[#6A6A6A] text-[0.875rem]">and</p>
+                                    )}
+                                    {phoneNumber && (
+                                        <p className="text-[#0D7377] font-semibold">+91 {phoneNumber?.slice(0, 5)} {phoneNumber?.slice(5)}</p>
+                                    )}
                                 </div>
                             )}
                         </div>

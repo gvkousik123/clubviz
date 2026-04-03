@@ -165,17 +165,23 @@ apiClient.interceptors.response.use(
           originalRequest.headers['Authorization'] = 'Bearer ' + newToken;
           return apiClient(originalRequest);
         } else {
-          // Failed to refresh token - force logout with toast
+          // Only force logout if the original request had an auth token
+          // (i.e., the user was actually logged in and the session expired).
+          // Don't redirect if the user was never authenticated (guest mode).
           isRefreshing = false;
           processQueue(error, null);
-          handleForcedLogout(true);
+          if (originalRequest.headers['Authorization']) {
+            handleForcedLogout(true);
+          }
           return Promise.reject(error);
         }
       } catch (refreshError) {
-        // Refresh token failed - force logout with toast
+        // Refresh token failed - force logout only if request had a token
         isRefreshing = false;
         processQueue(refreshError, null);
-        handleForcedLogout(true);
+        if (originalRequest.headers['Authorization']) {
+          handleForcedLogout(true);
+        }
         return Promise.reject(refreshError);
       }
     }

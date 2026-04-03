@@ -47,6 +47,7 @@ export function EventCardRow({ event, fallbackImage = '/event list/Rectangle 1.j
                     <img
                         src={event.imageUrl && isValidImageUrl(event.imageUrl) ? event.imageUrl : fallbackImage}
                         alt={event.title}
+                        data-fullscreen="true"
                         className="w-full h-[180px] object-contain bg-gray-900"
                         style={{
                             borderWidth: '1.5px',

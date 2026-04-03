@@ -62,6 +62,7 @@ export const ClubCard: React.FC<ClubCardProps> = ({
                     <img
                         src={displayUrl}
                         alt={club.name}
+                        data-fullscreen="true"
                         className="w-full h-full object-cover absolute inset-0"
                         onError={handleImageError}
                     />

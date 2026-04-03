@@ -188,12 +188,6 @@ export default function EventDetailsPage() {
                         </button>
                     </div>
 
-                    {/* Date - Left Aligned */}
-                    <div className="flex items-center gap-3 px-4 mb-6">
-                        <Calendar size={20} className="text-[#14FFEC] flex-shrink-0" />
-                        <p className="text-white font-['Manrope'] text-sm">{eventData?.formattedDate}</p>
-                    </div>
-
                     {/* Club Logo with Name and Location */}
                     <div className="px-4 mb-6 flex gap-4">
                         {/* Club Logo */}
@@ -216,6 +210,12 @@ export default function EventDetailsPage() {
                                 <p className="text-white font-['Manrope'] text-left text-xs">{eventData?.location || 'Location TBD'}</p>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Date - Left Aligned */}
+                    <div className="flex items-center gap-3 px-4 mb-4">
+                        <Calendar size={20} className="text-[#14FFEC] flex-shrink-0" />
+                        <p className="text-white font-['Manrope'] text-sm">{eventData?.formattedDate}</p>
                     </div>
 
                     {/* Time and Duration - Separated Below Location */}
@@ -325,7 +325,38 @@ export default function EventDetailsPage() {
                     </div>
                 )}
 
-                {/* Organizer/Club Section */}
+                {/* Ticket Pricing Section */}
+                {eventData?.ticketTypes && eventData.ticketTypes.length > 0 && (
+                    <div className="px-6 mb-6">
+                        <h2 className="text-white text-lg font-['Manrope'] mb-3 font-bold">Ticket Pricing</h2>
+                        <div className="space-y-2">
+                            {eventData.ticketTypes.map((ticket: any, index: number) => (
+                                <div key={index} className="bg-[#0D1F1F] rounded-lg p-3 flex items-start justify-between">
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="text-white font-['Manrope'] font-semibold text-sm">{ticket.name}</h3>
+                                        <p className="text-white/70 text-xs">Available: {ticket.quantity}</p>
+                                        {ticket.coverCharge > 0 && (
+                                            <p className="text-white/60 text-xs mt-0.5">Cover: ₹{ticket.coverCharge}</p>
+                                        )}
+                                        {ticket.remark && (
+                                            <p className="text-white/50 text-xs mt-0.5 italic">{ticket.remark}</p>
+                                        )}
+                                    </div>
+                                    <div className="text-right ml-3">
+                                        <p className="text-[#14FFEC] font-bold text-sm">
+                                            {ticket.price === 0 ? 'Free' : `₹${ticket.price}`}
+                                        </p>
+                                        {ticket.price !== 0 && (
+                                            <span className="text-xs text-white/50">{ticket.currency}</span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Organizer/Club Section - placed after pricing */}
                 {(eventData?.club || eventData?.organizer) && (
                     <>
                         <div className="px-6 mb-6">
@@ -378,27 +409,6 @@ export default function EventDetailsPage() {
                             )}
                         </div>
                     </>
-                )}
-
-                {/* Ticket Pricing Section */}
-                {eventData?.ticketTypes && eventData.ticketTypes.length > 0 && (
-                    <div className="px-6 mb-6">
-                        <h2 className="text-white text-lg font-['Manrope'] mb-3 font-bold">Ticket Pricing</h2>
-                        <div className="space-y-2">
-                            {eventData.ticketTypes.map((ticket: any, index: number) => (
-                                <div key={index} className="bg-[#0D1F1F] rounded-lg p-3 flex items-center justify-between">
-                                    <div>
-                                        <h3 className="text-white font-['Manrope'] font-semibold text-sm">{ticket.name}</h3>
-                                        <p className="text-white/70 text-xs">Available: {ticket.quantity}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-[#14FFEC] font-bold text-sm">₹{ticket.price}</p>
-                                        <span className="text-xs text-white/50">{ticket.currency}</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
                 )}
 
                 {/* Separator Line */}

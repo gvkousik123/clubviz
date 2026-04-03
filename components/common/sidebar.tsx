@@ -115,6 +115,7 @@ export default function Sidebar({
                                 <img
                                     src={profilePicture}
                                     alt="Profile"
+                                    data-fullscreen="true"
                                     className="w-[110px] h-[110px] rounded-full object-cover"
                                     onError={(e) => {
                                         (e.target as HTMLImageElement).src = '/placeholder/image.png';

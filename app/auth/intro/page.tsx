@@ -47,6 +47,11 @@ export default function IntroScreen() {
     };
 
     const handleGuestLogin = () => {
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('refreshToken');
+        }
         router.push("/home");
     };
 
@@ -221,6 +226,16 @@ export default function IntroScreen() {
                         </svg>
                     </div>
                 </div>
+            </div>
+
+            {/* Guest Login Button */}
+            <div className="relative z-10 pb-6 flex justify-center">
+                <button
+                    onClick={handleGuestLogin}
+                    className="px-6 py-2 rounded-full border border-teal-400/40 text-sm text-teal-300 hover:bg-teal-500/10 transition-colors"
+                >
+                    Continue as Guest
+                </button>
             </div>
 
         </div>

@@ -99,14 +99,10 @@ const HomePage = () => {
 
     const router = useRouter();
 
-    // Token guard: Check if user is authenticated
+    // Load favorites if authenticated; guests can browse without a token
     useEffect(() => {
         const token = localStorage.getItem(STORAGE_KEYS.accessToken);
-        if (!token) {
-            // No token found, redirect to mobile login
-            router.replace('/auth/mobile');
-            return;
-        }
+        if (!token) return; // guest mode – skip favorites
         // Load favorites from API
         ClubService.getUserFavoriteClubs({ page: 0, size: 100 })
             .then((res: any) => {
@@ -206,6 +202,11 @@ const HomePage = () => {
             id: event.id || '',
             title: event.title ? (event.title.length > 20 ? event.title.substring(0, 20) + '...' : event.title) : '',
             shortDescription: event.shortDescription || event.clubName || '',
+            musicGenres: Array.isArray(event.musicGenres) && event.musicGenres.length > 0
+                ? event.musicGenres.slice(0, 2).join(' & ')
+                : (Array.isArray(event.tags) && event.tags.length > 0
+                    ? event.tags.slice(0, 2).join(' · ')
+                    : ''),
             imageUrl: event.imageUrl || eventFallback[index % eventFallback.length]?.image || '/event list/Rectangle 1.jpg',
             location: event.location && event.location.length > 25 ?
                 event.location.substring(0, 25) + '...' :
@@ -1284,6 +1285,7 @@ const HomePage = () => {
                                                             <img
                                                                 src={event.imageUrl && isValidImageUrl(event.imageUrl) ? event.imageUrl : fallbackImage}
                                                                 alt={event.title}
+                                                                data-fullscreen="true"
                                                                 className="w-full h-[180px] object-contain bg-gray-900"
                                                                 style={{
                                                                     borderWidth: '1.5px',
@@ -1305,7 +1307,7 @@ const HomePage = () => {
                                                         {/* Content - positioned in the dark area below image */}
                                                         <div className="absolute left-[18px] right-[18px] top-[188px] flex items-center justify-between">
                                                             <div className="flex-1 min-w-0">
-                                                                <div className="text-white text-[13px] font-bold font-['Manrope'] leading-[18px] mb-1 truncate">
+                                                                <div className="text-white text-[15px] font-bold font-['Manrope'] leading-[20px] mb-1 truncate">
                                                                     {event.title}
                                                                 </div>
                                                                 <div className="text-[#C6C6C6] text-[11px] font-semibold font-['Manrope'] leading-[15px] tracking-[0.01em] truncate">
@@ -1324,8 +1326,8 @@ const HomePage = () => {
                                                             <div className="w-full h-px bg-gradient-to-r from-transparent via-[#14FFEC] to-transparent"></div>
                                                         </div>
 
-                                                        <div className="absolute left-[18px] right-[18px] top-[262px] text-white text-[11px] font-bold font-['Manrope'] leading-[15px] tracking-[0.01em] truncate">
-                                                            {event.shortDescription || event.formattedDate}
+                                                        <div className="absolute left-[18px] right-[18px] top-[262px] text-[#14FFEC] text-[11px] font-bold font-['Manrope'] leading-[15px] tracking-[0.01em] truncate">
+                                                            {event.location && event.location !== event.clubName ? event.location : ''}
                                                         </div>
                                                     </div>
                                                 </Link>

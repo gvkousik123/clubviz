@@ -8,6 +8,7 @@ import { ToastProvider } from "@/components/ui/toast"
 import { Toaster } from "@/components/ui/toaster"
 import { DataProvider } from "@/lib/store"
 import { ForceLogoutListener } from "@/components/auth/force-logout-listener"
+import { ImageViewerProvider } from "@/components/ui/image-viewer-provider"
 
 export const metadata: Metadata = {
   title: "ClubViz - Ultimate Platform for Booking Clubs",
@@ -43,15 +44,17 @@ export default function RootLayout({
       <body className="antialiased bg-background-primary text-text-primary dark">
         <ToastProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
-            <DataProvider>
-              <AuthProvider>
-                <DirectLoginWrapper>
-                  <main className="min-h-screen max-w-md mx-auto relative overflow-hidden">
-                    {children}
-                  </main>
-                </DirectLoginWrapper>
-              </AuthProvider>
-            </DataProvider>
+            <ImageViewerProvider>
+              <DataProvider>
+                <AuthProvider>
+                  <DirectLoginWrapper>
+                    <main className="min-h-screen max-w-md mx-auto relative overflow-hidden">
+                      {children}
+                    </main>
+                  </DirectLoginWrapper>
+                </AuthProvider>
+              </DataProvider>
+            </ImageViewerProvider>
           </ThemeProvider>
           <Toaster />
           <ForceLogoutListener />

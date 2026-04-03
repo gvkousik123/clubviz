@@ -239,60 +239,125 @@ function BookingTicketPageContent() {
 
                 {/* Ticket Card */}
                 <div className="w-full bg-[#0D1F1F] rounded-[20px] border border-[#14FFEC] overflow-visible relative">
-                    {/* Ticket Details */}
-                    <div className="p-5">
-                        <div className="grid grid-cols-2 gap-y-4">
-                            <div>
-                                <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Club</p>
-                                <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.clubName || 'Club'}</p>
+
+                    {/* ===== EVENT TICKET ===== */}
+                    {(ticketData?.eventName || ticketData?.eventId) ? (
+                        <div className="p-5">
+                            {/* Venue Logo + Event Name */}
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-14 h-14 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-[#14FFEC]">
+                                    <img
+                                        src={ticketData?.clubLogo || ticketData?.venueLogo || "/common/avatar-default.png"}
+                                        alt={ticketData?.clubName}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => (e.currentTarget.src = "/common/avatar-default.png")}
+                                    />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[#14FFEC] text-xs font-['Manrope'] font-semibold uppercase tracking-wide">Event</p>
+                                    <h2 className="text-white text-base font-['Manrope'] font-bold truncate">{ticketData?.eventName || 'Event Ticket'}</h2>
+                                    <p className="text-white/70 text-xs font-['Manrope']">{ticketData?.clubName || 'Venue'}</p>
+                                </div>
                             </div>
 
-                            <div>
-                                <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Time</p>
-                                {ticketData?.arrivalTime && <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.arrivalTime}</p>}
-                            </div>
-
-                            <div>
-                                <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Name</p>
-                                <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.userName || 'Guest'}</p>
-                            </div>
-
-                            <div>
-                                <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Phone</p>
-                                {ticketData?.userPhone && <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.userPhone}</p>}
-                            </div>
-
-                            <div>
-                                <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Occasion</p>
-                                <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.occasion || 'Casual'}</p>
-                            </div>
-
-                            <div>
-                                <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Date</p>
-                                {ticketData?.bookingDate && <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.bookingDate}</p>}
-                            </div>
-
-                            <div>
-                                <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Guests</p>
-                                {ticketData?.guestCount && <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.guestCount}</p>}
-                            </div>
-
-                            {ticketData?.totalAmount !== null && ticketData?.totalAmount !== undefined && (
+                            <div className="grid grid-cols-2 gap-y-4">
                                 <div>
-                                    <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Amount</p>
-                                    <p className="text-white text-sm font-['Manrope'] font-bold mt-1">₹{ticketData.totalAmount}</p>
+                                    <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Date & Time</p>
+                                    <p className="text-white text-sm font-['Manrope'] font-bold mt-1">
+                                        {ticketData?.bookingDate || ticketData?.eventDate || '—'}
+                                        {ticketData?.arrivalTime && ` | ${ticketData.arrivalTime}`}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Amount Paid</p>
+                                    <p className="text-[#14FFEC] text-sm font-['Manrope'] font-bold mt-1">
+                                        {ticketData?.totalAmount === 0 ? 'Free' : `₹${ticketData?.totalAmount ?? '—'}`}
+                                    </p>
+                                </div>
+                                {ticketData?.maleCount > 0 && (
+                                    <div>
+                                        <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Male Stag</p>
+                                        <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData.maleCount}</p>
+                                    </div>
+                                )}
+                                {ticketData?.femaleCount > 0 && (
+                                    <div>
+                                        <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Female Stag</p>
+                                        <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData.femaleCount}</p>
+                                    </div>
+                                )}
+                                {ticketData?.coupleCount > 0 && (
+                                    <div>
+                                        <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Couples</p>
+                                        <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData.coupleCount}</p>
+                                    </div>
+                                )}
+                                <div>
+                                    <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Name</p>
+                                    <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.userName || 'Guest'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        /* ===== NON-EVENT TICKET ===== */
+                        <div className="p-5">
+                            {/* Venue Logo + Name */}
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-14 h-14 rounded-full bg-[#005D5C] flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-[#14FFEC]">
+                                    <img
+                                        src={ticketData?.clubLogo || ticketData?.venueLogo || "/common/avatar-default.png"}
+                                        alt={ticketData?.clubName}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => (e.currentTarget.src = "/common/avatar-default.png")}
+                                    />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[#14FFEC] text-xs font-['Manrope'] font-semibold uppercase tracking-wide">Venue Booking</p>
+                                    <h2 className="text-white text-base font-['Manrope'] font-bold truncate">{ticketData?.clubName || 'Venue'}</h2>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-y-4">
+                                <div>
+                                    <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Date & Arrival</p>
+                                    <p className="text-white text-sm font-['Manrope'] font-bold mt-1">
+                                        {ticketData?.bookingDate || '—'}
+                                        {ticketData?.arrivalTime && ` | ${ticketData.arrivalTime}`}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">No. of Guests</p>
+                                    <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.guestCount || '—'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Name</p>
+                                    <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData?.userName || 'Guest'}</p>
+                                </div>
+                                {ticketData?.totalAmount !== null && ticketData?.totalAmount !== undefined && (
+                                    <div>
+                                        <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Amount</p>
+                                        <p className="text-[#14FFEC] text-sm font-['Manrope'] font-bold mt-1">
+                                            {ticketData.totalAmount === 0 ? 'Free' : `₹${ticketData.totalAmount}`}
+                                        </p>
+                                    </div>
+                                )}
+                                {ticketData?.occasion && (
+                                    <div>
+                                        <p className="text-[#B6B6B6] text-xs font-['Manrope'] font-medium">Occasion</p>
+                                        <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData.occasion}</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Offer */}
+                            {ticketData?.offerTitle && (
+                                <div className="mt-4 px-3 py-2 bg-[#14FFEC]/10 border border-[#14FFEC]/30 rounded-lg">
+                                    <p className="text-[#14FFEC] text-xs font-['Manrope'] font-semibold">Offer Applied</p>
+                                    <p className="text-white text-sm font-['Manrope'] font-bold">{ticketData.offerTitle}</p>
                                 </div>
                             )}
                         </div>
-
-                        {/* Floor Preference */}
-                        {ticketData?.floorPreference && (
-                            <div className="mt-4">
-                                <p className="text-[#14FFEC] text-xs font-['Manrope'] font-medium">Floor Preference</p>
-                                <p className="text-white text-sm font-['Manrope'] font-bold mt-1">{ticketData.floorPreference}</p>
-                            </div>
-                        )}
-                    </div>
+                    )}
 
                     {/* Dashed separator line with ticket cuts */}
                     <div className="relative w-full flex items-center justify-center py-[1px]">
@@ -307,17 +372,17 @@ function BookingTicketPageContent() {
                             Scan this QR code at the entry
                         </p>
                         {ticketData?.qrCode && (
-                            <div className="mb-3">
+                            <div className="mb-3 p-2 bg-white rounded-lg">
                                 <img
                                     src={`data:image/png;base64,${ticketData.qrCode}`}
                                     alt="QR Code"
-                                    className="w-[140px] h-[140px]"
+                                    className="w-[180px] h-[180px] object-contain"
                                 />
                             </div>
                         )}
-                        <div className="flex items-center gap-2">
-                            <p className="text-white text-sm font-['Manrope'] font-medium">Ticket -</p>
-                            <p className="text-white text-sm font-['Manrope'] font-bold">{ticketData?.ticketNumber || ticketData?.ticketId}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                            <p className="text-white/60 text-xs font-['Manrope'] font-medium">Booking ID:</p>
+                            <p className="text-white text-sm font-['Manrope'] font-bold">{ticketData?.ticketNumber || ticketData?.ticketId || ticketData?.bookingId}</p>
                         </div>
                     </div>
                 </div>
