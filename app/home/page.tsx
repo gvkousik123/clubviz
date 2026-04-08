@@ -1038,6 +1038,7 @@ const HomePage = () => {
                                                         <img
                                                             src={fallbackImage}
                                                             alt={venue.name}
+                                                            data-fullscreen="true"
                                                             className="w-full h-full object-cover absolute inset-0"
                                                         />
                                                         {/* White overlay effect */}
@@ -1113,6 +1114,7 @@ const HomePage = () => {
                                             className="w-[430px] h-[262px] absolute left-0 top-0 object-cover opacity-[0.81] border-t border-black"
                                             src={heroSlides[currentSlide].image}
                                             alt={heroSlides[currentSlide].musicBy}
+                                            data-fullscreen="true"
                                         />
 
                                         {/* Top gradient overlay */}

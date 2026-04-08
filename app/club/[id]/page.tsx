@@ -479,8 +479,8 @@ export default function ClubDetailPage() {
                     {heroImages.map((image, index) => (
                         <img
                             key={`${club.id}-${index}`}
-                            data-no-fullscreen="true"
-                            className="min-w-full h-full object-cover transition-transform duration-300"
+                            data-fullscreen="true"
+                            className="min-w-full h-full object-cover transition-transform duration-300 cursor-pointer"
                             src={image}
                             alt={`${club.name} - Image ${index + 1}`}
                             style={{
@@ -912,6 +912,7 @@ export default function ClubDetailPage() {
                                             <img
                                                 src={img}
                                                 alt={`Gallery ${i + 1}`}
+                                                data-fullscreen="true"
                                                 className="w-full h-full object-cover rounded-[15px] hover:scale-105 transition-transform duration-300"
                                             />
                                             {i === 4 && heroImages.length > 5 && (

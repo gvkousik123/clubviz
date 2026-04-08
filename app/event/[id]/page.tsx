@@ -132,6 +132,7 @@ export default function EventDetailsPage() {
                 <img
                     src={eventData?.imageUrl || eventData?.image || "/event list/Rectangle 1.jpg"}
                     alt={eventData?.title || "Event"}
+                    data-fullscreen="true"
                     className="object-contain w-full h-full"
                     style={{ maxHeight: '600px', maxWidth: '100%' }}
                 />

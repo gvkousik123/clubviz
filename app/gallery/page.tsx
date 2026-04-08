@@ -200,6 +200,7 @@ export default function GalleryPage() {
                                 <img
                                     src={item.image}
                                     alt={item.alt}
+                                    data-fullscreen="true"
                                     className="w-full h-full object-cover"
                                 />
                                 {/* Overlay gradient for better text visibility */}
